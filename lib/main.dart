@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:donationwallet/ffi.dart';
 
@@ -80,7 +81,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final Directory appDocumentsDir = await getApplicationSupportDirectory();
 
-    api.setup(filesDir: appDocumentsDir.path);
+    // this sets up everything except nakamoto
+    await api.setup(filesDir: appDocumentsDir.path);
+
+    final amt = await api.getAmount();
+    setState(() {
+      amount = amt;
+    });
+
+    // this starts nakamoto, will block forever
+    api.startNakamoto(filesDir: appDocumentsDir.path);
   }
 
   void _updateWalletInfo() async {
@@ -103,12 +113,16 @@ class _MyHomePageState extends State<MyHomePage> {
     await api.scanNextNBlocks(n: amount);
   }
 
+  Future<void> _resetWallet() async {
+    await api.resetWallet();
+    SystemNavigator.pop();
+  }
+
   Future<void> _scanToTip() async {
     await api.scanToTip();
   }
 
   void _getPeerCount() async {
-    // await api.getPeers();
     final peercount = await api.getPeerCount();
 
     setState(() {
@@ -119,7 +133,10 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget showScanText() {
     final toScan = tipheight - scanheight;
 
-    if (toScan == 0) {
+    if (scanheight == 0) {
+      return Text('Press \'update peer count\'',
+          style: Theme.of(context).textTheme.headlineSmall);
+    } else if (toScan == 0) {
       return Text('Up to date!',
           style: Theme.of(context).textTheme.headlineSmall);
     } else {
@@ -148,6 +165,15 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: [
+          TextButton(
+            onPressed: _resetWallet,
+            child: const Text(
+              'Reset wallet',
+              style: TextStyle(),
+            ),
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -199,13 +225,18 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 10.0,
             ),
             ElevatedButton(
-              onPressed: () async {
-                await _scanToTip();
-              },
+              onPressed: peercount == 0
+                  ? null
+                  : () async {
+                      await _scanToTip();
+                    },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
               ),
               child: const Text('scan to tip'),
+            ),
+            const SizedBox(
+              height: 10,
             ),
             // Text('Scan height: $scanheight'),
             // Text('Chain height: $tipheight'),

@@ -77,6 +77,23 @@ class RustImpl implements Rust {
         argNames: [],
       );
 
+  Future<void> resetWallet({dynamic hint}) {
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_reset_wallet(port_),
+      parseSuccessData: _wire2api_unit,
+      parseErrorData: null,
+      constMeta: kResetWalletConstMeta,
+      argValues: [],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kResetWalletConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "reset_wallet",
+        argNames: [],
+      );
+
   Future<void> setup({required String filesDir, dynamic hint}) {
     var arg0 = _platform.api2wire_String(filesDir);
     return _platform.executeNormal(FlutterRustBridgeTask(
@@ -92,6 +109,24 @@ class RustImpl implements Rust {
   FlutterRustBridgeTaskConstMeta get kSetupConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "setup",
+        argNames: ["filesDir"],
+      );
+
+  Future<void> startNakamoto({required String filesDir, dynamic hint}) {
+    var arg0 = _platform.api2wire_String(filesDir);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_start_nakamoto(port_, arg0),
+      parseSuccessData: _wire2api_unit,
+      parseErrorData: null,
+      constMeta: kStartNakamotoConstMeta,
+      argValues: [filesDir],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kStartNakamotoConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "start_nakamoto",
         argNames: ["filesDir"],
       );
 
@@ -161,6 +196,23 @@ class RustImpl implements Rust {
   FlutterRustBridgeTaskConstMeta get kGetWalletInfoConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "get_wallet_info",
+        argNames: [],
+      );
+
+  Future<int> getAmount({dynamic hint}) {
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_get_amount(port_),
+      parseSuccessData: _wire2api_u32,
+      parseErrorData: null,
+      constMeta: kGetAmountConstMeta,
+      argValues: [],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kGetAmountConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "get_amount",
         argNames: [],
       );
 
@@ -410,6 +462,20 @@ class RustWire implements FlutterRustBridgeWireBase {
   late final _wire_create_scan_progress_stream =
       _wire_create_scan_progress_streamPtr.asFunction<void Function(int)>();
 
+  void wire_reset_wallet(
+    int port_,
+  ) {
+    return _wire_reset_wallet(
+      port_,
+    );
+  }
+
+  late final _wire_reset_walletPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_reset_wallet');
+  late final _wire_reset_wallet =
+      _wire_reset_walletPtr.asFunction<void Function(int)>();
+
   void wire_setup(
     int port_,
     ffi.Pointer<wire_uint_8_list> files_dir,
@@ -425,6 +491,23 @@ class RustWire implements FlutterRustBridgeWireBase {
           ffi.Void Function(
               ffi.Int64, ffi.Pointer<wire_uint_8_list>)>>('wire_setup');
   late final _wire_setup = _wire_setupPtr
+      .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_start_nakamoto(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> files_dir,
+  ) {
+    return _wire_start_nakamoto(
+      port_,
+      files_dir,
+    );
+  }
+
+  late final _wire_start_nakamotoPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64,
+              ffi.Pointer<wire_uint_8_list>)>>('wire_start_nakamoto');
+  late final _wire_start_nakamoto = _wire_start_nakamotoPtr
       .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
 
   void wire_get_peer_count(
@@ -484,6 +567,20 @@ class RustWire implements FlutterRustBridgeWireBase {
           'wire_get_wallet_info');
   late final _wire_get_wallet_info =
       _wire_get_wallet_infoPtr.asFunction<void Function(int)>();
+
+  void wire_get_amount(
+    int port_,
+  ) {
+    return _wire_get_amount(
+      port_,
+    );
+  }
+
+  late final _wire_get_amountPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_get_amount');
+  late final _wire_get_amount =
+      _wire_get_amountPtr.asFunction<void Function(int)>();
 
   void wire_get_receiving_address(
     int port_,

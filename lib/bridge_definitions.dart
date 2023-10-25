@@ -21,9 +21,17 @@ abstract class Rust {
 
   FlutterRustBridgeTaskConstMeta get kCreateScanProgressStreamConstMeta;
 
+  Future<void> resetWallet({dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kResetWalletConstMeta;
+
   Future<void> setup({required String filesDir, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kSetupConstMeta;
+
+  Future<void> startNakamoto({required String filesDir, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kStartNakamotoConstMeta;
 
   Future<int> getPeerCount({dynamic hint});
 
@@ -40,6 +48,10 @@ abstract class Rust {
   Future<WalletStatus> getWalletInfo({dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kGetWalletInfoConstMeta;
+
+  Future<int> getAmount({dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kGetAmountConstMeta;
 
   Future<String> getReceivingAddress({dynamic hint});
 
