@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:donationwallet/information.dart';
 import 'package:donationwallet/settings.dart';
 import 'package:donationwallet/wallet.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = [
     const WalletScreen(),
-    SettingsScreen(),
+    const InformationScreen(),
+    const SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -60,6 +62,10 @@ class _MyHomePageState extends State<MyHomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.wallet),
             label: 'Wallet',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.info_outline),
+            label: 'Info',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
