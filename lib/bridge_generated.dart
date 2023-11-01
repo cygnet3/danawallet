@@ -112,14 +112,13 @@ class RustImpl implements Rust {
         argNames: ["filesDir"],
       );
 
-  Future<void> startNakamoto({required String filesDir, dynamic hint}) {
-    var arg0 = _platform.api2wire_String(filesDir);
+  Future<void> startNakamoto({dynamic hint}) {
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_start_nakamoto(port_, arg0),
+      callFfi: (port_) => _platform.inner.wire_start_nakamoto(port_),
       parseSuccessData: _wire2api_unit,
       parseErrorData: null,
       constMeta: kStartNakamotoConstMeta,
-      argValues: [filesDir],
+      argValues: [],
       hint: hint,
     ));
   }
@@ -127,7 +126,24 @@ class RustImpl implements Rust {
   FlutterRustBridgeTaskConstMeta get kStartNakamotoConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "start_nakamoto",
-        argNames: ["filesDir"],
+        argNames: [],
+      );
+
+  Future<void> restartNakamoto({dynamic hint}) {
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_restart_nakamoto(port_),
+      parseSuccessData: _wire2api_unit,
+      parseErrorData: null,
+      constMeta: kRestartNakamotoConstMeta,
+      argValues: [],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kRestartNakamotoConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "restart_nakamoto",
+        argNames: [],
       );
 
   Future<int> getPeerCount({dynamic hint}) {
@@ -495,20 +511,31 @@ class RustWire implements FlutterRustBridgeWireBase {
 
   void wire_start_nakamoto(
     int port_,
-    ffi.Pointer<wire_uint_8_list> files_dir,
   ) {
     return _wire_start_nakamoto(
       port_,
-      files_dir,
     );
   }
 
-  late final _wire_start_nakamotoPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64,
-              ffi.Pointer<wire_uint_8_list>)>>('wire_start_nakamoto');
-  late final _wire_start_nakamoto = _wire_start_nakamotoPtr
-      .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
+  late final _wire_start_nakamotoPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_start_nakamoto');
+  late final _wire_start_nakamoto =
+      _wire_start_nakamotoPtr.asFunction<void Function(int)>();
+
+  void wire_restart_nakamoto(
+    int port_,
+  ) {
+    return _wire_restart_nakamoto(
+      port_,
+    );
+  }
+
+  late final _wire_restart_nakamotoPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_restart_nakamoto');
+  late final _wire_restart_nakamoto =
+      _wire_restart_nakamotoPtr.asFunction<void Function(int)>();
 
   void wire_get_peer_count(
     int port_,

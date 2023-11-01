@@ -65,8 +65,8 @@ class _WalletScreenState extends State<WalletScreen> {
       amount = amt;
     });
 
-    // this starts nakamoto, will block forever
-    api.startNakamoto(filesDir: appDocumentsDir.path);
+    // this starts nakamoto, will block forever (or until client is restarted)
+    api.startNakamoto();
   }
 
   void _updateWalletInfo() async {
@@ -87,11 +87,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Future<void> _scanBlocks(int amount) async {
     await api.scanNextNBlocks(n: amount);
-  }
-
-  Future<void> _resetWallet() async {
-    await api.resetWallet();
-    SystemNavigator.pop();
   }
 
   Future<void> _scanToTip() async {

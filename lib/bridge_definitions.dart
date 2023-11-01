@@ -29,9 +29,13 @@ abstract class Rust {
 
   FlutterRustBridgeTaskConstMeta get kSetupConstMeta;
 
-  Future<void> startNakamoto({required String filesDir, dynamic hint});
+  Future<void> startNakamoto({dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kStartNakamotoConstMeta;
+
+  Future<void> restartNakamoto({dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kRestartNakamotoConstMeta;
 
   Future<int> getPeerCount({dynamic hint});
 
