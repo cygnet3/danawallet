@@ -77,23 +77,6 @@ class RustImpl implements Rust {
         argNames: [],
       );
 
-  Future<void> resetWallet({dynamic hint}) {
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_reset_wallet(port_),
-      parseSuccessData: _wire2api_unit,
-      parseErrorData: null,
-      constMeta: kResetWalletConstMeta,
-      argValues: [],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kResetWalletConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "reset_wallet",
-        argNames: [],
-      );
-
   Future<void> setup({required String filesDir, dynamic hint}) {
     var arg0 = _platform.api2wire_String(filesDir);
     return _platform.executeNormal(FlutterRustBridgeTask(
@@ -110,6 +93,23 @@ class RustImpl implements Rust {
       const FlutterRustBridgeTaskConstMeta(
         debugName: "setup",
         argNames: ["filesDir"],
+      );
+
+  Future<void> resetWallet({dynamic hint}) {
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_reset_wallet(port_),
+      parseSuccessData: _wire2api_unit,
+      parseErrorData: null,
+      constMeta: kResetWalletConstMeta,
+      argValues: [],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kResetWalletConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "reset_wallet",
+        argNames: [],
       );
 
   Future<void> startNakamoto({dynamic hint}) {
@@ -215,20 +215,37 @@ class RustImpl implements Rust {
         argNames: [],
       );
 
-  Future<int> getAmount({dynamic hint}) {
+  Future<int> getBirthday({dynamic hint}) {
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_get_amount(port_),
+      callFfi: (port_) => _platform.inner.wire_get_birthday(port_),
       parseSuccessData: _wire2api_u32,
       parseErrorData: null,
-      constMeta: kGetAmountConstMeta,
+      constMeta: kGetBirthdayConstMeta,
       argValues: [],
       hint: hint,
     ));
   }
 
-  FlutterRustBridgeTaskConstMeta get kGetAmountConstMeta =>
+  FlutterRustBridgeTaskConstMeta get kGetBirthdayConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
-        debugName: "get_amount",
+        debugName: "get_birthday",
+        argNames: [],
+      );
+
+  Future<int> getWalletBalance({dynamic hint}) {
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_get_wallet_balance(port_),
+      parseSuccessData: _wire2api_u32,
+      parseErrorData: null,
+      constMeta: kGetWalletBalanceConstMeta,
+      argValues: [],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kGetWalletBalanceConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "get_wallet_balance",
         argNames: [],
       );
 
@@ -478,20 +495,6 @@ class RustWire implements FlutterRustBridgeWireBase {
   late final _wire_create_scan_progress_stream =
       _wire_create_scan_progress_streamPtr.asFunction<void Function(int)>();
 
-  void wire_reset_wallet(
-    int port_,
-  ) {
-    return _wire_reset_wallet(
-      port_,
-    );
-  }
-
-  late final _wire_reset_walletPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
-          'wire_reset_wallet');
-  late final _wire_reset_wallet =
-      _wire_reset_walletPtr.asFunction<void Function(int)>();
-
   void wire_setup(
     int port_,
     ffi.Pointer<wire_uint_8_list> files_dir,
@@ -508,6 +511,20 @@ class RustWire implements FlutterRustBridgeWireBase {
               ffi.Int64, ffi.Pointer<wire_uint_8_list>)>>('wire_setup');
   late final _wire_setup = _wire_setupPtr
       .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_reset_wallet(
+    int port_,
+  ) {
+    return _wire_reset_wallet(
+      port_,
+    );
+  }
+
+  late final _wire_reset_walletPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_reset_wallet');
+  late final _wire_reset_wallet =
+      _wire_reset_walletPtr.asFunction<void Function(int)>();
 
   void wire_start_nakamoto(
     int port_,
@@ -595,19 +612,33 @@ class RustWire implements FlutterRustBridgeWireBase {
   late final _wire_get_wallet_info =
       _wire_get_wallet_infoPtr.asFunction<void Function(int)>();
 
-  void wire_get_amount(
+  void wire_get_birthday(
     int port_,
   ) {
-    return _wire_get_amount(
+    return _wire_get_birthday(
       port_,
     );
   }
 
-  late final _wire_get_amountPtr =
+  late final _wire_get_birthdayPtr =
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
-          'wire_get_amount');
-  late final _wire_get_amount =
-      _wire_get_amountPtr.asFunction<void Function(int)>();
+          'wire_get_birthday');
+  late final _wire_get_birthday =
+      _wire_get_birthdayPtr.asFunction<void Function(int)>();
+
+  void wire_get_wallet_balance(
+    int port_,
+  ) {
+    return _wire_get_wallet_balance(
+      port_,
+    );
+  }
+
+  late final _wire_get_wallet_balancePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_get_wallet_balance');
+  late final _wire_get_wallet_balance =
+      _wire_get_wallet_balancePtr.asFunction<void Function(int)>();
 
   void wire_get_receiving_address(
     int port_,

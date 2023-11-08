@@ -5,19 +5,10 @@ import 'package:flutter/services.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-
-  void restartNakamoto() {
-  }
-
-  Future<void> _resetWallet() async {
-    await api.resetWallet();
-    SystemNavigator.pop();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         ElevatedButton(
           onPressed: () async {
@@ -27,6 +18,16 @@ class SettingsScreen extends StatelessWidget {
             minimumSize: const Size(double.infinity, 50),
           ),
           child: const Text('Restart nakamoto'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            await api.resetWallet();
+            await api.restartNakamoto();
+          },
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          child: const Text('Reset wallet'),
         ),
       ],
     );

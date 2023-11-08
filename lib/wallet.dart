@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:donationwallet/ffi.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -13,19 +13,54 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  int amount = 0;
+  int balance = 0;
   int tipheight = 0;
   int scanheight = 0;
   int peercount = 0;
+  Timer? _timer;
 
   String spaddress = '';
 
+  bool scanning = false;
   double progress = 0.0;
 
   @override
   void initState() {
     super.initState();
     _setup();
+    startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void startTimer() {
+    Future.delayed(const Duration(seconds: 1), () {
+      _timer = Timer.periodic(const Duration(seconds: 5), (Timer t) async {
+        if (!scanning) {
+          final peercount = await api.getPeerCount();
+          final info = await api.getWalletInfo();
+
+          setState(() {
+            scanheight = info.scanHeight;
+            tipheight = info.blockTip;
+            balance = info.amount;
+            this.peercount = peercount;
+          });
+        }
+      });
+    });
+  }
+
+  Future<void> updateWalletInfo() async {
+    final info = await api.getWalletInfo();
+    setState(() {
+      scanheight = info.scanHeight;
+      tipheight = info.blockTip;
+    });
   }
 
   Future<void> _setup() async {
@@ -51,7 +86,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
     api.createAmountStream().listen((event) {
       setState(() {
-        amount = event;
+        balance = event;
       });
     });
 
@@ -60,140 +95,74 @@ class _WalletScreenState extends State<WalletScreen> {
     // this sets up everything except nakamoto
     await api.setup(filesDir: appDocumentsDir.path);
 
-    final amt = await api.getAmount();
+    final amt = await api.getWalletBalance();
     setState(() {
-      amount = amt;
+      balance = amt;
     });
 
     // this starts nakamoto, will block forever (or until client is restarted)
     api.startNakamoto();
   }
 
-  void _updateWalletInfo() async {
-    print('getting wallet info');
-    final info = await api.getWalletInfo();
-    final spaddress = await api.getReceivingAddress();
-
-    setState(() {
-      scanheight = info.scanHeight;
-      tipheight = info.blockTip;
-      amount = info.amount;
-      this.spaddress = spaddress;
-    });
-
-    print('scan height ${info.scanHeight}');
-    print('block height ${info.blockTip}');
-  }
-
-  Future<void> _scanBlocks(int amount) async {
-    await api.scanNextNBlocks(n: amount);
-  }
-
   Future<void> _scanToTip() async {
+    scanning = true;
+    await updateWalletInfo();
     await api.scanToTip();
-  }
-
-  void _getPeerCount() async {
-    final peercount = await api.getPeerCount();
-
-    setState(() {
-      this.peercount = peercount;
-    });
+    scanning = false;
   }
 
   Widget showScanText() {
     final toScan = tipheight - scanheight;
 
-    if (scanheight == 0) {
-      return Text('Press \'update peer count\'',
-          style: Theme.of(context).textTheme.headlineSmall);
+    String text;
+    if (scanheight == 0 || peercount == 0) {
+      text = 'Waiting for peers';
     } else if (toScan == 0) {
-      return Text('Up to date!',
-          style: Theme.of(context).textTheme.headlineSmall);
+      text = 'Up to date!';
     } else {
-      return Text(
-        'New blocks: $toScan',
-        style: Theme.of(context).textTheme.headlineSmall,
-      );
+      text = 'New blocks: $toScan';
     }
-  }
 
-  Widget getAddress() {
-    double screenWidth = MediaQuery.of(context).size.width;
-    return SizedBox(
-      width: screenWidth * 0.95,
-      child: Text(
-        'Address:\n$spaddress',
-        textAlign: TextAlign.center,
-        softWrap: true,
-      ),
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.displaySmall,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-    //     title: Text(widget.title),
-    //     actions: [
-    //       TextButton(
-    //         onPressed: _resetWallet,
-    //         child: const Text(
-    //           'Reset wallet',
-    //           style: TextStyle(),
-    //         ),
-    //       ),
-    //     ],
-    //   ),
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          ElevatedButton(
-            onPressed: () async {
-              _getPeerCount();
-              _updateWalletInfo();
-            },
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 50),
-            ),
-            child: const Text('Update peer count'),
-          ),
+        children: [
           const SizedBox(
             height: 10,
           ),
           Text('Nakamoto peer count: $peercount'),
-          Expanded(
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const SizedBox(
-                height: 40,
+          const SizedBox(
+            height: 80,
+          ),
+          Text(
+            'Balance: $balance',
+            style: Theme.of(context).textTheme.displaySmall,
+          ),
+          const Spacer(),
+          SizedBox(
+            width: 100,
+            height: 100,
+            child: Visibility(
+              visible: progress != 0.0,
+              child: CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 6.0,
               ),
-              Text(
-                'Amount: $amount',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              showScanText(),
-              const SizedBox(
-                height: 20.0,
-              ),
-              SizedBox(
-                width: 100,
-                height: 100,
-                child: Visibility(
-                  visible: progress != 0.0,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 6.0,
-                  ),
-                ),
-              ),
-            ]),
+            ),
           ),
           const SizedBox(
-            height: 10.0,
+            height: 20.0,
           ),
+          showScanText(),
+          const Spacer(),
           ElevatedButton(
             onPressed: peercount == 0
                 ? null
@@ -203,20 +172,13 @@ class _WalletScreenState extends State<WalletScreen> {
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 50),
             ),
-            child: const Text('scan to tip'),
+            child: const Text('Scan for payments'),
           ),
           const SizedBox(
-            height: 10,
-          ),
-          // Text('Scan height: $scanheight'),
-          // Text('Chain height: $tipheight'),
-          // getAddress(),
-          const SizedBox(
-            height: 40,
+            height: 20,
           ),
         ],
       ),
     );
-    // );
   }
 }
