@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:donationwallet/ffi.dart';
+import 'package:donationwallet/storage.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -92,8 +93,20 @@ class _WalletScreenState extends State<WalletScreen> {
 
     final Directory appDocumentsDir = await getApplicationSupportDirectory();
 
+    SecureStorageService secureStorage = SecureStorageService();
+    final scanSk = (await secureStorage.read(key: 'scan_sk'))!;
+    final spendPk = (await secureStorage.read(key: 'spend_pk'))!;
+    final isTestnet = (await secureStorage.read(key: 'is_testnet'))! == 'true';
+    final birthday = int.parse((await secureStorage.read(key: 'birthday'))!);
+
     // this sets up everything except nakamoto
-    await api.setup(filesDir: appDocumentsDir.path);
+    await api.setup(
+      filesDir: appDocumentsDir.path,
+      scanSk: scanSk,
+      spendPk: spendPk,
+      isTestnet: isTestnet,
+      birthday: birthday,
+    );
 
     final amt = await api.getWalletBalance();
     setState(() {
@@ -164,7 +177,7 @@ class _WalletScreenState extends State<WalletScreen> {
           showScanText(),
           const Spacer(),
           ElevatedButton(
-            onPressed: peercount == 0
+            onPressed: peercount == 0 || tipheight < scanheight
                 ? null
                 : () async {
                     await _scanToTip();

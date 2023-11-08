@@ -4,8 +4,12 @@ import 'package:donationwallet/information.dart';
 import 'package:donationwallet/settings.dart';
 import 'package:donationwallet/wallet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  // load default values from environment file (see .env-sample)
+  await dotenv.load(fileName: ".env");
+
   runApp(const MyApp());
 }
 

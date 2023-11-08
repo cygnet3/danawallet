@@ -21,7 +21,13 @@ abstract class Rust {
 
   FlutterRustBridgeTaskConstMeta get kCreateScanProgressStreamConstMeta;
 
-  Future<void> setup({required String filesDir, dynamic hint});
+  Future<void> setup(
+      {required String filesDir,
+      required String scanSk,
+      required String spendPk,
+      required int birthday,
+      required bool isTestnet,
+      dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kSetupConstMeta;
 

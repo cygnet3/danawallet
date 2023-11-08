@@ -77,14 +77,25 @@ class RustImpl implements Rust {
         argNames: [],
       );
 
-  Future<void> setup({required String filesDir, dynamic hint}) {
+  Future<void> setup(
+      {required String filesDir,
+      required String scanSk,
+      required String spendPk,
+      required int birthday,
+      required bool isTestnet,
+      dynamic hint}) {
     var arg0 = _platform.api2wire_String(filesDir);
+    var arg1 = _platform.api2wire_String(scanSk);
+    var arg2 = _platform.api2wire_String(spendPk);
+    var arg3 = api2wire_u32(birthday);
+    var arg4 = isTestnet;
     return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_setup(port_, arg0),
+      callFfi: (port_) =>
+          _platform.inner.wire_setup(port_, arg0, arg1, arg2, arg3, arg4),
       parseSuccessData: _wire2api_unit,
       parseErrorData: null,
       constMeta: kSetupConstMeta,
-      argValues: [filesDir],
+      argValues: [filesDir, scanSk, spendPk, birthday, isTestnet],
       hint: hint,
     ));
   }
@@ -92,7 +103,7 @@ class RustImpl implements Rust {
   FlutterRustBridgeTaskConstMeta get kSetupConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "setup",
-        argNames: ["filesDir"],
+        argNames: ["filesDir", "scanSk", "spendPk", "birthday", "isTestnet"],
       );
 
   Future<void> resetWallet({dynamic hint}) {
@@ -326,6 +337,11 @@ class RustImpl implements Rust {
 // Section: api2wire
 
 @protected
+bool api2wire_bool(bool raw) {
+  return raw;
+}
+
+@protected
 int api2wire_u32(int raw) {
   return raw;
 }
@@ -498,19 +514,38 @@ class RustWire implements FlutterRustBridgeWireBase {
   void wire_setup(
     int port_,
     ffi.Pointer<wire_uint_8_list> files_dir,
+    ffi.Pointer<wire_uint_8_list> scan_sk,
+    ffi.Pointer<wire_uint_8_list> spend_pk,
+    int birthday,
+    bool is_testnet,
   ) {
     return _wire_setup(
       port_,
       files_dir,
+      scan_sk,
+      spend_pk,
+      birthday,
+      is_testnet,
     );
   }
 
   late final _wire_setupPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(
-              ffi.Int64, ffi.Pointer<wire_uint_8_list>)>>('wire_setup');
-  late final _wire_setup = _wire_setupPtr
-      .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
+              ffi.Int64,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Uint32,
+              ffi.Bool)>>('wire_setup');
+  late final _wire_setup = _wire_setupPtr.asFunction<
+      void Function(
+          int,
+          ffi.Pointer<wire_uint_8_list>,
+          ffi.Pointer<wire_uint_8_list>,
+          ffi.Pointer<wire_uint_8_list>,
+          int,
+          bool)>();
 
   void wire_reset_wallet(
     int port_,
