@@ -96,7 +96,7 @@ class _WalletScreenState extends State<WalletScreen> {
     SecureStorageService secureStorage = SecureStorageService();
     final scanSk = (await secureStorage.read(key: 'scan_sk'))!;
     final spendPk = (await secureStorage.read(key: 'spend_pk'))!;
-    final isTestnet = (await secureStorage.read(key: 'is_testnet'))! == 'true';
+    final isTestnet = (await secureStorage.read(key: 'network'))! != 'mainnet';
     final birthday = int.parse((await secureStorage.read(key: 'birthday'))!);
 
     // this sets up everything except nakamoto
