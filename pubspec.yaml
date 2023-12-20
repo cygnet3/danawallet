@@ -42,6 +42,7 @@ dependencies:
   path_provider: ^2.1.1
   flutter_secure_storage: ^9.0.0
   flutter_dotenv: ^5.1.0
+  provider: ^6.1.1
 
 dev_dependencies:
   flutter_test:

@@ -1,22 +1,45 @@
-import 'package:donationwallet/information.dart';
-import 'package:donationwallet/settings.dart';
-import 'package:donationwallet/wallet.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+import 'package:donationwallet/ffi.dart';
+import 'package:donationwallet/load_wallet.dart';
+import 'package:donationwallet/main.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class HomeScreenState extends State<HomeScreen> {
+  bool isLoading = true;
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = [
-    const WalletScreen(),
-    const InformationScreen(),
-    const SettingsScreen(),
+    WalletScreen(),
+    InformationScreen(),
+    SettingsScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkWallet();
+  }
+
+  Future<void> _checkWallet() async {
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    if (await api.walletExists(
+        label: walletState.label, filesDir: walletState.dir.path)) {
+      walletState.walletLoaded = true;
+    } else {
+      walletState.walletLoaded = false;
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -26,34 +49,75 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Silent payments'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _widgetOptions,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.wallet),
-            label: 'Wallet',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.info_outline),
-            label: 'Info',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.green,
-        onTap: _onItemTapped,
-      ),
-    );
+    if (isLoading) {
+      return const MaterialApp(
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    final walletState = Provider.of<WalletState>(context);
+    if (!walletState.walletLoaded) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Wallet creation/restoration'),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        ),
+        body: const LoadWalletScreen(),
+      );
+    } else {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Silent payments'),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        ),
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: _widgetOptions,
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.wallet),
+              label: 'Wallet',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.info_outline),
+              label: 'Info',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: Colors.green,
+          onTap: _onItemTapped,
+        ),
+      );
+    }
+  }
+}
+
+// Dummy widget classes for demonstration
+class WalletScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Wallet Screen'));
+  }
+}
+
+class InformationScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Information Screen'));
+  }
+}
+
+class SettingsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Settings Screen'));
   }
 }
