@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:donationwallet/ffi.dart';
 import 'package:donationwallet/load_wallet.dart';
 import 'package:donationwallet/main.dart';
+import 'package:donationwallet/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +20,7 @@ class HomeScreenState extends State<HomeScreen> {
   final List<Widget> _widgetOptions = [
     WalletScreen(),
     InformationScreen(),
-    SettingsScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -112,12 +113,5 @@ class InformationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(child: Text('Information Screen'));
-  }
-}
-
-class SettingsScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Settings Screen'));
   }
 }
