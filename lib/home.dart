@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:donationwallet/ffi.dart';
 import 'package:donationwallet/load_wallet.dart';
 import 'package:donationwallet/main.dart';
+import 'package:donationwallet/wallet.dart';
 import 'package:donationwallet/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,8 +19,7 @@ class HomeScreenState extends State<HomeScreen> {
   bool isLoading = true;
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = [
-    WalletScreen(),
-    InformationScreen(),
+    const WalletScreen(),
     const SettingsScreen(),
   ];
 
@@ -84,10 +84,10 @@ class HomeScreenState extends State<HomeScreen> {
               icon: Icon(Icons.wallet),
               label: 'Wallet',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.info_outline),
-              label: 'Info',
-            ),
+            // BottomNavigationBarItem(
+            //   icon: Icon(Icons.info_outline),
+            //   label: 'Info',
+            // ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings),
               label: 'Settings',
@@ -99,20 +99,5 @@ class HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-  }
-}
-
-// Dummy widget classes for demonstration
-class WalletScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Wallet Screen'));
-  }
-}
-
-class InformationScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Information Screen'));
   }
 }
