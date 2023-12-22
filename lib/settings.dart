@@ -20,6 +20,59 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _setBirthday(BuildContext context,
+      TextEditingController controller, Function(Exception? e) callback) async {
+    showDialog<int>(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text('Enter Birthday'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                  hintText: 'Enter wallet\'s birthday (numeric value)'),
+              onSubmitted: (value) {
+                Navigator.of(dialogContext).pop(int.tryParse(value));
+              },
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext)
+                      .pop(); // Close the dialog without saving
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext)
+                      .pop(int.tryParse(controller.text));
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        }).then((value) async {
+      if (value != null) {
+        final walletState = Provider.of<WalletState>(context, listen: false);
+        try {
+          await api.changeBirthday(
+              path: walletState.dir.path,
+              label: walletState.label,
+              birthday: value);
+          callback(null);
+          walletState.updateWalletStatus();
+        } on Exception catch (e) {
+          callback(e);
+        } catch (e) {
+          rethrow;
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -34,16 +87,25 @@ class SettingsScreen extends StatelessWidget {
         //   ),
         //   child: const Text('Restart nakamoto'),
         // ),
-        // ElevatedButton(
-        //   onPressed: () async {
-        //     await api.resetWallet();
-        //     await api.restartNakamoto();
-        //   },
-        //   style: ElevatedButton.styleFrom(
-        //     minimumSize: const Size(double.infinity, 50),
-        //   ),
-        //   child: const Text('Reset wallet to birthday'),
-        // ),
+        ElevatedButton(
+          onPressed: () async {
+            final controller = TextEditingController();
+            await _setBirthday(context, controller, (Exception? e) async {
+              if (e != null) {
+                throw e;
+              } else {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const HomeScreen()));
+              }
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          child: const Text('Set wallet birthday'),
+        ),
         ElevatedButton(
           onPressed: () async {
             final walletState =
