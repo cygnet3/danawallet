@@ -86,6 +86,17 @@ class WalletState extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> updateWalletStatus() async {
+    try {
+      final wallet = await api.getWalletInfo(path: dir.path, label: label);
+      amount = wallet.amount;
+      birthday = wallet.birthday;
+      lastScan = wallet.scanHeight;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 void main() async {
