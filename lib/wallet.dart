@@ -101,6 +101,7 @@ class WalletScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('Nakamoto peer count: ${walletState.peercount}'),
+                Text('birthday: ${walletState.birthday}'),
                 // Spacer(),
                 Text(
                   'Balance: ${walletState.amount}',
