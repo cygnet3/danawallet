@@ -19,6 +19,7 @@ class WalletState extends ChangeNotifier {
   int peercount = 0;
   String network = 'signet';
   bool walletLoaded = false;
+  String address = "";
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
@@ -76,6 +77,14 @@ class WalletState extends ChangeNotifier {
     scanProgressSubscription.cancel();
     amountStreamSubscription.cancel();
     super.dispose();
+  }
+
+  Future<void> getAddress() async {
+    try {
+      address = await api.getReceivingAddress(path: dir.path, label: label);
+    } catch (e) {
+      rethrow;
+    }
   }
 }
 

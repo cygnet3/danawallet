@@ -34,6 +34,7 @@ class HomeScreenState extends State<HomeScreen> {
     if (await api.walletExists(
         label: walletState.label, filesDir: walletState.dir.path)) {
       walletState.walletLoaded = true;
+      walletState.getAddress();
     } else {
       walletState.walletLoaded = false;
     }
