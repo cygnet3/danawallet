@@ -12,6 +12,7 @@ class SettingsScreen extends StatelessWidget {
     try {
       await api.removeWallet(
           path: walletState.dir.path, label: walletState.label);
+      await walletState.reset();
       callback(null);
     } on Exception catch (e) {
       callback(e);
