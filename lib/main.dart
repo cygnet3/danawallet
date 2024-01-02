@@ -79,6 +79,22 @@ class WalletState extends ChangeNotifier {
     super.dispose();
   }
 
+  Future<void> reset() async {
+    amount = 0;
+    birthday = 0;
+    lastScan = 0;
+    tip = 0;
+    progress = 0.0;
+    peercount = 0;
+    network = 'signet';
+    walletLoaded = false;
+    address = "";
+    ownedOutputs = List.empty();
+    // dir stays as it is
+
+    notifyListeners();
+  }
+
   Future<void> getAddress() async {
     try {
       address = await api.getReceivingAddress(path: dir.path, label: label);
