@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:donationwallet/main.dart';
+import 'package:donationwallet/spend.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:barcode_widget/barcode_widget.dart';
@@ -10,6 +11,18 @@ class WalletScreen extends StatelessWidget {
 
   Future<void> _scanToTip() async {
     UnimplementedError();
+  }
+
+  Future<void> _updateOwnedOutputs(
+      WalletState walletState, Function(Exception? e) callback) async {
+    try {
+      walletState.updateOwnedOutputs();
+      callback(null);
+    } on Exception catch (e) {
+      callback(e);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   void _showReceiveDialog(BuildContext context, String address) {
@@ -143,8 +156,20 @@ class WalletScreen extends StatelessWidget {
           SizedBox(width: 10), // Spacing between the buttons
           Expanded(
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 // Logic for send button
+                final walletState =
+                    Provider.of<WalletState>(context, listen: false);
+                await _updateOwnedOutputs(walletState, (Exception? e) async {
+                  if (e != null) {
+                    throw e;
+                  } else {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SpendScreen()));
+                  }
+                });
               },
               child: Text('Send'),
             ),

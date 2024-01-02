@@ -20,6 +20,8 @@ class WalletState extends ChangeNotifier {
   String network = 'signet';
   bool walletLoaded = false;
   String address = "";
+  List<OwnedOutput> ownedOutputs = List.empty();
+  List<OwnedOutput> selectedOutputs = List.empty();
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
@@ -112,6 +114,28 @@ class WalletState extends ChangeNotifier {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> updateOwnedOutputs() async {
+    try {
+      ownedOutputs = await api.getOutputs(path: dir.path, label: label);
+    } catch (e) {
+      rethrow;
+    }
+    notifyListeners();
+  }
+
+  List<OwnedOutput> getSpendableOutputs() {
+    return ownedOutputs.where((output) => !output.spent).toList();
+  }
+
+  void toggleOutputSelection(OwnedOutput output) {
+    if (selectedOutputs.contains(output)) {
+      selectedOutputs.remove(output);
+    } else {
+      selectedOutputs.add(output);
+    }
+    notifyListeners();
   }
 }
 
