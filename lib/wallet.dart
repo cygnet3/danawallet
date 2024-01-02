@@ -89,15 +89,13 @@ class WalletScreen extends StatelessWidget {
         : ElevatedButton(
             style: ElevatedButton.styleFrom(
               textStyle: Theme.of(context).textTheme.headlineLarge,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              minimumSize: const Size(double.infinity, 60),
+              shape: CircleBorder(),
+              padding: EdgeInsets.all(60.0),
             ),
             onPressed: () async {
               await _scanToTip();
             },
-            child: const Text('Scan chain'));
+            child: const Text('Scan'));
 
     if (!walletState.walletLoaded) {
       return const Center(
@@ -126,9 +124,7 @@ class WalletScreen extends StatelessWidget {
                 showScanText(context),
                 Spacer(),
                 buildBottomButtons(context),
-                const SizedBox(
-                  height: 20.0,
-                )
+                Spacer(),
               ],
             ),
           ),
