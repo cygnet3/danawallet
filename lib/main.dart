@@ -32,6 +32,7 @@ class WalletState extends ChangeNotifier {
   Future<void> initialize() async {
     try {
       await _initDir();
+      await _setupNakamoto();
       await _initStreams();
     } catch (e) {
       rethrow;
@@ -45,6 +46,17 @@ class WalletState extends ChangeNotifier {
       rethrow;
     }
     notifyListeners();
+  }
+
+  Future<void> _setupNakamoto() async {
+    while (dir == Directory("/")) {
+      sleep(const Duration(milliseconds: 100));
+    }
+    try {
+      await api.setupNakamoto(network: network, path: dir.path);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> _initStreams() async {
