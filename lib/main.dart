@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 
 class WalletState extends ChangeNotifier {
   final String label = "default";
-  late Directory dir;
+  Directory dir = Directory("/");
   int amount = 0;
   int birthday = 0;
   int lastScan = 0;
