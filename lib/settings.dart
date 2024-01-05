@@ -21,6 +21,18 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _wipeNakamoto(
+      WalletState walletState, Function(Exception? e) callback) async {
+    try {
+      await api.cleanNakamoto();
+      callback(null);
+    } on Exception catch (e) {
+      callback(e);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> _setBirthday(BuildContext context,
       TextEditingController controller, Function(Exception? e) callback) async {
     showDialog<int>(
@@ -79,15 +91,27 @@ class SettingsScreen extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        // ElevatedButton(
-        //   onPressed: () async {
-        //     api.restartNakamoto();
-        //   },
-        //   style: ElevatedButton.styleFrom(
-        //     minimumSize: const Size(double.infinity, 50),
-        //   ),
-        //   child: const Text('Restart nakamoto'),
-        // ),
+        ElevatedButton(
+          onPressed: () async {
+            final walletState =
+                Provider.of<WalletState>(context, listen: false);
+            await _wipeNakamoto(walletState, (Exception? e) async {
+              if (e != null) {
+                throw e;
+              } else {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              }
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          child: const Text('wipe nakamoto'),
+        ),
         ElevatedButton(
           onPressed: () async {
             final controller = TextEditingController();
