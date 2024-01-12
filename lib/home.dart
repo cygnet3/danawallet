@@ -35,6 +35,8 @@ class HomeScreenState extends State<HomeScreen> {
         label: walletState.label, filesDir: walletState.dir.path)) {
       walletState.walletLoaded = true;
       walletState.getAddress();
+      walletState.updateWalletStatus();
+      walletState.updateOwnedOutputs();
     } else {
       walletState.walletLoaded = false;
     }
