@@ -39,6 +39,7 @@ class LoadWalletScreen extends StatelessWidget {
         birthday: birthday,
       );
       walletState.walletLoaded = true;
+      await walletState.updateWalletStatus();
     } catch (e) {
       rethrow;
     }
