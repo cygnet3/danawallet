@@ -8,6 +8,35 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
+class SynchronizationService {
+  Timer? _timer;
+  final Duration _interval = const Duration(minutes: 10);
+
+  void startSyncTimer() {
+    _scheduleNextTask();
+  }
+
+  void _scheduleNextTask() async {
+    _timer?.cancel();
+    await performSynchronizationTask();
+    _timer = Timer(_interval, () async {
+      _scheduleNextTask();
+    });
+  }
+
+  Future<void> performSynchronizationTask() async {
+    try {
+      await api.syncBlockchain();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void stopSyncTimer() {
+    _timer?.cancel();
+  }
+}
+
 class WalletState extends ChangeNotifier {
   final String label = "default";
   Directory dir = Directory("/");
@@ -15,6 +44,7 @@ class WalletState extends ChangeNotifier {
   int birthday = 0;
   int lastScan = 0;
   int tip = 0;
+  String bestBlockHash = "";
   double progress = 0.0;
   int peercount = 0;
   String network = 'signet';
@@ -27,13 +57,16 @@ class WalletState extends ChangeNotifier {
   late StreamSubscription scanProgressSubscription;
   late StreamSubscription amountStreamSubscription;
 
+  final _synchronizationService = SynchronizationService();
+
   WalletState();
 
   Future<void> initialize() async {
     try {
+      await _initStreams();
       await _initDir();
       await _setupNakamoto();
-      await _initStreams();
+      _synchronizationService.startSyncTimer();
     } catch (e) {
       rethrow;
     }
@@ -57,6 +90,7 @@ class WalletState extends ChangeNotifier {
     } catch (e) {
       rethrow;
     }
+    notifyListeners();
   }
 
   Future<void> _initStreams() async {
@@ -75,12 +109,16 @@ class WalletState extends ChangeNotifier {
         progress = 0.0;
       }
       this.progress = progress;
-      tip = current;
+      lastScan = current;
+
       notifyListeners();
     }));
 
-    api.createAmountStream().listen((event) {
-      amount = event;
+    api.createSyncStream().listen((event) {
+      peercount = event.peerCount;
+      tip = event.blockheight;
+      bestBlockHash = event.bestblockhash;
+
       notifyListeners();
     });
   }
@@ -90,6 +128,7 @@ class WalletState extends ChangeNotifier {
     logStreamSubscription.cancel();
     scanProgressSubscription.cancel();
     amountStreamSubscription.cancel();
+    _synchronizationService.stopSyncTimer();
     super.dispose();
   }
 
