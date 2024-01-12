@@ -56,6 +56,7 @@ class WalletState extends ChangeNotifier {
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
   late StreamSubscription amountStreamSubscription;
+  late StreamSubscription syncStreamSubscription;
 
   final _synchronizationService = SynchronizationService();
 
@@ -94,11 +95,11 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> _initStreams() async {
-    api.createLogStream().listen((event) {
+    logStreamSubscription = api.createLogStream().listen((event) {
       print('RUST: ${event.msg}');
     });
 
-    api.createScanProgressStream().listen(((event) {
+    scanProgressSubscription = api.createScanProgressStream().listen(((event) {
       int start = event.start;
       int current = event.current;
       int end = event.end;
@@ -114,11 +115,16 @@ class WalletState extends ChangeNotifier {
       notifyListeners();
     }));
 
-    api.createSyncStream().listen((event) {
+    syncStreamSubscription = api.createSyncStream().listen((event) {
       peercount = event.peerCount;
       tip = event.blockheight;
       bestBlockHash = event.bestblockhash;
 
+      notifyListeners();
+    });
+
+    amountStreamSubscription = api.createAmountStream().listen((event) {
+      amount = event;
       notifyListeners();
     });
   }
@@ -128,6 +134,7 @@ class WalletState extends ChangeNotifier {
     logStreamSubscription.cancel();
     scanProgressSubscription.cancel();
     amountStreamSubscription.cancel();
+    syncStreamSubscription.cancel();
     _synchronizationService.stopSyncTimer();
     super.dispose();
   }
