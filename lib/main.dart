@@ -188,6 +188,14 @@ class WalletState extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  Future<void> scanToTip() async {
+    try {
+      await api.scanToTip(path: dir.path, label: label);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 void main() async {

@@ -9,10 +9,6 @@ import 'package:barcode_widget/barcode_widget.dart';
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
 
-  Future<void> _scanToTip() async {
-    UnimplementedError();
-  }
-
   Future<void> _updateOwnedOutputs(
       WalletState walletState, Function(Exception? e) callback) async {
     try {
@@ -93,7 +89,11 @@ class WalletScreen extends StatelessWidget {
               padding: EdgeInsets.all(60.0),
             ),
             onPressed: () async {
-              await _scanToTip();
+              try {
+                await walletState.scanToTip();
+              } catch (e) {
+                print(e.toString());
+              }
             },
             child: const Text('Scan'));
 
