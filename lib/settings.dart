@@ -75,6 +75,8 @@ class SettingsScreen extends StatelessWidget {
               path: walletState.dir.path,
               label: walletState.label,
               birthday: value);
+          await api.resetWallet(
+              path: walletState.dir.path, label: walletState.label);
           callback(null);
           walletState.updateWalletStatus();
         } on Exception catch (e) {
