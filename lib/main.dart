@@ -40,6 +40,7 @@ class SynchronizationService {
 class WalletState extends ChangeNotifier {
   final String label = "default";
   Directory dir = Directory("/");
+  bool nakamotoIsRunning = false;
   int amount = 0;
   int birthday = 0;
   int lastScan = 0;
@@ -57,6 +58,7 @@ class WalletState extends ChangeNotifier {
   late StreamSubscription scanProgressSubscription;
   late StreamSubscription amountStreamSubscription;
   late StreamSubscription syncStreamSubscription;
+  late StreamSubscription nakamotoRunSubscription;
 
   final _synchronizationService = SynchronizationService();
 
@@ -127,6 +129,11 @@ class WalletState extends ChangeNotifier {
       amount = event;
       notifyListeners();
     });
+
+    nakamotoRunSubscription = api.createNakamotoRunStream().listen((event) {
+      nakamotoIsRunning = event;
+      notifyListeners();
+    });
   }
 
   @override
@@ -136,7 +143,14 @@ class WalletState extends ChangeNotifier {
     amountStreamSubscription.cancel();
     syncStreamSubscription.cancel();
     _synchronizationService.stopSyncTimer();
+    _stopNakamoto();
     super.dispose();
+  }
+
+  void _stopNakamoto() {
+    api.forceInterruptNakamoto();
+    // todo: check that nakamoto is properly stopped
+    nakamotoRunSubscription.cancel();
   }
 
   Future<void> reset() async {
