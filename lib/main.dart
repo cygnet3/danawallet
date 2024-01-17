@@ -52,7 +52,7 @@ class WalletState extends ChangeNotifier {
   bool walletLoaded = false;
   String address = "";
   List<OwnedOutput> ownedOutputs = List.empty();
-  List<OwnedOutput> selectedOutputs = List.empty();
+  List<OwnedOutput> selectedOutputs = List.empty(growable: true);
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
@@ -164,6 +164,7 @@ class WalletState extends ChangeNotifier {
     walletLoaded = false;
     address = "";
     ownedOutputs = List.empty();
+    selectedOutputs = List.empty(growable: true);
     // dir stays as it is
 
     notifyListeners();
