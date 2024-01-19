@@ -1,8 +1,4 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:donationwallet/main.dart';
-import 'package:donationwallet/spend.dart';
 import 'package:flutter/material.dart';
 import 'package:donationwallet/ffi.dart';
 import 'package:provider/provider.dart';
@@ -58,10 +54,7 @@ class OutputsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    // final walletState = Provider.of<WalletState>(context);
-                    // Navigator.of(context).push(MaterialPageRoute(
-                    //     builder: (context) =>
-                    //         SpendScreen(spendingOutputs: outputs)));
+                    Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
