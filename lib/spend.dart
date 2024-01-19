@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:donationwallet/ffi.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/outputs.dart';
+import 'package:donationwallet/destination.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class TxDestination {
@@ -36,19 +36,74 @@ class SpendingRequest {
       };
 }
 
+class SummaryWidget extends StatelessWidget {
+  final String displayText;
+  final VoidCallback? onTap;
+
+  const SummaryWidget(
+      {Key? key, required this.displayText, required this.onTap})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16.0),
+          margin: const EdgeInsets.symmetric(horizontal: 8.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 2,
+                blurRadius: 4,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(displayText, style: const TextStyle(fontSize: 16)),
+            ],
+          ),
+        ));
+  }
+}
+
 class SpendScreen extends StatelessWidget {
   const SpendScreen({super.key});
 
-  Future<String> _spend(List<OwnedOutput> spentOutputs, List<String> addresses,
+  Future<String> _spend(
+      String path,
+      String label,
+      List<OwnedOutput> spentOutputs,
+      List<Recipient> recipients,
       int feeRate) async {
-    UnimplementedError;
-    return "";
+    String psbt =
+        await api.createNewPsbt(inputs: spentOutputs, recipients: recipients);
+    print(psbt);
+    print(recipients[0].address);
+    String fee = await api.addFeeForFeeRate(
+        psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
+    print(fee);
+    String filled =
+        await api.fillSpOutputs(path: path, label: label, psbt: fee);
+    String signed = await api.signPsbt(
+        path: path, label: label, psbt: filled, finalize: true);
+    return signed;
   }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController addressController = TextEditingController();
     final TextEditingController feeRateController = TextEditingController();
+
+    final walletState = Provider.of<WalletState>(context);
+    final selectedOutputs = walletState.selectedOutputs;
+    final recipients = walletState.recipients;
 
     return Scaffold(
       appBar: AppBar(
@@ -59,42 +114,29 @@ class SpendScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to the new screen
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                      builder: (context) => const OutputsScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text('Choose outputs to spend'),
-            ),
-            const Text('Destination Address'),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: addressController,
-                    readOnly: true, // Makes the field read-only
-                    decoration: const InputDecoration(
-                      hintText: 'Paste destination address here',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.paste),
-                  onPressed: () async {
-                    ClipboardData? data =
-                        await Clipboard.getData(Clipboard.kTextPlain);
-                    addressController.text = data?.text ?? '';
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+            const Spacer(),
+            SummaryWidget(
+                displayText: selectedOutputs.isEmpty
+                    ? "Tap here to choose which coin to spend"
+                    : "Spending ${selectedOutputs.length} output(s) for a total of ${walletState.outputSelectionTotalAmt()} sats available",
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (context) => const OutputsScreen()),
+                  );
+                }),
+            const Spacer(),
+            SummaryWidget(
+                displayText: recipients.isEmpty
+                    ? "Tap here to add destinations"
+                    : "Sending to ${recipients.length} output(s) for a total of ${walletState.recipientTotalAmt()} sats",
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (context) => const DestinationScreen()),
+                  );
+                }),
+            const Spacer(),
             const Text('Fee Rate (satoshis/vB)'),
             TextField(
               controller: feeRateController,
@@ -104,24 +146,34 @@ class SpendScreen extends StatelessWidget {
                 hintText: 'Enter fee rate',
               ),
             ),
+            const Spacer(),
             ElevatedButton(
               onPressed: () async {
-                final String address = addressController.text;
                 final int? fees = int.tryParse(feeRateController.text);
                 if (fees == null) {
-                  throw Exception("Invalid fees");
+                  throw Exception("No fees input");
                 }
-                List<String> addresses = List.filled(1, address);
-                final walletState = Provider.of<WalletState>(context);
-                final tx =
-                    await _spend(walletState.selectedOutputs, addresses, fees);
-                print("$tx");
+                final walletState =
+                    Provider.of<WalletState>(context, listen: false);
+                print(walletState.recipients);
+                try {
+                  final tx = await _spend(
+                      walletState.dir.path,
+                      walletState.label,
+                      walletState.selectedOutputs,
+                      walletState.recipients,
+                      fees);
+                  print("$tx");
+                } catch (e) {
+                  rethrow;
+                }
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
               ),
               child: const Text('Spend'),
             ),
+            const Spacer()
           ],
         ),
       ),
