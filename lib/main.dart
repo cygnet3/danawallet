@@ -53,6 +53,7 @@ class WalletState extends ChangeNotifier {
   String address = "";
   List<OwnedOutput> ownedOutputs = List.empty();
   List<OwnedOutput> selectedOutputs = List.empty(growable: true);
+  List<Recipient> recipients = List.empty(growable: true);
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
@@ -165,6 +166,7 @@ class WalletState extends ChangeNotifier {
     address = "";
     ownedOutputs = List.empty();
     selectedOutputs = List.empty(growable: true);
+    recipients = List.empty(growable: true);
     // dir stays as it is
 
     notifyListeners();
@@ -207,6 +209,46 @@ class WalletState extends ChangeNotifier {
       selectedOutputs.remove(output);
     } else {
       selectedOutputs.add(output);
+    }
+    notifyListeners();
+  }
+
+  int outputSelectionTotalAmt() {
+    final total =
+        selectedOutputs.fold(0, (sum, element) => sum + element.amount);
+    return total;
+  }
+
+  int recipientTotalAmt() {
+    final total = recipients.fold(0, (sum, element) => sum + element.amount);
+    return total;
+  }
+
+  Future<void> addRecipients(String address, int amount, int nbOutputs) async {
+    final alreadyInList = recipients.where((r) => r.address == address);
+    if (alreadyInList.isNotEmpty) {
+      throw Exception("Address already in list");
+    }
+
+    if (nbOutputs < 1) {
+      nbOutputs = 1;
+    }
+
+    if (amount <= 564) {
+      throw Exception("Can't have amount inferior to 546 sats");
+    }
+    recipients
+        .add(Recipient(address: address, amount: amount, nbOutputs: nbOutputs));
+
+    notifyListeners();
+  }
+
+  Future<void> rmRecipient(String address) async {
+    final alreadyInList = recipients.where((r) => r.address == address);
+    if (alreadyInList.isEmpty) {
+      throw Exception("Unknown recipient");
+    } else {
+      recipients.removeWhere((r) => r.address == address);
     }
     notifyListeners();
   }
