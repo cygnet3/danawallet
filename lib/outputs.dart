@@ -58,6 +58,9 @@ class OutputsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
                   onPressed: () {
+                    final outputs = walletState.getSpendableOutputs();
+                    print(outputs[0].script);
+                    // print(output)
                     // final walletState = Provider.of<WalletState>(context);
                     // Navigator.of(context).push(MaterialPageRoute(
                     //     builder: (context) =>

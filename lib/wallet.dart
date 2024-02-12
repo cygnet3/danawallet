@@ -111,8 +111,11 @@ class WalletScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Nakamoto peer count: ${walletState.peercount}'),
-                Text('birthday: ${walletState.birthday}'),
+                const SizedBox(
+                  height: 50,
+                ),
+                // Text('Nakamoto peer count: ${walletState.peercount}'),
+                // Text('birthday: ${walletState.birthday}'),
                 // Spacer(),
                 Text(
                   'Balance: ${walletState.amount}',

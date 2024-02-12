@@ -112,7 +112,8 @@ class SpendScreen extends StatelessWidget {
                   throw Exception("Invalid fees");
                 }
                 List<String> addresses = List.filled(1, address);
-                final walletState = Provider.of<WalletState>(context);
+                final walletState =
+                    Provider.of<WalletState>(context, listen: false);
                 final tx =
                     await _spend(walletState.selectedOutputs, addresses, fees);
                 print("$tx");

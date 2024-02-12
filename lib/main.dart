@@ -51,8 +51,8 @@ class WalletState extends ChangeNotifier {
   String network = 'signet';
   bool walletLoaded = false;
   String address = "";
-  List<OwnedOutput> ownedOutputs = List.empty();
-  List<OwnedOutput> selectedOutputs = List.empty();
+  List<OwnedOutput> ownedOutputs = [];
+  List<OwnedOutput> selectedOutputs = [];
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
@@ -148,7 +148,7 @@ class WalletState extends ChangeNotifier {
   }
 
   void _stopNakamoto() {
-    api.forceInterruptNakamoto();
+    // api.forceInterruptNakamoto();
     // todo: check that nakamoto is properly stopped
     nakamotoRunSubscription.cancel();
   }
