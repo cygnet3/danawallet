@@ -149,7 +149,7 @@ class WalletState extends ChangeNotifier {
   }
 
   void _stopNakamoto() {
-    api.forceInterruptNakamoto();
+    // api.forceInterruptNakamoto();
     // todo: check that nakamoto is properly stopped
     nakamotoRunSubscription.cancel();
   }
