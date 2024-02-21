@@ -74,7 +74,7 @@ class WalletScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
 
-    Widget progressWidget = walletState.progress != 0.0
+    Widget progressWidget = walletState.scanning
         ? SizedBox(
             width: 100,
             height: 100,

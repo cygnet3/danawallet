@@ -48,6 +48,7 @@ class WalletState extends ChangeNotifier {
   int tip = 0;
   String bestBlockHash = "";
   double progress = 0.0;
+  bool scanning = false;
   int peercount = 0;
   String network = 'signet';
   bool walletLoaded = false;
@@ -117,6 +118,7 @@ class WalletState extends ChangeNotifier {
       double progress = scanned / total;
       if (current == end) {
         progress = 0.0;
+        scanning = false;
       }
       this.progress = progress;
       lastScan = current;
@@ -168,6 +170,7 @@ class WalletState extends ChangeNotifier {
     lastScan = 0;
     tip = 0;
     progress = 0.0;
+    scanning = false;
     peercount = 0;
     network = 'signet';
     walletLoaded = false;
@@ -263,10 +266,14 @@ class WalletState extends ChangeNotifier {
 
   Future<void> scanToTip() async {
     try {
+      scanning = true;
       await api.scanToTip(path: dir.path, label: label);
     } catch (e) {
+      scanning = false;
+      notifyListeners();
       rethrow;
     }
+    scanning = false;
   }
 }
 
