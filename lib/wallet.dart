@@ -79,6 +79,7 @@ class WalletScreen extends StatelessWidget {
             width: 100,
             height: 100,
             child: CircularProgressIndicator(
+              backgroundColor: Colors.grey[200],
               value: walletState.progress,
               strokeWidth: 6.0,
             ),
