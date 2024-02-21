@@ -98,8 +98,13 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> _initStreams() async {
-    logStreamSubscription = api.createLogStream().listen((event) {
-      print('RUST: ${event.msg}');
+    logStreamSubscription = api
+        .createLogStream(level: LogLevel.Info, logDependencies: true)
+        .listen((event) {
+      // ignore p2p messages as these are really spammy
+      if (event.tag != 'p2p') {
+        print('${event.level} (${event.tag}): ${event.msg}');
+      }
     });
 
     scanProgressSubscription = api.createScanProgressStream().listen(((event) {
@@ -122,6 +127,8 @@ class WalletState extends ChangeNotifier {
       peercount = event.peerCount;
       tip = event.blockheight;
       bestBlockHash = event.bestblockhash;
+
+      print('tip: $tip');
 
       notifyListeners();
     });
