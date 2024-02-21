@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/spend.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,7 @@ class WalletScreen extends StatelessWidget {
               try {
                 await walletState.scanToTip();
               } catch (e) {
-                print(e.toString());
+                displayNotification(e.toString());
               }
             },
             child: const Text('Scan'));

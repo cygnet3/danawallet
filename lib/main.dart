@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:donationwallet/ffi.dart';
+import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,7 +29,7 @@ class SynchronizationService {
     try {
       await api.syncBlockchain();
     } catch (e) {
-      rethrow;
+      displayNotification(e.toString());
     }
   }
 
@@ -288,6 +289,7 @@ class SilentPaymentApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Silent payments',
+      navigatorKey: globalNavigatorKey,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
