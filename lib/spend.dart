@@ -77,24 +77,59 @@ class SummaryWidget extends StatelessWidget {
 class SpendScreen extends StatelessWidget {
   const SpendScreen({super.key});
 
-  Future<String> _spend(
+  Future<String> _newTransactionWithFees(
       String path,
       String label,
       List<OwnedOutput> spentOutputs,
       List<Recipient> recipients,
       int feeRate) async {
-    String psbt =
-        await api.createNewPsbt(inputs: spentOutputs, recipients: recipients);
-    print(psbt);
-    print(recipients[0].address);
+    String psbt = await api.createNewPsbt(
+        path: path, label: label, inputs: spentOutputs, recipients: recipients);
     String fee = await api.addFeeForFeeRate(
         psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
-    print(fee);
     String filled =
         await api.fillSpOutputs(path: path, label: label, psbt: fee);
-    String signed = await api.signPsbt(
-        path: path, label: label, psbt: filled, finalize: true);
-    return signed;
+    return filled;
+  }
+
+  Future<String> _signPsbt(
+    String path,
+    String label,
+    String unsignedPsbt,
+  ) async {
+    return await api.signPsbt(
+        path: path, label: label, psbt: unsignedPsbt, finalize: true);
+  }
+
+  Future<String> _broadcastSignedTransaction(String signedPsbt) async {
+    final tx = await api.extractTxFromPsbt(psbt: signedPsbt);
+    final txid = await api.broadcastTx(tx: tx);
+    return txid;
+  }
+
+  void _showConfirmSentDialog(BuildContext context, String txid) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Transaction successfully sent'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SelectableText(txid),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -155,15 +190,21 @@ class SpendScreen extends StatelessWidget {
                 }
                 final walletState =
                     Provider.of<WalletState>(context, listen: false);
-                print(walletState.recipients);
                 try {
-                  final tx = await _spend(
+                  final unsignedPsbt = await _newTransactionWithFees(
                       walletState.dir.path,
                       walletState.label,
                       walletState.selectedOutputs,
                       walletState.recipients,
                       fees);
-                  print("$tx");
+                  final signedPsbt = await _signPsbt(
+                      walletState.dir.path, walletState.label, unsignedPsbt);
+                  final sentTxId =
+                      await _broadcastSignedTransaction(signedPsbt);
+
+                  if (!context.mounted) return;
+
+                  _showConfirmSentDialog(context, sentTxId);
                 } catch (e) {
                   rethrow;
                 }
