@@ -212,7 +212,10 @@ class WalletState extends ChangeNotifier {
   }
 
   List<OwnedOutput> getSpendableOutputs() {
-    return ownedOutputs.where((output) => !output.spent).toList();
+    return ownedOutputs
+        .where(
+            (output) => output.spendStatus == const OutputSpendStatus.unspent())
+        .toList();
   }
 
   void toggleOutputSelection(OwnedOutput output) {
