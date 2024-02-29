@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:donationwallet/ffi.dart';
 import 'package:donationwallet/main.dart';
@@ -101,9 +100,11 @@ class SpendScreen extends StatelessWidget {
         path: path, label: label, psbt: unsignedPsbt, finalize: true);
   }
 
-  Future<String> _broadcastSignedTransaction(String signedPsbt) async {
+  Future<String> _broadcastSignedPsbtAndMarkAsSpent(
+      String path, String label, String signedPsbt) async {
     final tx = await api.extractTxFromPsbt(psbt: signedPsbt);
     final txid = await api.broadcastTx(tx: tx);
+    await api.markTransactionInputsAsSpent(path: path, label: label, tx: tx);
     return txid;
   }
 
@@ -199,8 +200,8 @@ class SpendScreen extends StatelessWidget {
                       fees);
                   final signedPsbt = await _signPsbt(
                       walletState.dir.path, walletState.label, unsignedPsbt);
-                  final sentTxId =
-                      await _broadcastSignedTransaction(signedPsbt);
+                  final sentTxId = await _broadcastSignedPsbtAndMarkAsSpent(
+                      walletState.dir.path, walletState.label, signedPsbt);
 
                   if (!context.mounted) return;
 
