@@ -205,6 +205,9 @@ class SpendScreen extends StatelessWidget {
 
                   if (!context.mounted) return;
 
+                  // navigate to main screen
+                  Navigator.popUntil(context, (route) => route.isFirst);
+
                   _showConfirmSentDialog(context, sentTxId);
                 } catch (e) {
                   rethrow;
