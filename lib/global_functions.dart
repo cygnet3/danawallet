@@ -10,3 +10,19 @@ void displayNotification(String text) {
   ScaffoldMessenger.of(globalNavigatorKey.currentContext!)
       .showSnackBar(snackBar);
 }
+
+void showAlertDialog(String title, String text) {
+  showDialog(
+    context: globalNavigatorKey.currentContext!,
+    builder: (BuildContext context) => AlertDialog(
+      title: Text(title),
+      content: SelectableText(text),
+      actions: [
+        TextButton(
+          child: const Text('Close'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+    ),
+  );
+}

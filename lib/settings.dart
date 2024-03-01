@@ -1,4 +1,5 @@
 import 'package:donationwallet/ffi.dart';
+import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/home.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,16 @@ class SettingsScreen extends StatelessWidget {
       callback(e);
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<String?> _getSeedPhrase(WalletState walletState) async {
+    try {
+      return await api.showMnemonic(
+          path: walletState.dir.path, label: walletState.label);
+    } catch (e) {
+      displayNotification(e.toString());
+      return null;
     }
   }
 
@@ -93,6 +104,22 @@ class SettingsScreen extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
+        ElevatedButton(
+          onPressed: () async {
+            final walletState =
+                Provider.of<WalletState>(context, listen: false);
+
+            const title = 'Backup seed phrase';
+            final text = await _getSeedPhrase(walletState) ??
+                'Seed phrase unknown! Did you import from keys?';
+
+            showAlertDialog(title, text);
+          },
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          child: const Text('Show seed phrase'),
+        ),
         ElevatedButton(
           onPressed: () async {
             final walletState =
