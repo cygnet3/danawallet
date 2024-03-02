@@ -51,17 +51,24 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  Widget showScanText(context) {
+  Widget showWalletStateText(context) {
     final walletState = Provider.of<WalletState>(context);
     final toScan = walletState.tip - walletState.lastScan;
 
     String text;
-    if (walletState.peercount == 0) {
-      text = 'Waiting for peers';
-    } else if (toScan == 0) {
-      text = 'Up to date!';
+
+    if (walletState.nakamotoIsRunning) {
+      if (walletState.scanning) {
+        text = 'Scanning: $toScan blocks';
+      } else {
+        text = 'Syncing headers ...';
+      }
     } else {
-      text = 'New blocks: $toScan';
+      if (toScan == 0) {
+        text = 'Up to date!';
+      } else {
+        text = 'New blocks: $toScan';
+      }
     }
 
     return Text(
@@ -123,7 +130,7 @@ class WalletScreen extends StatelessWidget {
                 Spacer(),
                 progressWidget,
                 Spacer(),
-                showScanText(context),
+                showWalletStateText(context),
                 Spacer(),
                 buildBottomButtons(context),
                 Spacer(),
