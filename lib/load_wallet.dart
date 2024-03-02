@@ -134,7 +134,9 @@ class LoadWalletScreen extends StatelessWidget {
                 final scanKey = scanKeyController.text;
                 final spendKey = spendKeyController.text;
                 final birthday = int.parse(birthdayController.text);
-                final walletType = WalletType.privateKeys(scanKey, spendKey);
+                final walletType = watchOnly
+                    ? WalletType.readOnly(scanKey, spendKey)
+                    : WalletType.privateKeys(scanKey, spendKey);
 
                 try {
                   await _setup(context, walletType, birthday);
