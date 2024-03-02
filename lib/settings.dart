@@ -139,7 +139,7 @@ class SettingsScreen extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             minimumSize: const Size(double.infinity, 50),
           ),
-          child: const Text('wipe nakamoto'),
+          child: const Text('Wipe nakamoto database'),
         ),
         ElevatedButton(
           onPressed: () async {
