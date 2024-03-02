@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:donationwallet/ffi.dart';
+import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/outputs.dart';
 import 'package:donationwallet/destination.dart';
@@ -108,31 +109,6 @@ class SpendScreen extends StatelessWidget {
     return txid;
   }
 
-  void _showConfirmSentDialog(BuildContext context, String txid) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Transaction successfully sent'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SelectableText(txid),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final TextEditingController feeRateController = TextEditingController();
@@ -208,7 +184,7 @@ class SpendScreen extends StatelessWidget {
                   // navigate to main screen
                   Navigator.popUntil(context, (route) => route.isFirst);
 
-                  _showConfirmSentDialog(context, sentTxId);
+                  showAlertDialog('Transaction successfully sent', sentTxId);
                 } catch (e) {
                   rethrow;
                 }
