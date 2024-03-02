@@ -179,6 +179,10 @@ class SpendScreen extends StatelessWidget {
                   final sentTxId = await _broadcastSignedPsbtAndMarkAsSpent(
                       walletState.dir.path, walletState.label, signedPsbt);
 
+                  // Clear selections
+                  walletState.selectedOutputs.clear();
+                  walletState.recipients.clear();
+
                   if (!context.mounted) return;
 
                   // navigate to main screen
