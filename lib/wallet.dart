@@ -97,13 +97,15 @@ class WalletScreen extends StatelessWidget {
               shape: CircleBorder(),
               padding: EdgeInsets.all(60.0),
             ),
-            onPressed: () async {
-              try {
-                await walletState.scanToTip();
-              } catch (e) {
-                displayNotification(e.toString());
-              }
-            },
+            onPressed: (walletState.nakamotoIsRunning)
+                ? null
+                : () async {
+                    try {
+                      await walletState.scanToTip();
+                    } catch (e) {
+                      displayNotification(e.toString());
+                    }
+                  },
             child: const Text('Scan'));
 
     if (!walletState.walletLoaded) {
