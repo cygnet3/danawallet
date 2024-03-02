@@ -168,7 +168,7 @@ class WalletState extends ChangeNotifier {
     amount = 0;
     birthday = 0;
     lastScan = 0;
-    tip = 0;
+    // tip isn't specific to wallet, needs not be reset
     progress = 0.0;
     scanning = false;
     peercount = 0;
