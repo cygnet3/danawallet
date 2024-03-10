@@ -46,7 +46,3 @@ app.*.map.json
 /android/local.properties
 
 .env
-
-# Don't track generated files
-lib/bridge_definitions*.dart
-lib/bridge_generated*.dart
