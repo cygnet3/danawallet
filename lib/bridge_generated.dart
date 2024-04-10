@@ -1741,7 +1741,3 @@ typedef DartPostCObjectFnType = ffi.Pointer<
     ffi.NativeFunction<
         ffi.Bool Function(DartPort port_id, ffi.Pointer<ffi.Void> message)>>;
 typedef DartPort = ffi.Int64;
-
-const int PSBT_SP_SUBTYPE = 0;
-
-const int DUST_THRESHOLD = 10000;
