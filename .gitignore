@@ -46,3 +46,5 @@ app.*.map.json
 /android/local.properties
 
 .env
+
+rust/target
