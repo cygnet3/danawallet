@@ -1,8 +1,9 @@
 use std::str::FromStr;
 
 use bitcoin::{
-    consensus::encode::serialize_hex,
+    consensus::{encode::serialize_hex, Decodable},
     secp256k1::{PublicKey, SecretKey},
+    Transaction,
 };
 use flutter_rust_bridge::StreamSink;
 use log::info;
@@ -354,7 +355,9 @@ pub fn mark_transaction_inputs_as_spent(
         Err(_) => return Err("Wallet not found".to_owned()),
     };
 
-    let tx = nakamotoclient::deserialize_transaction(&tx).map_err(|e| e.to_string())?;
+    let tx_bytes = hex::decode(tx).map_err(|e| e.to_string())?;
+
+    let tx = Transaction::consensus_decode(&mut tx_bytes.as_slice()).map_err(|e| e.to_string())?;
 
     sp_client
         .mark_transaction_inputs_as_spent(tx)

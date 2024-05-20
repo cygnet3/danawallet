@@ -1101,13 +1101,12 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-backend?branch=master#a945528b5d8a2cc51bf2b2df02be463445be32bb"
+source = "git+https://github.com/cygnet3/sp-backend?branch=master#d496bef81330b05754c5bff9e63ced370d94d9fb"
 dependencies = [
  "anyhow",
  "bip39",
  "bitcoin 0.31.2",
  "log",
- "nakamoto",
  "serde",
  "serde_json",
  "serde_with",

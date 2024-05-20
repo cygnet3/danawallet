@@ -10,6 +10,7 @@ use std::{
 
 use anyhow::{Error, Result};
 use bitcoin::{
+    hashes::Hash,
     hex::{DisplayHex, FromHex},
     secp256k1::{All, PublicKey, Scalar, Secp256k1, SecretKey},
     XOnlyPublicKey,
@@ -233,6 +234,10 @@ pub fn scan_blocks(
             // scan block for new outputs, and add them to our list
             let owned = scan_block_outputs(&sp_receiver, &blk.txdata, blkheight, spk2secret)?;
             if !owned.is_empty() {
+                let owned = owned
+                    .into_iter()
+                    .map(|(outpoint, owned)| (nakamoto_outpoint_to_bitcoin(outpoint), owned))
+                    .collect();
                 sp_client.extend_owned(owned);
                 send_amount_update(sp_client.get_spendable_amt());
 
@@ -248,7 +253,7 @@ pub fn scan_blocks(
             if !inputs_found.is_empty() {
                 for outpoint in inputs_found {
                     sp_client.mark_outpoint_mined(
-                        outpoint,
+                        nakamoto_outpoint_to_bitcoin(outpoint),
                         bitcoin::BlockHash::from_str(&blkhash.to_lower_hex_string())?,
                     )?;
                 }
@@ -422,7 +427,7 @@ fn scan_block_inputs(sp_client: &SpClient, txdata: Vec<Transaction>) -> Result<V
         for input in tx.input {
             let prevout = input.previous_output;
 
-            if sp_client.check_outpoint_owned(prevout) {
+            if sp_client.check_outpoint_owned(nakamoto_outpoint_to_bitcoin(prevout)) {
                 found.push(prevout);
             }
         }
@@ -447,4 +452,17 @@ pub fn broadcast_transaction(mut handle: Handle<Waker>, tx: Transaction) -> Resu
     sleep(Duration::from_secs(2)); // this should be enough
 
     Ok(txid)
+}
+
+// workaround for library version mismatch
+fn nakamoto_outpoint_to_bitcoin(
+    outpoint: nakamoto::common::bitcoin::OutPoint,
+) -> bitcoin::OutPoint {
+    let txid_bytes = outpoint.txid.to_vec();
+    let vout = outpoint.vout;
+
+    bitcoin::OutPoint {
+        txid: bitcoin::Txid::from_slice(&txid_bytes).unwrap(),
+        vout,
+    }
 }
