@@ -23,4 +23,3 @@ serde_with = "3.6.0"
 log = "0.4.20"
 simplelog = "0.12.1"
 bitcoin = { version = "0.31.1", features = ["serde", "rand", "base64"] }
-silentpayments = "0.1.1"

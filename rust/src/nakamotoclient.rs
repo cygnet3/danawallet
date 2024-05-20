@@ -26,7 +26,7 @@ use nakamoto::{
     net::poll::Waker,
 };
 use once_cell::sync::OnceCell;
-use silentpayments::receiving::Receiver;
+use sp_client::silentpayments::receiving::Receiver;
 
 use crate::{
     // constants::SyncStatus,

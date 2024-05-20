@@ -1037,9 +1037,9 @@ dependencies = [
 
 [[package]]
 name = "silentpayments"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f3a0169e01dc753fe00f82d0b08a68d49e69f912f592e95ff5ade8b623728a5"
+checksum = "3b6e2050ed5450a026cf7aa7f80eee7e2b54607f0fe3f404388331f424fba421"
 dependencies = [
  "bech32 0.9.1",
  "bimap",
@@ -1094,7 +1094,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "silentpayments",
  "simplelog",
  "sp_client",
 ]
@@ -1102,7 +1101,7 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-backend?branch=master#53ab6118871a64da5325dc636c9de43926cf3217"
+source = "git+https://github.com/cygnet3/sp-backend?branch=master#a945528b5d8a2cc51bf2b2df02be463445be32bb"
 dependencies = [
  "anyhow",
  "bip39",
