@@ -2,14 +2,17 @@ use std::{collections::HashMap, time::Instant};
 
 use anyhow::{Error, Result};
 use bitcoin::{
-    bip158::BlockFilter, key::Secp256k1, secp256k1::{PublicKey, Scalar}, BlockHash, OutPoint, Txid, XOnlyPublicKey
+    bip158::BlockFilter,
+    key::Secp256k1,
+    secp256k1::{PublicKey, Scalar},
+    BlockHash, OutPoint, Txid, XOnlyPublicKey,
 };
 use log::info;
 use sp_client::silentpayments::receiving::Label;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput, SpClient};
 
 use crate::blindbit::client::{BlindbitClient, UtxoResponse};
-use crate::stream::{send_scan_progress, send_amount_update, ScanProgress};
+use crate::stream::{send_amount_update, send_scan_progress, ScanProgress};
 
 const HOST: &str = "https://silentpayments.dev/blindbit";
 
@@ -89,7 +92,7 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
                         blockheight: n,
                         tweak: hex::encode(tweak.to_be_bytes()),
                         amount: utxo.value,
-                        script: utxo.scriptpubkey.to_string(),
+                        script: utxo.scriptpubkey.to_hex_string(),
                         label: label.map(|l| l.as_string()),
                         spend_status: OutputSpendStatus::Unspent,
                     };
@@ -126,7 +129,7 @@ pub async fn get_block_secrets(
     n: u32,
 ) -> Result<HashMap<[u8; 34], PublicKey>> {
     // get block tweaks
-    let tweaks = client.tweaks(n).await?;
+    let tweaks = client.tweak_index(n).await?;
 
     let secp = Secp256k1::new();
 
@@ -212,7 +215,10 @@ pub fn check_block(
     owned_spks: Vec<Vec<u8>>,
 ) -> Result<bool> {
     // check output scripts
-    let mut scripts_to_match: Vec<_> = candidate_spks.into_iter().map(|spk| spk[2..].as_ref()).collect();
+    let mut scripts_to_match: Vec<_> = candidate_spks
+        .into_iter()
+        .map(|spk| spk[2..].as_ref())
+        .collect();
 
     // check input scripts
     scripts_to_match.extend(owned_spks.iter().map(|spk| spk.as_slice()));

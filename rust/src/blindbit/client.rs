@@ -35,9 +35,7 @@ pub struct BlindbitClient {
 
 impl BlindbitClient {
     pub fn new(host: String) -> Self {
-        BlindbitClient {
-            host,
-        }
+        BlindbitClient { host }
     }
     pub async fn block_height(&self) -> u32 {
         let res = reqwest::get(format!("{}/block-height", self.host))
@@ -55,7 +53,7 @@ impl BlindbitClient {
     }
 
     pub async fn tweak_index(&self, block_height: u32) -> Result<Vec<PublicKey>> {
-        let res = reqwest::get(format!("{}/tweak_index/{}", self.host, block_height)).await?;
+        let res = reqwest::get(format!("{}/tweak-index/{}", self.host, block_height)).await?;
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 

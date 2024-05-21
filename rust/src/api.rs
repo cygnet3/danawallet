@@ -7,8 +7,11 @@ use bitcoin::{
 };
 use flutter_rust_bridge::StreamSink;
 use log::info;
+use serde::Deserialize;
+use tokio::runtime::Runtime;
 
 use crate::{
+    blindbit,
     constants::{OutputSpendStatus, OwnedOutput, Recipient, WalletType},
     logger::{self, LogEntry, LogLevel},
     nakamotoclient,
@@ -184,18 +187,18 @@ pub fn sync_blockchain() -> Result<(), String> {
 }
 
 pub fn scan_to_tip(path: String, label: String) -> Result<(), String> {
-    let (handle, join_handle) =
-        nakamotoclient::start_nakamoto_client().map_err(|e| e.to_string())?;
-    info!("Nakamoto started");
-
     let res = match SpClient::try_init_from_disk(label, path) {
         Err(_) => Err("Wallet not found".to_owned()),
         Ok(sp_client) => {
-            nakamotoclient::scan_blocks(handle.clone(), 0, sp_client).map_err(|e| e.to_string())
+            let rt = Runtime::new().unwrap();
+
+            rt.block_on(async {
+                blindbit::logic::scan_blocks(0, sp_client)
+                    .await
+                    .map_err(|e| e.to_string())
+            })
         }
     };
-    nakamotoclient::stop_nakamoto_client(handle, join_handle).map_err(|e| e.to_string())?;
-
     res
 }
 
