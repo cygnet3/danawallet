@@ -73,67 +73,64 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
 
         let secrets_map = get_block_secrets(&blindbit_client, &sp_client, n).await?;
 
-        if secrets_map.is_empty() {
-            // no relevant transactions for us
-            continue;
-        }
+        if !secrets_map.is_empty() {
+            last_scan = last_scan.max(n as u32);
+            let candidate_spks: Vec<&[u8; 34]> = secrets_map.keys().collect();
 
-        last_scan = last_scan.max(n as u32);
-        let candidate_spks: Vec<&[u8; 34]> = secrets_map.keys().collect();
+            //get block gcs & check match
+            let new_utxo_filter = blindbit_client.filter_new_utxos(n).await?;
+            let blkfilter = BlockFilter::new(&hex::decode(new_utxo_filter.data)?);
+            let blkhash = new_utxo_filter.block_hash;
 
-        //get block gcs & check match
-        let new_utxo_filter = blindbit_client.filter_new_utxos(n).await?;
-        let blkfilter = BlockFilter::new(&hex::decode(new_utxo_filter.data)?);
-        let blkhash = new_utxo_filter.block_hash;
+            let matched_outputs = check_block_outputs(blkfilter, blkhash, candidate_spks)?;
 
-        let matched_outputs = check_block_outputs(blkfilter, blkhash, candidate_spks)?;
+            //if match: fetch and scan utxos
+            if matched_outputs {
+                info!("matched outputs on: {}", n);
+                let utxos = blindbit_client.utxos(n).await?;
+                let found = scan_utxos(utxos, secrets_map, &sp_client).await?;
 
-        //if match: fetch and scan utxos
-        if matched_outputs {
-            info!("matched outputs on: {}", n);
-            let utxos = blindbit_client.utxos(n).await?;
-            let found = scan_utxos(utxos, secrets_map, &sp_client).await?;
+                if !found.is_empty() {
+                    let mut new = vec![];
 
-            if !found.is_empty() {
-                let mut new = vec![];
+                    for (label, utxo, tweak) in found {
+                        let outpoint = OutPoint {
+                            txid: utxo.txid,
+                            vout: utxo.vout,
+                        };
 
-                for (label, utxo, tweak) in found {
-                    let outpoint = OutPoint {
-                        txid: utxo.txid,
-                        vout: utxo.vout,
-                    };
+                        let out = OwnedOutput {
+                            txoutpoint: outpoint.to_string(),
+                            blockheight: n,
+                            tweak: hex::encode(tweak.to_be_bytes()),
+                            amount: utxo.value,
+                            script: utxo.scriptpubkey.to_hex_string(),
+                            label: label.map(|l| l.as_string()),
+                            spend_status: OutputSpendStatus::Unspent,
+                        };
 
-                    let out = OwnedOutput {
-                        txoutpoint: outpoint.to_string(),
-                        blockheight: n,
-                        tweak: hex::encode(tweak.to_be_bytes()),
-                        amount: utxo.value,
-                        script: utxo.scriptpubkey.to_hex_string(),
-                        label: label.map(|l| l.as_string()),
-                        spend_status: OutputSpendStatus::Unspent,
-                    };
+                        new.push((outpoint, out));
+                    }
+                    sp_client.extend_owned(new);
 
-                    new.push((outpoint, out));
+                    send_amount_update(sp_client.get_spendable_amt());
+
+                    send_scan_progress(ScanProgress {
+                        start,
+                        current: n,
+                        end,
+                    });
                 }
-                sp_client.extend_owned(new);
-
-                send_amount_update(sp_client.get_spendable_amt());
-
-                send_scan_progress(ScanProgress {
-                    start,
-                    current: n,
-                    end,
-                });
             }
         }
-
         // input checking
+        let spent_filter = blindbit_client.filter_spent(n).await?;
+        let blkhash = spent_filter.block_hash;
 
         // first get the 8-byte hashes used to construct the input filter
         let input_hashes_map = get_input_hashes(blkhash, &sp_client)?;
 
         // check against filter
-        let spent_filter = blindbit_client.filter_spent(n).await?;
         let blkfilter = BlockFilter::new(&hex::decode(spent_filter.data)?);
         let matched_inputs = check_block_inputs(
             blkfilter,
