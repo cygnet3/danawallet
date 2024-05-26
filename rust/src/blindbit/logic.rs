@@ -1,8 +1,9 @@
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, str::FromStr, time::Instant};
 
 use anyhow::{Error, Result};
 use bitcoin::{
     bip158::BlockFilter,
+    hashes::{sha256, Hash},
     key::Secp256k1,
     secp256k1::{PublicKey, Scalar},
     BlockHash, OutPoint, Txid, XOnlyPublicKey,
@@ -62,19 +63,16 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
         last_scan = last_scan.max(n as u32);
         let candidate_spks: Vec<&[u8; 34]> = secrets_map.keys().collect();
 
-        // not possible with blindbit
-        let owned_spks = vec![];
-
         //get block gcs & check match
-        let filter = blindbit_client.filter(n).await?;
-        let blkfilter = BlockFilter::new(&hex::decode(filter.data)?);
-        let blkhash = filter.block_hash;
+        let new_utxo_filter = blindbit_client.filter_new_utxos(n).await?;
+        let blkfilter = BlockFilter::new(&hex::decode(new_utxo_filter.data)?);
+        let blkhash = new_utxo_filter.block_hash;
 
-        let matched = check_block(blkfilter, blkhash, candidate_spks, owned_spks)?;
+        let matched_outputs = check_block_outputs(blkfilter, blkhash, candidate_spks)?;
 
         //if match: fetch and scan utxos
-        if matched {
-            info!("matched on: {}", n);
+        if matched_outputs {
+            info!("matched outputs on: {}", n);
             let utxos = blindbit_client.utxos(n).await?;
             let found = scan_utxos(utxos, secrets_map, &sp_client).await?;
 
@@ -108,6 +106,32 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
                     current: n,
                     end,
                 });
+            }
+        }
+
+        // input checking
+
+        // first get the 8-byte hashes used to construct the input filter
+        let input_hashes_map = get_input_hashes(blkhash, &sp_client)?;
+
+        // check against filter
+        let spent_filter = blindbit_client.filter_spent(n).await?;
+        let blkfilter = BlockFilter::new(&hex::decode(spent_filter.data)?);
+        let matched_inputs = check_block_inputs(
+            blkfilter,
+            blkhash,
+            input_hashes_map.keys().cloned().collect(),
+        )?;
+
+        // if match: download spent data, and mark present outputs as spent
+        if matched_inputs {
+            info!("matched inputs on: {}", n);
+            let spent = blindbit_client.spent_index(n).await?.data;
+
+            for spent in spent {
+                if let Some(outpoint) = input_hashes_map.get(&spent.hex) {
+                    sp_client.mark_outpoint_mined(*outpoint, blkhash)?;
+                }
             }
         }
     }
@@ -208,24 +232,59 @@ pub async fn scan_utxos(
 }
 
 // Check if this block contains relevant transactions
-pub fn check_block(
-    blkfilter: BlockFilter,
+pub fn check_block_outputs(
+    created_utxo_filter: BlockFilter,
     blkhash: BlockHash,
     candidate_spks: Vec<&[u8; 34]>,
-    owned_spks: Vec<Vec<u8>>,
 ) -> Result<bool> {
     // check output scripts
-    let mut scripts_to_match: Vec<_> = candidate_spks
+    let output_keys: Vec<_> = candidate_spks
         .into_iter()
         .map(|spk| spk[2..].as_ref())
         .collect();
 
-    // check input scripts
-    scripts_to_match.extend(owned_spks.iter().map(|spk| spk.as_slice()));
-
     // note: match will always return true for an empty query!
-    if !scripts_to_match.is_empty() {
-        Ok(blkfilter.match_any(&blkhash, &mut scripts_to_match.into_iter())?)
+    if !output_keys.is_empty() {
+        Ok(created_utxo_filter.match_any(&blkhash, &mut output_keys.into_iter())?)
+    } else {
+        Ok(false)
+    }
+}
+
+pub fn get_input_hashes(
+    blkhash: BlockHash,
+    client: &SpClient,
+) -> Result<HashMap<Vec<u8>, OutPoint>> {
+    let owned = client.list_outpoints();
+
+    let mut map: HashMap<Vec<u8>, OutPoint> = HashMap::new();
+
+    for output in owned {
+        let outpoint = OutPoint::from_str(&output.txoutpoint)?;
+        let mut arr = [0u8; 68];
+        arr[..32].copy_from_slice(&outpoint.txid.to_raw_hash().to_byte_array());
+        arr[32..36].copy_from_slice(&outpoint.vout.to_le_bytes());
+        arr[36..].copy_from_slice(&blkhash.to_byte_array());
+        let hash = sha256::Hash::hash(&arr);
+
+        let mut res = [0u8; 8];
+        res.copy_from_slice(&hash[..8]);
+
+        map.insert(res.to_vec(), outpoint);
+    }
+
+    Ok(map)
+}
+
+// Check if this block contains relevant transactions
+pub fn check_block_inputs(
+    spent_filter: BlockFilter,
+    blkhash: BlockHash,
+    input_hashes: Vec<Vec<u8>>,
+) -> Result<bool> {
+    // note: match will always return true for an empty query!
+    if !input_hashes.is_empty() {
+        Ok(spent_filter.match_any(&blkhash, &mut input_hashes.into_iter())?)
     } else {
         Ok(false)
     }

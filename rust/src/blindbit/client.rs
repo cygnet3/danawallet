@@ -22,6 +22,19 @@ pub struct UtxoResponse {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct SpentIndexResponse {
+    pub block_hash: BlockHash,
+    pub data: Vec<MyHex>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(transparent)]
+pub struct MyHex {
+    #[serde(with = "hex::serde")]
+    pub hex: Vec<u8>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct FilterResponse {
     pub block_hash: BlockHash,
     pub block_height: i32,
@@ -63,8 +76,20 @@ impl BlindbitClient {
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
-    pub async fn filter(&self, block_height: u32) -> Result<FilterResponse> {
-        let res = reqwest::get(format!("{}/filter/{}", self.host, block_height)).await?;
+    pub async fn spent_index(&self, block_height: u32) -> Result<SpentIndexResponse> {
+        let res = reqwest::get(format!("{}/spent-index/{}", self.host, block_height)).await?;
+
+        Ok(serde_json::from_str(&res.text().await?)?)
+    }
+
+    pub async fn filter_new_utxos(&self, block_height: u32) -> Result<FilterResponse> {
+        let res = reqwest::get(format!("{}/filter/new-utxos/{}", self.host, block_height)).await?;
+
+        Ok(serde_json::from_str(&res.text().await?)?)
+    }
+
+    pub async fn filter_spent(&self, block_height: u32) -> Result<FilterResponse> {
+        let res = reqwest::get(format!("{}/filter/spent/{}", self.host, block_height)).await?;
 
         Ok(serde_json::from_str(&res.text().await?)?)
     }
