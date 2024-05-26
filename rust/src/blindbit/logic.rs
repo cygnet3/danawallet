@@ -12,10 +12,28 @@ use log::info;
 use sp_client::silentpayments::receiving::Label;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput, SpClient};
 
-use crate::blindbit::client::{BlindbitClient, UtxoResponse};
 use crate::stream::{send_amount_update, send_scan_progress, ScanProgress};
+use crate::{
+    blindbit::client::{BlindbitClient, UtxoResponse},
+    stream::{send_sync_progress, SyncStatus},
+};
 
 const HOST: &str = "https://silentpayments.dev/blindbit";
+
+pub async fn sync_blockchain() -> Result<()> {
+    let blindbit_client = BlindbitClient::new(HOST.to_string());
+
+    let height = blindbit_client.block_height().await;
+
+    send_sync_progress(SyncStatus {
+        blockheight: height as u64,
+        //todo: remove these fields
+        peer_count: 1,
+        bestblockhash: "".into(),
+    });
+
+    Ok(())
+}
 
 pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> Result<()> {
     let blindbit_client = BlindbitClient::new(HOST.to_string());

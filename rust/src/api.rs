@@ -175,15 +175,13 @@ pub fn remove_wallet(path: String, label: String) -> Result<(), String> {
 }
 
 pub fn sync_blockchain() -> Result<(), String> {
-    let (handle, join_handle) =
-        nakamotoclient::start_nakamoto_client().map_err(|e| e.to_string())?;
+    let rt = Runtime::new().unwrap();
 
-    info!("Nakamoto started");
-    let res = nakamotoclient::sync_blockchain(handle.clone()).map_err(|e| e.to_string());
-
-    nakamotoclient::stop_nakamoto_client(handle, join_handle).map_err(|e| e.to_string())?;
-
-    res
+    rt.block_on(async {
+        blindbit::logic::sync_blockchain()
+            .await
+            .map_err(|e| e.to_string())
+    })
 }
 
 pub fn scan_to_tip(path: String, label: String) -> Result<(), String> {
