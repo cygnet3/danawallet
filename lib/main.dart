@@ -46,10 +46,8 @@ class WalletState extends ChangeNotifier {
   int birthday = 0;
   int lastScan = 0;
   int tip = 0;
-  String bestBlockHash = "";
   double progress = 0.0;
   bool scanning = false;
-  int peercount = 0;
   String network = 'signet';
   bool walletLoaded = false;
   String address = "";
@@ -110,9 +108,7 @@ class WalletState extends ChangeNotifier {
     }));
 
     syncStreamSubscription = api.createSyncStream().listen((event) {
-      peercount = event.peerCount;
       tip = event.blockheight;
-      bestBlockHash = event.bestblockhash;
 
       print('tip: $tip');
 
@@ -142,7 +138,6 @@ class WalletState extends ChangeNotifier {
     // tip isn't specific to wallet, needs not be reset
     progress = 0.0;
     scanning = false;
-    peercount = 0;
     network = 'signet';
     walletLoaded = false;
     address = "";

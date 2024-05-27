@@ -229,14 +229,10 @@ class ScanProgress {
 }
 
 class SyncStatus {
-  final int peerCount;
   final int blockheight;
-  final String bestblockhash;
 
   const SyncStatus({
-    required this.peerCount,
     required this.blockheight,
-    required this.bestblockhash,
   });
 }
 
