@@ -101,22 +101,6 @@ fn wire_create_amount_stream_impl(port_: MessagePort) {
         },
     )
 }
-fn wire_create_nakamoto_run_stream_impl(port_: MessagePort) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, (), _>(
-        WrapInfo {
-            debug_name: "create_nakamoto_run_stream",
-            port: Some(port_),
-            mode: FfiCallMode::Stream,
-        },
-        move || {
-            move |task_callback| {
-                Result::<_, ()>::Ok(create_nakamoto_run_stream(
-                    task_callback.stream_sink::<_, bool>(),
-                ))
-            }
-        },
-    )
-}
 fn wire_wallet_exists_impl(
     port_: MessagePort,
     label: impl Wire2Api<String> + UnwindSafe,
@@ -133,34 +117,6 @@ fn wire_wallet_exists_impl(
             let api_files_dir = files_dir.wire2api();
             move |task_callback| Result::<_, ()>::Ok(wallet_exists(api_label, api_files_dir))
         },
-    )
-}
-fn wire_setup_nakamoto_impl(
-    port_: MessagePort,
-    network: impl Wire2Api<String> + UnwindSafe,
-    path: impl Wire2Api<String> + UnwindSafe,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, (), _>(
-        WrapInfo {
-            debug_name: "setup_nakamoto",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
-        },
-        move || {
-            let api_network = network.wire2api();
-            let api_path = path.wire2api();
-            move |task_callback| setup_nakamoto(api_network, api_path)
-        },
-    )
-}
-fn wire_clean_nakamoto_impl(port_: MessagePort) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap::<_, _, _, (), _>(
-        WrapInfo {
-            debug_name: "clean_nakamoto",
-            port: Some(port_),
-            mode: FfiCallMode::Normal,
-        },
-        move || move |task_callback| clean_nakamoto(),
     )
 }
 fn wire_setup_impl(

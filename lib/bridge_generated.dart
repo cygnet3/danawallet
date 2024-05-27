@@ -99,24 +99,6 @@ class SpBackendImpl implements SpBackend {
         argNames: [],
       );
 
-  Stream<bool> createNakamotoRunStream({dynamic hint}) {
-    return _platform.executeStream(FlutterRustBridgeTask(
-      callFfi: (port_) =>
-          _platform.inner.wire_create_nakamoto_run_stream(port_),
-      parseSuccessData: _wire2api_bool,
-      parseErrorData: null,
-      constMeta: kCreateNakamotoRunStreamConstMeta,
-      argValues: [],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kCreateNakamotoRunStreamConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "create_nakamoto_run_stream",
-        argNames: [],
-      );
-
   Future<bool> walletExists(
       {required String label, required String filesDir, dynamic hint}) {
     var arg0 = _platform.api2wire_String(label);
@@ -135,44 +117,6 @@ class SpBackendImpl implements SpBackend {
       const FlutterRustBridgeTaskConstMeta(
         debugName: "wallet_exists",
         argNames: ["label", "filesDir"],
-      );
-
-  Future<void> setupNakamoto(
-      {required String network, required String path, dynamic hint}) {
-    var arg0 = _platform.api2wire_String(network);
-    var arg1 = _platform.api2wire_String(path);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) =>
-          _platform.inner.wire_setup_nakamoto(port_, arg0, arg1),
-      parseSuccessData: _wire2api_unit,
-      parseErrorData: _wire2api_String,
-      constMeta: kSetupNakamotoConstMeta,
-      argValues: [network, path],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kSetupNakamotoConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "setup_nakamoto",
-        argNames: ["network", "path"],
-      );
-
-  Future<void> cleanNakamoto({dynamic hint}) {
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) => _platform.inner.wire_clean_nakamoto(port_),
-      parseSuccessData: _wire2api_unit,
-      parseErrorData: _wire2api_String,
-      constMeta: kCleanNakamotoConstMeta,
-      argValues: [],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kCleanNakamotoConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "clean_nakamoto",
-        argNames: [],
       );
 
   Future<String> setup(
@@ -1022,20 +966,6 @@ class SpBackendWire implements FlutterRustBridgeWireBase {
   late final _wire_create_amount_stream =
       _wire_create_amount_streamPtr.asFunction<void Function(int)>();
 
-  void wire_create_nakamoto_run_stream(
-    int port_,
-  ) {
-    return _wire_create_nakamoto_run_stream(
-      port_,
-    );
-  }
-
-  late final _wire_create_nakamoto_run_streamPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
-          'wire_create_nakamoto_run_stream');
-  late final _wire_create_nakamoto_run_stream =
-      _wire_create_nakamoto_run_streamPtr.asFunction<void Function(int)>();
-
   void wire_wallet_exists(
     int port_,
     ffi.Pointer<wire_uint_8_list> label,
@@ -1055,40 +985,6 @@ class SpBackendWire implements FlutterRustBridgeWireBase {
   late final _wire_wallet_exists = _wire_wallet_existsPtr.asFunction<
       void Function(
           int, ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_uint_8_list>)>();
-
-  void wire_setup_nakamoto(
-    int port_,
-    ffi.Pointer<wire_uint_8_list> network,
-    ffi.Pointer<wire_uint_8_list> path,
-  ) {
-    return _wire_setup_nakamoto(
-      port_,
-      network,
-      path,
-    );
-  }
-
-  late final _wire_setup_nakamotoPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>,
-              ffi.Pointer<wire_uint_8_list>)>>('wire_setup_nakamoto');
-  late final _wire_setup_nakamoto = _wire_setup_nakamotoPtr.asFunction<
-      void Function(
-          int, ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_uint_8_list>)>();
-
-  void wire_clean_nakamoto(
-    int port_,
-  ) {
-    return _wire_clean_nakamoto(
-      port_,
-    );
-  }
-
-  late final _wire_clean_nakamotoPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
-          'wire_clean_nakamoto');
-  late final _wire_clean_nakamoto =
-      _wire_clean_nakamotoPtr.asFunction<void Function(int)>();
 
   void wire_setup(
     int port_,
