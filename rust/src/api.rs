@@ -7,7 +7,6 @@ use bitcoin::{
 };
 use flutter_rust_bridge::StreamSink;
 use log::info;
-use serde::Deserialize;
 use tokio::runtime::Runtime;
 
 use crate::{
@@ -324,26 +323,29 @@ pub fn extract_tx_from_psbt(psbt: String) -> Result<String, String> {
 }
 
 pub fn broadcast_tx(tx: String) -> Result<String, String> {
-    let (handle, join_handle) =
-        nakamotoclient::start_nakamoto_client().map_err(|e| e.to_string())?;
-    info!("Nakamoto started");
+    let tx: pushtx::Transaction = tx.parse().unwrap();
 
-    let tx_deserialized =
-        nakamotoclient::deserialize_transaction(&tx).map_err(|e| e.to_string())?;
+    let txid = tx.txid();
 
-    let res = nakamotoclient::broadcast_transaction(handle.clone(), tx_deserialized)
-        .map_err(|e| e.to_string());
+    let opts = pushtx::Opts {
+        network: pushtx::Network::Signet,
+        ..Default::default()
+    };
 
-    nakamotoclient::stop_nakamoto_client(handle, join_handle).map_err(|e| e.to_string())?;
+    let receiver = pushtx::broadcast(vec![tx], opts);
 
-    // Also broadcast transaction using the electrum client.
-    // We currently do this as a backup to the nakamoto broadcasting, which seems to be inconsistent right now.
-    // This should be removed later when nakamoto is consistent.
-    // See issue: https://github.com/cloudhead/nakamoto/issues/154
-    crate::electrumclient::backup_broadcast_transaction_using_electrum(&tx)
-        .map_err(|e| e.to_string())?;
+    loop {
+        match receiver.recv().unwrap() {
+            pushtx::Info::Done(Ok(report)) => {
+                info!("broadcasted to {} peers", report.broadcasts);
+                break;
+            }
+            pushtx::Info::Done(Err(err)) => return Err(err.to_string()),
+            _ => {}
+        }
+    }
 
-    res
+    Ok(txid.to_string())
 }
 
 pub fn mark_transaction_inputs_as_spent(
