@@ -25,4 +25,4 @@ simplelog = "0.12.1"
 bitcoin = { version = "0.31.1", features = ["serde", "rand", "base64"] }
 reqwest = "0.12.4"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-pushtx = { git = "https://github.com/cygnet3/pushtx", branch = "signet-peers" }
+pushtx = { git = "https://github.com/cygnet3/pushtx", branch = "master" }
