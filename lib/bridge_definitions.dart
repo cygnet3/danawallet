@@ -29,23 +29,10 @@ abstract class SpBackend {
 
   FlutterRustBridgeTaskConstMeta get kCreateAmountStreamConstMeta;
 
-  Stream<bool> createNakamotoRunStream({dynamic hint});
-
-  FlutterRustBridgeTaskConstMeta get kCreateNakamotoRunStreamConstMeta;
-
   Future<bool> walletExists(
       {required String label, required String filesDir, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kWalletExistsConstMeta;
-
-  Future<void> setupNakamoto(
-      {required String network, required String path, dynamic hint});
-
-  FlutterRustBridgeTaskConstMeta get kSetupNakamotoConstMeta;
-
-  Future<void> cleanNakamoto({dynamic hint});
-
-  FlutterRustBridgeTaskConstMeta get kCleanNakamotoConstMeta;
 
   Future<String> setup(
       {required String label,

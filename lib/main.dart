@@ -61,7 +61,6 @@ class WalletState extends ChangeNotifier {
   late StreamSubscription scanProgressSubscription;
   late StreamSubscription amountStreamSubscription;
   late StreamSubscription syncStreamSubscription;
-  late StreamSubscription nakamotoRunSubscription;
 
   final _synchronizationService = SynchronizationService();
 
@@ -71,7 +70,6 @@ class WalletState extends ChangeNotifier {
     try {
       await _initStreams();
       await _initDir();
-      await _setupNakamoto();
       _synchronizationService.startSyncTimer();
     } catch (e) {
       rethrow;
@@ -87,26 +85,11 @@ class WalletState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _setupNakamoto() async {
-    while (dir == Directory("/")) {
-      sleep(const Duration(milliseconds: 100));
-    }
-    try {
-      await api.setupNakamoto(network: network, path: dir.path);
-    } catch (e) {
-      rethrow;
-    }
-    notifyListeners();
-  }
-
   Future<void> _initStreams() async {
     logStreamSubscription = api
         .createLogStream(level: LogLevel.Info, logDependencies: true)
         .listen((event) {
-      // ignore p2p messages as these are really spammy
-      if (event.tag != 'p2p') {
-        print('${event.level} (${event.tag}): ${event.msg}');
-      }
+      print('${event.level} (${event.tag}): ${event.msg}');
     });
 
     scanProgressSubscription = api.createScanProgressStream().listen(((event) {
@@ -140,11 +123,6 @@ class WalletState extends ChangeNotifier {
       amount = event;
       notifyListeners();
     });
-
-    nakamotoRunSubscription = api.createNakamotoRunStream().listen((event) {
-      nakamotoIsRunning = event;
-      notifyListeners();
-    });
   }
 
   @override
@@ -154,14 +132,7 @@ class WalletState extends ChangeNotifier {
     amountStreamSubscription.cancel();
     syncStreamSubscription.cancel();
     _synchronizationService.stopSyncTimer();
-    _stopNakamoto();
     super.dispose();
-  }
-
-  void _stopNakamoto() {
-    // api.forceInterruptNakamoto();
-    // todo: check that nakamoto is properly stopped
-    nakamotoRunSubscription.cancel();
   }
 
   Future<void> reset() async {

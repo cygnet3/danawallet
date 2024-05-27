@@ -13,7 +13,6 @@ use crate::{
     blindbit,
     constants::{OutputSpendStatus, OwnedOutput, Recipient, WalletType},
     logger::{self, LogEntry, LogLevel},
-    nakamotoclient,
     stream::{self, ScanProgress, SyncStatus},
 };
 
@@ -40,20 +39,8 @@ pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {
 pub fn create_amount_stream(s: StreamSink<u64>) {
     stream::create_amount_stream(s);
 }
-pub fn create_nakamoto_run_stream(s: StreamSink<bool>) {
-    stream::create_nakamoto_run_stream(s);
-}
-
 pub fn wallet_exists(label: String, files_dir: String) -> bool {
     SpClient::try_init_from_disk(label, files_dir).is_ok()
-}
-
-pub fn setup_nakamoto(network: String, path: String) -> Result<(), String> {
-    nakamotoclient::setup(network, path).map_err(|e| e.to_string())
-}
-
-pub fn clean_nakamoto() -> Result<(), String> {
-    nakamotoclient::clean_db().map_err(|e| e.to_string())
 }
 
 pub fn setup(

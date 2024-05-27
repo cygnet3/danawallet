@@ -4,6 +4,4 @@ mod logger;
 // mod db;
 mod blindbit;
 mod constants;
-mod electrumclient;
-mod nakamotoclient;
 mod stream;

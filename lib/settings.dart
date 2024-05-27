@@ -22,18 +22,6 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _wipeNakamoto(
-      WalletState walletState, Function(Exception? e) callback) async {
-    try {
-      await api.cleanNakamoto();
-      callback(null);
-    } on Exception catch (e) {
-      callback(e);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   Future<String?> _getSeedPhrase(WalletState walletState) async {
     try {
       return await api.showMnemonic(
@@ -119,27 +107,6 @@ class SettingsScreen extends StatelessWidget {
             minimumSize: const Size(double.infinity, 50),
           ),
           child: const Text('Show seed phrase'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            final walletState =
-                Provider.of<WalletState>(context, listen: false);
-            await _wipeNakamoto(walletState, (Exception? e) async {
-              if (e != null) {
-                throw e;
-              } else {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (Route<dynamic> route) => false,
-                );
-              }
-            });
-          },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-          ),
-          child: const Text('Wipe nakamoto database'),
         ),
         ElevatedButton(
           onPressed: () async {

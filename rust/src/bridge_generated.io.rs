@@ -22,31 +22,12 @@ pub extern "C" fn wire_create_amount_stream(port_: i64) {
 }
 
 #[no_mangle]
-pub extern "C" fn wire_create_nakamoto_run_stream(port_: i64) {
-    wire_create_nakamoto_run_stream_impl(port_)
-}
-
-#[no_mangle]
 pub extern "C" fn wire_wallet_exists(
     port_: i64,
     label: *mut wire_uint_8_list,
     files_dir: *mut wire_uint_8_list,
 ) {
     wire_wallet_exists_impl(port_, label, files_dir)
-}
-
-#[no_mangle]
-pub extern "C" fn wire_setup_nakamoto(
-    port_: i64,
-    network: *mut wire_uint_8_list,
-    path: *mut wire_uint_8_list,
-) {
-    wire_setup_nakamoto_impl(port_, network, path)
-}
-
-#[no_mangle]
-pub extern "C" fn wire_clean_nakamoto(port_: i64) {
-    wire_clean_nakamoto_impl(port_)
 }
 
 #[no_mangle]
