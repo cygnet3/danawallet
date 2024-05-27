@@ -27,9 +27,6 @@ pub async fn sync_blockchain() -> Result<()> {
 
     send_sync_progress(SyncStatus {
         blockheight: height as u64,
-        //todo: remove these fields
-        peer_count: 1,
-        bestblockhash: "".into(),
     });
 
     Ok(())

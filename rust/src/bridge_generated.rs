@@ -596,12 +596,7 @@ impl rust2dart::IntoIntoDart<ScanProgress> for ScanProgress {
 
 impl support::IntoDart for SyncStatus {
     fn into_dart(self) -> support::DartAbi {
-        vec![
-            self.peer_count.into_into_dart().into_dart(),
-            self.blockheight.into_into_dart().into_dart(),
-            self.bestblockhash.into_into_dart().into_dart(),
-        ]
-        .into_dart()
+        vec![self.blockheight.into_into_dart().into_dart()].into_dart()
     }
 }
 impl support::IntoDartExceptPrimitive for SyncStatus {}

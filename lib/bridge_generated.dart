@@ -601,12 +601,10 @@ class SpBackendImpl implements SpBackend {
 
   SyncStatus _wire2api_sync_status(dynamic raw) {
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 1)
+      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
     return SyncStatus(
-      peerCount: _wire2api_u32(arr[0]),
-      blockheight: _wire2api_u64(arr[1]),
-      bestblockhash: _wire2api_String(arr[2]),
+      blockheight: _wire2api_u64(arr[0]),
     );
   }
 
