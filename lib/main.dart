@@ -235,6 +235,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> scanToTip() async {
     try {
+      await api.syncBlockchain();
       scanning = true;
       await api.scanToTip(path: dir.path, label: label);
     } catch (e) {
