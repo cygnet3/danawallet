@@ -1,9 +1,11 @@
 import 'package:donationwallet/main.dart';
 import 'package:flutter/material.dart';
-import 'package:donationwallet/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:donationwallet/src/rust/api/simple.dart';
+import 'package:donationwallet/src/rust/constants.dart';
+import 'package:donationwallet/src/rust/logger.dart';
 
 Future<void> _showAddRecipientDialog(
     BuildContext context,
@@ -54,9 +56,9 @@ Future<void> _showAddRecipientDialog(
             child: const Text('Add'),
             onPressed: () async {
               String address = addressController.text;
-              int amount;
+              BigInt amount;
               try {
-                amount = int.parse(amountController.text);
+                amount = BigInt.from(int.parse(amountController.text));
               } on FormatException {
                 rethrow;
               }

@@ -1,7 +1,8 @@
 import 'dart:async';
 
+import 'package:donationwallet/src/rust/api/simple.dart';
+import 'package:donationwallet/src/rust/constants.dart';
 import 'package:donationwallet/home.dart';
-import 'package:donationwallet/ffi.dart';
 import 'package:donationwallet/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +15,7 @@ class LoadWalletScreen extends StatelessWidget {
       BuildContext context, WalletType walletType, int birthday) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     // Check that there's no wallet on disk under the same label
-    if (await api.walletExists(
+    if (await walletExists(
         label: walletState.label, filesDir: walletState.dir.path)) {
       // Just use the existing wallet and notify the user
       // As we already checked when loading the main screen, this shouldn't happen
@@ -31,7 +32,7 @@ class LoadWalletScreen extends StatelessWidget {
 
     // this sets up everything except nakamoto
     try {
-      await api.setup(
+      await setup(
         label: walletState.label,
         filesDir: walletState.dir.path,
         walletType: walletType,

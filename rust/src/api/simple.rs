@@ -5,7 +5,8 @@ use bitcoin::{
     secp256k1::{PublicKey, SecretKey},
     Transaction,
 };
-use flutter_rust_bridge::StreamSink;
+
+use crate::frb_generated::StreamSink;
 use log::info;
 use tokio::runtime::Runtime;
 
@@ -13,7 +14,7 @@ use crate::{
     blindbit,
     constants::{OutputSpendStatus, OwnedOutput, Recipient, WalletType},
     logger::{self, LogEntry, LogLevel},
-    stream::{self, send_amount_update, ScanProgress, SyncStatus},
+    stream::{self, ScanProgress, SyncStatus},
 };
 
 use sp_client::spclient::{derive_keys_from_mnemonic, Psbt, SpClient, SpendKey};
@@ -43,7 +44,7 @@ pub fn wallet_exists(label: String, files_dir: String) -> bool {
     SpClient::try_init_from_disk(label, files_dir).is_ok()
 }
 
-pub fn setup(
+pub async fn setup(
     label: String,
     files_dir: String,
     wallet_type: WalletType,
@@ -160,27 +161,19 @@ pub fn remove_wallet(path: String, label: String) -> Result<(), String> {
     }
 }
 
-pub fn sync_blockchain() -> Result<(), String> {
-    let rt = Runtime::new().unwrap();
-
-    rt.block_on(async {
-        blindbit::logic::sync_blockchain()
-            .await
-            .map_err(|e| e.to_string())
-    })
+pub async fn sync_blockchain() -> Result<(), String> {
+    blindbit::logic::sync_blockchain()
+        .await
+        .map_err(|e| e.to_string())
 }
 
-pub fn scan_to_tip(path: String, label: String) -> Result<(), String> {
+pub async fn scan_to_tip(path: String, label: String) -> Result<(), String> {
     let res = match SpClient::try_init_from_disk(label, path) {
         Err(_) => Err("Wallet not found".to_owned()),
         Ok(sp_client) => {
-            let rt = Runtime::new().unwrap();
-
-            rt.block_on(async {
-                blindbit::logic::scan_blocks(0, sp_client)
-                    .await
-                    .map_err(|e| e.to_string())
-            })
+            blindbit::logic::scan_blocks(0, sp_client)
+                .await
+                .map_err(|e| e.to_string())
         }
     };
     res
@@ -353,8 +346,6 @@ pub fn mark_transaction_inputs_as_spent(
         .mark_transaction_inputs_as_spent(tx)
         .map_err(|e| e.to_string())?;
 
-    send_amount_update(sp_client.get_spendable_amt());
-
     Ok(())
 }
 
@@ -367,4 +358,16 @@ pub fn show_mnemonic(path: String, label: String) -> Result<Option<String>, Stri
     let mnemonic = sp_client.mnemonic;
 
     Ok(mnemonic)
+}
+
+
+#[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
+pub fn greet(name: String) -> String {
+    format!("Hello, {name}!")
+}
+
+#[flutter_rust_bridge::frb(init)]
+pub fn init_app() {
+    // Default utilities - feel free to customize
+    flutter_rust_bridge::setup_default_user_utils();
 }

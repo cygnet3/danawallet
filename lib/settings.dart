@@ -1,4 +1,6 @@
-import 'package:donationwallet/ffi.dart';
+import 'package:donationwallet/src/rust/api/simple.dart';
+import 'package:donationwallet/src/rust/constants.dart';
+import 'package:donationwallet/src/rust/logger.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/home.dart';
@@ -11,7 +13,7 @@ class SettingsScreen extends StatelessWidget {
   Future<void> _removeWallet(
       WalletState walletState, Function(Exception? e) callback) async {
     try {
-      await api.removeWallet(
+      await removeWallet(
           path: walletState.dir.path, label: walletState.label);
       await walletState.reset();
       callback(null);
@@ -24,7 +26,7 @@ class SettingsScreen extends StatelessWidget {
 
   Future<String?> _getSeedPhrase(WalletState walletState) async {
     try {
-      return await api.showMnemonic(
+      return await showMnemonic(
           path: walletState.dir.path, label: walletState.label);
     } catch (e) {
       displayNotification(e.toString());
@@ -70,11 +72,11 @@ class SettingsScreen extends StatelessWidget {
       if (value != null) {
         final walletState = Provider.of<WalletState>(context, listen: false);
         try {
-          await api.changeBirthday(
+          await changeBirthday(
               path: walletState.dir.path,
               label: walletState.label,
               birthday: value);
-          await api.resetWallet(
+          await resetWallet(
               path: walletState.dir.path, label: walletState.label);
           callback(null);
           walletState.updateWalletStatus();

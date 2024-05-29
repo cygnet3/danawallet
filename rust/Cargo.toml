@@ -1,14 +1,13 @@
 [package]
-name = "sp_backend"
+name = "rust_lib_donationwallet"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "sp_backend"
-crate-type = ["lib", "staticlib", "cdylib"]
+crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-flutter_rust_bridge = "1"
+flutter_rust_bridge = "=2.0.0-dev.36"
 sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "master"}
 lazy_static = "1.4"
 anyhow = "1.0"

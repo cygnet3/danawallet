@@ -1,8 +1,11 @@
 // ignore_for_file: avoid_print
 import 'dart:async';
 import 'dart:io';
+import 'package:donationwallet/src/rust/api/simple.dart';
+import 'package:donationwallet/src/rust/constants.dart';
+import 'package:donationwallet/src/rust/frb_generated.dart';
+import 'package:donationwallet/src/rust/logger.dart';
 
-import 'package:donationwallet/ffi.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +30,7 @@ class SynchronizationService {
 
   Future<void> performSynchronizationTask() async {
     try {
-      await api.syncBlockchain();
+      await syncBlockchain();
     } catch (e) {
       displayNotification(e.toString());
     }
@@ -41,7 +44,8 @@ class SynchronizationService {
 class WalletState extends ChangeNotifier {
   final String label = "default";
   Directory dir = Directory("/");
-  int amount = 0;
+  bool nakamotoIsRunning = false;
+  BigInt amount = BigInt.from(0);
   int birthday = 0;
   int lastScan = 0;
   int tip = 0;
@@ -83,13 +87,12 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> _initStreams() async {
-    logStreamSubscription = api
-        .createLogStream(level: LogLevel.Info, logDependencies: true)
+    logStreamSubscription = createLogStream(level: LogLevel.info, logDependencies: true)
         .listen((event) {
       print('${event.level} (${event.tag}): ${event.msg}');
     });
 
-    scanProgressSubscription = api.createScanProgressStream().listen(((event) {
+    scanProgressSubscription = createScanProgressStream().listen(((event) {
       int start = event.start;
       int current = event.current;
       int end = event.end;
@@ -106,7 +109,7 @@ class WalletState extends ChangeNotifier {
       notifyListeners();
     }));
 
-    syncStreamSubscription = api.createSyncStream().listen((event) {
+    syncStreamSubscription = createSyncStream().listen((event) {
       tip = event.blockheight;
 
       print('tip: $tip');
@@ -114,7 +117,7 @@ class WalletState extends ChangeNotifier {
       notifyListeners();
     });
 
-    amountStreamSubscription = api.createAmountStream().listen((event) {
+    amountStreamSubscription = createAmountStream().listen((event) {
       amount = event;
       notifyListeners();
     });
@@ -131,7 +134,7 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> reset() async {
-    amount = 0;
+    amount = BigInt.zero;
     birthday = 0;
     lastScan = 0;
     // tip isn't specific to wallet, needs not be reset
@@ -150,7 +153,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> getAddress() async {
     try {
-      address = await api.getReceivingAddress(path: dir.path, label: label);
+      address = await getReceivingAddress(path: dir.path, label: label);
     } catch (e) {
       rethrow;
     }
@@ -158,7 +161,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> updateWalletStatus() async {
     try {
-      final wallet = await api.getWalletInfo(path: dir.path, label: label);
+      final wallet = await getWalletInfo(path: dir.path, label: label);
       amount = wallet.amount;
       birthday = wallet.birthday;
       lastScan = wallet.scanHeight;
@@ -169,7 +172,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> updateOwnedOutputs() async {
     try {
-      ownedOutputs = await api.getOutputs(path: dir.path, label: label);
+      ownedOutputs = await getOutputs(path: dir.path, label: label);
     } catch (e) {
       rethrow;
     }
@@ -192,18 +195,18 @@ class WalletState extends ChangeNotifier {
     notifyListeners();
   }
 
-  int outputSelectionTotalAmt() {
+  BigInt outputSelectionTotalAmt() {
     final total =
-        selectedOutputs.fold(0, (sum, element) => sum + element.amount);
+        selectedOutputs.fold(BigInt.zero, (sum, element) => sum + element.amount);
     return total;
   }
 
-  int recipientTotalAmt() {
-    final total = recipients.fold(0, (sum, element) => sum + element.amount);
+  BigInt recipientTotalAmt() {
+    final total = recipients.fold(BigInt.zero, (sum, element) => sum + element.amount);
     return total;
   }
 
-  Future<void> addRecipients(String address, int amount, int nbOutputs) async {
+  Future<void> addRecipients(String address, BigInt amount, int nbOutputs) async {
     final alreadyInList = recipients.where((r) => r.address == address);
     if (alreadyInList.isNotEmpty) {
       throw Exception("Address already in list");
@@ -213,7 +216,7 @@ class WalletState extends ChangeNotifier {
       nbOutputs = 1;
     }
 
-    if (amount <= 564) {
+    if (amount <= BigInt.from(546)) {
       throw Exception("Can't have amount inferior to 546 sats");
     }
     recipients
@@ -232,11 +235,10 @@ class WalletState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> scanToTip() async {
+  Future<void> scan() async {
     try {
-      await api.syncBlockchain();
       scanning = true;
-      await api.scanToTip(path: dir.path, label: label);
+      await scanToTip(path: dir.path, label: label);
     } catch (e) {
       scanning = false;
       notifyListeners();
@@ -248,6 +250,7 @@ class WalletState extends ChangeNotifier {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await RustLib.init();
   final walletState = WalletState();
   await walletState.initialize();
   runApp(

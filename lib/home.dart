@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:donationwallet/ffi.dart';
+import 'package:donationwallet/src/rust/api/simple.dart';
+import 'package:donationwallet/src/rust/constants.dart';
+import 'package:donationwallet/src/rust/logger.dart';
 import 'package:donationwallet/load_wallet.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/wallet.dart';
@@ -31,7 +33,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> _checkWallet() async {
     final walletState = Provider.of<WalletState>(context, listen: false);
-    if (await api.walletExists(
+    if (await walletExists(
         label: walletState.label, filesDir: walletState.dir.path)) {
       walletState.walletLoaded = true;
       walletState.getAddress();
