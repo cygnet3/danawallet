@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use flutter_rust_bridge::StreamSink;
+use crate::frb_generated::StreamSink;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -10,7 +10,7 @@ lazy_static! {
 }
 
 pub struct SyncStatus {
-    pub blockheight: u64,
+    pub blockheight: u32,
 }
 
 pub struct ScanProgress {

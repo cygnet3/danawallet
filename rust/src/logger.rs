@@ -3,7 +3,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use flutter_rust_bridge::StreamSink;
+use crate::frb_generated::StreamSink;
 use log::{warn, LevelFilter, Log, Metadata, Record};
 
 use lazy_static::lazy_static;

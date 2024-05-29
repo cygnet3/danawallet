@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'bridge_definitions.dart';
+part of 'constants.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -99,8 +99,8 @@ class __$$OutputSpendStatus_UnspentCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$OutputSpendStatus_Unspent implements OutputSpendStatus_Unspent {
-  const _$OutputSpendStatus_Unspent();
+class _$OutputSpendStatus_Unspent extends OutputSpendStatus_Unspent {
+  const _$OutputSpendStatus_Unspent() : super._();
 
   @override
   String toString() {
@@ -186,8 +186,9 @@ class _$OutputSpendStatus_Unspent implements OutputSpendStatus_Unspent {
   }
 }
 
-abstract class OutputSpendStatus_Unspent implements OutputSpendStatus {
+abstract class OutputSpendStatus_Unspent extends OutputSpendStatus {
   const factory OutputSpendStatus_Unspent() = _$OutputSpendStatus_Unspent;
+  const OutputSpendStatus_Unspent._() : super._();
 }
 
 /// @nodoc
@@ -223,8 +224,8 @@ class __$$OutputSpendStatus_SpentCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$OutputSpendStatus_Spent implements OutputSpendStatus_Spent {
-  const _$OutputSpendStatus_Spent(this.field0);
+class _$OutputSpendStatus_Spent extends OutputSpendStatus_Spent {
+  const _$OutputSpendStatus_Spent(this.field0) : super._();
 
   @override
   final String field0;
@@ -321,9 +322,10 @@ class _$OutputSpendStatus_Spent implements OutputSpendStatus_Spent {
   }
 }
 
-abstract class OutputSpendStatus_Spent implements OutputSpendStatus {
+abstract class OutputSpendStatus_Spent extends OutputSpendStatus {
   const factory OutputSpendStatus_Spent(final String field0) =
       _$OutputSpendStatus_Spent;
+  const OutputSpendStatus_Spent._() : super._();
 
   String get field0;
   @JsonKey(ignore: true)
@@ -364,8 +366,8 @@ class __$$OutputSpendStatus_MinedCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$OutputSpendStatus_Mined implements OutputSpendStatus_Mined {
-  const _$OutputSpendStatus_Mined(this.field0);
+class _$OutputSpendStatus_Mined extends OutputSpendStatus_Mined {
+  const _$OutputSpendStatus_Mined(this.field0) : super._();
 
   @override
   final String field0;
@@ -462,9 +464,10 @@ class _$OutputSpendStatus_Mined implements OutputSpendStatus_Mined {
   }
 }
 
-abstract class OutputSpendStatus_Mined implements OutputSpendStatus {
+abstract class OutputSpendStatus_Mined extends OutputSpendStatus {
   const factory OutputSpendStatus_Mined(final String field0) =
       _$OutputSpendStatus_Mined;
+  const OutputSpendStatus_Mined._() : super._();
 
   String get field0;
   @JsonKey(ignore: true)
@@ -562,8 +565,8 @@ class __$$WalletType_NewCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$WalletType_New implements WalletType_New {
-  const _$WalletType_New();
+class _$WalletType_New extends WalletType_New {
+  const _$WalletType_New() : super._();
 
   @override
   String toString() {
@@ -654,8 +657,9 @@ class _$WalletType_New implements WalletType_New {
   }
 }
 
-abstract class WalletType_New implements WalletType {
+abstract class WalletType_New extends WalletType {
   const factory WalletType_New() = _$WalletType_New;
+  const WalletType_New._() : super._();
 }
 
 /// @nodoc
@@ -691,8 +695,8 @@ class __$$WalletType_MnemonicCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$WalletType_Mnemonic implements WalletType_Mnemonic {
-  const _$WalletType_Mnemonic(this.field0);
+class _$WalletType_Mnemonic extends WalletType_Mnemonic {
+  const _$WalletType_Mnemonic(this.field0) : super._();
 
   @override
   final String field0;
@@ -795,9 +799,10 @@ class _$WalletType_Mnemonic implements WalletType_Mnemonic {
   }
 }
 
-abstract class WalletType_Mnemonic implements WalletType {
+abstract class WalletType_Mnemonic extends WalletType {
   const factory WalletType_Mnemonic(final String field0) =
       _$WalletType_Mnemonic;
+  const WalletType_Mnemonic._() : super._();
 
   String get field0;
   @JsonKey(ignore: true)
@@ -843,8 +848,8 @@ class __$$WalletType_PrivateKeysCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$WalletType_PrivateKeys implements WalletType_PrivateKeys {
-  const _$WalletType_PrivateKeys(this.field0, this.field1);
+class _$WalletType_PrivateKeys extends WalletType_PrivateKeys {
+  const _$WalletType_PrivateKeys(this.field0, this.field1) : super._();
 
   @override
   final String field0;
@@ -950,9 +955,10 @@ class _$WalletType_PrivateKeys implements WalletType_PrivateKeys {
   }
 }
 
-abstract class WalletType_PrivateKeys implements WalletType {
+abstract class WalletType_PrivateKeys extends WalletType {
   const factory WalletType_PrivateKeys(
       final String field0, final String field1) = _$WalletType_PrivateKeys;
+  const WalletType_PrivateKeys._() : super._();
 
   String get field0;
   String get field1;
@@ -999,8 +1005,8 @@ class __$$WalletType_ReadOnlyCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$WalletType_ReadOnly implements WalletType_ReadOnly {
-  const _$WalletType_ReadOnly(this.field0, this.field1);
+class _$WalletType_ReadOnly extends WalletType_ReadOnly {
+  const _$WalletType_ReadOnly(this.field0, this.field1) : super._();
 
   @override
   final String field0;
@@ -1106,9 +1112,10 @@ class _$WalletType_ReadOnly implements WalletType_ReadOnly {
   }
 }
 
-abstract class WalletType_ReadOnly implements WalletType {
+abstract class WalletType_ReadOnly extends WalletType {
   const factory WalletType_ReadOnly(final String field0, final String field1) =
       _$WalletType_ReadOnly;
+  const WalletType_ReadOnly._() : super._();
 
   String get field0;
   String get field1;

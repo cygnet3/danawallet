@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:donationwallet/ffi.dart';
+import 'package:donationwallet/src/rust/api/simple.dart';
+import 'package:donationwallet/src/rust/constants.dart';
+import 'package:donationwallet/src/rust/logger.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/outputs.dart';
@@ -83,12 +85,12 @@ class SpendScreen extends StatelessWidget {
       List<OwnedOutput> spentOutputs,
       List<Recipient> recipients,
       int feeRate) async {
-    String psbt = await api.createNewPsbt(
+    String psbt = await createNewPsbt(
         path: path, label: label, inputs: spentOutputs, recipients: recipients);
-    String fee = await api.addFeeForFeeRate(
+    String fee = await addFeeForFeeRate(
         psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
     String filled =
-        await api.fillSpOutputs(path: path, label: label, psbt: fee);
+        await fillSpOutputs(path: path, label: label, psbt: fee);
     return filled;
   }
 
@@ -97,15 +99,15 @@ class SpendScreen extends StatelessWidget {
     String label,
     String unsignedPsbt,
   ) async {
-    return await api.signPsbt(
+    return await signPsbt(
         path: path, label: label, psbt: unsignedPsbt, finalize: true);
   }
 
   Future<String> _broadcastSignedPsbtAndMarkAsSpent(
       String path, String label, String signedPsbt) async {
-    final tx = await api.extractTxFromPsbt(psbt: signedPsbt);
-    final txid = await api.broadcastTx(tx: tx);
-    await api.markTransactionInputsAsSpent(path: path, label: label, tx: tx);
+    final tx = await extractTxFromPsbt(psbt: signedPsbt);
+    final txid = await broadcastTx(tx: tx);
+    await markTransactionInputsAsSpent(path: path, label: label, tx: tx);
     return txid;
   }
 
