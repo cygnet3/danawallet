@@ -9,10 +9,8 @@ crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
 flutter_rust_bridge = "1"
-nakamoto = { git = "https://github.com/cygnet3/nakamoto", branch = "master" }
-sp_client = { git = "https://github.com/cygnet3/sp-backend", branch = "master"}
+sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "master"}
 lazy_static = "1.4"
-electrum-client = { git = "https://github.com/cygnet3/rust-electrum-client", branch = "sp_tweaks" }
 anyhow = "1.0"
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.107"
