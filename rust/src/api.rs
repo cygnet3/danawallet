@@ -13,7 +13,7 @@ use crate::{
     blindbit,
     constants::{OutputSpendStatus, OwnedOutput, Recipient, WalletType},
     logger::{self, LogEntry, LogLevel},
-    stream::{self, ScanProgress, SyncStatus},
+    stream::{self, send_amount_update, ScanProgress, SyncStatus},
 };
 
 use sp_client::spclient::{derive_keys_from_mnemonic, Psbt, SpClient, SpendKey};
@@ -352,6 +352,8 @@ pub fn mark_transaction_inputs_as_spent(
     sp_client
         .mark_transaction_inputs_as_spent(tx)
         .map_err(|e| e.to_string())?;
+
+    send_amount_update(sp_client.get_spendable_amt());
 
     Ok(())
 }
