@@ -26,7 +26,7 @@ pub async fn sync_blockchain() -> Result<()> {
     let height = blindbit_client.block_height().await;
 
     send_sync_progress(SyncStatus {
-        blockheight: height as u64,
+        blockheight: height,
     });
 
     Ok(())
