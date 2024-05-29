@@ -8,6 +8,7 @@ use bitcoin::{
     secp256k1::{PublicKey, Scalar},
     BlockHash, OutPoint, Txid, XOnlyPublicKey,
 };
+use futures::{stream, StreamExt};
 use log::info;
 use sp_client::silentpayments::receiving::Label;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput, SpClient};
@@ -19,6 +20,7 @@ use crate::{
 };
 
 const HOST: &str = "https://silentpayments.dev/blindbit";
+const CONCURRENT: usize = 50;
 
 pub async fn sync_blockchain() -> Result<()> {
     let blindbit_client = BlindbitClient::new(HOST.to_string());
@@ -43,8 +45,6 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
         n_blocks_to_scan = tip_height - last_scan;
     }
 
-    info!("last_scan: {:?}", last_scan);
-
     let start = last_scan + 1;
     let end = if last_scan + n_blocks_to_scan <= tip_height {
         last_scan + n_blocks_to_scan
@@ -59,7 +59,28 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
     info!("start: {} end: {}", start, end);
     let start_time: Instant = Instant::now();
 
-    for n in start..=end {
+    let secp = Secp256k1::new();
+
+    let n = start..=end;
+
+    info!("Requesting data from Blindbit oracle");
+    let bodies = stream::iter(n)
+        .map(|n| {
+            let bb_client = &blindbit_client;
+            async move {
+                let tweaks = bb_client.tweak_index(n).await.unwrap();
+                let new_utxo_filter = bb_client.filter_new_utxos(n).await.unwrap();
+                let spent_filter = bb_client.filter_spent(n).await.unwrap();
+                (n, tweaks, new_utxo_filter, spent_filter)
+            }
+        })
+        .buffered(CONCURRENT);
+
+    let data: Vec<_> = bodies.collect().await;
+
+    info!("Blindbit network calls finished in: {:?}", start_time.elapsed());
+
+    for (n, tweaks, new_utxo_filter, spent_filter) in data {
         if n % 10 == 0 || n == end {
             send_scan_progress(ScanProgress {
                 start,
@@ -68,14 +89,14 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
             });
         }
 
-        let secrets_map = get_block_secrets(&blindbit_client, &sp_client, n).await?;
+        // check outputs
+        if !tweaks.is_empty() {
+            let secrets_map = sp_client.get_script_to_secret_map(tweaks, &secp).unwrap();
 
-        if !secrets_map.is_empty() {
             last_scan = last_scan.max(n as u32);
             let candidate_spks: Vec<&[u8; 34]> = secrets_map.keys().collect();
 
             //get block gcs & check match
-            let new_utxo_filter = blindbit_client.filter_new_utxos(n).await?;
             let blkfilter = BlockFilter::new(&hex::decode(new_utxo_filter.data)?);
             let blkhash = new_utxo_filter.block_hash;
 
@@ -120,8 +141,8 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
                 }
             }
         }
-        // input checking
-        let spent_filter = blindbit_client.filter_spent(n).await?;
+
+        // check inputs
         let blkhash = spent_filter.block_hash;
 
         // first get the 8-byte hashes used to construct the input filter
@@ -159,20 +180,6 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
     // update last_scan height
     sp_client.update_last_scan(last_scan);
     sp_client.save_to_disk()
-}
-
-pub async fn get_block_secrets(
-    client: &BlindbitClient,
-    sp_client: &SpClient,
-    n: u32,
-) -> Result<HashMap<[u8; 34], PublicKey>> {
-    // get block tweaks
-    let tweaks = client.tweak_index(n).await?;
-
-    let secp = Secp256k1::new();
-
-    //calculate spks
-    sp_client.get_script_to_secret_map(tweaks, &secp)
 }
 
 pub async fn scan_utxos(
