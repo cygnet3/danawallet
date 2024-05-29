@@ -41,7 +41,6 @@ class SynchronizationService {
 class WalletState extends ChangeNotifier {
   final String label = "default";
   Directory dir = Directory("/");
-  bool nakamotoIsRunning = false;
   int amount = 0;
   int birthday = 0;
   int lastScan = 0;
