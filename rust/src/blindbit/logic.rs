@@ -141,7 +141,9 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
             let spent = blindbit_client.spent_index(n).await?.data;
 
             for spent in spent {
-                if let Some(outpoint) = input_hashes_map.get(&spent.hex) {
+                let hex: &[u8] = spent.hex.as_ref();
+
+                if let Some(outpoint) = input_hashes_map.get(hex) {
                     sp_client.mark_outpoint_mined(*outpoint, blkhash)?;
                 }
             }
@@ -266,10 +268,10 @@ pub fn check_block_outputs(
 pub fn get_input_hashes(
     blkhash: BlockHash,
     client: &SpClient,
-) -> Result<HashMap<Vec<u8>, OutPoint>> {
+) -> Result<HashMap<[u8; 8], OutPoint>> {
     let owned = client.list_outpoints();
 
-    let mut map: HashMap<Vec<u8>, OutPoint> = HashMap::new();
+    let mut map: HashMap<[u8; 8], OutPoint> = HashMap::new();
 
     for output in owned {
         let outpoint = OutPoint::from_str(&output.txoutpoint)?;
@@ -282,7 +284,7 @@ pub fn get_input_hashes(
         let mut res = [0u8; 8];
         res.copy_from_slice(&hash[..8]);
 
-        map.insert(res.to_vec(), outpoint);
+        map.insert(res, outpoint);
     }
 
     Ok(map)
@@ -292,7 +294,7 @@ pub fn get_input_hashes(
 pub fn check_block_inputs(
     spent_filter: BlockFilter,
     blkhash: BlockHash,
-    input_hashes: Vec<Vec<u8>>,
+    input_hashes: Vec<[u8; 8]>,
 ) -> Result<bool> {
     // note: match will always return true for an empty query!
     if !input_hashes.is_empty() {
