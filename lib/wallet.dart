@@ -57,18 +57,12 @@ class WalletScreen extends StatelessWidget {
 
     String text;
 
-    if (walletState.nakamotoIsRunning) {
-      if (walletState.scanning) {
-        text = 'Scanning: $toScan blocks';
-      } else {
-        text = 'Syncing headers ...';
-      }
+    if (walletState.scanning) {
+      text = 'Scanning: $toScan blocks';
+    } else if (toScan == 0) {
+      text = 'Up to date!';
     } else {
-      if (toScan == 0) {
-        text = 'Up to date!';
-      } else {
-        text = 'New blocks: $toScan';
-      }
+      text = 'New blocks: $toScan';
     }
 
     return Text(
@@ -97,15 +91,13 @@ class WalletScreen extends StatelessWidget {
               shape: CircleBorder(),
               padding: EdgeInsets.all(60.0),
             ),
-            onPressed: (walletState.nakamotoIsRunning)
-                ? null
-                : () async {
-                    try {
-                      await walletState.scanToTip();
-                    } catch (e) {
-                      displayNotification(e.toString());
-                    }
-                  },
+            onPressed: () async {
+              try {
+                await walletState.scanToTip();
+              } catch (e) {
+                displayNotification(e.toString());
+              }
+            },
             child: const Text('Scan'));
 
     if (!walletState.walletLoaded) {
