@@ -1,10 +1,10 @@
 // ignore_for_file: avoid_print
 import 'dart:async';
 import 'dart:io';
-import 'package:donationwallet/src/rust/api/simple.dart';
-import 'package:donationwallet/src/rust/constants.dart';
-import 'package:donationwallet/src/rust/frb_generated.dart';
-import 'package:donationwallet/src/rust/logger.dart';
+import 'package:donationwallet/rust/api/simple.dart';
+import 'package:donationwallet/rust/constants.dart';
+import 'package:donationwallet/rust/frb_generated.dart';
+import 'package:donationwallet/rust/logger.dart';
 
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
@@ -86,8 +86,9 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> _initStreams() async {
-    logStreamSubscription = createLogStream(level: LogLevel.info, logDependencies: true)
-        .listen((event) {
+    logStreamSubscription =
+        createLogStream(level: LogLevel.info, logDependencies: true)
+            .listen((event) {
       print('${event.level} (${event.tag}): ${event.msg}');
     });
 
@@ -195,17 +196,19 @@ class WalletState extends ChangeNotifier {
   }
 
   BigInt outputSelectionTotalAmt() {
-    final total =
-        selectedOutputs.fold(BigInt.zero, (sum, element) => sum + element.amount);
+    final total = selectedOutputs.fold(
+        BigInt.zero, (sum, element) => sum + element.amount);
     return total;
   }
 
   BigInt recipientTotalAmt() {
-    final total = recipients.fold(BigInt.zero, (sum, element) => sum + element.amount);
+    final total =
+        recipients.fold(BigInt.zero, (sum, element) => sum + element.amount);
     return total;
   }
 
-  Future<void> addRecipients(String address, BigInt amount, int nbOutputs) async {
+  Future<void> addRecipients(
+      String address, BigInt amount, int nbOutputs) async {
     final alreadyInList = recipients.where((r) => r.address == address);
     if (alreadyInList.isNotEmpty) {
       throw Exception("Address already in list");
