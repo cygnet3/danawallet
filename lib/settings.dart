@@ -1,6 +1,6 @@
-import 'package:donationwallet/src/rust/api/simple.dart';
-import 'package:donationwallet/src/rust/constants.dart';
-import 'package:donationwallet/src/rust/logger.dart';
+import 'package:donationwallet/rust/api/simple.dart';
+import 'package:donationwallet/rust/constants.dart';
+import 'package:donationwallet/rust/logger.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/home.dart';
@@ -13,8 +13,7 @@ class SettingsScreen extends StatelessWidget {
   Future<void> _removeWallet(
       WalletState walletState, Function(Exception? e) callback) async {
     try {
-      await removeWallet(
-          path: walletState.dir.path, label: walletState.label);
+      await removeWallet(path: walletState.dir.path, label: walletState.label);
       await walletState.reset();
       callback(null);
     } on Exception catch (e) {

@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:donationwallet/src/rust/api/simple.dart';
-import 'package:donationwallet/src/rust/constants.dart';
-import 'package:donationwallet/src/rust/logger.dart';
+import 'package:donationwallet/rust/api/simple.dart';
+import 'package:donationwallet/rust/constants.dart';
+import 'package:donationwallet/rust/logger.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/outputs.dart';
@@ -89,8 +89,7 @@ class SpendScreen extends StatelessWidget {
         path: path, label: label, inputs: spentOutputs, recipients: recipients);
     String fee = await addFeeForFeeRate(
         psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
-    String filled =
-        await fillSpOutputs(path: path, label: label, psbt: fee);
+    String filled = await fillSpOutputs(path: path, label: label, psbt: fee);
     return filled;
   }
 

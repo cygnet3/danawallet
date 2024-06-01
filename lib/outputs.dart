@@ -1,6 +1,6 @@
-import 'package:donationwallet/src/rust/api/simple.dart';
-import 'package:donationwallet/src/rust/constants.dart';
-import 'package:donationwallet/src/rust/logger.dart';
+import 'package:donationwallet/rust/api/simple.dart';
+import 'package:donationwallet/rust/constants.dart';
+import 'package:donationwallet/rust/logger.dart';
 import 'package:donationwallet/main.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
