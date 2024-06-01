@@ -91,15 +91,13 @@ class WalletScreen extends StatelessWidget {
               shape: CircleBorder(),
               padding: EdgeInsets.all(60.0),
             ),
-            onPressed: (walletState.nakamotoIsRunning)
-                ? null
-                : () async {
-                    try {
-                      await walletState.scan();
-                    } catch (e) {
-                      displayNotification(e.toString());
-                    }
-                  },
+            onPressed: () async {
+              try {
+                await walletState.scan();
+              } catch (e) {
+                displayNotification(e.toString());
+              }
+            },
             child: const Text('Scan'));
 
     if (!walletState.walletLoaded) {

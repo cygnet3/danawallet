@@ -30,7 +30,6 @@ class LoadWalletScreen extends StatelessWidget {
       isTestnet = true;
     }
 
-    // this sets up everything except nakamoto
     try {
       await setup(
         label: walletState.label,
