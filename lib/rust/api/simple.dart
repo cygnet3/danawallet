@@ -119,9 +119,6 @@ Future<void> markTransactionInputsAsSpent(
 Future<String?> showMnemonic({required String path, required String label}) =>
     RustLib.instance.api.crateApiSimpleShowMnemonic(path: path, label: label);
 
-String greet({required String name}) =>
-    RustLib.instance.api.crateApiSimpleGreet(name: name);
-
 class WalletStatus {
   final BigInt amount;
   final int birthday;

@@ -33,7 +33,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.0.0-dev.37";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 148902095;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -579847335;
 
 // Section: executor
 
@@ -502,35 +502,6 @@ fn wire__crate__api__simple__get_wallet_info_impl(
                     crate::api::simple::get_wallet_info(api_path, api_label)
                 })())
             }
-        },
-    )
-}
-fn wire__crate__api__simple__greet_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "greet",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_name = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse((move || {
-                Result::<_, ()>::Ok(crate::api::simple::greet(api_name))
-            })())
         },
     )
 }
@@ -1210,21 +1181,21 @@ fn pde_ffi_dispatcher_primary_impl(
             wire__crate__api__simple__get_spendable_outputs_impl(port, ptr, rust_vec_len, data_len)
         }
         14 => wire__crate__api__simple__get_wallet_info_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__simple__mark_transaction_inputs_as_spent_impl(
+        15 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__simple__mark_transaction_inputs_as_spent_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__simple__remove_wallet_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__simple__reset_wallet_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__simple__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__simple__setup_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__simple__show_mnemonic_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__simple__sign_psbt_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__simple__sync_blockchain_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__simple__wallet_exists_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__simple__remove_wallet_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__simple__reset_wallet_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__simple__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__simple__setup_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__simple__show_mnemonic_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__simple__sign_psbt_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__simple__sync_blockchain_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__simple__wallet_exists_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1237,7 +1208,6 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        15 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
