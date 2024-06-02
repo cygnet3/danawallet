@@ -53,17 +53,15 @@ impl BlindbitClient {
         let client = reqwest::Client::new();
         BlindbitClient { client, host }
     }
-    pub async fn block_height(&self) -> u32 {
+    pub async fn block_height(&self) -> Result<u32> {
         let res = self
             .client
             .get(format!("{}/block-height", self.host))
             .send()
-            .await
-            .unwrap();
-        let blkheight: BlockHeightResponse =
-            serde_json::from_str(&res.text().await.unwrap()).unwrap();
+            .await?;
+        let blkheight: BlockHeightResponse = serde_json::from_str(&res.text().await?)?;
 
-        blkheight.block_height
+        Ok(blkheight.block_height)
     }
 
     pub async fn tweaks(&self, block_height: u32) -> Result<Vec<PublicKey>> {

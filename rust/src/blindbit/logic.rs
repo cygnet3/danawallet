@@ -23,7 +23,7 @@ const HOST: &str = "https://silentpayments.dev/blindbit";
 pub async fn sync_blockchain() -> Result<()> {
     let blindbit_client = BlindbitClient::new(HOST.to_string());
 
-    let height = blindbit_client.block_height().await;
+    let height = blindbit_client.block_height().await?;
 
     send_sync_progress(SyncStatus {
         blockheight: height,
@@ -36,7 +36,7 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
     let blindbit_client = BlindbitClient::new(HOST.to_string());
 
     let mut last_scan = sp_client.last_scan;
-    let tip_height = blindbit_client.block_height().await;
+    let tip_height = blindbit_client.block_height().await?;
 
     // 0 means scan to tip
     if n_blocks_to_scan == 0 {
