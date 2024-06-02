@@ -6,7 +6,7 @@ use bitcoin::{
     Transaction,
 };
 
-use crate::frb_generated::StreamSink;
+use crate::{frb_generated::StreamSink, stream::send_amount_update};
 use log::info;
 
 use crate::{
@@ -320,6 +320,8 @@ pub fn mark_transaction_inputs_as_spent(path: String, label: String, tx: String)
     let tx = Transaction::consensus_decode(&mut tx_bytes.as_slice())?;
 
     sp_client.mark_transaction_inputs_as_spent(tx)?;
+
+    send_amount_update(sp_client.get_spendable_amt());
 
     Ok(())
 }
