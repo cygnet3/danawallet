@@ -8,7 +8,6 @@ use bitcoin::{
 
 use crate::frb_generated::StreamSink;
 use log::info;
-use tokio::runtime::Runtime;
 
 use crate::{
     blindbit,
@@ -16,6 +15,8 @@ use crate::{
     logger::{self, LogEntry, LogLevel},
     stream::{self, ScanProgress, SyncStatus},
 };
+
+use anyhow::{anyhow, Result};
 
 use sp_client::spclient::{derive_keys_from_mnemonic, Psbt, SpClient, SpendKey};
 
@@ -50,9 +51,9 @@ pub async fn setup(
     wallet_type: WalletType,
     birthday: u32,
     is_testnet: bool,
-) -> Result<String, String> {
+) -> Result<String> {
     if wallet_exists(label.clone(), files_dir.clone()) {
-        return Err(label);
+        return Err(anyhow!(label));
     }; // If the wallet already exists we just send the label as an error message
 
     // TODO lot of repetition here
@@ -60,7 +61,7 @@ pub async fn setup(
         WalletType::New => {
             // We create a new wallet and return the new mnemonic
             let (mnemonic, scan_sk, spend_sk) =
-                derive_keys_from_mnemonic("", PASSPHRASE, is_testnet).map_err(|e| e.to_string())?;
+                derive_keys_from_mnemonic("", PASSPHRASE, is_testnet)?;
             let sp_client = SpClient::new(
                 label,
                 scan_sk,
@@ -69,16 +70,14 @@ pub async fn setup(
                 birthday,
                 is_testnet,
                 files_dir,
-            )
-            .map_err(|e| e.to_string())?;
-            sp_client.save_to_disk().map_err(|e| e.to_string())?;
+            )?;
+            sp_client.save_to_disk()?;
             Ok(mnemonic.to_string())
         }
         WalletType::Mnemonic(mnemonic) => {
             // We restore from seed
             let (_, scan_sk, spend_sk) =
-                derive_keys_from_mnemonic(&mnemonic, PASSPHRASE, is_testnet)
-                    .map_err(|e| e.to_string())?;
+                derive_keys_from_mnemonic(&mnemonic, PASSPHRASE, is_testnet)?;
             let sp_client = SpClient::new(
                 label,
                 scan_sk,
@@ -87,15 +86,14 @@ pub async fn setup(
                 birthday,
                 is_testnet,
                 files_dir,
-            )
-            .map_err(|e| e.to_string())?;
-            sp_client.save_to_disk().map_err(|e| e.to_string())?;
+            )?;
+            sp_client.save_to_disk()?;
             Ok("".to_owned())
         }
         WalletType::PrivateKeys(scan_sk_hex, spend_sk_hex) => {
             // We directly restore with the keys
-            let scan_sk = SecretKey::from_str(&scan_sk_hex).map_err(|e| e.to_string())?;
-            let spend_sk = SecretKey::from_str(&spend_sk_hex).map_err(|e| e.to_string())?;
+            let scan_sk = SecretKey::from_str(&scan_sk_hex)?;
+            let spend_sk = SecretKey::from_str(&spend_sk_hex)?;
             let sp_client = SpClient::new(
                 label,
                 scan_sk,
@@ -104,15 +102,14 @@ pub async fn setup(
                 birthday,
                 is_testnet,
                 files_dir,
-            )
-            .map_err(|e| e.to_string())?;
-            sp_client.save_to_disk().map_err(|e| e.to_string())?;
+            )?;
+            sp_client.save_to_disk()?;
             Ok("".to_owned())
         }
         WalletType::ReadOnly(scan_sk_hex, spend_pk_hex) => {
             // We're only able to find payments but not to spend it
-            let scan_sk = SecretKey::from_str(&scan_sk_hex).map_err(|e| e.to_string())?;
-            let spend_pk = PublicKey::from_str(&spend_pk_hex).map_err(|e| e.to_string())?;
+            let scan_sk = SecretKey::from_str(&scan_sk_hex)?;
+            let spend_pk = PublicKey::from_str(&spend_pk_hex)?;
             let sp_client = SpClient::new(
                 label,
                 scan_sk,
@@ -121,10 +118,9 @@ pub async fn setup(
                 birthday,
                 is_testnet,
                 files_dir,
-            )
-            .map_err(|e| e.to_string())?;
-            sp_client.save_to_disk().map_err(|e| e.to_string())?;
-            Ok("".to_owned())
+            )?;
+            sp_client.save_to_disk()?;
+            Ok("".to_string())
         }
     }
 }
@@ -132,57 +128,51 @@ pub async fn setup(
 /// Change wallet birthday
 /// Since this method doesn't touch the known outputs
 /// the caller is responsible for resetting the wallet to its new birthday  
-pub fn change_birthday(path: String, label: String, birthday: u32) -> Result<(), String> {
+pub fn change_birthday(path: String, label: String, birthday: u32) -> Result<()> {
     match SpClient::try_init_from_disk(label, path) {
         Ok(mut sp_client) => {
             sp_client.birthday = birthday;
-            sp_client.save_to_disk().map_err(|e| e.to_string())
+            sp_client.save_to_disk()
         }
-        Err(_) => Err("Wallet doesn't exist".to_owned()),
+        Err(_) => Err(anyhow!("Wallet doesn't exist")),
     }
 }
 
 /// Reset the last_scan of the wallet to its birthday, removing all outpoints
-pub fn reset_wallet(path: String, label: String) -> Result<(), String> {
+pub fn reset_wallet(path: String, label: String) -> Result<()> {
     match SpClient::try_init_from_disk(label, path) {
         Ok(sp_client) => {
             let birthday = sp_client.birthday;
             let new = sp_client.reset_from_blockheight(birthday);
-            new.save_to_disk().map_err(|e| e.to_string())
+            new.save_to_disk()
         }
-        Err(_) => Err("Wallet doesn't exist".to_owned()),
+        Err(_) => Err(anyhow!("Wallet doesn't exist")),
     }
 }
 
-pub fn remove_wallet(path: String, label: String) -> Result<(), String> {
+pub fn remove_wallet(path: String, label: String) -> Result<()> {
     match SpClient::try_init_from_disk(label, path) {
-        Ok(sp_client) => sp_client.delete_from_disk().map_err(|e| e.to_string()),
-        Err(_) => Err("Wallet doesn't exist".to_owned()),
+        Ok(sp_client) => sp_client.delete_from_disk(),
+        Err(_) => Err(anyhow!("Wallet doesn't exist")),
     }
 }
 
-pub async fn sync_blockchain() -> Result<(), String> {
-    blindbit::logic::sync_blockchain()
-        .await
-        .map_err(|e| e.to_string())
+pub async fn sync_blockchain() -> Result<()> {
+    blindbit::logic::sync_blockchain().await
 }
 
-pub async fn scan_to_tip(path: String, label: String) -> Result<(), String> {
+pub async fn scan_to_tip(path: String, label: String) -> Result<()> {
     let res = match SpClient::try_init_from_disk(label, path) {
-        Err(_) => Err("Wallet not found".to_owned()),
-        Ok(sp_client) => {
-            blindbit::logic::scan_blocks(0, sp_client)
-                .await
-                .map_err(|e| e.to_string())
-        }
+        Err(_) => Err(anyhow!("Wallet not found")),
+        Ok(sp_client) => blindbit::logic::scan_blocks(0, sp_client).await,
     };
     res
 }
 
-pub fn get_wallet_info(path: String, label: String) -> Result<WalletStatus, String> {
+pub fn get_wallet_info(path: String, label: String) -> Result<WalletStatus> {
     let sp_client = match SpClient::try_init_from_disk(label, path) {
         Ok(s) => s,
-        Err(_) => return Err("Wallet not found".to_owned()),
+        Err(_) => return Err(anyhow!("Wallet not found")),
     };
 
     let scan_height = sp_client.last_scan;
@@ -196,16 +186,16 @@ pub fn get_wallet_info(path: String, label: String) -> Result<WalletStatus, Stri
     })
 }
 
-pub fn get_receiving_address(path: String, label: String) -> Result<String, String> {
+pub fn get_receiving_address(path: String, label: String) -> Result<String> {
     let sp_client: SpClient = match SpClient::try_init_from_disk(label, path) {
         Ok(s) => s,
-        Err(_) => return Err("Wallet not found".to_owned()),
+        Err(_) => return Err(anyhow!("Wallet not found")),
     };
 
     Ok(sp_client.get_receiving_address())
 }
 
-pub fn get_spendable_outputs(path: String, label: String) -> Result<Vec<OwnedOutput>, String> {
+pub fn get_spendable_outputs(path: String, label: String) -> Result<Vec<OwnedOutput>> {
     let outputs = get_outputs(path, label)?;
 
     Ok(outputs
@@ -214,10 +204,10 @@ pub fn get_spendable_outputs(path: String, label: String) -> Result<Vec<OwnedOut
         .collect())
 }
 
-pub fn get_outputs(path: String, label: String) -> Result<Vec<OwnedOutput>, String> {
+pub fn get_outputs(path: String, label: String) -> Result<Vec<OwnedOutput>> {
     let sp_client: SpClient = match SpClient::try_init_from_disk(label, path) {
         Ok(s) => s,
-        Err(_) => return Err("Wallet not found".to_owned()),
+        Err(_) => return Err(anyhow!("Wallet not found")),
     };
 
     Ok(sp_client
@@ -232,77 +222,68 @@ pub fn create_new_psbt(
     path: String,
     inputs: Vec<OwnedOutput>,
     recipients: Vec<Recipient>,
-) -> Result<String, String> {
+) -> Result<String> {
     let sp_client: SpClient = match SpClient::try_init_from_disk(label, path) {
         Ok(s) => s,
-        Err(_) => return Err("Wallet not found".to_owned()),
+        Err(_) => return Err(anyhow!("Wallet not found")),
     };
 
     // convert to spclient inputs
     let inputs = inputs.into_iter().map(Into::into).collect();
     let recipients = recipients.into_iter().map(Into::into).collect();
 
-    let psbt = sp_client
-        .create_new_psbt(inputs, recipients)
-        .map_err(|e| e.to_string())?;
+    let psbt = sp_client.create_new_psbt(inputs, recipients)?;
 
     Ok(psbt.to_string())
 }
 
 // payer is an address, either Silent Payment or not
-pub fn add_fee_for_fee_rate(psbt: String, fee_rate: u32, payer: String) -> Result<String, String> {
-    let mut psbt = Psbt::from_str(&psbt).map_err(|e| e.to_string())?;
+pub fn add_fee_for_fee_rate(psbt: String, fee_rate: u32, payer: String) -> Result<String> {
+    let mut psbt = Psbt::from_str(&psbt)?;
 
-    SpClient::set_fees(&mut psbt, fee_rate, payer).map_err(|e| e.to_string())?;
-
-    Ok(psbt.to_string())
-}
-
-pub fn fill_sp_outputs(path: String, label: String, psbt: String) -> Result<String, String> {
-    let sp_client: SpClient = match SpClient::try_init_from_disk(label, path) {
-        Ok(s) => s,
-        Err(_) => return Err("Wallet not found".to_owned()),
-    };
-
-    let mut psbt = Psbt::from_str(&psbt).map_err(|e| e.to_string())?;
-
-    sp_client
-        .fill_sp_outputs(&mut psbt)
-        .map_err(|e| e.to_string())?;
+    SpClient::set_fees(&mut psbt, fee_rate, payer)?;
 
     Ok(psbt.to_string())
 }
 
-pub fn sign_psbt(
-    path: String,
-    label: String,
-    psbt: String,
-    finalize: bool,
-) -> Result<String, String> {
+pub fn fill_sp_outputs(path: String, label: String, psbt: String) -> Result<String> {
     let sp_client: SpClient = match SpClient::try_init_from_disk(label, path) {
         Ok(s) => s,
-        Err(_) => return Err("Wallet not found".to_owned()),
+        Err(_) => return Err(anyhow!("Wallet not found")),
     };
 
-    let psbt = Psbt::from_str(&psbt).map_err(|e| e.to_string())?;
+    let mut psbt = Psbt::from_str(&psbt)?;
 
-    let mut signed = sp_client.sign_psbt(psbt).map_err(|e| e.to_string())?;
+    sp_client.fill_sp_outputs(&mut psbt)?;
+
+    Ok(psbt.to_string())
+}
+
+pub fn sign_psbt(path: String, label: String, psbt: String, finalize: bool) -> Result<String> {
+    let sp_client: SpClient = match SpClient::try_init_from_disk(label, path) {
+        Ok(s) => s,
+        Err(_) => return Err(anyhow!("Wallet not found")),
+    };
+
+    let psbt = Psbt::from_str(&psbt)?;
+
+    let mut signed = sp_client.sign_psbt(psbt)?;
 
     if finalize {
-        SpClient::finalize_psbt(&mut signed).map_err(|e| e.to_string())?;
+        SpClient::finalize_psbt(&mut signed)?;
     }
 
     Ok(signed.to_string())
 }
 
-pub fn extract_tx_from_psbt(psbt: String) -> Result<String, String> {
-    let psbt = Psbt::from_str(&psbt).map_err(|e| e.to_string())?;
+pub fn extract_tx_from_psbt(psbt: String) -> Result<String> {
+    let psbt = Psbt::from_str(&psbt)?;
 
-    let final_tx = psbt.extract_tx().map_err(|e| e.to_string())?;
+    let final_tx = psbt.extract_tx()?;
     Ok(serialize_hex(&final_tx))
 }
 
-pub fn broadcast_tx(tx: String) -> Result<String, String> {
+pub fn broadcast_tx(tx: String) -> Result<String> {
     let tx: pushtx::Transaction = tx.parse().unwrap();
 
     let txid = tx.txid();
@@ -320,7 +301,7 @@ pub fn broadcast_tx(tx: String) -> Result<String, String> {
                 info!("broadcasted to {} peers", report.broadcasts);
                 break;
             }
-            pushtx::Info::Done(Err(err)) => return Err(err.to_string()),
+            pushtx::Info::Done(Err(err)) => return Err(anyhow!(err.to_string())),
             _ => {}
         }
     }
@@ -328,31 +309,25 @@ pub fn broadcast_tx(tx: String) -> Result<String, String> {
     Ok(txid.to_string())
 }
 
-pub fn mark_transaction_inputs_as_spent(
-    path: String,
-    label: String,
-    tx: String,
-) -> Result<(), String> {
+pub fn mark_transaction_inputs_as_spent(path: String, label: String, tx: String) -> Result<()> {
     let mut sp_client: SpClient = match SpClient::try_init_from_disk(label, path) {
         Ok(s) => s,
-        Err(_) => return Err("Wallet not found".to_owned()),
+        Err(_) => return Err(anyhow!("Wallet not found")),
     };
 
-    let tx_bytes = hex::decode(tx).map_err(|e| e.to_string())?;
+    let tx_bytes = hex::decode(tx)?;
 
-    let tx = Transaction::consensus_decode(&mut tx_bytes.as_slice()).map_err(|e| e.to_string())?;
+    let tx = Transaction::consensus_decode(&mut tx_bytes.as_slice())?;
 
-    sp_client
-        .mark_transaction_inputs_as_spent(tx)
-        .map_err(|e| e.to_string())?;
+    sp_client.mark_transaction_inputs_as_spent(tx)?;
 
     Ok(())
 }
 
-pub fn show_mnemonic(path: String, label: String) -> Result<Option<String>, String> {
+pub fn show_mnemonic(path: String, label: String) -> Result<Option<String>> {
     let sp_client: SpClient = match SpClient::try_init_from_disk(label, path) {
         Ok(s) => s,
-        Err(_) => return Err("Wallet not found".to_owned()),
+        Err(_) => return Err(anyhow::Error::msg("Wallet not found")),
     };
 
     let mnemonic = sp_client.mnemonic;

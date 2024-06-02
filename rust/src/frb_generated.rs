@@ -852,6 +852,14 @@ fn wire__crate__api__simple__wallet_exists_impl(
 
 // Section: dart2rust
 
+impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::anyhow::anyhow!("{}", inner);
+    }
+}
+
 impl SseDecode
     for StreamSink<crate::logger::LogEntry, flutter_rust_bridge::for_generated::SseCodec>
 {
@@ -1399,6 +1407,13 @@ impl flutter_rust_bridge::IntoIntoDart<crate::constants::WalletType>
 {
     fn into_into_dart(self) -> crate::constants::WalletType {
         self
+    }
+}
+
+impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(format!("{:?}", self), serializer);
     }
 }
 

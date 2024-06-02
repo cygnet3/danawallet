@@ -168,7 +168,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleAddFeeForFeeRateConstMeta,
       argValues: [psbt, feeRate, payer],
@@ -193,7 +193,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleBroadcastTxConstMeta,
       argValues: [tx],
@@ -220,7 +220,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleChangeBirthdayConstMeta,
       argValues: [path, label, birthday],
@@ -309,7 +309,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleCreateNewPsbtConstMeta,
       argValues: [label, path, inputs, recipients],
@@ -388,7 +388,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleExtractTxFromPsbtConstMeta,
       argValues: [psbt],
@@ -416,7 +416,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleFillSpOutputsConstMeta,
       argValues: [path, label, psbt],
@@ -443,7 +443,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_owned_output,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleGetOutputsConstMeta,
       argValues: [path, label],
@@ -469,7 +469,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleGetReceivingAddressConstMeta,
       argValues: [path, label],
@@ -496,7 +496,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_owned_output,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleGetSpendableOutputsConstMeta,
       argValues: [path, label],
@@ -523,7 +523,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_wallet_status,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleGetWalletInfoConstMeta,
       argValues: [path, label],
@@ -574,7 +574,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleMarkTransactionInputsAsSpentConstMeta,
       argValues: [path, label, tx],
@@ -601,7 +601,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleRemoveWalletConstMeta,
       argValues: [path, label],
@@ -627,7 +627,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleResetWalletConstMeta,
       argValues: [path, label],
@@ -653,7 +653,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleScanToTipConstMeta,
       argValues: [path, label],
@@ -686,7 +686,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleSetupConstMeta,
       argValues: [label, filesDir, walletType, birthday, isTestnet],
@@ -712,7 +712,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleShowMnemonicConstMeta,
       argValues: [path, label],
@@ -743,7 +743,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleSignPsbtConstMeta,
       argValues: [path, label, psbt, finalize],
@@ -766,7 +766,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleSyncBlockchainConstMeta,
       argValues: [],
@@ -805,6 +805,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         debugName: "wallet_exists",
         argNames: ["label", "filesDir"],
       );
+
+  @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return AnyhowException(raw as String);
+  }
 
   @protected
   RustStreamSink<LogEntry> dco_decode_StreamSink_log_entry_Sse(dynamic raw) {
@@ -1039,6 +1045,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       default:
         throw Exception("unreachable");
     }
+  }
+
+  @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_String(deserializer);
+    return AnyhowException(inner);
   }
 
   @protected
@@ -1284,6 +1297,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       default:
         throw UnimplementedError('');
     }
+  }
+
+  @protected
+  void sse_encode_AnyhowException(
+      AnyhowException self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.message, serializer);
   }
 
   @protected
