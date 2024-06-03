@@ -92,24 +92,16 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
         )
         .await?;
 
-        if blkheight % 2 == 0 || blkheight == end {
-            send_scan_progress(ScanProgress {
-                start,
-                current: blkheight,
-                end,
-            });
-        }
+        send_scan_progress(ScanProgress {
+            start,
+            current: blkheight,
+            end,
+        });
 
         if !found_outputs.is_empty() {
             sp_client.extend_owned(found_outputs);
 
             send_amount_update(sp_client.get_spendable_amt());
-
-            send_scan_progress(ScanProgress {
-                start,
-                current: blkheight,
-                end,
-            });
         }
 
         if !found_inputs.is_empty() {
