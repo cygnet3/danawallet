@@ -20,7 +20,7 @@ use crate::{
 };
 
 const HOST: &str = "https://silentpayments.dev/blindbit";
-const CONCURRENT: usize = 50;
+const CONCURRENT_FILTER_REQUESTS: usize = 200;
 
 pub async fn sync_blockchain() -> Result<()> {
     let blindbit_client = BlindbitClient::new(HOST.to_string());
@@ -73,7 +73,7 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
                 (n, tweaks, new_utxo_filter, spent_filter)
             }
         })
-        .buffered(CONCURRENT);
+        .buffered(CONCURRENT_FILTER_REQUESTS);
 
     while let Some((n, tweaks, new_utxo_filter, spent_filter)) = data.next().await {
         if n % 2 == 0 || n == end {
