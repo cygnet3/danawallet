@@ -241,6 +241,7 @@ class WalletState extends ChangeNotifier {
     try {
       scanning = true;
       await scanToTip(path: dir.path, label: label);
+      await syncBlockchain();
     } catch (e) {
       scanning = false;
       notifyListeners();
