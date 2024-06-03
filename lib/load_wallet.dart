@@ -22,6 +22,7 @@ class LoadWalletScreen extends StatelessWidget {
       walletState.walletLoaded = true;
       return;
     } else {
+      // ignore: avoid_print
       print("Creating a new wallet");
     }
 
@@ -71,7 +72,7 @@ class LoadWalletScreen extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: "Scan private key",
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.paste),
+                    icon: const Icon(Icons.paste),
                     onPressed: () async {
                       ClipboardData? data =
                           await Clipboard.getData(Clipboard.kTextPlain);
@@ -82,13 +83,13 @@ class LoadWalletScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 10), // Spacing between text fields
+              const SizedBox(height: 10), // Spacing between text fields
               TextField(
                 controller: spendKeyController,
                 decoration: InputDecoration(
                   hintText: hint,
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.paste),
+                    icon: const Icon(Icons.paste),
                     onPressed: () async {
                       ClipboardData? data =
                           await Clipboard.getData(Clipboard.kTextPlain);
@@ -99,14 +100,14 @@ class LoadWalletScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 10), // Spacing between text fields
+              const SizedBox(height: 10), // Spacing between text fields
               TextField(
                 controller: birthdayController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   hintText: "Wallet birthday (in blocks)",
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.paste),
+                    icon: const Icon(Icons.paste),
                     onPressed: () async {
                       ClipboardData? data =
                           await Clipboard.getData(Clipboard.kTextPlain);
@@ -172,7 +173,7 @@ class LoadWalletScreen extends StatelessWidget {
                 decoration: InputDecoration(
                   hintText: "Seed",
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.paste),
+                    icon: const Icon(Icons.paste),
                     onPressed: () async {
                       ClipboardData? data =
                           await Clipboard.getData(Clipboard.kTextPlain);
@@ -183,14 +184,14 @@ class LoadWalletScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 10), // Spacing between text fields
+              const SizedBox(height: 10), // Spacing between text fields
               TextField(
                 controller: birthdayController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   hintText: "Wallet birthday (in blocks)",
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.paste),
+                    icon: const Icon(Icons.paste),
                     onPressed: () async {
                       ClipboardData? data =
                           await Clipboard.getData(Clipboard.kTextPlain);
@@ -339,7 +340,7 @@ class LoadWalletScreen extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          minimumSize: Size(double.infinity, 60),
+          minimumSize: const Size(double.infinity, 60),
         ),
         onPressed: onPressed,
         child: Text(text),

@@ -37,20 +37,20 @@ pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {
 pub(crate) fn send_amount_update(amount: u64) {
     let stream_sink = AMOUNT_STREAM_SINK.lock().unwrap();
     if let Some(stream_sink) = stream_sink.as_ref() {
-        stream_sink.add(amount);
+        stream_sink.add(amount).unwrap();
     }
 }
 
 pub(crate) fn send_sync_progress(sync_status: SyncStatus) {
     let stream_sink = SYNC_STREAM_SINK.lock().unwrap();
     if let Some(stream_sink) = stream_sink.as_ref() {
-        stream_sink.add(sync_status);
+        stream_sink.add(sync_status).unwrap();
     }
 }
 
 pub(crate) fn send_scan_progress(scan_progress: ScanProgress) {
     let stream_sink = SCAN_STREAM_SINK.lock().unwrap();
     if let Some(stream_sink) = stream_sink.as_ref() {
-        stream_sink.add(scan_progress);
+        stream_sink.add(scan_progress).unwrap();
     }
 }

@@ -116,7 +116,7 @@ impl Log for FlutterLogger {
         if self.enabled(record.metadata()) {
             let entry = Self::record_to_entry(record);
             if let Some(sink) = &*FLUTTER_LOGGER_STREAM_SINK.read().unwrap() {
-                sink.add(entry);
+                sink.add(entry).unwrap();
             }
         }
     }

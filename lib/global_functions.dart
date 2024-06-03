@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 final globalNavigatorKey = GlobalKey<NavigatorState>();
 
 void displayNotification(String text) {
+  // ignore: avoid_print
   print(text);
   if (globalNavigatorKey.currentContext != null) {
     final snackBar = SnackBar(

@@ -1344,9 +1344,9 @@ dependencies = [
 
 [[package]]
 name = "silentpayments"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b6e2050ed5450a026cf7aa7f80eee7e2b54607f0fe3f404388331f424fba421"
+checksum = "658cc05dea6981d226a81e6ce203862274da4d7949482b4eba3575f8f03d714b"
 dependencies = [
  "bech32 0.9.1",
  "bimap",
@@ -1407,7 +1407,7 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-client?branch=master#efb956f683fb5f1c3c9e471f1476afd74864de18"
+source = "git+https://github.com/cygnet3/sp-client?branch=master#2c35ead2ac6d8e079fdaa72e8a6c43ac03ed1a91"
 dependencies = [
  "anyhow",
  "bip39",

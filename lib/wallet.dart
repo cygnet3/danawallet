@@ -34,7 +34,7 @@ class WalletScreen extends StatelessWidget {
               SingleChildScrollView(
                 child: BarcodeWidget(data: address, barcode: Barcode.qrCode()),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               SelectableText(address),
             ],
           ),
@@ -88,8 +88,8 @@ class WalletScreen extends StatelessWidget {
         : ElevatedButton(
             style: ElevatedButton.styleFrom(
               textStyle: Theme.of(context).textTheme.headlineLarge,
-              shape: CircleBorder(),
-              padding: EdgeInsets.all(60.0),
+              shape: const CircleBorder(),
+              padding: const EdgeInsets.all(60.0),
             ),
             onPressed: () async {
               try {
@@ -120,13 +120,13 @@ class WalletScreen extends StatelessWidget {
                   'Balance: ${walletState.amount}',
                   style: Theme.of(context).textTheme.displayMedium,
                 ),
-                Spacer(),
+                const Spacer(),
                 progressWidget,
-                Spacer(),
+                const Spacer(),
                 showWalletStateText(context),
-                Spacer(),
+                const Spacer(),
                 buildBottomButtons(context),
-                Spacer(),
+                const Spacer(),
               ],
             ),
           ),
@@ -137,7 +137,7 @@ class WalletScreen extends StatelessWidget {
 
   Widget buildBottomButtons(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -148,10 +148,10 @@ class WalletScreen extends StatelessWidget {
                     Provider.of<WalletState>(context, listen: false);
                 _showReceiveDialog(context, walletState.address);
               },
-              child: Text('Receive'),
+              child: const Text('Receive'),
             ),
           ),
-          SizedBox(width: 10), // Spacing between the buttons
+          const SizedBox(width: 10), // Spacing between the buttons
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
@@ -169,7 +169,7 @@ class WalletScreen extends StatelessWidget {
                   }
                 });
               },
-              child: Text('Send'),
+              child: const Text('Send'),
             ),
           ),
         ],

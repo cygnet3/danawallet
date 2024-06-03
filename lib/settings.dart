@@ -1,6 +1,4 @@
 import 'package:donationwallet/rust/api/simple.dart';
-import 'package:donationwallet/rust/constants.dart';
-import 'package:donationwallet/rust/logger.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/home.dart';
