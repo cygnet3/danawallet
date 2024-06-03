@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/load_wallet.dart';
 import 'package:donationwallet/main.dart';
@@ -72,26 +73,24 @@ class HomeScreenState extends State<HomeScreen> {
       );
     } else {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Silent payments'),
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        ),
         body: IndexedStack(
           index: _selectedIndex,
           children: _widgetOptions,
         ),
         bottomNavigationBar: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
+          items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.wallet),
+              icon: Image(
+                  image: const AssetImage("icons/wallet.png",
+                      package: "bitcoin_ui"),
+                  color: Bitcoin.neutral3Dark),
               label: 'Wallet',
             ),
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.info_outline),
-            //   label: 'Info',
-            // ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
+              icon: Image(
+                  image:
+                      const AssetImage("icons/gear.png", package: "bitcoin_ui"),
+                  color: Bitcoin.neutral3Dark),
               label: 'Settings',
             ),
           ],

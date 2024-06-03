@@ -1,3 +1,4 @@
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
@@ -91,7 +92,8 @@ class SettingsScreen extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        ElevatedButton(
+        BitcoinButtonOutlined(
+          title: 'Show seed phrase',
           onPressed: () async {
             final walletState =
                 Provider.of<WalletState>(context, listen: false);
@@ -102,12 +104,9 @@ class SettingsScreen extends StatelessWidget {
 
             showAlertDialog(title, text);
           },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-          ),
-          child: const Text('Show seed phrase'),
         ),
-        ElevatedButton(
+        BitcoinButtonOutlined(
+          title: 'Set wallet birthday',
           onPressed: () async {
             final controller = TextEditingController();
             await _setBirthday(context, controller, (Exception? e) async {
@@ -121,12 +120,9 @@ class SettingsScreen extends StatelessWidget {
               }
             });
           },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-          ),
-          child: const Text('Set wallet birthday'),
         ),
-        ElevatedButton(
+        BitcoinButtonOutlined(
+          title: 'Wipe wallet',
           onPressed: () async {
             final walletState =
                 Provider.of<WalletState>(context, listen: false);
@@ -142,10 +138,6 @@ class SettingsScreen extends StatelessWidget {
               }
             });
           },
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-          ),
-          child: const Text('Wipe wallet'),
         ),
       ],
     );

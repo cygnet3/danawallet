@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/spend.dart';
@@ -142,18 +143,19 @@ class WalletScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Expanded(
-            child: ElevatedButton(
+            child: BitcoinButtonFilled(
+              title: 'Receive',
               onPressed: () {
                 final walletState =
                     Provider.of<WalletState>(context, listen: false);
                 _showReceiveDialog(context, walletState.address);
               },
-              child: const Text('Receive'),
             ),
           ),
           const SizedBox(width: 10), // Spacing between the buttons
           Expanded(
-            child: ElevatedButton(
+            child: BitcoinButtonFilled(
+              title: 'Send',
               onPressed: () async {
                 // Logic for send button
                 final walletState =
@@ -169,7 +171,6 @@ class WalletScreen extends StatelessWidget {
                   }
                 });
               },
-              child: const Text('Send'),
             ),
           ),
         ],

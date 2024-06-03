@@ -1,6 +1,6 @@
-// ignore_for_file: avoid_print
 import 'dart:async';
 import 'dart:io';
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/rust/constants.dart';
 import 'package:donationwallet/rust/frb_generated.dart';
@@ -271,10 +271,10 @@ class SilentPaymentApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Silent payments',
+      title: 'Donation wallet',
       navigatorKey: globalNavigatorKey,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.green),
         useMaterial3: true,
       ),
       home: const HomeScreen(),

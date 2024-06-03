@@ -45,6 +45,7 @@ dependencies:
   provider: ^6.1.1
   barcode: ^2.2.5
   barcode_widget: ^2.0.4
+  bitcoin_ui: ^2.0.0
   rust_lib_donationwallet:
     path: rust_builder
 
