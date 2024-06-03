@@ -78,10 +78,13 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
 
     let data: Vec<_> = bodies.collect().await;
 
-    info!("Blindbit network calls finished in: {:?}", start_time.elapsed());
+    info!(
+        "Blindbit network calls finished in: {:?}",
+        start_time.elapsed()
+    );
 
     for (n, tweaks, new_utxo_filter, spent_filter) in data {
-        if n % 10 == 0 || n == end {
+        if n % 2 == 0 || n == end {
             send_scan_progress(ScanProgress {
                 start,
                 current: n,
