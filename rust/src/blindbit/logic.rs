@@ -63,8 +63,7 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
 
     let n = start..=end;
 
-    info!("Requesting data from Blindbit oracle");
-    let bodies = stream::iter(n)
+    let mut data = stream::iter(n)
         .map(|n| {
             let bb_client = &blindbit_client;
             async move {
@@ -76,14 +75,7 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
         })
         .buffered(CONCURRENT);
 
-    let data: Vec<_> = bodies.collect().await;
-
-    info!(
-        "Blindbit network calls finished in: {:?}",
-        start_time.elapsed()
-    );
-
-    for (n, tweaks, new_utxo_filter, spent_filter) in data {
+    while let Some((n, tweaks, new_utxo_filter, spent_filter)) = data.next().await {
         if n % 2 == 0 || n == end {
             send_scan_progress(ScanProgress {
                 start,
