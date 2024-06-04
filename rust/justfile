@@ -1,7 +1,7 @@
 default: build-emulator build-android
 
 gen:
-    flutter_rust_bridge_codegen --rust-input src/api.rs --dart-output ../lib/bridge_generated.dart --dart-decl-output ../lib/bridge_definitions.dart
+    flutter_rust_bridge_codegen generate --config-file ../flutter_rust_bridge.yaml
 
 build-emulator:
     cargo ndk -t x86_64 -o ../android/app/src/main/jniLibs build
