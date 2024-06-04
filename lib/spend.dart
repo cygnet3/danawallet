@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:donationwallet/rust/api/simple.dart';
-import 'package:donationwallet/rust/constants.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/outputs.dart';
@@ -81,11 +80,11 @@ class SpendScreen extends StatelessWidget {
   Future<String> _newTransactionWithFees(
       String path,
       String label,
-      List<OwnedOutput> spentOutputs,
+      Map<String, OwnedOutput> selectedOutputs,
       List<Recipient> recipients,
       int feeRate) async {
     String psbt = await createNewPsbt(
-        path: path, label: label, inputs: spentOutputs, recipients: recipients);
+        path: path, label: label, inputs: selectedOutputs, recipients: recipients);
     String fee = await addFeeForFeeRate(
         psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
     String filled = await fillSpOutputs(path: path, label: label, psbt: fee);
@@ -101,11 +100,17 @@ class SpendScreen extends StatelessWidget {
         path: path, label: label, psbt: unsignedPsbt, finalize: true);
   }
 
-  Future<String> _broadcastSignedPsbtAndMarkAsSpent(
-      String path, String label, String signedPsbt) async {
+  Future<String> _broadcastSignedPsbtAndMarkAsSpent(String path, String label,
+      String signedPsbt, Map<String, OwnedOutput> selectedOutputs) async {
     final tx = await extractTxFromPsbt(psbt: signedPsbt);
     final txid = await broadcastTx(tx: tx);
-    await markTransactionInputsAsSpent(path: path, label: label, tx: tx);
+    for (final outpoint in selectedOutputs.keys) {
+      try {
+        markOutpointSpent(path: path, label: label, outpoint: outpoint, txid: txid);
+      } catch (error) {
+        rethrow;
+      }
+    }
     return txid;
   }
 
@@ -177,7 +182,10 @@ class SpendScreen extends StatelessWidget {
                   final signedPsbt = await _signPsbt(
                       walletState.dir.path, walletState.label, unsignedPsbt);
                   final sentTxId = await _broadcastSignedPsbtAndMarkAsSpent(
-                      walletState.dir.path, walletState.label, signedPsbt);
+                      walletState.dir.path,
+                      walletState.label,
+                      signedPsbt,
+                      walletState.selectedOutputs);
 
                   // Clear selections
                   walletState.selectedOutputs.clear();

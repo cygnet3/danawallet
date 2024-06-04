@@ -1,7 +1,7 @@
-import 'package:donationwallet/rust/constants.dart';
 import 'package:donationwallet/main.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:donationwallet/rust/api/simple.dart';
 
 class OutputsScreen extends StatelessWidget {
   const OutputsScreen({super.key});
@@ -25,13 +25,15 @@ class OutputsScreen extends StatelessWidget {
               child: ListView.builder(
                   itemCount: walletState.getSpendableOutputs().length,
                   itemBuilder: (context, index) {
-                    OwnedOutput output =
-                        walletState.getSpendableOutputs()[index];
+                    String outpoint =
+                        walletState.getSpendableOutputs().keys.elementAt(index);
+                    OwnedOutput output = walletState
+                        .getSpendableOutputs()[outpoint] as OwnedOutput;
                     bool isSelected =
-                        walletState.selectedOutputs.contains(output);
+                        walletState.selectedOutputs.containsKey(outpoint);
                     return GestureDetector(
                         onTap: () {
-                          walletState.toggleOutputSelection(output);
+                          walletState.toggleOutputSelection(outpoint, output);
                         },
                         child: Card(
                           color: isSelected ? Colors.blue[100] : null,
@@ -40,7 +42,7 @@ class OutputsScreen extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("TxOutpoint: ${output.txoutpoint}"),
+                                  Text("TxOutpoint: $outpoint"),
                                   Text("Blockheight: ${output.blockheight}"),
                                   Text("Amount: ${output.amount}"),
                                   Text("Script: ${output.script}"),

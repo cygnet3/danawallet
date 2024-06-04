@@ -3,11 +3,14 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
-import '../constants.dart';
 import '../frb_generated.dart';
 import '../logger.dart';
 import '../stream.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+part 'simple.freezed.dart';
+
+// The functions `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from` are not `pub`, thus are ignored.
 
 Stream<LogEntry> createLogStream(
         {required LogLevel level, required bool logDependencies}) =>
@@ -23,26 +26,29 @@ Stream<ScanProgress> createScanProgressStream() =>
 Stream<BigInt> createAmountStream() =>
     RustLib.instance.api.crateApiSimpleCreateAmountStream();
 
-Future<bool> walletExists({required String label, required String filesDir}) =>
+bool walletExists({required String label, required String filesDir}) =>
     RustLib.instance.api
         .crateApiSimpleWalletExists(label: label, filesDir: filesDir);
 
-Future<String> setup(
+Future<void> setup(
         {required String label,
         required String filesDir,
-        required WalletType walletType,
+        String? mnemonic,
+        String? scanKey,
+        String? spendKey,
         required int birthday,
-        required bool isTestnet}) =>
+        required String network}) =>
     RustLib.instance.api.crateApiSimpleSetup(
         label: label,
         filesDir: filesDir,
-        walletType: walletType,
+        mnemonic: mnemonic,
+        scanKey: scanKey,
+        spendKey: spendKey,
         birthday: birthday,
-        isTestnet: isTestnet);
+        network: network);
 
 /// Change wallet birthday
-/// Since this method doesn't touch the known outputs
-/// the caller is responsible for resetting the wallet to its new birthday
+/// Reset the output list and last_scan
 Future<void> changeBirthday(
         {required String path, required String label, required int birthday}) =>
     RustLib.instance.api.crateApiSimpleChangeBirthday(
@@ -52,7 +58,7 @@ Future<void> changeBirthday(
 Future<void> resetWallet({required String path, required String label}) =>
     RustLib.instance.api.crateApiSimpleResetWallet(path: path, label: label);
 
-Future<void> removeWallet({required String path, required String label}) =>
+void removeWallet({required String path, required String label}) =>
     RustLib.instance.api.crateApiSimpleRemoveWallet(path: path, label: label);
 
 Future<void> syncBlockchain() =>
@@ -61,28 +67,26 @@ Future<void> syncBlockchain() =>
 Future<void> scanToTip({required String path, required String label}) =>
     RustLib.instance.api.crateApiSimpleScanToTip(path: path, label: label);
 
-Future<WalletStatus> getWalletInfo(
-        {required String path, required String label}) =>
+WalletStatus getWalletInfo({required String path, required String label}) =>
     RustLib.instance.api.crateApiSimpleGetWalletInfo(path: path, label: label);
 
-Future<String> getReceivingAddress(
-        {required String path, required String label}) =>
+String getReceivingAddress({required String path, required String label}) =>
     RustLib.instance.api
         .crateApiSimpleGetReceivingAddress(path: path, label: label);
 
-Future<List<OwnedOutput>> getSpendableOutputs(
+List<(String, OwnedOutput)> getSpendableOutputs(
         {required String path, required String label}) =>
     RustLib.instance.api
         .crateApiSimpleGetSpendableOutputs(path: path, label: label);
 
-Future<List<OwnedOutput>> getOutputs(
+Map<String, OwnedOutput> getOutputs(
         {required String path, required String label}) =>
     RustLib.instance.api.crateApiSimpleGetOutputs(path: path, label: label);
 
-Future<String> createNewPsbt(
+String createNewPsbt(
         {required String label,
         required String path,
-        required List<OwnedOutput> inputs,
+        required Map<String, OwnedOutput> inputs,
         required List<Recipient> recipients}) =>
     RustLib.instance.api.crateApiSimpleCreateNewPsbt(
         label: label, path: path, inputs: inputs, recipients: recipients);
@@ -97,7 +101,7 @@ Future<String> fillSpOutputs(
     RustLib.instance.api
         .crateApiSimpleFillSpOutputs(path: path, label: label, psbt: psbt);
 
-Future<String> signPsbt(
+String signPsbt(
         {required String path,
         required String label,
         required String psbt,
@@ -111,13 +115,110 @@ Future<String> extractTxFromPsbt({required String psbt}) =>
 Future<String> broadcastTx({required String tx}) =>
     RustLib.instance.api.crateApiSimpleBroadcastTx(tx: tx);
 
-Future<void> markTransactionInputsAsSpent(
-        {required String path, required String label, required String tx}) =>
-    RustLib.instance.api.crateApiSimpleMarkTransactionInputsAsSpent(
-        path: path, label: label, tx: tx);
+void markOutpointSpent(
+        {required String path,
+        required String label,
+        required String outpoint,
+        required String txid}) =>
+    RustLib.instance.api.crateApiSimpleMarkOutpointSpent(
+        path: path, label: label, outpoint: outpoint, txid: txid);
 
 Future<String?> showMnemonic({required String path, required String label}) =>
     RustLib.instance.api.crateApiSimpleShowMnemonic(path: path, label: label);
+
+class Amount {
+  final BigInt field0;
+
+  const Amount({
+    required this.field0,
+  });
+
+  @override
+  int get hashCode => field0.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Amount &&
+          runtimeType == other.runtimeType &&
+          field0 == other.field0;
+}
+
+@freezed
+sealed class OutputSpendStatus with _$OutputSpendStatus {
+  const OutputSpendStatus._();
+
+  const factory OutputSpendStatus.unspent() = OutputSpendStatus_Unspent;
+  const factory OutputSpendStatus.spent(
+    String field0,
+  ) = OutputSpendStatus_Spent;
+  const factory OutputSpendStatus.mined(
+    String field0,
+  ) = OutputSpendStatus_Mined;
+}
+
+class OwnedOutput {
+  final int blockheight;
+  final String tweak;
+  final Amount amount;
+  final String script;
+  final String? label;
+  final OutputSpendStatus spendStatus;
+
+  const OwnedOutput({
+    required this.blockheight,
+    required this.tweak,
+    required this.amount,
+    required this.script,
+    this.label,
+    required this.spendStatus,
+  });
+
+  @override
+  int get hashCode =>
+      blockheight.hashCode ^
+      tweak.hashCode ^
+      amount.hashCode ^
+      script.hashCode ^
+      label.hashCode ^
+      spendStatus.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OwnedOutput &&
+          runtimeType == other.runtimeType &&
+          blockheight == other.blockheight &&
+          tweak == other.tweak &&
+          amount == other.amount &&
+          script == other.script &&
+          label == other.label &&
+          spendStatus == other.spendStatus;
+}
+
+class Recipient {
+  final String address;
+  final Amount amount;
+  final int nbOutputs;
+
+  const Recipient({
+    required this.address,
+    required this.amount,
+    required this.nbOutputs,
+  });
+
+  @override
+  int get hashCode => address.hashCode ^ amount.hashCode ^ nbOutputs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Recipient &&
+          runtimeType == other.runtimeType &&
+          address == other.address &&
+          amount == other.amount &&
+          nbOutputs == other.nbOutputs;
+}
 
 class WalletStatus {
   final BigInt amount;

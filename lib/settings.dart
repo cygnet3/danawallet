@@ -12,7 +12,7 @@ class SettingsScreen extends StatelessWidget {
   Future<void> _removeWallet(
       WalletState walletState, Function(Exception? e) callback) async {
     try {
-      await removeWallet(path: walletState.dir.path, label: walletState.label);
+      removeWallet(path: walletState.dir.path, label: walletState.label);
       await walletState.reset();
       callback(null);
     } on Exception catch (e) {
@@ -24,7 +24,7 @@ class SettingsScreen extends StatelessWidget {
 
   Future<String?> _getSeedPhrase(WalletState walletState) async {
     try {
-      return await showMnemonic(
+      return showMnemonic(
           path: walletState.dir.path, label: walletState.label);
     } catch (e) {
       displayNotification(e.toString());
@@ -77,7 +77,7 @@ class SettingsScreen extends StatelessWidget {
           await resetWallet(
               path: walletState.dir.path, label: walletState.label);
           callback(null);
-          walletState.updateWalletStatus();
+          await walletState.updateWalletStatus();
         } on Exception catch (e) {
           callback(e);
         } catch (e) {
