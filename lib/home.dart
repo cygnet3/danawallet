@@ -32,12 +32,12 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> _checkWallet() async {
     final walletState = Provider.of<WalletState>(context, listen: false);
-    if (await walletExists(
+    if (walletExists(
         label: walletState.label, filesDir: walletState.dir.path)) {
       walletState.walletLoaded = true;
-      walletState.getAddress();
-      walletState.updateWalletStatus();
-      walletState.updateOwnedOutputs();
+      await walletState.getAddress();
+      await walletState.updateWalletStatus();
+      await walletState.updateOwnedOutputs();
     } else {
       walletState.walletLoaded = false;
     }

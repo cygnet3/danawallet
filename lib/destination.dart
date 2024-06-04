@@ -2,7 +2,7 @@ import 'package:donationwallet/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:donationwallet/rust/constants.dart';
+import 'package:donationwallet/rust/api/simple.dart';
 
 Future<void> _showAddRecipientDialog(
     BuildContext context,

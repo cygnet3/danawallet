@@ -1,17 +1,19 @@
-use std::{collections::HashMap, str::FromStr, time::Instant};
+use std::{collections::HashMap, time::Instant};
 
 use anyhow::{Error, Result};
 use bitcoin::{
     bip158::BlockFilter,
     hashes::{sha256, Hash},
-    key::Secp256k1,
-    secp256k1::{All, PublicKey, Scalar},
-    BlockHash, OutPoint, Txid, XOnlyPublicKey,
+    secp256k1::{PublicKey, Scalar},
+    Amount, BlockHash, OutPoint, Txid, XOnlyPublicKey,
 };
 use futures::{stream, StreamExt};
 use log::info;
-use sp_client::silentpayments::receiving::Label;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput, SpClient};
+use sp_client::{
+    silentpayments::receiving::Label,
+    spclient::{OutputList, SpWallet},
+};
 
 use crate::stream::{send_amount_update, send_scan_progress, ScanProgress};
 use crate::{
@@ -36,10 +38,10 @@ pub async fn sync_blockchain() -> Result<()> {
     Ok(())
 }
 
-pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> Result<()> {
+pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet) -> Result<()> {
     let blindbit_client = BlindbitClient::new(HOST.to_string());
 
-    let last_scan = sp_client.last_scan;
+    let last_scan = sp_wallet.get_outputs().get_last_scan();
     let tip_height = blindbit_client.block_height().await?;
 
     // 0 means scan to tip
@@ -61,8 +63,6 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
 
     info!("start: {} end: {}", start, end);
     let start_time: Instant = Instant::now();
-
-    let secp = Secp256k1::new();
 
     let range = start..=end;
 
@@ -86,9 +86,8 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
             tweaks,
             new_utxo_filter,
             spent_filter,
-            &sp_client,
+            sp_wallet,
             &blindbit_client,
-            &secp,
         )
         .await?;
 
@@ -99,14 +98,14 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
         });
 
         if !found_outputs.is_empty() {
-            sp_client.extend_owned(found_outputs);
+            sp_wallet.get_mut_outputs().extend_from(found_outputs);
 
-            send_amount_update(sp_client.get_spendable_amt());
+            send_amount_update(sp_wallet.get_outputs().get_balance().to_sat());
         }
 
         if !found_inputs.is_empty() {
             for outpoint in found_inputs {
-                sp_client.mark_outpoint_mined(outpoint, blkhash)?;
+                sp_wallet.get_mut_outputs().mark_mined(outpoint, blkhash)?;
             }
         }
     }
@@ -118,8 +117,8 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, mut sp_client: SpClient) -> 
     );
 
     // update last_scan height
-    sp_client.update_last_scan(end);
-    sp_client.save_to_disk()
+    sp_wallet.get_mut_outputs().update_last_scan(last_scan);
+    Ok(())
 }
 
 pub async fn process_block(
@@ -127,21 +126,25 @@ pub async fn process_block(
     tweaks: Vec<PublicKey>,
     new_utxo_filter: FilterResponse,
     spent_filter: FilterResponse,
-    sp_client: &SpClient,
+    sp_wallet: &SpWallet,
     blindbit_client: &BlindbitClient,
-    secp: &Secp256k1<All>,
-) -> Result<(Vec<(OutPoint, OwnedOutput)>, Vec<OutPoint>)> {
+) -> Result<(HashMap<OutPoint, OwnedOutput>, Vec<OutPoint>)> {
     let outs = process_block_outputs(
         blkheight,
         tweaks,
         new_utxo_filter,
-        sp_client,
+        sp_wallet.get_client(),
         blindbit_client,
-        secp,
     )
     .await?;
 
-    let ins = process_block_inputs(blkheight, spent_filter, sp_client, blindbit_client).await?;
+    let ins = process_block_inputs(
+        blkheight,
+        spent_filter,
+        sp_wallet.get_outputs(),
+        blindbit_client,
+    )
+    .await?;
 
     Ok((outs, ins))
 }
@@ -152,12 +155,11 @@ pub async fn process_block_outputs(
     new_utxo_filter: FilterResponse,
     sp_client: &SpClient,
     blindbit_client: &BlindbitClient,
-    secp: &Secp256k1<All>,
-) -> Result<Vec<(OutPoint, OwnedOutput)>> {
-    let mut res = vec![];
+) -> Result<HashMap<OutPoint, OwnedOutput>> {
+    let mut res = HashMap::new();
 
     if !tweaks.is_empty() {
-        let secrets_map = sp_client.get_script_to_secret_map(tweaks, &secp).unwrap();
+        let secrets_map = sp_client.get_script_to_secret_map(tweaks).unwrap();
 
         //last_scan = last_scan.max(n as u32);
         let candidate_spks: Vec<&[u8; 34]> = secrets_map.keys().collect();
@@ -182,16 +184,15 @@ pub async fn process_block_outputs(
                     };
 
                     let out = OwnedOutput {
-                        txoutpoint: outpoint.to_string(),
                         blockheight: blkheight,
                         tweak: hex::encode(tweak.to_be_bytes()),
-                        amount: utxo.value,
+                        amount: Amount::from_sat(utxo.value),
                         script: utxo.scriptpubkey.to_hex_string(),
                         label: label.map(|l| l.as_string()),
                         spend_status: OutputSpendStatus::Unspent,
                     };
 
-                    res.push((outpoint, out));
+                    res.insert(outpoint, out);
                 }
             }
         }
@@ -202,7 +203,7 @@ pub async fn process_block_outputs(
 pub async fn process_block_inputs(
     blkheight: u32,
     spent_filter: FilterResponse,
-    sp_client: &SpClient,
+    outputs: &OutputList,
     blindbit_client: &BlindbitClient,
 ) -> Result<Vec<OutPoint>> {
     let mut res = vec![];
@@ -210,7 +211,7 @@ pub async fn process_block_inputs(
     let blkhash = spent_filter.block_hash;
 
     // first get the 8-byte hashes used to construct the input filter
-    let input_hashes_map = get_input_hashes(blkhash, &sp_client)?;
+    let input_hashes_map = get_input_hashes(blkhash, outputs)?;
 
     // check against filter
     let blkfilter = BlockFilter::new(&hex::decode(spent_filter.data)?);
@@ -328,14 +329,13 @@ pub fn check_block_outputs(
 
 pub fn get_input_hashes(
     blkhash: BlockHash,
-    client: &SpClient,
+    outputs: &OutputList,
 ) -> Result<HashMap<[u8; 8], OutPoint>> {
-    let owned = client.list_outpoints();
+    let owned = outputs.to_outpoints_list();
 
     let mut map: HashMap<[u8; 8], OutPoint> = HashMap::new();
 
-    for output in owned {
-        let outpoint = OutPoint::from_str(&output.txoutpoint)?;
+    for (outpoint, _) in owned {
         let mut arr = [0u8; 68];
         arr[..32].copy_from_slice(&outpoint.txid.to_raw_hash().to_byte_array());
         arr[32..36].copy_from_slice(&outpoint.vout.to_le_bytes());

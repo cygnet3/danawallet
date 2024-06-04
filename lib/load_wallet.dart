@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:donationwallet/rust/api/simple.dart';
-import 'package:donationwallet/rust/constants.dart';
 import 'package:donationwallet/home.dart';
 import 'package:donationwallet/main.dart';
 import 'package:flutter/material.dart';
@@ -12,10 +11,10 @@ class LoadWalletScreen extends StatelessWidget {
   const LoadWalletScreen({super.key});
 
   Future<void> _setup(
-      BuildContext context, WalletType walletType, int birthday) async {
+      BuildContext context, String? mnemonic, String? scanKey, String? spendKey, int birthday) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     // Check that there's no wallet on disk under the same label
-    if (await walletExists(
+    if (walletExists(
         label: walletState.label, filesDir: walletState.dir.path)) {
       // Just use the existing wallet and notify the user
       // As we already checked when loading the main screen, this shouldn't happen
@@ -26,17 +25,14 @@ class LoadWalletScreen extends StatelessWidget {
       print("Creating a new wallet");
     }
 
-    bool isTestnet = false;
-    if (walletState.network != 'mainnet') {
-      isTestnet = true;
-    }
-
     try {
       await setup(
         label: walletState.label,
         filesDir: walletState.dir.path,
-        walletType: walletType,
-        isTestnet: isTestnet,
+        mnemonic: mnemonic,
+        scanKey: scanKey,
+        spendKey: spendKey,
+        network: walletState.network,
         birthday: birthday,
       );
       walletState.walletLoaded = true;
@@ -135,12 +131,13 @@ class LoadWalletScreen extends StatelessWidget {
                 final scanKey = scanKeyController.text;
                 final spendKey = spendKeyController.text;
                 final birthday = int.parse(birthdayController.text);
-                final walletType = watchOnly
-                    ? WalletType.readOnly(scanKey, spendKey)
-                    : WalletType.privateKeys(scanKey, spendKey);
+
+                if (scanKey.isEmpty || spendKey.isEmpty) {
+                  throw Error();
+                }
 
                 try {
-                  await _setup(context, walletType, birthday);
+                  await _setup(context, null, scanKey, spendKey, birthday);
                   onSetupComplete(null);
                 } on Exception catch (e) {
                   onSetupComplete(e);
@@ -218,9 +215,8 @@ class LoadWalletScreen extends StatelessWidget {
                 // Process the input from the two text fields
                 final mnemonic = seedController.text;
                 final birthday = int.parse(birthdayController.text);
-                final walletType = WalletType.mnemonic(mnemonic);
                 try {
-                  await _setup(context, walletType, birthday);
+                  await _setup(context, mnemonic, null, null, birthday);
                   onSetupComplete(null);
                 } on Exception catch (e) {
                   onSetupComplete(e);
@@ -251,10 +247,8 @@ class LoadWalletScreen extends StatelessWidget {
                   final navigator = Navigator.of(context);
                   final walletState =
                       Provider.of<WalletState>(context, listen: false);
-                  const walletType = WalletType();
                   try {
-                    // Set up wallet with birthday as current tip height
-                    await _setup(context, walletType, walletState.tip);
+                    await _setup(context, null, null, null, walletState.tip);
                   } catch (e) {
                     rethrow;
                   }

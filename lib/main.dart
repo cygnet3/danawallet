@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/rust/api/simple.dart';
-import 'package:donationwallet/rust/constants.dart';
 import 'package:donationwallet/rust/frb_generated.dart';
 import 'package:donationwallet/rust/logger.dart';
 
@@ -53,8 +52,8 @@ class WalletState extends ChangeNotifier {
   String network = 'signet';
   bool walletLoaded = false;
   String address = "";
-  List<OwnedOutput> ownedOutputs = List.empty();
-  List<OwnedOutput> selectedOutputs = List.empty(growable: true);
+  Map<String, OwnedOutput> ownedOutputs = {};
+  Map<String, OwnedOutput> selectedOutputs = {};
   List<Recipient> recipients = List.empty(growable: true);
 
   late StreamSubscription logStreamSubscription;
@@ -143,8 +142,8 @@ class WalletState extends ChangeNotifier {
     network = 'signet';
     walletLoaded = false;
     address = "";
-    ownedOutputs = List.empty();
-    selectedOutputs = List.empty(growable: true);
+    ownedOutputs = {};
+    selectedOutputs = {};
     recipients = List.empty(growable: true);
     // dir stays as it is
 
@@ -153,7 +152,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> getAddress() async {
     try {
-      address = await getReceivingAddress(path: dir.path, label: label);
+      address = getReceivingAddress(path: dir.path, label: label);
     } catch (e) {
       rethrow;
     }
@@ -161,7 +160,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> updateWalletStatus() async {
     try {
-      final wallet = await getWalletInfo(path: dir.path, label: label);
+      final wallet = getWalletInfo(path: dir.path, label: label);
       amount = wallet.amount;
       birthday = wallet.birthday;
       lastScan = wallet.scanHeight;
@@ -171,39 +170,44 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> updateOwnedOutputs() async {
+    Map<String, OwnedOutput> res = {};
     try {
-      ownedOutputs = await getOutputs(path: dir.path, label: label);
+      res = getOutputs(path: dir.path, label: label);
     } catch (e) {
       rethrow;
     }
+
+    for (final pair in res.entries) {
+      ownedOutputs[pair.key] = pair.value;
+    }
+
     notifyListeners();
   }
 
-  List<OwnedOutput> getSpendableOutputs() {
-    return ownedOutputs
-        .where(
-            (output) => output.spendStatus == const OutputSpendStatus.unspent())
-        .toList();
+  Map<String, OwnedOutput> getSpendableOutputs() {
+    var spendable = ownedOutputs.entries.where((element) =>
+        element.value.spendStatus == const OutputSpendStatus.unspent());
+    return Map.fromIterable(spendable);
   }
 
-  void toggleOutputSelection(OwnedOutput output) {
-    if (selectedOutputs.contains(output)) {
-      selectedOutputs.remove(output);
+  void toggleOutputSelection(String outpoint, OwnedOutput output) {
+    if (selectedOutputs.containsKey(outpoint)) {
+      selectedOutputs.remove(outpoint);
     } else {
-      selectedOutputs.add(output);
+      selectedOutputs[outpoint] = output;
     }
     notifyListeners();
   }
 
   BigInt outputSelectionTotalAmt() {
-    final total = selectedOutputs.fold(
-        BigInt.zero, (sum, element) => sum + element.amount);
+    final total = selectedOutputs.values
+        .fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
     return total;
   }
 
   BigInt recipientTotalAmt() {
     final total =
-        recipients.fold(BigInt.zero, (sum, element) => sum + element.amount);
+        recipients.fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
     return total;
   }
 
@@ -221,8 +225,10 @@ class WalletState extends ChangeNotifier {
     if (amount <= BigInt.from(546)) {
       throw Exception("Can't have amount inferior to 546 sats");
     }
-    recipients
-        .add(Recipient(address: address, amount: amount, nbOutputs: nbOutputs));
+    recipients.add(Recipient(
+        address: address,
+        amount: Amount(field0: amount),
+        nbOutputs: nbOutputs));
 
     notifyListeners();
   }
