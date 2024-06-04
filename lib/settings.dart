@@ -89,7 +89,8 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Center(
+      child: Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         BitcoinButtonOutlined(
@@ -140,6 +141,7 @@ class SettingsScreen extends StatelessWidget {
           },
         ),
       ],
+    )
     );
   }
 }
