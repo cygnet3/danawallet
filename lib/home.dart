@@ -73,6 +73,10 @@ class HomeScreenState extends State<HomeScreen> {
       );
     } else {
       return Scaffold(
+        appBar: AppBar(
+          title: const Text('Silent Payments'),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        ),
         body: IndexedStack(
           index: _selectedIndex,
           children: _widgetOptions,
