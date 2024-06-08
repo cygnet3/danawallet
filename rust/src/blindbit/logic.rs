@@ -21,7 +21,7 @@ use crate::{
 
 use super::client::FilterResponse;
 
-const HOST: &str = "https://silentpayments.dev/blindbit";
+const HOST: &str = "https://silentpayments.dev/blindbit/signet";
 const CONCURRENT_FILTER_REQUESTS: usize = 200;
 
 pub async fn sync_blockchain() -> Result<()> {
