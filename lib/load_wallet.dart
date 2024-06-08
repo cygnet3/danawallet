@@ -253,7 +253,8 @@ class LoadWalletScreen extends StatelessWidget {
                       Provider.of<WalletState>(context, listen: false);
                   const walletType = WalletType();
                   try {
-                    await _setup(context, walletType, 0);
+                    // Set up wallet with birthday as current tip height
+                    await _setup(context, walletType, walletState.tip);
                   } catch (e) {
                     rethrow;
                   }
