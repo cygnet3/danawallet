@@ -10,7 +10,7 @@ use bitcoin::{
 };
 
 use crate::frb_generated::StreamSink;
-use log::{debug, info};
+use log::info;
 
 use crate::{
     blindbit,
@@ -20,10 +20,7 @@ use crate::{
 
 use anyhow::{anyhow, Error, Result};
 
-use sp_client::{
-    db::{JsonFile, Storage},
-    spclient::{derive_keys_from_seed, Psbt, SpClient, SpWallet, SpendKey},
-};
+use sp_client::spclient::{derive_keys_from_seed, Psbt, SpClient, SpWallet, SpendKey};
 
 const PASSPHRASE: &str = ""; // no passphrase for now
 
@@ -135,9 +132,11 @@ impl From<Recipient> for sp_client::spclient::Recipient {
     }
 }
 pub struct WalletStatus {
-    pub amount: u64,
+    pub address: String,
+    pub balance: u64,
     pub birthday: u32,
-    pub scan_height: u32,
+    pub last_scan: u32,
+    pub outputs: HashMap<String, OwnedOutput>,
 }
 
 pub fn create_log_stream(s: StreamSink<LogEntry>, level: LogLevel, log_dependencies: bool) {
@@ -154,33 +153,14 @@ pub fn create_amount_stream(s: StreamSink<u64>) {
     stream::create_amount_stream(s);
 }
 
-#[flutter_rust_bridge::frb(sync)]
-pub fn wallet_exists(label: String, files_dir: String) -> bool {
-    let storage = JsonFile::new(&files_dir, &label);
-    if let Ok(_) = <JsonFile as Storage<SpWallet>>::load(&storage) {
-        true
-    } else {
-        false
-    }
-}
-
 pub async fn setup(
     label: String,
-    files_dir: String,
     mnemonic: Option<String>,
     scan_key: Option<String>,
     spend_key: Option<String>,
     birthday: u32,
     network: String,
-) -> Result<()> {
-    if wallet_exists(label.clone(), files_dir.clone()) {
-        return Err(anyhow!(label));
-    }; // If the wallet already exists we just send the label as an error message
-
-    // We create the file on disk
-    let storage = JsonFile::new(&files_dir, &label);
-    <JsonFile as Storage<SpWallet>>::create(&storage)?;
-
+) -> Result<String> {
     let sp_client: SpClient;
 
     let network = match network.as_str() {
@@ -239,136 +219,75 @@ pub async fn setup(
     }
     let mut sp_wallet = SpWallet::new(sp_client, None).unwrap();
 
-    // Set the birthday and last_scan to prevent unnecessary scanning
-    let outputs = sp_wallet.get_mut_outputs();
-    outputs.set_birthday(birthday);
-    outputs.update_last_scan(birthday);
+    sp_wallet.get_mut_outputs().set_birthday(birthday);
+    sp_wallet.get_mut_outputs().reset_to_birthday();
 
-    storage.save(&sp_wallet)?;
-
-    Ok(())
+    Ok(serde_json::to_string(&sp_wallet).unwrap())
 }
 
 /// Change wallet birthday
 /// Reset the output list and last_scan
-// #[flutter_rust_bridge::frb(sync)]
-pub async fn change_birthday(path: String, label: String, birthday: u32) -> Result<()> {
-    let storage = JsonFile::new(&path, &label);
-    debug!("{:?}", storage);
-    match <JsonFile as Storage<SpWallet>>::load(&storage) {
-        Ok(mut wallet) => {
-            let outputs = wallet.get_mut_outputs();
-            outputs.set_birthday(birthday);
-            <JsonFile as Storage<SpWallet>>::save(&storage, &wallet)?;
-            Ok(())
-        }
-        Err(e) => Err(Error::msg(format!(
-            "Failed to get the wallet on disk: {}",
-            e
-        ))),
-    }
+#[flutter_rust_bridge::frb(sync)]
+pub fn change_birthday(encoded_wallet: String, birthday: u32) -> Result<String> {
+    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    let outputs = wallet.get_mut_outputs();
+    outputs.set_birthday(birthday);
+    outputs.reset_to_birthday();
+    Ok(serde_json::to_string(&wallet).unwrap())
 }
 
 /// Reset the last_scan of the wallet to its birthday, removing all outpoints
-// #[flutter_rust_bridge::frb(sync)]
-pub async fn reset_wallet(path: String, label: String) -> Result<()> {
-    let storage = JsonFile::new(&path, &label);
-    if let Ok(mut wallet) = <JsonFile as Storage<SpWallet>>::load(&storage) {
-        let outputs = wallet.get_mut_outputs();
-        outputs.reset_to_birthday();
-        <JsonFile as Storage<SpWallet>>::save(&storage, &wallet)?;
-        Ok(())
-    } else {
-        Err(Error::msg("Failed to get the wallet on disk"))
-    }
-}
-
 #[flutter_rust_bridge::frb(sync)]
-pub fn remove_wallet(path: String, label: String) -> Result<()> {
-    let storage = JsonFile::new(&path, &label);
-    <JsonFile as Storage<SpWallet>>::rm(storage).map(|_| ())
+pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
+    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    let outputs = wallet.get_mut_outputs();
+    outputs.reset_to_birthday();
+    Ok(serde_json::to_string(&wallet).unwrap())
 }
 
 pub async fn sync_blockchain() -> Result<()> {
     blindbit::logic::sync_blockchain().await
 }
 
-pub async fn scan_to_tip(path: String, label: String) -> Result<()> {
-    let storage = JsonFile::new(&path, &label);
-    let mut wallet = <JsonFile as Storage<SpWallet>>::load(&storage)?;
-    blindbit::logic::scan_blocks(0, &mut wallet).await
+pub async fn scan_to_tip(encoded_wallet: String) -> Result<String> {
+    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    blindbit::logic::scan_blocks(0, &mut wallet).await?;
+    Ok(serde_json::to_string(&wallet).unwrap())
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn get_wallet_info(path: String, label: String) -> Result<WalletStatus> {
-    let storage = JsonFile::new(&path, &label);
-    if let Ok(wallet) = <JsonFile as Storage<SpWallet>>::load(&storage) {
-        Ok(WalletStatus {
-            amount: wallet.get_outputs().get_balance().to_sat(),
-            birthday: wallet.get_outputs().get_birthday(),
-            scan_height: wallet.get_outputs().get_last_scan(),
-        })
-    } else {
-        Err(Error::msg("Failed to get the wallet on disk"))
-    }
-}
-
-#[flutter_rust_bridge::frb(sync)]
-pub fn get_receiving_address(path: String, label: String) -> Result<String> {
-    let storage = JsonFile::new(&path, &label);
-    if let Ok(wallet) = <JsonFile as Storage<SpWallet>>::load(&storage) {
-        Ok(wallet.get_client().get_receiving_address())
-    } else {
-        Err(Error::msg("Failed to get the wallet on disk"))
-    }
-}
-
-#[flutter_rust_bridge::frb(sync)]
-pub fn get_spendable_outputs(path: String, label: String) -> Result<Vec<(String, OwnedOutput)>> {
-    let storage = JsonFile::new(&path, &label);
-    if let Ok(wallet) = <JsonFile as Storage<SpWallet>>::load(&storage) {
-        Ok(wallet
-            .get_outputs()
-            .to_spendable_list()
-            .into_iter()
-            .map(|(outpoint, output)| (outpoint.to_string(), output.into()))
-            .collect())
-    } else {
-        Err(Error::msg("Failed to get the wallet on disk"))
-    }
-}
-
-#[flutter_rust_bridge::frb(sync)]
-pub fn get_outputs(path: String, label: String) -> Result<HashMap<String, OwnedOutput>> {
-    let storage = JsonFile::new(&path, &label);
-    if let Ok(wallet) = <JsonFile as Storage<SpWallet>>::load(&storage) {
-        Ok(wallet
+pub fn get_wallet_info(encoded_wallet: String) -> Result<WalletStatus> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    Ok(WalletStatus {
+        address: wallet.get_client().get_receiving_address(),
+        balance: wallet.get_outputs().get_balance().to_sat(),
+        birthday: wallet.get_outputs().get_birthday(),
+        last_scan: wallet.get_outputs().get_last_scan(),
+        outputs: wallet
             .get_outputs()
             .to_outpoints_list()
             .into_iter()
             .map(|(outpoint, output)| (outpoint.to_string(), output.into()))
-            .collect())
-    } else {
-        Err(Error::msg("Failed to get the wallet on disk"))
-    }
+            .collect(),
+    })
 }
 
 #[flutter_rust_bridge::frb(sync)]
 pub fn create_new_psbt(
-    label: String,
-    path: String,
+    encoded_wallet: String,
     inputs: HashMap<String, OwnedOutput>,
     recipients: Vec<Recipient>,
 ) -> Result<String> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+
     // convert to spclient inputs
     let inputs = inputs
         .into_iter()
         .map(|(outpoint, output)| (OutPoint::from_str(&outpoint).unwrap(), output.into()))
         .collect();
+
     let recipients = recipients.into_iter().map(Into::into).collect();
 
-    let storage = JsonFile::new(&path, &label);
-    let wallet = <JsonFile as Storage<SpWallet>>::load(&storage)?;
     let psbt = wallet
         .get_client()
         .create_new_psbt(inputs, recipients, None)?;
@@ -385,9 +304,8 @@ pub fn add_fee_for_fee_rate(psbt: String, fee_rate: u32, payer: String) -> Resul
     Ok(psbt.to_string())
 }
 
-pub fn fill_sp_outputs(path: String, label: String, psbt: String) -> Result<String> {
-    let storage = JsonFile::new(&path, &label);
-    let wallet = <JsonFile as Storage<SpWallet>>::load(&storage)?;
+pub fn fill_sp_outputs(encoded_wallet: String, psbt: String) -> Result<String> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let mut psbt = Psbt::from_str(&psbt)?;
 
     let partial_secret = wallet.get_client().get_partial_secret_from_psbt(&psbt)?;
@@ -400,9 +318,8 @@ pub fn fill_sp_outputs(path: String, label: String, psbt: String) -> Result<Stri
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn sign_psbt(path: String, label: String, psbt: String, finalize: bool) -> Result<String> {
-    let storage = JsonFile::new(&path, &label);
-    let wallet = <JsonFile as Storage<SpWallet>>::load(&storage)?;
+pub fn sign_psbt(encoded_wallet: String, psbt: String, finalize: bool) -> Result<String> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let psbt = Psbt::from_str(&psbt)?;
 
     let mut rng = sp_client::silentpayments::secp256k1::rand::thread_rng();
@@ -418,6 +335,7 @@ pub fn sign_psbt(path: String, label: String, psbt: String, finalize: bool) -> R
     Ok(signed.to_string())
 }
 
+#[flutter_rust_bridge::frb(sync)]
 pub fn extract_tx_from_psbt(psbt: String) -> Result<String> {
     let psbt = Psbt::from_str(&psbt)?;
 
@@ -425,6 +343,7 @@ pub fn extract_tx_from_psbt(psbt: String) -> Result<String> {
     Ok(serialize_hex(&final_tx))
 }
 
+#[flutter_rust_bridge::frb(sync)]
 pub fn broadcast_tx(tx: String) -> Result<String> {
     let tx: pushtx::Transaction = tx.parse().unwrap();
 
@@ -452,26 +371,27 @@ pub fn broadcast_tx(tx: String) -> Result<String> {
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn mark_outpoint_spent(
-    path: String,
-    label: String,
-    outpoint: String,
-    txid: String,
-) -> Result<()> {
-    let storage = JsonFile::new(&path, &label);
-    let mut wallet = <JsonFile as Storage<SpWallet>>::load(&storage)?;
-    wallet.get_mut_outputs().mark_spent(
-        OutPoint::from_str(&outpoint)?,
-        Txid::from_str(&txid)?,
-        true,
-    )?;
+pub fn mark_outpoints_spent(
+    encoded_wallet: String,
+    spent_by: String,
+    spent: Vec<String>,
+) -> Result<String> {
+    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
-    Ok(())
+    for outpoint in spent {
+        wallet.get_mut_outputs().mark_spent(
+            OutPoint::from_str(&outpoint)?,
+            Txid::from_str(&spent_by)?,
+            true,
+        )?;
+    }
+
+    Ok(serde_json::to_string(&wallet)?)
 }
 
-pub fn show_mnemonic(path: String, label: String) -> Result<Option<String>> {
-    let storage = JsonFile::new(&path, &label);
-    let wallet = <JsonFile as Storage<SpWallet>>::load(&storage)?;
+#[flutter_rust_bridge::frb(sync)]
+pub fn show_mnemonic(encoded_wallet: String) -> Result<Option<String>> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let mnemonic = wallet.get_client().get_mnemonic();
 
     Ok(mnemonic)

@@ -14,7 +14,7 @@ class WalletScreen extends StatelessWidget {
   Future<void> _updateOwnedOutputs(
       WalletState walletState, Function(Exception? e) callback) async {
     try {
-      walletState.updateOwnedOutputs();
+      await walletState.updateWalletStatus();
       callback(null);
     } on Exception catch (e) {
       callback(e);

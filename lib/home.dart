@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/load_wallet.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/wallet.dart';
@@ -32,13 +31,10 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> _checkWallet() async {
     final walletState = Provider.of<WalletState>(context, listen: false);
-    if (walletExists(
-        label: walletState.label, filesDir: walletState.dir.path)) {
-      walletState.walletLoaded = true;
-      await walletState.getAddress();
+    try {
       await walletState.updateWalletStatus();
-      await walletState.updateOwnedOutputs();
-    } else {
+      walletState.walletLoaded = true;
+    } catch (e) {
       walletState.walletLoaded = false;
     }
     setState(() {

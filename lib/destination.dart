@@ -104,7 +104,7 @@ class DestinationScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Address: ${recipient.address}"),
-                              Text("Amount: ${recipient.amount}"),
+                              Text("Amount: ${recipient.amount.field0}"),
                               Text("# outputs: ${recipient.nbOutputs}"),
                             ],
                           )),

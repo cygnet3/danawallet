@@ -44,7 +44,7 @@ class OutputsScreen extends StatelessWidget {
                                 children: [
                                   Text("TxOutpoint: $outpoint"),
                                   Text("Blockheight: ${output.blockheight}"),
-                                  Text("Amount: ${output.amount}"),
+                                  Text("Amount: ${output.amount.field0}"),
                                   Text("Script: ${output.script}"),
                                 ],
                               )),

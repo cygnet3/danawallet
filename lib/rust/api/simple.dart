@@ -26,13 +26,8 @@ Stream<ScanProgress> createScanProgressStream() =>
 Stream<BigInt> createAmountStream() =>
     RustLib.instance.api.crateApiSimpleCreateAmountStream();
 
-bool walletExists({required String label, required String filesDir}) =>
-    RustLib.instance.api
-        .crateApiSimpleWalletExists(label: label, filesDir: filesDir);
-
-Future<void> setup(
+Future<String> setup(
         {required String label,
-        required String filesDir,
         String? mnemonic,
         String? scanKey,
         String? spendKey,
@@ -40,7 +35,6 @@ Future<void> setup(
         required String network}) =>
     RustLib.instance.api.crateApiSimpleSetup(
         label: label,
-        filesDir: filesDir,
         mnemonic: mnemonic,
         scanKey: scanKey,
         spendKey: spendKey,
@@ -49,47 +43,30 @@ Future<void> setup(
 
 /// Change wallet birthday
 /// Reset the output list and last_scan
-Future<void> changeBirthday(
-        {required String path, required String label, required int birthday}) =>
+String changeBirthday({required String encodedWallet, required int birthday}) =>
     RustLib.instance.api.crateApiSimpleChangeBirthday(
-        path: path, label: label, birthday: birthday);
+        encodedWallet: encodedWallet, birthday: birthday);
 
 /// Reset the last_scan of the wallet to its birthday, removing all outpoints
-Future<void> resetWallet({required String path, required String label}) =>
-    RustLib.instance.api.crateApiSimpleResetWallet(path: path, label: label);
-
-void removeWallet({required String path, required String label}) =>
-    RustLib.instance.api.crateApiSimpleRemoveWallet(path: path, label: label);
+String resetWallet({required String encodedWallet}) => RustLib.instance.api
+    .crateApiSimpleResetWallet(encodedWallet: encodedWallet);
 
 Future<void> syncBlockchain() =>
     RustLib.instance.api.crateApiSimpleSyncBlockchain();
 
-Future<void> scanToTip({required String path, required String label}) =>
-    RustLib.instance.api.crateApiSimpleScanToTip(path: path, label: label);
+Future<String> scanToTip({required String encodedWallet}) =>
+    RustLib.instance.api.crateApiSimpleScanToTip(encodedWallet: encodedWallet);
 
-WalletStatus getWalletInfo({required String path, required String label}) =>
-    RustLib.instance.api.crateApiSimpleGetWalletInfo(path: path, label: label);
-
-String getReceivingAddress({required String path, required String label}) =>
+WalletStatus getWalletInfo({required String encodedWallet}) =>
     RustLib.instance.api
-        .crateApiSimpleGetReceivingAddress(path: path, label: label);
-
-List<(String, OwnedOutput)> getSpendableOutputs(
-        {required String path, required String label}) =>
-    RustLib.instance.api
-        .crateApiSimpleGetSpendableOutputs(path: path, label: label);
-
-Map<String, OwnedOutput> getOutputs(
-        {required String path, required String label}) =>
-    RustLib.instance.api.crateApiSimpleGetOutputs(path: path, label: label);
+        .crateApiSimpleGetWalletInfo(encodedWallet: encodedWallet);
 
 String createNewPsbt(
-        {required String label,
-        required String path,
+        {required String encodedWallet,
         required Map<String, OwnedOutput> inputs,
         required List<Recipient> recipients}) =>
     RustLib.instance.api.crateApiSimpleCreateNewPsbt(
-        label: label, path: path, inputs: inputs, recipients: recipients);
+        encodedWallet: encodedWallet, inputs: inputs, recipients: recipients);
 
 Future<String> addFeeForFeeRate(
         {required String psbt, required int feeRate, required String payer}) =>
@@ -97,34 +74,32 @@ Future<String> addFeeForFeeRate(
         psbt: psbt, feeRate: feeRate, payer: payer);
 
 Future<String> fillSpOutputs(
-        {required String path, required String label, required String psbt}) =>
+        {required String encodedWallet, required String psbt}) =>
     RustLib.instance.api
-        .crateApiSimpleFillSpOutputs(path: path, label: label, psbt: psbt);
+        .crateApiSimpleFillSpOutputs(encodedWallet: encodedWallet, psbt: psbt);
 
 String signPsbt(
-        {required String path,
-        required String label,
+        {required String encodedWallet,
         required String psbt,
         required bool finalize}) =>
     RustLib.instance.api.crateApiSimpleSignPsbt(
-        path: path, label: label, psbt: psbt, finalize: finalize);
+        encodedWallet: encodedWallet, psbt: psbt, finalize: finalize);
 
-Future<String> extractTxFromPsbt({required String psbt}) =>
+String extractTxFromPsbt({required String psbt}) =>
     RustLib.instance.api.crateApiSimpleExtractTxFromPsbt(psbt: psbt);
 
-Future<String> broadcastTx({required String tx}) =>
+String broadcastTx({required String tx}) =>
     RustLib.instance.api.crateApiSimpleBroadcastTx(tx: tx);
 
-void markOutpointSpent(
-        {required String path,
-        required String label,
-        required String outpoint,
-        required String txid}) =>
-    RustLib.instance.api.crateApiSimpleMarkOutpointSpent(
-        path: path, label: label, outpoint: outpoint, txid: txid);
+String markOutpointsSpent(
+        {required String encodedWallet,
+        required String spentBy,
+        required List<String> spent}) =>
+    RustLib.instance.api.crateApiSimpleMarkOutpointsSpent(
+        encodedWallet: encodedWallet, spentBy: spentBy, spent: spent);
 
-Future<String?> showMnemonic({required String path, required String label}) =>
-    RustLib.instance.api.crateApiSimpleShowMnemonic(path: path, label: label);
+String? showMnemonic({required String encodedWallet}) => RustLib.instance.api
+    .crateApiSimpleShowMnemonic(encodedWallet: encodedWallet);
 
 class Amount {
   final BigInt field0;
@@ -221,25 +196,36 @@ class Recipient {
 }
 
 class WalletStatus {
-  final BigInt amount;
+  final String address;
+  final BigInt balance;
   final int birthday;
-  final int scanHeight;
+  final int lastScan;
+  final Map<String, OwnedOutput> outputs;
 
   const WalletStatus({
-    required this.amount,
+    required this.address,
+    required this.balance,
     required this.birthday,
-    required this.scanHeight,
+    required this.lastScan,
+    required this.outputs,
   });
 
   @override
-  int get hashCode => amount.hashCode ^ birthday.hashCode ^ scanHeight.hashCode;
+  int get hashCode =>
+      address.hashCode ^
+      balance.hashCode ^
+      birthday.hashCode ^
+      lastScan.hashCode ^
+      outputs.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is WalletStatus &&
           runtimeType == other.runtimeType &&
-          amount == other.amount &&
+          address == other.address &&
+          balance == other.balance &&
           birthday == other.birthday &&
-          scanHeight == other.scanHeight;
+          lastScan == other.lastScan &&
+          outputs == other.outputs;
 }

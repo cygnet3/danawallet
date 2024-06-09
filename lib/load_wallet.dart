@@ -10,33 +10,29 @@ import 'package:provider/provider.dart';
 class LoadWalletScreen extends StatelessWidget {
   const LoadWalletScreen({super.key});
 
-  Future<void> _setup(
-      BuildContext context, String? mnemonic, String? scanKey, String? spendKey, int birthday) async {
+  Future<void> _setup(BuildContext context, String? mnemonic, String? scanKey,
+      String? spendKey, int birthday) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
-    // Check that there's no wallet on disk under the same label
-    if (walletExists(
-        label: walletState.label, filesDir: walletState.dir.path)) {
-      // Just use the existing wallet and notify the user
-      // As we already checked when loading the main screen, this shouldn't happen
+    try {
+      await walletState.updateWalletStatus();
       walletState.walletLoaded = true;
       return;
-    } else {
-      // ignore: avoid_print
+    } catch (e) {
       print("Creating a new wallet");
     }
 
     try {
-      await setup(
+      final wallet = await setup(
         label: walletState.label,
-        filesDir: walletState.dir.path,
         mnemonic: mnemonic,
         scanKey: scanKey,
         spendKey: spendKey,
-        network: walletState.network,
         birthday: birthday,
+        network: walletState.network,
       );
-      walletState.walletLoaded = true;
+      await walletState.saveWalletToSecureStorage(wallet);
       await walletState.updateWalletStatus();
+      walletState.walletLoaded = true;
     } catch (e) {
       rethrow;
     }
