@@ -39,7 +39,6 @@ dependencies:
   flutter_rust_bridge: 2.0.0-dev.37
   freezed_annotation: ^2.4.1
   permission_handler: ^11.3.1
-  path_provider: ^2.1.1
   flutter_secure_storage: ^9.0.0
   flutter_dotenv: ^5.1.0
   provider: ^6.1.1

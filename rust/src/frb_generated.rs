@@ -33,7 +33,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.0.0-dev.37";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -463202093;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1193702642;
 
 // Section: executor
 
@@ -76,31 +76,15 @@ fn wire__crate__api__simple__add_fee_for_fee_rate_impl(
     )
 }
 fn wire__crate__api__simple__broadcast_tx_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "broadcast_tx", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
-            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
-            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_tx = <String>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
-                    transform_result_sse((move ||  {
-                         crate::api::simple::broadcast_tx(api_tx)
-                    })())
-                } })
-}
-fn wire__crate__api__simple__change_birthday_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "change_birthday",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+            debug_name: "broadcast_tx",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
         move || {
             let message = unsafe {
@@ -112,18 +96,39 @@ fn wire__crate__api__simple__change_birthday_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
+            let api_tx = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse((move || crate::api::simple::broadcast_tx(api_tx))())
+        },
+    )
+}
+fn wire__crate__api__simple__change_birthday_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "change_birthday",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             let api_birthday = <u32>::sse_decode(&mut deserializer);
             deserializer.end();
-            move |context| async move {
-                transform_result_sse(
-                    (move || async move {
-                        crate::api::simple::change_birthday(api_path, api_label, api_birthday).await
-                    })()
-                    .await,
-                )
-            }
+            transform_result_sse((move || {
+                crate::api::simple::change_birthday(api_encoded_wallet, api_birthday)
+            })())
         },
     )
 }
@@ -223,8 +228,7 @@ fn wire__crate__api__simple__create_new_psbt_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_label = <String>::sse_decode(&mut deserializer);
-            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             let api_inputs =
                 <std::collections::HashMap<String, crate::api::simple::OwnedOutput>>::sse_decode(
                     &mut deserializer,
@@ -233,7 +237,7 @@ fn wire__crate__api__simple__create_new_psbt_impl(
                 <Vec<crate::api::simple::Recipient>>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
-                crate::api::simple::create_new_psbt(api_label, api_path, api_inputs, api_recipients)
+                crate::api::simple::create_new_psbt(api_encoded_wallet, api_inputs, api_recipients)
             })())
         },
     )
@@ -309,16 +313,15 @@ fn wire__crate__api__simple__create_sync_stream_impl(
     )
 }
 fn wire__crate__api__simple__extract_tx_from_psbt_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
             debug_name: "extract_tx_from_psbt",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
         move || {
             let message = unsafe {
@@ -332,9 +335,7 @@ fn wire__crate__api__simple__extract_tx_from_psbt_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_psbt = <String>::sse_decode(&mut deserializer);
             deserializer.end();
-            move |context| {
-                transform_result_sse((move || crate::api::simple::extract_tx_from_psbt(api_psbt))())
-            }
+            transform_result_sse((move || crate::api::simple::extract_tx_from_psbt(api_psbt))())
         },
     )
 }
@@ -360,105 +361,14 @@ fn wire__crate__api__simple__fill_sp_outputs_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             let api_psbt = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse((move || {
-                    crate::api::simple::fill_sp_outputs(api_path, api_label, api_psbt)
+                    crate::api::simple::fill_sp_outputs(api_encoded_wallet, api_psbt)
                 })())
             }
-        },
-    )
-}
-fn wire__crate__api__simple__get_outputs_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "get_outputs",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse((move || {
-                crate::api::simple::get_outputs(api_path, api_label)
-            })())
-        },
-    )
-}
-fn wire__crate__api__simple__get_receiving_address_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "get_receiving_address",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse((move || {
-                crate::api::simple::get_receiving_address(api_path, api_label)
-            })())
-        },
-    )
-}
-fn wire__crate__api__simple__get_spendable_outputs_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "get_spendable_outputs",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse((move || {
-                crate::api::simple::get_spendable_outputs(api_path, api_label)
-            })())
         },
     )
 }
@@ -483,11 +393,10 @@ fn wire__crate__api__simple__get_wallet_info_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
-                crate::api::simple::get_wallet_info(api_path, api_label)
+                crate::api::simple::get_wallet_info(api_encoded_wallet)
             })())
         },
     )
@@ -523,14 +432,14 @@ fn wire__crate__api__simple__init_app_impl(
         },
     )
 }
-fn wire__crate__api__simple__mark_outpoint_spent_impl(
+fn wire__crate__api__simple__mark_outpoints_spent_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "mark_outpoint_spent",
+            debug_name: "mark_outpoints_spent",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -544,58 +453,30 @@ fn wire__crate__api__simple__mark_outpoint_spent_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
-            let api_outpoint = <String>::sse_decode(&mut deserializer);
-            let api_txid = <String>::sse_decode(&mut deserializer);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
+            let api_spent_by = <String>::sse_decode(&mut deserializer);
+            let api_spent = <Vec<String>>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
-                crate::api::simple::mark_outpoint_spent(api_path, api_label, api_outpoint, api_txid)
-            })())
-        },
-    )
-}
-fn wire__crate__api__simple__remove_wallet_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "remove_wallet",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
+                crate::api::simple::mark_outpoints_spent(
+                    api_encoded_wallet,
+                    api_spent_by,
+                    api_spent,
                 )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse((move || {
-                crate::api::simple::remove_wallet(api_path, api_label)
             })())
         },
     )
 }
 fn wire__crate__api__simple__reset_wallet_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
             debug_name: "reset_wallet",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
         move || {
             let message = unsafe {
@@ -607,14 +488,11 @@ fn wire__crate__api__simple__reset_wallet_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             deserializer.end();
-            move |context| async move {
-                transform_result_sse((move || async move {
-                         crate::api::simple::reset_wallet(api_path, api_label).await
-                    })().await)
-            }
+            transform_result_sse((move || {
+                crate::api::simple::reset_wallet(api_encoded_wallet)
+            })())
         },
     )
 }
@@ -640,12 +518,11 @@ fn wire__crate__api__simple__scan_to_tip_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse((move || async move {
-                         crate::api::simple::scan_to_tip(api_path, api_label).await
+                         crate::api::simple::scan_to_tip(api_encoded_wallet).await
                     })().await)
             }
         },
@@ -674,7 +551,6 @@ fn wire__crate__api__simple__setup_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_label = <String>::sse_decode(&mut deserializer);
-            let api_files_dir = <String>::sse_decode(&mut deserializer);
             let api_mnemonic = <Option<String>>::sse_decode(&mut deserializer);
             let api_scan_key = <Option<String>>::sse_decode(&mut deserializer);
             let api_spend_key = <Option<String>>::sse_decode(&mut deserializer);
@@ -686,7 +562,6 @@ fn wire__crate__api__simple__setup_impl(
                     (move || async move {
                         crate::api::simple::setup(
                             api_label,
-                            api_files_dir,
                             api_mnemonic,
                             api_scan_key,
                             api_spend_key,
@@ -702,16 +577,15 @@ fn wire__crate__api__simple__setup_impl(
     )
 }
 fn wire__crate__api__simple__show_mnemonic_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
             debug_name: "show_mnemonic",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
         move || {
             let message = unsafe {
@@ -723,14 +597,11 @@ fn wire__crate__api__simple__show_mnemonic_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             deserializer.end();
-            move |context| {
-                transform_result_sse((move || {
-                    crate::api::simple::show_mnemonic(api_path, api_label)
-                })())
-            }
+            transform_result_sse((move || {
+                crate::api::simple::show_mnemonic(api_encoded_wallet)
+            })())
         },
     )
 }
@@ -755,13 +626,12 @@ fn wire__crate__api__simple__sign_psbt_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_path = <String>::sse_decode(&mut deserializer);
-            let api_label = <String>::sse_decode(&mut deserializer);
+            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             let api_psbt = <String>::sse_decode(&mut deserializer);
             let api_finalize = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse((move || {
-                crate::api::simple::sign_psbt(api_path, api_label, api_psbt, api_finalize)
+                crate::api::simple::sign_psbt(api_encoded_wallet, api_psbt, api_finalize)
             })())
         },
     )
@@ -794,36 +664,6 @@ fn wire__crate__api__simple__sync_blockchain_impl(
                     (move || async move { crate::api::simple::sync_blockchain().await })().await,
                 )
             }
-        },
-    )
-}
-fn wire__crate__api__simple__wallet_exists_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "wallet_exists",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_label = <String>::sse_decode(&mut deserializer);
-            let api_files_dir = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse((move || {
-                Result::<_, ()>::Ok(crate::api::simple::wallet_exists(api_label, api_files_dir))
-            })())
         },
     )
 }
@@ -918,6 +758,18 @@ impl SseDecode for i64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_i64::<NativeEndian>().unwrap()
+    }
+}
+
+impl SseDecode for Vec<String> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<String>::sse_decode(deserializer));
+        }
+        return ans_;
     }
 }
 
@@ -1120,13 +972,20 @@ impl SseDecode for () {
 impl SseDecode for crate::api::simple::WalletStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_amount = <u64>::sse_decode(deserializer);
+        let mut var_address = <String>::sse_decode(deserializer);
+        let mut var_balance = <u64>::sse_decode(deserializer);
         let mut var_birthday = <u32>::sse_decode(deserializer);
-        let mut var_scanHeight = <u32>::sse_decode(deserializer);
+        let mut var_lastScan = <u32>::sse_decode(deserializer);
+        let mut var_outputs =
+            <std::collections::HashMap<String, crate::api::simple::OwnedOutput>>::sse_decode(
+                deserializer,
+            );
         return crate::api::simple::WalletStatus {
-            amount: var_amount,
+            address: var_address,
+            balance: var_balance,
             birthday: var_birthday,
-            scan_height: var_scanHeight,
+            last_scan: var_lastScan,
+            outputs: var_outputs,
         };
     }
 }
@@ -1141,8 +1000,6 @@ fn pde_ffi_dispatcher_primary_impl(
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
         1 => wire__crate__api__simple__add_fee_for_fee_rate_impl(port, ptr, rust_vec_len, data_len),
-        2 => wire__crate__api__simple__broadcast_tx_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__simple__change_birthday_impl(port, ptr, rust_vec_len, data_len),
         4 => wire__crate__api__simple__create_amount_stream_impl(port, ptr, rust_vec_len, data_len),
         5 => wire__crate__api__simple__create_log_stream_impl(port, ptr, rust_vec_len, data_len),
         7 => wire__crate__api__simple__create_scan_progress_stream_impl(
@@ -1152,14 +1009,11 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         8 => wire__crate__api__simple__create_sync_stream_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__simple__extract_tx_from_psbt_impl(port, ptr, rust_vec_len, data_len),
         10 => wire__crate__api__simple__fill_sp_outputs_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__simple__reset_wallet_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__simple__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__simple__setup_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__simple__show_mnemonic_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__simple__sync_blockchain_impl(port, ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__simple__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__simple__setup_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__simple__sync_blockchain_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1172,15 +1026,15 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
+        2 => wire__crate__api__simple__broadcast_tx_impl(ptr, rust_vec_len, data_len),
+        3 => wire__crate__api__simple__change_birthday_impl(ptr, rust_vec_len, data_len),
         6 => wire__crate__api__simple__create_new_psbt_impl(ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__simple__get_outputs_impl(ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__simple__get_receiving_address_impl(ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__simple__get_spendable_outputs_impl(ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__simple__get_wallet_info_impl(ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__simple__mark_outpoint_spent_impl(ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__simple__remove_wallet_impl(ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__simple__sign_psbt_impl(ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__simple__wallet_exists_impl(ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__simple__extract_tx_from_psbt_impl(ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__simple__get_wallet_info_impl(ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__simple__mark_outpoints_spent_impl(ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__simple__reset_wallet_impl(ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__simple__show_mnemonic_impl(ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__simple__sign_psbt_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1339,9 +1193,11 @@ impl flutter_rust_bridge::IntoIntoDart<crate::stream::SyncStatus> for crate::str
 impl flutter_rust_bridge::IntoDart for crate::api::simple::WalletStatus {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.amount.into_into_dart().into_dart(),
+            self.address.into_into_dart().into_dart(),
+            self.balance.into_into_dart().into_dart(),
             self.birthday.into_into_dart().into_dart(),
-            self.scan_height.into_into_dart().into_dart(),
+            self.last_scan.into_into_dart().into_dart(),
+            self.outputs.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -1441,6 +1297,16 @@ impl SseEncode for i64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_i64::<NativeEndian>(self).unwrap();
+    }
+}
+
+impl SseEncode for Vec<String> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <String>::sse_encode(item, serializer);
+        }
     }
 }
 
@@ -1606,9 +1472,14 @@ impl SseEncode for () {
 impl SseEncode for crate::api::simple::WalletStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <u64>::sse_encode(self.amount, serializer);
+        <String>::sse_encode(self.address, serializer);
+        <u64>::sse_encode(self.balance, serializer);
         <u32>::sse_encode(self.birthday, serializer);
-        <u32>::sse_encode(self.scan_height, serializer);
+        <u32>::sse_encode(self.last_scan, serializer);
+        <std::collections::HashMap<String, crate::api::simple::OwnedOutput>>::sse_encode(
+            self.outputs,
+            serializer,
+        );
     }
 }
 

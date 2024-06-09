@@ -78,40 +78,49 @@ class SpendScreen extends StatelessWidget {
   const SpendScreen({super.key});
 
   Future<String> _newTransactionWithFees(
-      String path,
-      String label,
+      String wallet,
       Map<String, OwnedOutput> selectedOutputs,
       List<Recipient> recipients,
-      int feeRate) async {
-    String psbt = await createNewPsbt(
-        path: path, label: label, inputs: selectedOutputs, recipients: recipients);
-    String fee = await addFeeForFeeRate(
-        psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
-    String filled = await fillSpOutputs(path: path, label: label, psbt: fee);
-    return filled;
+      int feeRate
+    ) async {
+      try {
+        final psbt = createNewPsbt(
+            encodedWallet: wallet, inputs: selectedOutputs, recipients: recipients);
+        final fee = await addFeeForFeeRate(
+            psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
+        return fillSpOutputs(encodedWallet: wallet, psbt: fee);
+      } catch (e) {
+        rethrow;
+      }
   }
 
   Future<String> _signPsbt(
-    String path,
-    String label,
+    String wallet,
     String unsignedPsbt,
   ) async {
-    return await signPsbt(
-        path: path, label: label, psbt: unsignedPsbt, finalize: true);
+    return signPsbt(
+        encodedWallet: wallet, psbt: unsignedPsbt, finalize: true);
   }
 
-  Future<String> _broadcastSignedPsbtAndMarkAsSpent(String path, String label,
-      String signedPsbt, Map<String, OwnedOutput> selectedOutputs) async {
-    final tx = await extractTxFromPsbt(psbt: signedPsbt);
-    final txid = await broadcastTx(tx: tx);
-    for (final outpoint in selectedOutputs.keys) {
-      try {
-        markOutpointSpent(path: path, label: label, outpoint: outpoint, txid: txid);
-      } catch (error) {
-        rethrow;
-      }
+  Future<String> _broadcastSignedPsbt(String signedPsbt) async 
+  {
+    try {
+      final tx = await extractTxFromPsbt(psbt: signedPsbt);
+      print(tx);
+      final txid = await broadcastTx(tx: tx);
+      return txid;
+    } catch (e) {
+      rethrow;
     }
-    return txid;
+  }
+
+  Future<String> _markAsSpent(String wallet, String txid, Map<String, OwnedOutput> selectedOutputs) async {
+    try {
+      final updatedWallet = markOutpointsSpent(encodedWallet: wallet, spentBy: txid, spent: selectedOutputs.keys.toList());
+      return updatedWallet;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
@@ -172,24 +181,25 @@ class SpendScreen extends StatelessWidget {
                 }
                 final walletState =
                     Provider.of<WalletState>(context, listen: false);
+                final wallet = await walletState.getWalletFromSecureStorage();
                 try {
                   final unsignedPsbt = await _newTransactionWithFees(
-                      walletState.dir.path,
-                      walletState.label,
+                      wallet,
                       walletState.selectedOutputs,
                       walletState.recipients,
-                      fees);
+                      fees
+                  );
                   final signedPsbt = await _signPsbt(
-                      walletState.dir.path, walletState.label, unsignedPsbt);
-                  final sentTxId = await _broadcastSignedPsbtAndMarkAsSpent(
-                      walletState.dir.path,
-                      walletState.label,
-                      signedPsbt,
-                      walletState.selectedOutputs);
+                      wallet, unsignedPsbt);
+                  final sentTxId = await _broadcastSignedPsbt(signedPsbt);
+                  final updatedWallet = await _markAsSpent(wallet, sentTxId, walletState.selectedOutputs);
 
                   // Clear selections
                   walletState.selectedOutputs.clear();
                   walletState.recipients.clear();
+
+                  // save the updated wallet
+                  walletState.saveWalletToSecureStorage(updatedWallet);
 
                   if (!context.mounted) return;
 

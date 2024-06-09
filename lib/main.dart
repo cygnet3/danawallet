@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/rust/frb_generated.dart';
@@ -8,7 +7,7 @@ import 'package:donationwallet/rust/logger.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 class SynchronizationService {
@@ -42,7 +41,6 @@ class SynchronizationService {
 
 class WalletState extends ChangeNotifier {
   final String label = "default";
-  Directory dir = Directory("/");
   BigInt amount = BigInt.from(0);
   int birthday = 0;
   int lastScan = 0;
@@ -55,6 +53,7 @@ class WalletState extends ChangeNotifier {
   Map<String, OwnedOutput> ownedOutputs = {};
   Map<String, OwnedOutput> selectedOutputs = {};
   List<Recipient> recipients = List.empty(growable: true);
+  final secureStorage = const FlutterSecureStorage();
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
@@ -68,27 +67,18 @@ class WalletState extends ChangeNotifier {
   Future<void> initialize() async {
     try {
       await _initStreams();
-      await _initDir();
       _synchronizationService.startSyncTimer();
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> _initDir() async {
-    try {
-      dir = await getApplicationSupportDirectory();
-    } catch (e) {
-      rethrow;
-    }
-    notifyListeners();
-  }
-
   Future<void> _initStreams() async {
     logStreamSubscription =
-        createLogStream(level: LogLevel.info, logDependencies: true)
+        createLogStream(level: LogLevel.debug, logDependencies: true)
             .listen((event) {
       print('${event.level} (${event.tag}): ${event.msg}');
+      notifyListeners();
     });
 
     scanProgressSubscription = createScanProgressStream().listen(((event) {
@@ -136,58 +126,54 @@ class WalletState extends ChangeNotifier {
     amount = BigInt.zero;
     birthday = 0;
     lastScan = 0;
-    // tip isn't specific to wallet, needs not be reset
     progress = 0.0;
     scanning = false;
-    network = 'signet';
     walletLoaded = false;
     address = "";
     ownedOutputs = {};
     selectedOutputs = {};
     recipients = List.empty(growable: true);
-    // dir stays as it is
 
     notifyListeners();
   }
 
-  Future<void> getAddress() async {
-    try {
-      address = getReceivingAddress(path: dir.path, label: label);
-    } catch (e) {
-      rethrow;
+  Future<void> saveWalletToSecureStorage(String wallet) async {
+    await secureStorage.write(key: label, value: wallet);
+  }
+
+  Future<void> rmWalletFromSecureStorage() async {
+    await secureStorage.write(key: label, value: null);
+  }
+
+  Future<String> getWalletFromSecureStorage() async {
+    final wallet = await secureStorage.read(key: label);
+    if (wallet != null) {
+      return wallet;
+    } else {
+      throw Exception("No wallet in storage");
     }
   }
 
   Future<void> updateWalletStatus() async {
+    WalletStatus walletInfo;
     try {
-      final wallet = getWalletInfo(path: dir.path, label: label);
-      amount = wallet.amount;
-      birthday = wallet.birthday;
-      lastScan = wallet.scanHeight;
+      final wallet = await getWalletFromSecureStorage();
+      walletInfo = getWalletInfo(encodedWallet: wallet);
     } catch (e) {
       rethrow;
     }
-  }
-
-  Future<void> updateOwnedOutputs() async {
-    Map<String, OwnedOutput> res = {};
-    try {
-      res = getOutputs(path: dir.path, label: label);
-    } catch (e) {
-      rethrow;
-    }
-
-    for (final pair in res.entries) {
-      ownedOutputs[pair.key] = pair.value;
-    }
-
+    address = walletInfo.address;
+    amount = walletInfo.balance;
+    birthday = walletInfo.birthday;
+    lastScan = walletInfo.lastScan;
+    ownedOutputs = walletInfo.outputs;
     notifyListeners();
   }
 
   Map<String, OwnedOutput> getSpendableOutputs() {
     var spendable = ownedOutputs.entries.where((element) =>
         element.value.spendStatus == const OutputSpendStatus.unspent());
-    return Map.fromIterable(spendable);
+    return Map.fromEntries(spendable);
   }
 
   void toggleOutputSelection(String outpoint, OwnedOutput output) {
@@ -206,8 +192,8 @@ class WalletState extends ChangeNotifier {
   }
 
   BigInt recipientTotalAmt() {
-    final total =
-        recipients.fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
+    final total = recipients.fold(
+        BigInt.zero, (sum, element) => sum + element.amount.field0);
     return total;
   }
 
@@ -246,15 +232,18 @@ class WalletState extends ChangeNotifier {
   Future<void> scan() async {
     try {
       scanning = true;
-      notifyListeners();
-      await scanToTip(path: dir.path, label: label);
       await syncBlockchain();
+      final wallet = await getWalletFromSecureStorage();
+      final updatedWallet = await scanToTip(encodedWallet: wallet);
+      print(updatedWallet);
+      await saveWalletToSecureStorage(updatedWallet);
     } catch (e) {
       scanning = false;
       notifyListeners();
       rethrow;
     }
     scanning = false;
+    notifyListeners();
   }
 }
 

@@ -58,7 +58,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.0.0-dev.37';
 
   @override
-  int get rustContentHash => -463202093;
+  int get rustContentHash => -1193702642;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -72,10 +72,10 @@ abstract class RustLibApi extends BaseApi {
   Future<String> crateApiSimpleAddFeeForFeeRate(
       {required String psbt, required int feeRate, required String payer});
 
-  Future<String> crateApiSimpleBroadcastTx({required String tx});
+  String crateApiSimpleBroadcastTx({required String tx});
 
-  Future<void> crateApiSimpleChangeBirthday(
-      {required String path, required String label, required int birthday});
+  String crateApiSimpleChangeBirthday(
+      {required String encodedWallet, required int birthday});
 
   Stream<BigInt> crateApiSimpleCreateAmountStream();
 
@@ -83,8 +83,7 @@ abstract class RustLibApi extends BaseApi {
       {required LogLevel level, required bool logDependencies});
 
   String crateApiSimpleCreateNewPsbt(
-      {required String label,
-      required String path,
+      {required String encodedWallet,
       required Map<String, OwnedOutput> inputs,
       required List<Recipient> recipients});
 
@@ -92,62 +91,40 @@ abstract class RustLibApi extends BaseApi {
 
   Stream<SyncStatus> crateApiSimpleCreateSyncStream();
 
-  Future<String> crateApiSimpleExtractTxFromPsbt({required String psbt});
+  String crateApiSimpleExtractTxFromPsbt({required String psbt});
 
   Future<String> crateApiSimpleFillSpOutputs(
-      {required String path, required String label, required String psbt});
+      {required String encodedWallet, required String psbt});
 
-  Map<String, OwnedOutput> crateApiSimpleGetOutputs(
-      {required String path, required String label});
-
-  String crateApiSimpleGetReceivingAddress(
-      {required String path, required String label});
-
-  List<(String, OwnedOutput)> crateApiSimpleGetSpendableOutputs(
-      {required String path, required String label});
-
-  WalletStatus crateApiSimpleGetWalletInfo(
-      {required String path, required String label});
+  WalletStatus crateApiSimpleGetWalletInfo({required String encodedWallet});
 
   Future<void> crateApiSimpleInitApp();
 
-  void crateApiSimpleMarkOutpointSpent(
-      {required String path,
-      required String label,
-      required String outpoint,
-      required String txid});
+  String crateApiSimpleMarkOutpointsSpent(
+      {required String encodedWallet,
+      required String spentBy,
+      required List<String> spent});
 
-  void crateApiSimpleRemoveWallet(
-      {required String path, required String label});
+  String crateApiSimpleResetWallet({required String encodedWallet});
 
-  Future<void> crateApiSimpleResetWallet(
-      {required String path, required String label});
+  Future<String> crateApiSimpleScanToTip({required String encodedWallet});
 
-  Future<void> crateApiSimpleScanToTip(
-      {required String path, required String label});
-
-  Future<void> crateApiSimpleSetup(
+  Future<String> crateApiSimpleSetup(
       {required String label,
-      required String filesDir,
       String? mnemonic,
       String? scanKey,
       String? spendKey,
       required int birthday,
       required String network});
 
-  Future<String?> crateApiSimpleShowMnemonic(
-      {required String path, required String label});
+  String? crateApiSimpleShowMnemonic({required String encodedWallet});
 
   String crateApiSimpleSignPsbt(
-      {required String path,
-      required String label,
+      {required String encodedWallet,
       required String psbt,
       required bool finalize});
 
   Future<void> crateApiSimpleSyncBlockchain();
-
-  bool crateApiSimpleWalletExists(
-      {required String label, required String filesDir});
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -187,13 +164,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<String> crateApiSimpleBroadcastTx({required String tx}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+  String crateApiSimpleBroadcastTx({required String tx}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(tx, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 2, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -211,23 +187,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiSimpleChangeBirthday(
-      {required String path, required String label, required int birthday}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+  String crateApiSimpleChangeBirthday(
+      {required String encodedWallet, required int birthday}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
+        sse_encode_String(encodedWallet, serializer);
         sse_encode_u_32(birthday, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 3, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
+        decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleChangeBirthdayConstMeta,
-      argValues: [path, label, birthday],
+      argValues: [encodedWallet, birthday],
       apiImpl: this,
     ));
   }
@@ -235,7 +209,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSimpleChangeBirthdayConstMeta =>
       const TaskConstMeta(
         debugName: "change_birthday",
-        argNames: ["path", "label", "birthday"],
+        argNames: ["encodedWallet", "birthday"],
       );
 
   @override
@@ -297,15 +271,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   String crateApiSimpleCreateNewPsbt(
-      {required String label,
-      required String path,
+      {required String encodedWallet,
       required Map<String, OwnedOutput> inputs,
       required List<Recipient> recipients}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(label, serializer);
-        sse_encode_String(path, serializer);
+        sse_encode_String(encodedWallet, serializer);
         sse_encode_Map_String_owned_output(inputs, serializer);
         sse_encode_list_recipient(recipients, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
@@ -315,7 +287,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleCreateNewPsbtConstMeta,
-      argValues: [label, path, inputs, recipients],
+      argValues: [encodedWallet, inputs, recipients],
       apiImpl: this,
     ));
   }
@@ -323,7 +295,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSimpleCreateNewPsbtConstMeta =>
       const TaskConstMeta(
         debugName: "create_new_psbt",
-        argNames: ["label", "path", "inputs", "recipients"],
+        argNames: ["encodedWallet", "inputs", "recipients"],
       );
 
   @override
@@ -381,13 +353,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<String> crateApiSimpleExtractTxFromPsbt({required String psbt}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+  String crateApiSimpleExtractTxFromPsbt({required String psbt}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(psbt, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 9, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -407,12 +378,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<String> crateApiSimpleFillSpOutputs(
-      {required String path, required String label, required String psbt}) {
+      {required String encodedWallet, required String psbt}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
+        sse_encode_String(encodedWallet, serializer);
         sse_encode_String(psbt, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 10, port: port_);
@@ -422,7 +392,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleFillSpOutputsConstMeta,
-      argValues: [path, label, psbt],
+      argValues: [encodedWallet, psbt],
       apiImpl: this,
     ));
   }
@@ -430,102 +400,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSimpleFillSpOutputsConstMeta =>
       const TaskConstMeta(
         debugName: "fill_sp_outputs",
-        argNames: ["path", "label", "psbt"],
+        argNames: ["encodedWallet", "psbt"],
       );
 
   @override
-  Map<String, OwnedOutput> crateApiSimpleGetOutputs(
-      {required String path, required String label}) {
+  WalletStatus crateApiSimpleGetWalletInfo({required String encodedWallet}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
+        sse_encode_String(encodedWallet, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_Map_String_owned_output,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleGetOutputsConstMeta,
-      argValues: [path, label],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleGetOutputsConstMeta => const TaskConstMeta(
-        debugName: "get_outputs",
-        argNames: ["path", "label"],
-      );
-
-  @override
-  String crateApiSimpleGetReceivingAddress(
-      {required String path, required String label}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleGetReceivingAddressConstMeta,
-      argValues: [path, label],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleGetReceivingAddressConstMeta =>
-      const TaskConstMeta(
-        debugName: "get_receiving_address",
-        argNames: ["path", "label"],
-      );
-
-  @override
-  List<(String, OwnedOutput)> crateApiSimpleGetSpendableOutputs(
-      {required String path, required String label}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_list_record_string_owned_output,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleGetSpendableOutputsConstMeta,
-      argValues: [path, label],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleGetSpendableOutputsConstMeta =>
-      const TaskConstMeta(
-        debugName: "get_spendable_outputs",
-        argNames: ["path", "label"],
-      );
-
-  @override
-  WalletStatus crateApiSimpleGetWalletInfo(
-      {required String path, required String label}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_wallet_status,
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleGetWalletInfoConstMeta,
-      argValues: [path, label],
+      argValues: [encodedWallet],
       apiImpl: this,
     ));
   }
@@ -533,7 +424,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSimpleGetWalletInfoConstMeta =>
       const TaskConstMeta(
         debugName: "get_wallet_info",
-        argNames: ["path", "label"],
+        argNames: ["encodedWallet"],
       );
 
   @override
@@ -542,7 +433,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 15, port: port_);
+            funcId: 12, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -560,117 +451,84 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  void crateApiSimpleMarkOutpointSpent(
-      {required String path,
-      required String label,
-      required String outpoint,
-      required String txid}) {
+  String crateApiSimpleMarkOutpointsSpent(
+      {required String encodedWallet,
+      required String spentBy,
+      required List<String> spent}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
-        sse_encode_String(outpoint, serializer);
-        sse_encode_String(txid, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+        sse_encode_String(encodedWallet, serializer);
+        sse_encode_String(spentBy, serializer);
+        sse_encode_list_String(spent, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
+        decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleMarkOutpointSpentConstMeta,
-      argValues: [path, label, outpoint, txid],
+      constMeta: kCrateApiSimpleMarkOutpointsSpentConstMeta,
+      argValues: [encodedWallet, spentBy, spent],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleMarkOutpointSpentConstMeta =>
+  TaskConstMeta get kCrateApiSimpleMarkOutpointsSpentConstMeta =>
       const TaskConstMeta(
-        debugName: "mark_outpoint_spent",
-        argNames: ["path", "label", "outpoint", "txid"],
+        debugName: "mark_outpoints_spent",
+        argNames: ["encodedWallet", "spentBy", "spent"],
       );
 
   @override
-  void crateApiSimpleRemoveWallet(
-      {required String path, required String label}) {
+  String crateApiSimpleResetWallet({required String encodedWallet}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
+        sse_encode_String(encodedWallet, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleRemoveWalletConstMeta,
-      argValues: [path, label],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleRemoveWalletConstMeta => const TaskConstMeta(
-        debugName: "remove_wallet",
-        argNames: ["path", "label"],
-      );
-
-  @override
-  Future<void> crateApiSimpleResetWallet(
-      {required String path, required String label}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 18, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
+        decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleResetWalletConstMeta,
-      argValues: [path, label],
+      argValues: [encodedWallet],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiSimpleResetWalletConstMeta => const TaskConstMeta(
         debugName: "reset_wallet",
-        argNames: ["path", "label"],
+        argNames: ["encodedWallet"],
       );
 
   @override
-  Future<void> crateApiSimpleScanToTip(
-      {required String path, required String label}) {
+  Future<String> crateApiSimpleScanToTip({required String encodedWallet}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
+        sse_encode_String(encodedWallet, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 19, port: port_);
+            funcId: 15, port: port_);
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
+        decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleScanToTipConstMeta,
-      argValues: [path, label],
+      argValues: [encodedWallet],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiSimpleScanToTipConstMeta => const TaskConstMeta(
         debugName: "scan_to_tip",
-        argNames: ["path", "label"],
+        argNames: ["encodedWallet"],
       );
 
   @override
-  Future<void> crateApiSimpleSetup(
+  Future<String> crateApiSimpleSetup(
       {required String label,
-      required String filesDir,
       String? mnemonic,
       String? scanKey,
       String? spendKey,
@@ -680,29 +538,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(label, serializer);
-        sse_encode_String(filesDir, serializer);
         sse_encode_opt_String(mnemonic, serializer);
         sse_encode_opt_String(scanKey, serializer);
         sse_encode_opt_String(spendKey, serializer);
         sse_encode_u_32(birthday, serializer);
         sse_encode_String(network, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 20, port: port_);
+            funcId: 16, port: port_);
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
+        decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleSetupConstMeta,
-      argValues: [
-        label,
-        filesDir,
-        mnemonic,
-        scanKey,
-        spendKey,
-        birthday,
-        network
-      ],
+      argValues: [label, mnemonic, scanKey, spendKey, birthday, network],
       apiImpl: this,
     ));
   }
@@ -711,7 +560,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         debugName: "setup",
         argNames: [
           "label",
-          "filesDir",
           "mnemonic",
           "scanKey",
           "spendKey",
@@ -721,59 +569,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<String?> crateApiSimpleShowMnemonic(
-      {required String path, required String label}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+  String? crateApiSimpleShowMnemonic({required String encodedWallet}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 21, port: port_);
+        sse_encode_String(encodedWallet, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleShowMnemonicConstMeta,
-      argValues: [path, label],
+      argValues: [encodedWallet],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiSimpleShowMnemonicConstMeta => const TaskConstMeta(
         debugName: "show_mnemonic",
-        argNames: ["path", "label"],
+        argNames: ["encodedWallet"],
       );
 
   @override
   String crateApiSimpleSignPsbt(
-      {required String path,
-      required String label,
+      {required String encodedWallet,
       required String psbt,
       required bool finalize}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(path, serializer);
-        sse_encode_String(label, serializer);
+        sse_encode_String(encodedWallet, serializer);
         sse_encode_String(psbt, serializer);
         sse_encode_bool(finalize, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleSignPsbtConstMeta,
-      argValues: [path, label, psbt, finalize],
+      argValues: [encodedWallet, psbt, finalize],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiSimpleSignPsbtConstMeta => const TaskConstMeta(
         debugName: "sign_psbt",
-        argNames: ["path", "label", "psbt", "finalize"],
+        argNames: ["encodedWallet", "psbt", "finalize"],
       );
 
   @override
@@ -782,7 +625,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 23, port: port_);
+            funcId: 19, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -798,31 +641,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(
         debugName: "sync_blockchain",
         argNames: [],
-      );
-
-  @override
-  bool crateApiSimpleWalletExists(
-      {required String label, required String filesDir}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(label, serializer);
-        sse_encode_String(filesDir, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_bool,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleWalletExistsConstMeta,
-      argValues: [label, filesDir],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleWalletExistsConstMeta => const TaskConstMeta(
-        debugName: "wallet_exists",
-        argNames: ["label", "filesDir"],
       );
 
   @protected
@@ -897,6 +715,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlatformInt64 dco_decode_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeI64(raw);
+  }
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_String).toList();
   }
 
   @protected
@@ -1059,12 +883,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   WalletStatus dco_decode_wallet_status(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
     return WalletStatus(
-      amount: dco_decode_u_64(arr[0]),
-      birthday: dco_decode_u_32(arr[1]),
-      scanHeight: dco_decode_u_32(arr[2]),
+      address: dco_decode_String(arr[0]),
+      balance: dco_decode_u_64(arr[1]),
+      birthday: dco_decode_u_32(arr[2]),
+      lastScan: dco_decode_u_32(arr[3]),
+      outputs: dco_decode_Map_String_owned_output(arr[4]),
     );
   }
 
@@ -1141,6 +967,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
+  }
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
   }
 
   @protected
@@ -1306,11 +1144,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   WalletStatus sse_decode_wallet_status(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_amount = sse_decode_u_64(deserializer);
+    var var_address = sse_decode_String(deserializer);
+    var var_balance = sse_decode_u_64(deserializer);
     var var_birthday = sse_decode_u_32(deserializer);
-    var var_scanHeight = sse_decode_u_32(deserializer);
+    var var_lastScan = sse_decode_u_32(deserializer);
+    var var_outputs = sse_decode_Map_String_owned_output(deserializer);
     return WalletStatus(
-        amount: var_amount, birthday: var_birthday, scanHeight: var_scanHeight);
+        address: var_address,
+        balance: var_balance,
+        birthday: var_birthday,
+        lastScan: var_lastScan,
+        outputs: var_outputs);
   }
 
   @protected
@@ -1403,6 +1247,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putPlatformInt64(self);
+  }
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_String(item, serializer);
+    }
   }
 
   @protected
@@ -1541,8 +1394,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_wallet_status(WalletStatus self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_64(self.amount, serializer);
+    sse_encode_String(self.address, serializer);
+    sse_encode_u_64(self.balance, serializer);
     sse_encode_u_32(self.birthday, serializer);
-    sse_encode_u_32(self.scanHeight, serializer);
+    sse_encode_u_32(self.lastScan, serializer);
+    sse_encode_Map_String_owned_output(self.outputs, serializer);
   }
 }

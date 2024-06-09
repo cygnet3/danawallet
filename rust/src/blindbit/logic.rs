@@ -117,7 +117,7 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet) ->
     );
 
     // update last_scan height
-    sp_wallet.get_mut_outputs().update_last_scan(last_scan);
+    sp_wallet.get_mut_outputs().update_last_scan(tip_height);
     Ok(())
 }
 
