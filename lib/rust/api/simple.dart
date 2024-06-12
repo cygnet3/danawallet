@@ -68,13 +68,12 @@ String createNewPsbt(
     RustLib.instance.api.crateApiSimpleCreateNewPsbt(
         encodedWallet: encodedWallet, inputs: inputs, recipients: recipients);
 
-Future<String> addFeeForFeeRate(
+String addFeeForFeeRate(
         {required String psbt, required int feeRate, required String payer}) =>
     RustLib.instance.api.crateApiSimpleAddFeeForFeeRate(
         psbt: psbt, feeRate: feeRate, payer: payer);
 
-Future<String> fillSpOutputs(
-        {required String encodedWallet, required String psbt}) =>
+String fillSpOutputs({required String encodedWallet, required String psbt}) =>
     RustLib.instance.api
         .crateApiSimpleFillSpOutputs(encodedWallet: encodedWallet, psbt: psbt);
 

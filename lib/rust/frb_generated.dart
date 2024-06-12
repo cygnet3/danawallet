@@ -69,7 +69,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<String> crateApiSimpleAddFeeForFeeRate(
+  String crateApiSimpleAddFeeForFeeRate(
       {required String psbt, required int feeRate, required String payer});
 
   String crateApiSimpleBroadcastTx({required String tx});
@@ -93,7 +93,7 @@ abstract class RustLibApi extends BaseApi {
 
   String crateApiSimpleExtractTxFromPsbt({required String psbt});
 
-  Future<String> crateApiSimpleFillSpOutputs(
+  String crateApiSimpleFillSpOutputs(
       {required String encodedWallet, required String psbt});
 
   WalletStatus crateApiSimpleGetWalletInfo({required String encodedWallet});
@@ -136,16 +136,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<String> crateApiSimpleAddFeeForFeeRate(
+  String crateApiSimpleAddFeeForFeeRate(
       {required String psbt, required int feeRate, required String payer}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(psbt, serializer);
         sse_encode_u_32(feeRate, serializer);
         sse_encode_String(payer, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 1, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -215,12 +214,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Stream<BigInt> crateApiSimpleCreateAmountStream() {
     final s = RustStreamSink<BigInt>();
-    unawaited(handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+    handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_StreamSink_u_64_Sse(s, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 4, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -229,7 +227,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       constMeta: kCrateApiSimpleCreateAmountStreamConstMeta,
       argValues: [s],
       apiImpl: this,
-    )));
+    ));
     return s.stream;
   }
 
@@ -243,14 +241,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Stream<LogEntry> crateApiSimpleCreateLogStream(
       {required LogLevel level, required bool logDependencies}) {
     final s = RustStreamSink<LogEntry>();
-    unawaited(handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+    handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_StreamSink_log_entry_Sse(s, serializer);
         sse_encode_log_level(level, serializer);
         sse_encode_bool(logDependencies, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 5, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -259,7 +256,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       constMeta: kCrateApiSimpleCreateLogStreamConstMeta,
       argValues: [s, level, logDependencies],
       apiImpl: this,
-    )));
+    ));
     return s.stream;
   }
 
@@ -301,12 +298,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Stream<ScanProgress> crateApiSimpleCreateScanProgressStream() {
     final s = RustStreamSink<ScanProgress>();
-    unawaited(handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+    handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_StreamSink_scan_progress_Sse(s, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 7, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -315,7 +311,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       constMeta: kCrateApiSimpleCreateScanProgressStreamConstMeta,
       argValues: [s],
       apiImpl: this,
-    )));
+    ));
     return s.stream;
   }
 
@@ -328,12 +324,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Stream<SyncStatus> crateApiSimpleCreateSyncStream() {
     final s = RustStreamSink<SyncStatus>();
-    unawaited(handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+    handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_StreamSink_sync_status_Sse(s, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 8, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -342,7 +337,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       constMeta: kCrateApiSimpleCreateSyncStreamConstMeta,
       argValues: [s],
       apiImpl: this,
-    )));
+    ));
     return s.stream;
   }
 
@@ -377,15 +372,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<String> crateApiSimpleFillSpOutputs(
+  String crateApiSimpleFillSpOutputs(
       {required String encodedWallet, required String psbt}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
         sse_encode_String(psbt, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 10, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,

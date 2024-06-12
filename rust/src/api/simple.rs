@@ -139,16 +139,23 @@ pub struct WalletStatus {
     pub outputs: HashMap<String, OwnedOutput>,
 }
 
+#[flutter_rust_bridge::frb(sync)]
 pub fn create_log_stream(s: StreamSink<LogEntry>, level: LogLevel, log_dependencies: bool) {
     logger::init_logger(level.into(), log_dependencies);
     logger::FlutterLogger::set_stream_sink(s);
 }
+
+#[flutter_rust_bridge::frb(sync)]
 pub fn create_sync_stream(s: StreamSink<SyncStatus>) {
     stream::create_sync_stream(s);
 }
+
+#[flutter_rust_bridge::frb(sync)]
 pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {
     stream::create_scan_progress_stream(s);
 }
+
+#[flutter_rust_bridge::frb(sync)]
 pub fn create_amount_stream(s: StreamSink<u64>) {
     stream::create_amount_stream(s);
 }
@@ -296,6 +303,7 @@ pub fn create_new_psbt(
 }
 
 // payer is an address, either Silent Payment or not
+#[flutter_rust_bridge::frb(sync)]
 pub fn add_fee_for_fee_rate(psbt: String, fee_rate: u32, payer: String) -> Result<String> {
     let mut psbt = Psbt::from_str(&psbt)?;
 
@@ -304,6 +312,7 @@ pub fn add_fee_for_fee_rate(psbt: String, fee_rate: u32, payer: String) -> Resul
     Ok(psbt.to_string())
 }
 
+#[flutter_rust_bridge::frb(sync)]
 pub fn fill_sp_outputs(encoded_wallet: String, psbt: String) -> Result<String> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let mut psbt = Psbt::from_str(&psbt)?;
