@@ -1,8 +1,8 @@
-import 'package:donationwallet/main.dart';
+import 'package:donationwallet/presentation/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:donationwallet/rust/api/simple.dart';
+import 'package:donationwallet/generated/rust/api/simple.dart';
 
 Future<void> _showAddRecipientDialog(
     BuildContext context,

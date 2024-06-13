@@ -1,2 +1,2 @@
 rust_input: rust/src/api/**/*.rs
-dart_output: lib/rust
+dart_output: lib/generated/rust
