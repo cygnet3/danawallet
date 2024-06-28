@@ -1,38 +1,51 @@
-import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:donationwallet/src/data/providers/chain_api.dart';
+import 'package:donationwallet/src/data/providers/wallet_secure_storage.dart';
+import 'package:donationwallet/src/data/repositories/chain_repository.dart';
+import 'package:donationwallet/src/data/repositories/wallet_repository.dart';
+import 'package:donationwallet/src/domain/usecases/delete_wallet_usecase.dart';
+import 'package:donationwallet/src/domain/usecases/get_chain_tip_usecase.dart';
+import 'package:donationwallet/src/domain/usecases/load_wallet_usecase.dart';
+import 'package:donationwallet/src/domain/usecases/save_wallet_usecase.dart';
+import 'package:donationwallet/src/domain/usecases/update_wallet_usecase.dart';
 import 'package:donationwallet/generated/rust/frb_generated.dart';
-import 'package:donationwallet/presentation/states/wallet_state.dart';
+import 'package:donationwallet/src/presentation/notifiers/chain_notifier.dart';
+import 'package:donationwallet/src/presentation/notifiers/wallet_notifier.dart';
+import 'package:donationwallet/src/app.dart';
 
-import 'package:donationwallet/utils/global_functions.dart';
-import 'package:donationwallet/home.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
-  final walletState = WalletState();
-  await walletState.initialize();
-  runApp(
-    ChangeNotifierProvider.value(
-      value: walletState,
-      child: const SilentPaymentApp(),
-    ),
-  );
+
+  runApp(const MyApp());
 }
 
-class SilentPaymentApp extends StatelessWidget {
-  const SilentPaymentApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Donation wallet',
-      navigatorKey: globalNavigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.green),
-        useMaterial3: true,
-      ),
-      home: const HomeScreen(),
+    AndroidOptions getAndroidOptions() => const AndroidOptions(
+        encryptedSharedPreferences: true,
+      );
+    final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => WalletNotifier(
+          SaveWalletUseCase(WalletRepository(WalletSecureStorageProvider(storage))),
+          LoadWalletUseCase(WalletRepository(WalletSecureStorageProvider(storage))),
+          DeleteWalletUseCase(WalletRepository(WalletSecureStorageProvider(storage))),
+          UpdateWalletUseCase(ChainRepository(ChainApiProvider())),
+        )), 
+        ChangeNotifierProvider(create: (_) => ChainNotifier(
+          GetChainTipUseCase(ChainRepository(ChainApiProvider()))
+          )
+        )
+      ],
+      child: const SilentPaymentApp(),
     );
   }
 }

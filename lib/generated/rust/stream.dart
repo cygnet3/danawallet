@@ -29,21 +29,3 @@ class ScanProgress {
           current == other.current &&
           end == other.end;
 }
-
-class SyncStatus {
-  final int blockheight;
-
-  const SyncStatus({
-    required this.blockheight,
-  });
-
-  @override
-  int get hashCode => blockheight.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SyncStatus &&
-          runtimeType == other.runtimeType &&
-          blockheight == other.blockheight;
-}

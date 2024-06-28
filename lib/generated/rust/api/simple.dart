@@ -17,9 +17,6 @@ Stream<LogEntry> createLogStream(
     RustLib.instance.api.crateApiSimpleCreateLogStream(
         level: level, logDependencies: logDependencies);
 
-Stream<SyncStatus> createSyncStream() =>
-    RustLib.instance.api.crateApiSimpleCreateSyncStream();
-
 Stream<ScanProgress> createScanProgressStream() =>
     RustLib.instance.api.crateApiSimpleCreateScanProgressStream();
 
@@ -51,7 +48,7 @@ String changeBirthday({required String encodedWallet, required int birthday}) =>
 String resetWallet({required String encodedWallet}) => RustLib.instance.api
     .crateApiSimpleResetWallet(encodedWallet: encodedWallet);
 
-Future<void> syncBlockchain() =>
+Future<int> syncBlockchain() =>
     RustLib.instance.api.crateApiSimpleSyncBlockchain();
 
 Future<String> scanToTip({required String encodedWallet}) =>

@@ -34,9 +34,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
-  RustStreamSink<SyncStatus> dco_decode_StreamSink_sync_status_Sse(dynamic raw);
-
-  @protected
   RustStreamSink<BigInt> dco_decode_StreamSink_u_64_Sse(dynamic raw);
 
   @protected
@@ -92,9 +89,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ScanProgress dco_decode_scan_progress(dynamic raw);
 
   @protected
-  SyncStatus dco_decode_sync_status(dynamic raw);
-
-  @protected
   int dco_decode_u_32(dynamic raw);
 
   @protected
@@ -122,10 +116,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RustStreamSink<ScanProgress> sse_decode_StreamSink_scan_progress_Sse(
-      SseDeserializer deserializer);
-
-  @protected
-  RustStreamSink<SyncStatus> sse_decode_StreamSink_sync_status_Sse(
       SseDeserializer deserializer);
 
   @protected
@@ -187,9 +177,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ScanProgress sse_decode_scan_progress(SseDeserializer deserializer);
 
   @protected
-  SyncStatus sse_decode_sync_status(SseDeserializer deserializer);
-
-  @protected
   int sse_decode_u_32(SseDeserializer deserializer);
 
   @protected
@@ -219,10 +206,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_StreamSink_scan_progress_Sse(
       RustStreamSink<ScanProgress> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_StreamSink_sync_status_Sse(
-      RustStreamSink<SyncStatus> self, SseSerializer serializer);
 
   @protected
   void sse_encode_StreamSink_u_64_Sse(
@@ -283,9 +266,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_scan_progress(ScanProgress self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_sync_status(SyncStatus self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

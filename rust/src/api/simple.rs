@@ -15,7 +15,7 @@ use log::info;
 use crate::{
     blindbit,
     logger::{self, LogEntry, LogLevel},
-    stream::{self, ScanProgress, SyncStatus},
+    stream::{self, ScanProgress},
 };
 
 use anyhow::{anyhow, Error, Result};
@@ -146,11 +146,6 @@ pub fn create_log_stream(s: StreamSink<LogEntry>, level: LogLevel, log_dependenc
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn create_sync_stream(s: StreamSink<SyncStatus>) {
-    stream::create_sync_stream(s);
-}
-
-#[flutter_rust_bridge::frb(sync)]
 pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {
     stream::create_scan_progress_stream(s);
 }
@@ -252,7 +247,7 @@ pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
     Ok(serde_json::to_string(&wallet).unwrap())
 }
 
-pub async fn sync_blockchain() -> Result<()> {
+pub async fn sync_blockchain() -> Result<u32> {
     blindbit::logic::sync_blockchain().await
 }
 

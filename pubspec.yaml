@@ -47,6 +47,7 @@ dependencies:
   bitcoin_ui: ^2.0.0
   rust_lib_donationwallet:
     path: rust_builder
+  logger: ^2.3.0
 
 dev_dependencies:
   flutter_test:

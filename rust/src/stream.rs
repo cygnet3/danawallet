@@ -6,11 +6,6 @@ use lazy_static::lazy_static;
 lazy_static! {
     static ref AMOUNT_STREAM_SINK: Mutex<Option<StreamSink<u64>>> = Mutex::new(None);
     static ref SCAN_STREAM_SINK: Mutex<Option<StreamSink<ScanProgress>>> = Mutex::new(None);
-    static ref SYNC_STREAM_SINK: Mutex<Option<StreamSink<SyncStatus>>> = Mutex::new(None);
-}
-
-pub struct SyncStatus {
-    pub blockheight: u32,
 }
 
 pub struct ScanProgress {
@@ -24,11 +19,6 @@ pub fn create_amount_stream(s: StreamSink<u64>) {
     *stream_sink = Some(s);
 }
 
-pub fn create_sync_stream(s: StreamSink<SyncStatus>) {
-    let mut stream_sink = SYNC_STREAM_SINK.lock().unwrap();
-    *stream_sink = Some(s);
-}
-
 pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {
     let mut stream_sink = SCAN_STREAM_SINK.lock().unwrap();
     *stream_sink = Some(s);
@@ -38,13 +28,6 @@ pub(crate) fn send_amount_update(amount: u64) {
     let stream_sink = AMOUNT_STREAM_SINK.lock().unwrap();
     if let Some(stream_sink) = stream_sink.as_ref() {
         stream_sink.add(amount).unwrap();
-    }
-}
-
-pub(crate) fn send_sync_progress(sync_status: SyncStatus) {
-    let stream_sink = SYNC_STREAM_SINK.lock().unwrap();
-    if let Some(stream_sink) = stream_sink.as_ref() {
-        stream_sink.add(sync_status).unwrap();
     }
 }
 
