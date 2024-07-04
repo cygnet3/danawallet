@@ -19,7 +19,11 @@ class SPReceiver {
 
   factory SPReceiver.fromJson(Map<String, dynamic> json) {
     var labelsList = json['labels'] as List;
-    List<Label> labels = labelsList.map((i) => Label.fromJson(i)).toList();
+    
+    // List<Label> labels = labelsList.map((i) => Label.fromJson(i)).toList();
+
+    // List<Label> labels = Label.fromJson(labelsList).toList();
+    final labels = List<Label>.empty();
 
     return SPReceiver(
       version: json['version'],

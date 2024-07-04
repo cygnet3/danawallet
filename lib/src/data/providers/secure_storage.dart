@@ -1,10 +1,10 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 
-class WalletSecureStorageProvider {
+class SecureStorageProvider {
   final FlutterSecureStorage secureStorage;
 
-  WalletSecureStorageProvider(this.secureStorage);
+  SecureStorageProvider(this.secureStorage);
 
   Future<void> saveWalletToSecureStorage(String label, String spWallet) async {
     try {

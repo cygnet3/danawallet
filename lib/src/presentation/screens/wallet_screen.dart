@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:donationwallet/src/presentation/screens/spend_screen.dart';
 import 'package:donationwallet/src/utils/global_functions.dart';
 import 'package:donationwallet/src/presentation/notifiers/wallet_notifier.dart';
 import 'package:flutter/material.dart';

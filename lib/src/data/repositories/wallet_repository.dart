@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:donationwallet/src/data/providers/wallet_secure_storage.dart';
+import 'package:donationwallet/src/data/providers/secure_storage.dart';
 import 'package:donationwallet/src/domain/entities/wallet_entity.dart';
 import 'package:donationwallet/src/data/models/sp_wallet_model.dart';
 import 'package:logger/logger.dart';
 
 class WalletRepository {
-  final WalletSecureStorageProvider secureStorageProvider;
+  final SecureStorageProvider secureStorageProvider;
 
   WalletRepository(this.secureStorageProvider);
 

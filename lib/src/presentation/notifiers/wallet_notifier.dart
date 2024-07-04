@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:donationwallet/src/data/models/sp_wallet_model.dart';
+import 'package:donationwallet/src/domain/usecases/create_wallet_usecase.dart';
 import 'package:donationwallet/src/domain/usecases/delete_wallet_usecase.dart';
 import 'package:donationwallet/src/domain/usecases/load_wallet_usecase.dart';
 import 'package:donationwallet/src/domain/usecases/save_wallet_usecase.dart';
@@ -14,15 +15,20 @@ class WalletNotifier extends ChangeNotifier {
   final LoadWalletUseCase loadWalletUseCase;
   final DeleteWalletUseCase deleteWalletUseCase;
   final UpdateWalletUseCase updateWalletUseCase;
+  final CreateWalletUseCase createWalletUseCase;
 
-  WalletNotifier(this.saveWalletUseCase, this.loadWalletUseCase,
-      this.deleteWalletUseCase, this.updateWalletUseCase) {
-    _initialize();
+  WalletNotifier(
+      this.saveWalletUseCase,
+      this.loadWalletUseCase,
+      this.deleteWalletUseCase,
+      this.updateWalletUseCase,
+      this.createWalletUseCase) {
+    // _initialize();
   }
 
-  Future<void> _initialize() async {
-    await loadWallet(defaultLabel);
-  }
+  // Future<void> _initialize() async {
+  //   await loadWallet(defaultLabel);
+  // }
 
   WalletEntity? _wallet;
   WalletEntity? get wallet => _wallet;
@@ -100,6 +106,21 @@ class WalletNotifier extends ChangeNotifier {
       _isLoading = false;
       _isScanning = false;
       _progress = 0.0;
+      notifyListeners();
+    }
+  }
+
+  Future<void> createWallet(String label, String network, int birthday) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _wallet = await createWalletUseCase(label, network, birthday);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }

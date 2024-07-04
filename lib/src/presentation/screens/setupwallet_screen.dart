@@ -1,42 +1,12 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:donationwallet/generated/rust/api/simple.dart';
-import 'package:donationwallet/src/data/models/sp_wallet_model.dart';
 import 'package:donationwallet/src/presentation/notifiers/chain_notifier.dart';
-import 'package:donationwallet/src/presentation/screens/home_screen.dart';
 import 'package:donationwallet/src/presentation/notifiers/wallet_notifier.dart';
+import 'package:donationwallet/src/presentation/screens/home_screen.dart';
 import 'package:donationwallet/src/utils/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class SetupWalletScreen extends StatelessWidget {
   const SetupWalletScreen({super.key});
-
-  Future<void> _setup(WalletNotifier walletNotifier, String? mnemonic,
-      String? scanKey, String? spendKey, int birthday, String network) async {
-    if (walletNotifier.wallet != null) {
-      return;
-    }
-
-    try {
-      final wallet = await setup(
-        label: defaultLabel,
-        mnemonic: mnemonic,
-        scanKey: scanKey,
-        spendKey: spendKey,
-        birthday: birthday,
-        network: network,
-      );
-      final spWallet =
-          SpWallet.fromJson(jsonDecode(wallet) as Map<String, dynamic>);
-      await walletNotifier.saveWallet(defaultLabel, spWallet);
-      await walletNotifier.loadWallet(defaultLabel);
-    } catch (e) {
-      rethrow;
-    }
-  }
 
   // Future<void> _showKeysInputDialog(BuildContext context, bool watchOnly,
   //     Function(Exception? e) onSetupComplete) async {
@@ -231,6 +201,19 @@ class SetupWalletScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final walletNotifier = Provider.of<WalletNotifier>(context);
+    final chainNotifier = Provider.of<ChainNotifier>(context);
+
+    // final walletNotifier = context.watch()<WalletNotifier>();
+    // final chainNotifier = context.watch()<ChainNotifier>();
+
+    // if wallet exists, go to home screen
+    if (walletNotifier.wallet != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wallet creation/restoration'),
@@ -240,21 +223,21 @@ class SetupWalletScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Spacer(),
-            Consumer<WalletNotifier>(builder: (context, walletNotifier, child) {
-              return Expanded(
-                  child: _buildButton(context, 'Create New Wallet', () async {
-                final tip =
-                    Provider.of<ChainNotifier>(context, listen: false).tip;
-                await _setup(
-                    walletNotifier, null, null, null, tip, defaultNetwork);
-                if (walletNotifier.wallet != null) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => HomeScreen()),
-                  );
-                }
-              }));
-            }),
+            Expanded(
+                child: _buildButton(context, 'Create new Wallet', () async {
+              final tip = chainNotifier.tip;
+              await walletNotifier.createWallet(
+                  defaultLabel, defaultNetwork, tip);
+              // goToHomeScreen();
+            })),
+
+            // const Spacer(),
+            // Consumer<WalletNotifier>(builder: (context, walletNotifier, child) {
+            //   return Expanded(
+            //       child: _buildButton(context, 'Create New Wallet', () async {
+            //     createWallet(context);
+            //   }));
+            // }),
           ],
         ),
       ),
@@ -338,3 +321,13 @@ class SetupWalletScreen extends StatelessWidget {
     );
   }
 }
+
+// Future<void> createWallet(BuildContext context) async {
+//   final tip = Provider.of<ChainNotifier>(context, listen: false).tip;
+//   await walletNotifier.createWalletUseCase(defaultLabel, defaultNetwork, tip);
+//   if (walletNotifier.wallet != null) {
+//     Navigator.of(context).pushReplacement(
+//       MaterialPageRoute(builder: (context) => HomeScreen()),
+//     );
+//   }
+// }

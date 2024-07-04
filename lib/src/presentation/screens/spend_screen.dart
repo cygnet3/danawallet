@@ -81,10 +81,10 @@ class SpendScreen extends StatelessWidget {
                     ? "Tap here to choose which coin to spend"
                     : "Spending ${transactionNotifer.getInputs().length} output(s) for a total of ${transactionNotifer.getTotalAvailable()} sats available",
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) => const OutputsScreen()),
-                  );
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //       builder: (context) => const OutputsScreen()),
+                  // );
                 }),
             const Spacer(),
             SummaryWidget(
@@ -92,10 +92,10 @@ class SpendScreen extends StatelessWidget {
                     ? "Tap here to add destinations"
                     : "Sending to ${transactionNotifer.recipientsLength()} output(s) for a total of ${transactionNotifer.getTotalSpent()} sats",
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) => const DestinationScreen()),
-                  );
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //       builder: (context) => const DestinationScreen()),
+                  // );
                 }),
             const Spacer(),
             const Text('Fee Rate (satoshis/vB)'),
@@ -116,14 +116,14 @@ class SpendScreen extends StatelessWidget {
                 }
                 final wallet = await walletNotifier.loadWalletUseCase(defaultLabel);
                 try {
-                  transactionNotifer.createTransactionUsecase();
+                  // transactionNotifer.createTransactionUsecase();
 
                   if (!context.mounted) return;
 
                   // navigate to main screen
                   Navigator.popUntil(context, (route) => route.isFirst);
 
-                  showAlertDialog('Transaction successfully sent', sentTxId);
+                  // showAlertDialog('Transaction successfully sent', sentTxId);
                 } catch (e) {
                   rethrow;
                 }

@@ -1,7 +1,8 @@
 import 'package:donationwallet/src/data/providers/chain_api.dart';
-import 'package:donationwallet/src/data/providers/wallet_secure_storage.dart';
+import 'package:donationwallet/src/data/providers/secure_storage.dart';
 import 'package:donationwallet/src/data/repositories/chain_repository.dart';
 import 'package:donationwallet/src/data/repositories/wallet_repository.dart';
+import 'package:donationwallet/src/domain/usecases/create_wallet_usecase.dart';
 import 'package:donationwallet/src/domain/usecases/delete_wallet_usecase.dart';
 import 'package:donationwallet/src/domain/usecases/get_chain_tip_usecase.dart';
 import 'package:donationwallet/src/domain/usecases/load_wallet_usecase.dart';
@@ -29,21 +30,26 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AndroidOptions getAndroidOptions() => const AndroidOptions(
-        encryptedSharedPreferences: true,
-      );
+          encryptedSharedPreferences: true,
+        );
     final storage = FlutterSecureStorage(aOptions: getAndroidOptions());
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => WalletNotifier(
-          SaveWalletUseCase(WalletRepository(WalletSecureStorageProvider(storage))),
-          LoadWalletUseCase(WalletRepository(WalletSecureStorageProvider(storage))),
-          DeleteWalletUseCase(WalletRepository(WalletSecureStorageProvider(storage))),
-          UpdateWalletUseCase(ChainRepository(ChainApiProvider())),
-        )), 
-        ChangeNotifierProvider(create: (_) => ChainNotifier(
-          GetChainTipUseCase(ChainRepository(ChainApiProvider()))
-          )
-        )
+        ChangeNotifierProvider<WalletNotifier>(
+            create: (_) => WalletNotifier(
+                  SaveWalletUseCase(
+                      WalletRepository(SecureStorageProvider(storage))),
+                  LoadWalletUseCase(
+                      WalletRepository(SecureStorageProvider(storage))),
+                  DeleteWalletUseCase(
+                      WalletRepository(SecureStorageProvider(storage))),
+                  UpdateWalletUseCase(ChainRepository(ChainApiProvider())),
+                  CreateWalletUseCase(
+                      WalletRepository(SecureStorageProvider(storage))),
+                )),
+        ChangeNotifierProvider<ChainNotifier>(
+            create: (_) => ChainNotifier(
+                GetChainTipUseCase(ChainRepository(ChainApiProvider()))))
       ],
       child: const SilentPaymentApp(),
     );
