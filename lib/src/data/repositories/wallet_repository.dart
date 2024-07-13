@@ -51,18 +51,9 @@ class WalletRepository {
     }
   }
 
-  Future<WalletEntity> rmWallet(String label) async {
-    String json;
+  Future<bool> rmWallet(String label) async {
     try {
-      json = await secureStorageProvider.rmWalletFromSecureStorage(label);
-    } catch (e) {
-      rethrow;
-    }
-
-    try {
-      final spWallet =
-          SpWallet.fromJson(jsonEncode(json) as Map<String, dynamic>);
-      return convertSpWalletToWalletEntity(spWallet);
+      return await secureStorageProvider.rmWalletFromSecureStorage(label);
     } catch (e) {
       rethrow;
     }

@@ -14,7 +14,7 @@ class SecureStorageProvider {
     }
   }
 
-  Future<String> rmWalletFromSecureStorage(String label) async {
+  Future<bool> rmWalletFromSecureStorage(String label) async {
     final wallet = await secureStorage.read(key: label);
 
     if (wallet == null) {
@@ -23,7 +23,7 @@ class SecureStorageProvider {
 
     await secureStorage.write(key: label, value: null);
 
-    return wallet;
+    return true;
   }
 
   Future<String> getWalletFromSecureStorage(String label) async {

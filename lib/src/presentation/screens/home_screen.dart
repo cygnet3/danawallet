@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:donationwallet/src/presentation/screens/settings.dart';
 import 'package:donationwallet/src/presentation/screens/setupwallet_screen.dart';
 import 'package:donationwallet/src/utils/constants.dart';
 import 'package:donationwallet/src/utils/log.dart';
@@ -20,7 +21,7 @@ class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = [
     const WalletScreen(),
-    // const SettingsScreen(),
+    const SettingsScreen(),
   ];
 
   @override

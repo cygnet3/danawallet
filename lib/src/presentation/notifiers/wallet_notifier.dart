@@ -81,7 +81,11 @@ class WalletNotifier extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _wallet = await deleteWalletUseCase(label);
+      final result = await deleteWalletUseCase(label);
+      if (result) {
+        // since wallet has been removed from storage, set cached wallet to null
+        _wallet = null;
+      }
     } catch (e) {
       _error = e.toString();
     } finally {
