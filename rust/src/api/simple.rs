@@ -346,7 +346,7 @@ pub async fn setup(
     let mut sp_wallet = SpWallet::new(sp_client, None, vec![]).unwrap();
 
     sp_wallet.get_mut_outputs().set_birthday(birthday);
-    sp_wallet.get_mut_outputs().reset_to_birthday();
+    sp_wallet.reset_to_birthday();
 
     Ok(serde_json::to_string(&sp_wallet).unwrap())
 }
@@ -358,7 +358,7 @@ pub fn change_birthday(encoded_wallet: String, birthday: u32) -> Result<String> 
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let outputs = wallet.get_mut_outputs();
     outputs.set_birthday(birthday);
-    outputs.reset_to_birthday();
+    wallet.reset_to_birthday();
     Ok(serde_json::to_string(&wallet).unwrap())
 }
 
@@ -366,8 +366,7 @@ pub fn change_birthday(encoded_wallet: String, birthday: u32) -> Result<String> 
 #[flutter_rust_bridge::frb(sync)]
 pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    let outputs = wallet.get_mut_outputs();
-    outputs.reset_to_birthday();
+    wallet.reset_to_birthday();
     Ok(serde_json::to_string(&wallet).unwrap())
 }
 
