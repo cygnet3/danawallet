@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/load_wallet.dart';
 import 'package:donationwallet/main.dart';
+import 'package:donationwallet/tx_history.dart';
 import 'package:donationwallet/wallet.dart';
 import 'package:donationwallet/settings.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = [
     const WalletScreen(),
+    const TxHistoryscreen(),
     const SettingsScreen(),
   ];
 
@@ -85,6 +87,13 @@ class HomeScreenState extends State<HomeScreen> {
                       package: "bitcoin_ui"),
                   color: Bitcoin.neutral3Dark),
               label: 'Wallet',
+            ),
+            BottomNavigationBarItem(
+              icon: Image(
+                  image: const AssetImage("icons/transactions.png",
+                      package: "bitcoin_ui"),
+                  color: Bitcoin.neutral3Dark),
+              label: 'History',
             ),
             BottomNavigationBarItem(
               icon: Image(

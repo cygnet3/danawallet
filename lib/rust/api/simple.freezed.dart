@@ -480,3 +480,350 @@ abstract class OutputSpendStatus_Mined extends OutputSpendStatus {
   _$$OutputSpendStatus_MinedImplCopyWith<_$OutputSpendStatus_MinedImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+mixin _$RecordedTransaction {
+  Object get field0 => throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(RecordedTransactionIncoming field0) incoming,
+    required TResult Function(RecordedTransactionOutgoing field0) outgoing,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(RecordedTransactionIncoming field0)? incoming,
+    TResult? Function(RecordedTransactionOutgoing field0)? outgoing,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(RecordedTransactionIncoming field0)? incoming,
+    TResult Function(RecordedTransactionOutgoing field0)? outgoing,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(RecordedTransaction_Incoming value) incoming,
+    required TResult Function(RecordedTransaction_Outgoing value) outgoing,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(RecordedTransaction_Incoming value)? incoming,
+    TResult? Function(RecordedTransaction_Outgoing value)? outgoing,
+  }) =>
+      throw _privateConstructorUsedError;
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(RecordedTransaction_Incoming value)? incoming,
+    TResult Function(RecordedTransaction_Outgoing value)? outgoing,
+    required TResult orElse(),
+  }) =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $RecordedTransactionCopyWith<$Res> {
+  factory $RecordedTransactionCopyWith(
+          RecordedTransaction value, $Res Function(RecordedTransaction) then) =
+      _$RecordedTransactionCopyWithImpl<$Res, RecordedTransaction>;
+}
+
+/// @nodoc
+class _$RecordedTransactionCopyWithImpl<$Res, $Val extends RecordedTransaction>
+    implements $RecordedTransactionCopyWith<$Res> {
+  _$RecordedTransactionCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+}
+
+/// @nodoc
+abstract class _$$RecordedTransaction_IncomingImplCopyWith<$Res> {
+  factory _$$RecordedTransaction_IncomingImplCopyWith(
+          _$RecordedTransaction_IncomingImpl value,
+          $Res Function(_$RecordedTransaction_IncomingImpl) then) =
+      __$$RecordedTransaction_IncomingImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({RecordedTransactionIncoming field0});
+}
+
+/// @nodoc
+class __$$RecordedTransaction_IncomingImplCopyWithImpl<$Res>
+    extends _$RecordedTransactionCopyWithImpl<$Res,
+        _$RecordedTransaction_IncomingImpl>
+    implements _$$RecordedTransaction_IncomingImplCopyWith<$Res> {
+  __$$RecordedTransaction_IncomingImplCopyWithImpl(
+      _$RecordedTransaction_IncomingImpl _value,
+      $Res Function(_$RecordedTransaction_IncomingImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(_$RecordedTransaction_IncomingImpl(
+      null == field0
+          ? _value.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as RecordedTransactionIncoming,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$RecordedTransaction_IncomingImpl extends RecordedTransaction_Incoming {
+  const _$RecordedTransaction_IncomingImpl(this.field0) : super._();
+
+  @override
+  final RecordedTransactionIncoming field0;
+
+  @override
+  String toString() {
+    return 'RecordedTransaction.incoming(field0: $field0)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RecordedTransaction_IncomingImpl &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RecordedTransaction_IncomingImplCopyWith<
+          _$RecordedTransaction_IncomingImpl>
+      get copyWith => __$$RecordedTransaction_IncomingImplCopyWithImpl<
+          _$RecordedTransaction_IncomingImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(RecordedTransactionIncoming field0) incoming,
+    required TResult Function(RecordedTransactionOutgoing field0) outgoing,
+  }) {
+    return incoming(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(RecordedTransactionIncoming field0)? incoming,
+    TResult? Function(RecordedTransactionOutgoing field0)? outgoing,
+  }) {
+    return incoming?.call(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(RecordedTransactionIncoming field0)? incoming,
+    TResult Function(RecordedTransactionOutgoing field0)? outgoing,
+    required TResult orElse(),
+  }) {
+    if (incoming != null) {
+      return incoming(field0);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(RecordedTransaction_Incoming value) incoming,
+    required TResult Function(RecordedTransaction_Outgoing value) outgoing,
+  }) {
+    return incoming(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(RecordedTransaction_Incoming value)? incoming,
+    TResult? Function(RecordedTransaction_Outgoing value)? outgoing,
+  }) {
+    return incoming?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(RecordedTransaction_Incoming value)? incoming,
+    TResult Function(RecordedTransaction_Outgoing value)? outgoing,
+    required TResult orElse(),
+  }) {
+    if (incoming != null) {
+      return incoming(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class RecordedTransaction_Incoming extends RecordedTransaction {
+  const factory RecordedTransaction_Incoming(
+          final RecordedTransactionIncoming field0) =
+      _$RecordedTransaction_IncomingImpl;
+  const RecordedTransaction_Incoming._() : super._();
+
+  @override
+  RecordedTransactionIncoming get field0;
+  @JsonKey(ignore: true)
+  _$$RecordedTransaction_IncomingImplCopyWith<
+          _$RecordedTransaction_IncomingImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$RecordedTransaction_OutgoingImplCopyWith<$Res> {
+  factory _$$RecordedTransaction_OutgoingImplCopyWith(
+          _$RecordedTransaction_OutgoingImpl value,
+          $Res Function(_$RecordedTransaction_OutgoingImpl) then) =
+      __$$RecordedTransaction_OutgoingImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({RecordedTransactionOutgoing field0});
+}
+
+/// @nodoc
+class __$$RecordedTransaction_OutgoingImplCopyWithImpl<$Res>
+    extends _$RecordedTransactionCopyWithImpl<$Res,
+        _$RecordedTransaction_OutgoingImpl>
+    implements _$$RecordedTransaction_OutgoingImplCopyWith<$Res> {
+  __$$RecordedTransaction_OutgoingImplCopyWithImpl(
+      _$RecordedTransaction_OutgoingImpl _value,
+      $Res Function(_$RecordedTransaction_OutgoingImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(_$RecordedTransaction_OutgoingImpl(
+      null == field0
+          ? _value.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as RecordedTransactionOutgoing,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$RecordedTransaction_OutgoingImpl extends RecordedTransaction_Outgoing {
+  const _$RecordedTransaction_OutgoingImpl(this.field0) : super._();
+
+  @override
+  final RecordedTransactionOutgoing field0;
+
+  @override
+  String toString() {
+    return 'RecordedTransaction.outgoing(field0: $field0)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$RecordedTransaction_OutgoingImpl &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$RecordedTransaction_OutgoingImplCopyWith<
+          _$RecordedTransaction_OutgoingImpl>
+      get copyWith => __$$RecordedTransaction_OutgoingImplCopyWithImpl<
+          _$RecordedTransaction_OutgoingImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(RecordedTransactionIncoming field0) incoming,
+    required TResult Function(RecordedTransactionOutgoing field0) outgoing,
+  }) {
+    return outgoing(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(RecordedTransactionIncoming field0)? incoming,
+    TResult? Function(RecordedTransactionOutgoing field0)? outgoing,
+  }) {
+    return outgoing?.call(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(RecordedTransactionIncoming field0)? incoming,
+    TResult Function(RecordedTransactionOutgoing field0)? outgoing,
+    required TResult orElse(),
+  }) {
+    if (outgoing != null) {
+      return outgoing(field0);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(RecordedTransaction_Incoming value) incoming,
+    required TResult Function(RecordedTransaction_Outgoing value) outgoing,
+  }) {
+    return outgoing(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(RecordedTransaction_Incoming value)? incoming,
+    TResult? Function(RecordedTransaction_Outgoing value)? outgoing,
+  }) {
+    return outgoing?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(RecordedTransaction_Incoming value)? incoming,
+    TResult Function(RecordedTransaction_Outgoing value)? outgoing,
+    required TResult orElse(),
+  }) {
+    if (outgoing != null) {
+      return outgoing(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class RecordedTransaction_Outgoing extends RecordedTransaction {
+  const factory RecordedTransaction_Outgoing(
+          final RecordedTransactionOutgoing field0) =
+      _$RecordedTransaction_OutgoingImpl;
+  const RecordedTransaction_Outgoing._() : super._();
+
+  @override
+  RecordedTransactionOutgoing get field0;
+  @JsonKey(ignore: true)
+  _$$RecordedTransaction_OutgoingImplCopyWith<
+          _$RecordedTransaction_OutgoingImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}

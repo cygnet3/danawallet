@@ -52,6 +52,7 @@ class WalletState extends ChangeNotifier {
   String address = "";
   Map<String, OwnedOutput> ownedOutputs = {};
   Map<String, OwnedOutput> selectedOutputs = {};
+  List<RecordedTransaction> txHistory = List.empty(growable: true);
   List<Recipient> recipients = List.empty(growable: true);
   final secureStorage = const FlutterSecureStorage();
 
@@ -133,6 +134,7 @@ class WalletState extends ChangeNotifier {
     ownedOutputs = {};
     selectedOutputs = {};
     recipients = List.empty(growable: true);
+    txHistory = List.empty(growable: true);
 
     notifyListeners();
   }
@@ -167,6 +169,7 @@ class WalletState extends ChangeNotifier {
     birthday = walletInfo.birthday;
     lastScan = walletInfo.lastScan;
     ownedOutputs = walletInfo.outputs;
+    txHistory = walletInfo.txHistory;
     notifyListeners();
   }
 

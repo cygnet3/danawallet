@@ -112,12 +112,26 @@ class SpendScreen extends StatelessWidget {
   }
 
   String _markAsSpent(
-      String wallet, String txid, Map<String, OwnedOutput> selectedOutputs) {
+    String wallet,
+    String txid,
+    Map<String, OwnedOutput> selectedOutputs,
+  ) {
     try {
       final updatedWallet = markOutpointsSpent(
           encodedWallet: wallet,
           spentBy: txid,
           spent: selectedOutputs.keys.toList());
+      return updatedWallet;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  String _addTxToHistory(
+      String wallet, String txid, List<Recipient> recipients) {
+    try {
+      final updatedWallet = addOutgoingTxToHistory(
+          encodedWallet: wallet, txid: txid, recipients: recipients);
       return updatedWallet;
     } catch (e) {
       rethrow;
@@ -191,8 +205,10 @@ class SpendScreen extends StatelessWidget {
                       fees);
                   final signedPsbt = _signPsbt(wallet, unsignedPsbt);
                   final sentTxId = _broadcastSignedPsbt(signedPsbt);
-                  final updatedWallet = _markAsSpent(
+                  final markedAsSpentWallet = _markAsSpent(
                       wallet, sentTxId, walletState.selectedOutputs);
+                  final updatedWallet = _addTxToHistory(
+                      markedAsSpentWallet, sentTxId, walletState.recipients);
 
                   // Clear selections
                   walletState.selectedOutputs.clear();
