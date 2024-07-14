@@ -216,6 +216,7 @@ class SpendScreen extends StatelessWidget {
 
                   // save the updated wallet
                   walletState.saveWalletToSecureStorage(updatedWallet);
+                  await walletState.updateWalletStatus();
 
                   if (!context.mounted) return;
 
