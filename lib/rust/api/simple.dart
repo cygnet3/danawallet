@@ -10,7 +10,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'simple.freezed.dart';
 
-// The functions `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from` are not `pub`, thus are ignored.
+// The functions `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `from`, `from`, `fmt`, `clone`, `eq`, `fmt`, `clone`, `eq`, `fmt`, `clone`, `eq`, `from`, `from`, `from`, `from`, `from`, `from` are not `pub`, thus are ignored.
 
 Stream<LogEntry> createLogStream(
         {required LogLevel level, required bool logDependencies}) =>
@@ -97,6 +97,24 @@ String markOutpointsSpent(
     RustLib.instance.api.crateApiSimpleMarkOutpointsSpent(
         encodedWallet: encodedWallet, spentBy: spentBy, spent: spent);
 
+String addOutgoingTxToHistory(
+        {required String encodedWallet,
+        required String txid,
+        required List<Recipient> recipients}) =>
+    RustLib.instance.api.crateApiSimpleAddOutgoingTxToHistory(
+        encodedWallet: encodedWallet, txid: txid, recipients: recipients);
+
+String addIncomingTxToHistory(
+        {required String encodedWallet,
+        required String txid,
+        required Amount amount,
+        required int height}) =>
+    RustLib.instance.api.crateApiSimpleAddIncomingTxToHistory(
+        encodedWallet: encodedWallet,
+        txid: txid,
+        amount: amount,
+        height: height);
+
 String? showMnemonic({required String encodedWallet}) => RustLib.instance.api
     .crateApiSimpleShowMnemonic(encodedWallet: encodedWallet);
 
@@ -106,6 +124,10 @@ class Amount {
   const Amount({
     required this.field0,
   });
+
+  BigInt toInt() => RustLib.instance.api.crateApiSimpleAmountToInt(
+        that: this,
+      );
 
   @override
   int get hashCode => field0.hashCode;
@@ -194,12 +216,84 @@ class Recipient {
           nbOutputs == other.nbOutputs;
 }
 
+@freezed
+sealed class RecordedTransaction with _$RecordedTransaction {
+  const RecordedTransaction._();
+
+  const factory RecordedTransaction.incoming(
+    RecordedTransactionIncoming field0,
+  ) = RecordedTransaction_Incoming;
+  const factory RecordedTransaction.outgoing(
+    RecordedTransactionOutgoing field0,
+  ) = RecordedTransaction_Outgoing;
+}
+
+class RecordedTransactionIncoming {
+  final String txid;
+  final Amount amount;
+  final int? confirmedAt;
+
+  const RecordedTransactionIncoming({
+    required this.txid,
+    required this.amount,
+    this.confirmedAt,
+  });
+
+  String toString() =>
+      RustLib.instance.api.crateApiSimpleRecordedTransactionIncomingToString(
+        that: this,
+      );
+
+  @override
+  int get hashCode => txid.hashCode ^ amount.hashCode ^ confirmedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RecordedTransactionIncoming &&
+          runtimeType == other.runtimeType &&
+          txid == other.txid &&
+          amount == other.amount &&
+          confirmedAt == other.confirmedAt;
+}
+
+class RecordedTransactionOutgoing {
+  final String txid;
+  final List<Recipient> recipients;
+  final int? confirmedAt;
+
+  const RecordedTransactionOutgoing({
+    required this.txid,
+    required this.recipients,
+    this.confirmedAt,
+  });
+
+  String toString() =>
+      RustLib.instance.api.crateApiSimpleRecordedTransactionOutgoingToString(
+        that: this,
+      );
+
+  @override
+  int get hashCode =>
+      txid.hashCode ^ recipients.hashCode ^ confirmedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RecordedTransactionOutgoing &&
+          runtimeType == other.runtimeType &&
+          txid == other.txid &&
+          recipients == other.recipients &&
+          confirmedAt == other.confirmedAt;
+}
+
 class WalletStatus {
   final String address;
   final BigInt balance;
   final int birthday;
   final int lastScan;
   final Map<String, OwnedOutput> outputs;
+  final List<RecordedTransaction> txHistory;
 
   const WalletStatus({
     required this.address,
@@ -207,6 +301,7 @@ class WalletStatus {
     required this.birthday,
     required this.lastScan,
     required this.outputs,
+    required this.txHistory,
   });
 
   @override
@@ -215,7 +310,8 @@ class WalletStatus {
       balance.hashCode ^
       birthday.hashCode ^
       lastScan.hashCode ^
-      outputs.hashCode;
+      outputs.hashCode ^
+      txHistory.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -226,5 +322,6 @@ class WalletStatus {
           balance == other.balance &&
           birthday == other.birthday &&
           lastScan == other.lastScan &&
-          outputs == other.outputs;
+          outputs == other.outputs &&
+          txHistory == other.txHistory;
 }

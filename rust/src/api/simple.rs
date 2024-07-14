@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use bip39::rand::RngCore;
 use bitcoin::{
+    absolute::Height,
     consensus::encode::serialize_hex,
     secp256k1::{PublicKey, SecretKey},
     Network, OutPoint, Txid,
@@ -69,6 +70,13 @@ impl From<Amount> for bitcoin::Amount {
     }
 }
 
+impl Amount {
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn to_int(&self) -> u64 {
+        self.0
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct OwnedOutput {
     pub blockheight: u32,
@@ -131,12 +139,123 @@ impl From<Recipient> for sp_client::spclient::Recipient {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum RecordedTransaction {
+    Incoming(RecordedTransactionIncoming),
+    Outgoing(RecordedTransactionOutgoing),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct RecordedTransactionIncoming {
+    pub txid: String,
+    pub amount: Amount,
+    pub confirmed_at: Option<u32>,
+}
+
+impl RecordedTransactionIncoming {
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn to_string(&self) -> String {
+        format!("{:#?}", self)
+    }
+}
+
+impl RecordedTransactionOutgoing {
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn to_string(&self) -> String {
+        format!("{:#?}", self)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct RecordedTransactionOutgoing {
+    pub txid: String,
+    pub recipients: Vec<Recipient>,
+    pub confirmed_at: Option<u32>,
+}
+
+impl From<sp_client::spclient::RecordedTransaction> for RecordedTransaction {
+    fn from(value: sp_client::spclient::RecordedTransaction) -> Self {
+        match value {
+            sp_client::spclient::RecordedTransaction::Incoming(incoming) => {
+                Self::Incoming(incoming.into())
+            }
+
+            sp_client::spclient::RecordedTransaction::Outgoing(outgoing) => {
+                Self::Outgoing(outgoing.into())
+            }
+        }
+    }
+}
+
+impl From<RecordedTransaction> for sp_client::spclient::RecordedTransaction {
+    fn from(value: RecordedTransaction) -> Self {
+        match value {
+            RecordedTransaction::Incoming(incoming) => Self::Incoming(incoming.into()),
+            RecordedTransaction::Outgoing(outgoing) => Self::Outgoing(outgoing.into()),
+        }
+    }
+}
+
+impl From<sp_client::spclient::RecordedTransactionIncoming> for RecordedTransactionIncoming {
+    fn from(value: sp_client::spclient::RecordedTransactionIncoming) -> Self {
+        let confirmed_at = value.confirmed_at.map(|height| height.to_consensus_u32());
+
+        Self {
+            txid: value.txid.to_string(),
+            amount: value.amount.into(),
+            confirmed_at,
+        }
+    }
+}
+
+impl From<RecordedTransactionIncoming> for sp_client::spclient::RecordedTransactionIncoming {
+    fn from(value: RecordedTransactionIncoming) -> Self {
+        let confirmed_at = value
+            .confirmed_at
+            .map(|height| Height::from_consensus(height).unwrap());
+
+        Self {
+            txid: Txid::from_str(&value.txid).unwrap(),
+            amount: value.amount.into(),
+            confirmed_at,
+        }
+    }
+}
+
+impl From<sp_client::spclient::RecordedTransactionOutgoing> for RecordedTransactionOutgoing {
+    fn from(value: sp_client::spclient::RecordedTransactionOutgoing) -> Self {
+        let confirmed_at = value.confirmed_at.map(|height| height.to_consensus_u32());
+
+        Self {
+            txid: value.txid.to_string(),
+            recipients: value.recipients.into_iter().map(Into::into).collect(),
+            confirmed_at,
+        }
+    }
+}
+
+impl From<RecordedTransactionOutgoing> for sp_client::spclient::RecordedTransactionOutgoing {
+    fn from(value: RecordedTransactionOutgoing) -> Self {
+        let confirmed_at = value
+            .confirmed_at
+            .map(|height| Height::from_consensus(height).unwrap());
+
+        Self {
+            txid: Txid::from_str(&value.txid).unwrap(),
+            recipients: value.recipients.into_iter().map(Into::into).collect(),
+            confirmed_at,
+        }
+    }
+}
+
 pub struct WalletStatus {
     pub address: String,
     pub balance: u64,
     pub birthday: u32,
     pub last_scan: u32,
     pub outputs: HashMap<String, OwnedOutput>,
+    pub tx_history: Vec<RecordedTransaction>,
 }
 
 #[flutter_rust_bridge::frb(sync)]
@@ -224,7 +343,7 @@ pub async fn setup(
             ))
         }
     }
-    let mut sp_wallet = SpWallet::new(sp_client, None).unwrap();
+    let mut sp_wallet = SpWallet::new(sp_client, None, vec![]).unwrap();
 
     sp_wallet.get_mut_outputs().set_birthday(birthday);
     sp_wallet.get_mut_outputs().reset_to_birthday();
@@ -270,6 +389,11 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<WalletStatus> {
         balance: wallet.get_outputs().get_balance().to_sat(),
         birthday: wallet.get_outputs().get_birthday(),
         last_scan: wallet.get_outputs().get_last_scan(),
+        tx_history: wallet
+            .get_tx_history()
+            .into_iter()
+            .map(Into::into)
+            .collect(),
         outputs: wallet
             .get_outputs()
             .to_outpoints_list()
@@ -394,6 +518,43 @@ pub fn mark_outpoints_spent(
             true,
         )?;
     }
+
+    Ok(serde_json::to_string(&wallet)?)
+}
+
+#[flutter_rust_bridge::frb(sync)]
+pub fn add_outgoing_tx_to_history(
+    encoded_wallet: String,
+    txid: String,
+    recipients: Vec<Recipient>,
+) -> Result<String> {
+    let txid = Txid::from_str(&txid)?;
+
+    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+
+    let recipients = recipients.into_iter().map(Into::into).collect();
+
+    wallet.record_outgoing_transaction(txid, recipients);
+
+    Ok(serde_json::to_string(&wallet)?)
+}
+
+#[flutter_rust_bridge::frb(sync)]
+pub fn add_incoming_tx_to_history(
+    encoded_wallet: String,
+    txid: String,
+    amount: Amount,
+    height: u32,
+) -> Result<String> {
+    let txid = Txid::from_str(&txid)?;
+
+    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+
+    wallet.record_incoming_transaction(
+        txid,
+        amount.into(),
+        Height::from_consensus(height).unwrap(),
+    );
 
     Ok(serde_json::to_string(&wallet)?)
 }
