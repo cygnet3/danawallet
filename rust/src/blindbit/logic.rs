@@ -2,6 +2,7 @@ use std::{collections::HashMap, time::Instant};
 
 use anyhow::{Error, Result};
 use bitcoin::{
+    absolute::Height,
     bip158::BlockFilter,
     hashes::{sha256, Hash},
     secp256k1::{PublicKey, Scalar},
@@ -98,8 +99,21 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet) ->
         });
 
         if !found_outputs.is_empty() {
-            sp_wallet.get_mut_outputs().extend_from(found_outputs);
+            // register found incoming payments
+            let mut txs: HashMap<Txid, u64> = HashMap::new();
+            for (outpoint, output) in found_outputs.iter() {
+                let entry = txs.entry(outpoint.txid).or_default();
+                *entry += output.amount.to_sat();
+            }
+            for (txid, amt) in txs {
+                sp_wallet.record_incoming_transaction(
+                    txid,
+                    Amount::from_sat(amt),
+                    Height::from_consensus(blkheight).unwrap(),
+                );
+            }
 
+            sp_wallet.get_mut_outputs().extend_from(found_outputs);
             send_amount_update(sp_wallet.get_outputs().get_balance().to_sat());
         }
 
