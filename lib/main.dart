@@ -240,6 +240,7 @@ class WalletState extends ChangeNotifier {
       final updatedWallet = await scanToTip(encodedWallet: wallet);
       print(updatedWallet);
       await saveWalletToSecureStorage(updatedWallet);
+      await updateWalletStatus();
     } catch (e) {
       scanning = false;
       notifyListeners();
