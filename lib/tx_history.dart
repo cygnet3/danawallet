@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/rust/api/simple.dart';
@@ -12,55 +11,58 @@ class TxHistoryscreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-
     final walletState = Provider.of<WalletState>(context);
     final transactions = walletState.txHistory;
 
-    return Column(
-      children: [
-        Expanded(
-            child: Center(
-                child: SizedBox(
-          width: screenWidth * 0.90,
-          child: ListView.builder(
-              itemCount: transactions.length,
-              itemBuilder: (context, index) {
-                RecordedTransaction tx = transactions[index];
-                Color? color;
-                BigInt amount;
-                String title;
-                String text;
+    return ListView.builder(
+        reverse: false,
+        itemCount: transactions.length,
+        padding: EdgeInsets.all(screenWidth * 0.05),
+        itemBuilder: (context, index) {
+          RecordedTransaction tx = transactions[index];
+          Color? color;
+          BigInt amount;
+          String title;
+          String text;
+          Image image;
 
-                switch (tx) {
-                  case RecordedTransaction_Incoming(:final field0):
-                    color = Colors.green[300];
-                    amount = field0.amount.toInt();
-                    title = 'Incoming transaction';
-                    text = field0.toString();
-                  case RecordedTransaction_Outgoing(:final field0):
-                    color = Colors.red[300];
-                    amount = field0.recipients
-                        .fold(BigInt.zero, (acc, x) => acc + x.amount.toInt());
-                    title = 'Outgoing transaction';
-                    text = field0.toString();
-                }
-                return GestureDetector(
-                    onTap: () {
-                      showAlertDialog(title, text);
-                    },
-                    child: Card(
-                      color: color,
-                      child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              Text("$amount"),
-                            ],
-                          )),
-                    ));
-              }),
-        ))),
-      ],
-    );
+          switch (tx) {
+            case RecordedTransaction_Incoming(:final field0):
+              color = Bitcoin.green;
+              amount = field0.amount.toInt();
+              title = 'Incoming transaction';
+              text = field0.toString();
+              image = Image(
+                  image: const AssetImage("icons/receive.png",
+                      package: "bitcoin_ui"),
+                  color: Bitcoin.neutral3Dark);
+            case RecordedTransaction_Outgoing(:final field0):
+              color = Bitcoin.red;
+              amount = field0.recipients
+                  .fold(BigInt.zero, (acc, x) => acc + x.amount.toInt());
+              title = 'Outgoing transaction';
+              text = field0.toString();
+              image = Image(
+                  image:
+                      const AssetImage("icons/send.png", package: "bitcoin_ui"),
+                  color: Bitcoin.neutral3Dark);
+          }
+          return GestureDetector(
+              onTap: () {
+                showAlertDialog(title, text);
+              },
+              child: Card(
+                color: color,
+                child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        image,
+                        Text("$amount"),
+                      ],
+                    )),
+              ));
+        });
   }
 }
