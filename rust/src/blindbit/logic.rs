@@ -99,28 +99,14 @@ pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet) ->
         });
 
         if !found_outputs.is_empty() {
-            // register found incoming payments
-            let mut txs: HashMap<Txid, u64> = HashMap::new();
-            for (outpoint, output) in found_outputs.iter() {
-                let entry = txs.entry(outpoint.txid).or_default();
-                *entry += output.amount.to_sat();
-            }
-            for (txid, amt) in txs {
-                sp_wallet.record_incoming_transaction(
-                    txid,
-                    Amount::from_sat(amt),
-                    Height::from_consensus(blkheight).unwrap(),
-                );
-            }
-
-            sp_wallet.get_mut_outputs().extend_from(found_outputs);
+            let height = Height::from_consensus(blkheight)?;
+            sp_wallet.record_block_outputs(height, found_outputs);
             send_amount_update(sp_wallet.get_outputs().get_balance().to_sat());
         }
 
         if !found_inputs.is_empty() {
-            for outpoint in found_inputs {
-                sp_wallet.get_mut_outputs().mark_mined(outpoint, blkhash)?;
-            }
+            let height = Height::from_consensus(blkheight)?;
+            sp_wallet.record_block_inputs(height, blkhash, found_inputs)?;
         }
     }
 
