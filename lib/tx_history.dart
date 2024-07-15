@@ -37,7 +37,11 @@ class TxHistoryscreen extends StatelessWidget {
                       package: "bitcoin_ui"),
                   color: Bitcoin.neutral3Dark);
             case RecordedTransaction_Outgoing(:final field0):
-              color = Bitcoin.red;
+              if (field0.confirmedAt == null) {
+                color = Bitcoin.neutral4;
+              } else {
+                color = Bitcoin.red;
+              }
               amount = field0.recipients
                   .fold(BigInt.zero, (acc, x) => acc + x.amount.toInt());
               title = 'Outgoing transaction';
