@@ -132,6 +132,7 @@ fn wire__crate__api__simple__add_outgoing_tx_to_history_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
             let api_txid = <String>::sse_decode(&mut deserializer);
+            let api_spent_outpoints = <Vec<String>>::sse_decode(&mut deserializer);
             let api_recipients =
                 <Vec<crate::api::simple::Recipient>>::sse_decode(&mut deserializer);
             deserializer.end();
@@ -139,6 +140,7 @@ fn wire__crate__api__simple__add_outgoing_tx_to_history_impl(
                 crate::api::simple::add_outgoing_tx_to_history(
                     api_encoded_wallet,
                     api_txid,
+                    api_spent_outpoints,
                     api_recipients,
                 )
             })())
@@ -1132,10 +1134,12 @@ impl SseDecode for crate::api::simple::RecordedTransactionOutgoing {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_txid = <String>::sse_decode(deserializer);
+        let mut var_spentOutpoints = <Vec<String>>::sse_decode(deserializer);
         let mut var_recipients = <Vec<crate::api::simple::Recipient>>::sse_decode(deserializer);
         let mut var_confirmedAt = <Option<u32>>::sse_decode(deserializer);
         return crate::api::simple::RecordedTransactionOutgoing {
             txid: var_txid,
+            spent_outpoints: var_spentOutpoints,
             recipients: var_recipients,
             confirmed_at: var_confirmedAt,
         };
@@ -1445,6 +1449,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::simple::RecordedTransactionOu
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.txid.into_into_dart().into_dart(),
+            self.spent_outpoints.into_into_dart().into_dart(),
             self.recipients.into_into_dart().into_dart(),
             self.confirmed_at.into_into_dart().into_dart(),
         ]
@@ -1781,6 +1786,7 @@ impl SseEncode for crate::api::simple::RecordedTransactionOutgoing {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.txid, serializer);
+        <Vec<String>>::sse_encode(self.spent_outpoints, serializer);
         <Vec<crate::api::simple::Recipient>>::sse_encode(self.recipients, serializer);
         <Option<u32>>::sse_encode(self.confirmed_at, serializer);
     }

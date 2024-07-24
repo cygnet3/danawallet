@@ -81,6 +81,7 @@ abstract class RustLibApi extends BaseApi {
   String crateApiSimpleAddOutgoingTxToHistory(
       {required String encodedWallet,
       required String txid,
+      required List<String> spentOutpoints,
       required List<Recipient> recipients});
 
   BigInt crateApiSimpleAmountToInt({required Amount that});
@@ -216,12 +217,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   String crateApiSimpleAddOutgoingTxToHistory(
       {required String encodedWallet,
       required String txid,
+      required List<String> spentOutpoints,
       required List<Recipient> recipients}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
         sse_encode_String(txid, serializer);
+        sse_encode_list_String(spentOutpoints, serializer);
         sse_encode_list_recipient(recipients, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
       },
@@ -230,7 +233,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiSimpleAddOutgoingTxToHistoryConstMeta,
-      argValues: [encodedWallet, txid, recipients],
+      argValues: [encodedWallet, txid, spentOutpoints, recipients],
       apiImpl: this,
     ));
   }
@@ -238,7 +241,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSimpleAddOutgoingTxToHistoryConstMeta =>
       const TaskConstMeta(
         debugName: "add_outgoing_tx_to_history",
-        argNames: ["encodedWallet", "txid", "recipients"],
+        argNames: ["encodedWallet", "txid", "spentOutpoints", "recipients"],
       );
 
   @override
@@ -1053,12 +1056,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return RecordedTransactionOutgoing(
       txid: dco_decode_String(arr[0]),
-      recipients: dco_decode_list_recipient(arr[1]),
-      confirmedAt: dco_decode_opt_box_autoadd_u_32(arr[2]),
+      spentOutpoints: dco_decode_list_String(arr[1]),
+      recipients: dco_decode_list_recipient(arr[2]),
+      confirmedAt: dco_decode_opt_box_autoadd_u_32(arr[3]),
     );
   }
 
@@ -1422,10 +1426,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_txid = sse_decode_String(deserializer);
+    var var_spentOutpoints = sse_decode_list_String(deserializer);
     var var_recipients = sse_decode_list_recipient(deserializer);
     var var_confirmedAt = sse_decode_opt_box_autoadd_u_32(deserializer);
     return RecordedTransactionOutgoing(
         txid: var_txid,
+        spentOutpoints: var_spentOutpoints,
         recipients: var_recipients,
         confirmedAt: var_confirmedAt);
   }
@@ -1760,6 +1766,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       RecordedTransactionOutgoing self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.txid, serializer);
+    sse_encode_list_String(self.spentOutpoints, serializer);
     sse_encode_list_recipient(self.recipients, serializer);
     sse_encode_opt_box_autoadd_u_32(self.confirmedAt, serializer);
   }
