@@ -1,14 +1,10 @@
-import 'dart:async';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/rust/frb_generated.dart';
-import 'package:donationwallet/rust/logger.dart';
 
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
