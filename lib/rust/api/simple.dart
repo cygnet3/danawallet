@@ -100,9 +100,13 @@ String markOutpointsSpent(
 String addOutgoingTxToHistory(
         {required String encodedWallet,
         required String txid,
+        required List<String> spentOutpoints,
         required List<Recipient> recipients}) =>
     RustLib.instance.api.crateApiSimpleAddOutgoingTxToHistory(
-        encodedWallet: encodedWallet, txid: txid, recipients: recipients);
+        encodedWallet: encodedWallet,
+        txid: txid,
+        spentOutpoints: spentOutpoints,
+        recipients: recipients);
 
 String addIncomingTxToHistory(
         {required String encodedWallet,
@@ -259,11 +263,13 @@ class RecordedTransactionIncoming {
 
 class RecordedTransactionOutgoing {
   final String txid;
+  final List<String> spentOutpoints;
   final List<Recipient> recipients;
   final int? confirmedAt;
 
   const RecordedTransactionOutgoing({
     required this.txid,
+    required this.spentOutpoints,
     required this.recipients,
     this.confirmedAt,
   });
@@ -275,7 +281,10 @@ class RecordedTransactionOutgoing {
 
   @override
   int get hashCode =>
-      txid.hashCode ^ recipients.hashCode ^ confirmedAt.hashCode;
+      txid.hashCode ^
+      spentOutpoints.hashCode ^
+      recipients.hashCode ^
+      confirmedAt.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -283,6 +292,7 @@ class RecordedTransactionOutgoing {
       other is RecordedTransactionOutgoing &&
           runtimeType == other.runtimeType &&
           txid == other.txid &&
+          spentOutpoints == other.spentOutpoints &&
           recipients == other.recipients &&
           confirmedAt == other.confirmedAt;
 }

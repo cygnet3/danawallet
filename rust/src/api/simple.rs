@@ -170,6 +170,7 @@ impl RecordedTransactionOutgoing {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct RecordedTransactionOutgoing {
     pub txid: String,
+    pub spent_outpoints: Vec<String>,
     pub recipients: Vec<Recipient>,
     pub confirmed_at: Option<u32>,
 }
@@ -229,6 +230,11 @@ impl From<sp_client::spclient::RecordedTransactionOutgoing> for RecordedTransact
 
         Self {
             txid: value.txid.to_string(),
+            spent_outpoints: value
+                .spent_outpoints
+                .into_iter()
+                .map(|x| x.to_string())
+                .collect(),
             recipients: value.recipients.into_iter().map(Into::into).collect(),
             confirmed_at,
         }
@@ -243,6 +249,11 @@ impl From<RecordedTransactionOutgoing> for sp_client::spclient::RecordedTransact
 
         Self {
             txid: Txid::from_str(&value.txid).unwrap(),
+            spent_outpoints: value
+                .spent_outpoints
+                .into_iter()
+                .map(|x| OutPoint::from_str(&x).unwrap())
+                .collect(),
             recipients: value.recipients.into_iter().map(Into::into).collect(),
             confirmed_at,
         }
@@ -525,15 +536,20 @@ pub fn mark_outpoints_spent(
 pub fn add_outgoing_tx_to_history(
     encoded_wallet: String,
     txid: String,
+    spent_outpoints: Vec<String>,
     recipients: Vec<Recipient>,
 ) -> Result<String> {
     let txid = Txid::from_str(&txid)?;
+    let spent_outpoints = spent_outpoints
+        .into_iter()
+        .map(|x| OutPoint::from_str(&x).unwrap())
+        .collect();
 
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
     let recipients = recipients.into_iter().map(Into::into).collect();
 
-    wallet.record_outgoing_transaction(txid, recipients);
+    wallet.record_outgoing_transaction(txid, spent_outpoints, recipients);
 
     Ok(serde_json::to_string(&wallet)?)
 }
