@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/load_wallet.dart';
-import 'package:donationwallet/main.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:donationwallet/tx_history.dart';
 import 'package:donationwallet/wallet.dart';
