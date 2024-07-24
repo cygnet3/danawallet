@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/rust/api/simple.dart';
+import 'package:donationwallet/rust/api/wallet.dart';
 
 class SynchronizationService {
   Timer? _timer;

@@ -3,7 +3,11 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/psbt.dart';
 import 'api/simple.dart';
+import 'api/stream.dart';
+import 'api/structs.dart';
+import 'api/wallet.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.io.dart' if (dart.library.html) 'frb_generated.web.dart';
@@ -58,7 +62,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.0.0-dev.37';
 
   @override
-  int get rustContentHash => 886550465;
+  int get rustContentHash => -82331096;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -69,67 +73,72 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  String crateApiSimpleAddFeeForFeeRate(
+  String crateApiPsbtAddFeeForFeeRate(
       {required String psbt, required int feeRate, required String payer});
 
-  String crateApiSimpleAddIncomingTxToHistory(
+  String crateApiPsbtBroadcastTx({required String tx});
+
+  String crateApiPsbtCreateNewPsbt(
+      {required String encodedWallet,
+      required Map<String, OwnedOutput> inputs,
+      required List<Recipient> recipients});
+
+  String crateApiPsbtExtractTxFromPsbt({required String psbt});
+
+  String crateApiPsbtFillSpOutputs(
+      {required String encodedWallet, required String psbt});
+
+  String crateApiPsbtSignPsbt(
+      {required String encodedWallet,
+      required String psbt,
+      required bool finalize});
+
+  Future<void> crateApiSimpleInitApp();
+
+  Stream<BigInt> crateApiStreamCreateAmountStream();
+
+  Stream<LogEntry> crateApiStreamCreateLogStream(
+      {required LogLevel level, required bool logDependencies});
+
+  Stream<ScanProgress> crateApiStreamCreateScanProgressStream();
+
+  Stream<SyncStatus> crateApiStreamCreateSyncStream();
+
+  BigInt crateApiStructsAmountToInt({required Amount that});
+
+  String crateApiStructsRecordedTransactionIncomingToString(
+      {required RecordedTransactionIncoming that});
+
+  String crateApiStructsRecordedTransactionOutgoingToString(
+      {required RecordedTransactionOutgoing that});
+
+  String crateApiWalletAddIncomingTxToHistory(
       {required String encodedWallet,
       required String txid,
       required Amount amount,
       required int height});
 
-  String crateApiSimpleAddOutgoingTxToHistory(
+  String crateApiWalletAddOutgoingTxToHistory(
       {required String encodedWallet,
       required String txid,
       required List<String> spentOutpoints,
       required List<Recipient> recipients});
 
-  BigInt crateApiSimpleAmountToInt({required Amount that});
-
-  String crateApiSimpleBroadcastTx({required String tx});
-
-  String crateApiSimpleChangeBirthday(
+  String crateApiWalletChangeBirthday(
       {required String encodedWallet, required int birthday});
 
-  Stream<BigInt> crateApiSimpleCreateAmountStream();
+  WalletStatus crateApiWalletGetWalletInfo({required String encodedWallet});
 
-  Stream<LogEntry> crateApiSimpleCreateLogStream(
-      {required LogLevel level, required bool logDependencies});
-
-  String crateApiSimpleCreateNewPsbt(
-      {required String encodedWallet,
-      required Map<String, OwnedOutput> inputs,
-      required List<Recipient> recipients});
-
-  Stream<ScanProgress> crateApiSimpleCreateScanProgressStream();
-
-  Stream<SyncStatus> crateApiSimpleCreateSyncStream();
-
-  String crateApiSimpleExtractTxFromPsbt({required String psbt});
-
-  String crateApiSimpleFillSpOutputs(
-      {required String encodedWallet, required String psbt});
-
-  WalletStatus crateApiSimpleGetWalletInfo({required String encodedWallet});
-
-  Future<void> crateApiSimpleInitApp();
-
-  String crateApiSimpleMarkOutpointsSpent(
+  String crateApiWalletMarkOutpointsSpent(
       {required String encodedWallet,
       required String spentBy,
       required List<String> spent});
 
-  String crateApiSimpleRecordedTransactionIncomingToString(
-      {required RecordedTransactionIncoming that});
+  String crateApiWalletResetWallet({required String encodedWallet});
 
-  String crateApiSimpleRecordedTransactionOutgoingToString(
-      {required RecordedTransactionOutgoing that});
+  Future<String> crateApiWalletScanToTip({required String encodedWallet});
 
-  String crateApiSimpleResetWallet({required String encodedWallet});
-
-  Future<String> crateApiSimpleScanToTip({required String encodedWallet});
-
-  Future<String> crateApiSimpleSetup(
+  Future<String> crateApiWalletSetup(
       {required String label,
       String? mnemonic,
       String? scanKey,
@@ -137,14 +146,9 @@ abstract class RustLibApi extends BaseApi {
       required int birthday,
       required String network});
 
-  String? crateApiSimpleShowMnemonic({required String encodedWallet});
+  String? crateApiWalletShowMnemonic({required String encodedWallet});
 
-  String crateApiSimpleSignPsbt(
-      {required String encodedWallet,
-      required String psbt,
-      required bool finalize});
-
-  Future<void> crateApiSimpleSyncBlockchain();
+  Future<void> crateApiWalletSyncBlockchain();
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -156,7 +160,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  String crateApiSimpleAddFeeForFeeRate(
+  String crateApiPsbtAddFeeForFeeRate(
       {required String psbt, required int feeRate, required String payer}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
@@ -170,209 +174,43 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleAddFeeForFeeRateConstMeta,
+      constMeta: kCrateApiPsbtAddFeeForFeeRateConstMeta,
       argValues: [psbt, feeRate, payer],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleAddFeeForFeeRateConstMeta =>
+  TaskConstMeta get kCrateApiPsbtAddFeeForFeeRateConstMeta =>
       const TaskConstMeta(
         debugName: "add_fee_for_fee_rate",
         argNames: ["psbt", "feeRate", "payer"],
       );
 
   @override
-  String crateApiSimpleAddIncomingTxToHistory(
-      {required String encodedWallet,
-      required String txid,
-      required Amount amount,
-      required int height}) {
+  String crateApiPsbtBroadcastTx({required String tx}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(encodedWallet, serializer);
-        sse_encode_String(txid, serializer);
-        sse_encode_box_autoadd_amount(amount, serializer);
-        sse_encode_u_32(height, serializer);
+        sse_encode_String(tx, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleAddIncomingTxToHistoryConstMeta,
-      argValues: [encodedWallet, txid, amount, height],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleAddIncomingTxToHistoryConstMeta =>
-      const TaskConstMeta(
-        debugName: "add_incoming_tx_to_history",
-        argNames: ["encodedWallet", "txid", "amount", "height"],
-      );
-
-  @override
-  String crateApiSimpleAddOutgoingTxToHistory(
-      {required String encodedWallet,
-      required String txid,
-      required List<String> spentOutpoints,
-      required List<Recipient> recipients}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(encodedWallet, serializer);
-        sse_encode_String(txid, serializer);
-        sse_encode_list_String(spentOutpoints, serializer);
-        sse_encode_list_recipient(recipients, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleAddOutgoingTxToHistoryConstMeta,
-      argValues: [encodedWallet, txid, spentOutpoints, recipients],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleAddOutgoingTxToHistoryConstMeta =>
-      const TaskConstMeta(
-        debugName: "add_outgoing_tx_to_history",
-        argNames: ["encodedWallet", "txid", "spentOutpoints", "recipients"],
-      );
-
-  @override
-  BigInt crateApiSimpleAmountToInt({required Amount that}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_amount(that, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_u_64,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleAmountToIntConstMeta,
-      argValues: [that],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleAmountToIntConstMeta => const TaskConstMeta(
-        debugName: "amount_to_int",
-        argNames: ["that"],
-      );
-
-  @override
-  String crateApiSimpleBroadcastTx({required String tx}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(tx, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleBroadcastTxConstMeta,
+      constMeta: kCrateApiPsbtBroadcastTxConstMeta,
       argValues: [tx],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleBroadcastTxConstMeta => const TaskConstMeta(
+  TaskConstMeta get kCrateApiPsbtBroadcastTxConstMeta => const TaskConstMeta(
         debugName: "broadcast_tx",
         argNames: ["tx"],
       );
 
   @override
-  String crateApiSimpleChangeBirthday(
-      {required String encodedWallet, required int birthday}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(encodedWallet, serializer);
-        sse_encode_u_32(birthday, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleChangeBirthdayConstMeta,
-      argValues: [encodedWallet, birthday],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleChangeBirthdayConstMeta =>
-      const TaskConstMeta(
-        debugName: "change_birthday",
-        argNames: ["encodedWallet", "birthday"],
-      );
-
-  @override
-  Stream<BigInt> crateApiSimpleCreateAmountStream() {
-    final s = RustStreamSink<BigInt>();
-    handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_StreamSink_u_64_Sse(s, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleCreateAmountStreamConstMeta,
-      argValues: [s],
-      apiImpl: this,
-    ));
-    return s.stream;
-  }
-
-  TaskConstMeta get kCrateApiSimpleCreateAmountStreamConstMeta =>
-      const TaskConstMeta(
-        debugName: "create_amount_stream",
-        argNames: ["s"],
-      );
-
-  @override
-  Stream<LogEntry> crateApiSimpleCreateLogStream(
-      {required LogLevel level, required bool logDependencies}) {
-    final s = RustStreamSink<LogEntry>();
-    handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_StreamSink_log_entry_Sse(s, serializer);
-        sse_encode_log_level(level, serializer);
-        sse_encode_bool(logDependencies, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleCreateLogStreamConstMeta,
-      argValues: [s, level, logDependencies],
-      apiImpl: this,
-    ));
-    return s.stream;
-  }
-
-  TaskConstMeta get kCrateApiSimpleCreateLogStreamConstMeta =>
-      const TaskConstMeta(
-        debugName: "create_log_stream",
-        argNames: ["s", "level", "logDependencies"],
-      );
-
-  @override
-  String crateApiSimpleCreateNewPsbt(
+  String crateApiPsbtCreateNewPsbt(
       {required String encodedWallet,
       required Map<String, OwnedOutput> inputs,
       required List<Recipient> recipients}) {
@@ -382,148 +220,98 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(encodedWallet, serializer);
         sse_encode_Map_String_owned_output(inputs, serializer);
         sse_encode_list_recipient(recipients, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleCreateNewPsbtConstMeta,
+      constMeta: kCrateApiPsbtCreateNewPsbtConstMeta,
       argValues: [encodedWallet, inputs, recipients],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleCreateNewPsbtConstMeta =>
-      const TaskConstMeta(
+  TaskConstMeta get kCrateApiPsbtCreateNewPsbtConstMeta => const TaskConstMeta(
         debugName: "create_new_psbt",
         argNames: ["encodedWallet", "inputs", "recipients"],
       );
 
   @override
-  Stream<ScanProgress> crateApiSimpleCreateScanProgressStream() {
-    final s = RustStreamSink<ScanProgress>();
-    handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_StreamSink_scan_progress_Sse(s, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleCreateScanProgressStreamConstMeta,
-      argValues: [s],
-      apiImpl: this,
-    ));
-    return s.stream;
-  }
-
-  TaskConstMeta get kCrateApiSimpleCreateScanProgressStreamConstMeta =>
-      const TaskConstMeta(
-        debugName: "create_scan_progress_stream",
-        argNames: ["s"],
-      );
-
-  @override
-  Stream<SyncStatus> crateApiSimpleCreateSyncStream() {
-    final s = RustStreamSink<SyncStatus>();
-    handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_StreamSink_sync_status_Sse(s, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleCreateSyncStreamConstMeta,
-      argValues: [s],
-      apiImpl: this,
-    ));
-    return s.stream;
-  }
-
-  TaskConstMeta get kCrateApiSimpleCreateSyncStreamConstMeta =>
-      const TaskConstMeta(
-        debugName: "create_sync_stream",
-        argNames: ["s"],
-      );
-
-  @override
-  String crateApiSimpleExtractTxFromPsbt({required String psbt}) {
+  String crateApiPsbtExtractTxFromPsbt({required String psbt}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(psbt, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleExtractTxFromPsbtConstMeta,
+      constMeta: kCrateApiPsbtExtractTxFromPsbtConstMeta,
       argValues: [psbt],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleExtractTxFromPsbtConstMeta =>
+  TaskConstMeta get kCrateApiPsbtExtractTxFromPsbtConstMeta =>
       const TaskConstMeta(
         debugName: "extract_tx_from_psbt",
         argNames: ["psbt"],
       );
 
   @override
-  String crateApiSimpleFillSpOutputs(
+  String crateApiPsbtFillSpOutputs(
       {required String encodedWallet, required String psbt}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
         sse_encode_String(psbt, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleFillSpOutputsConstMeta,
+      constMeta: kCrateApiPsbtFillSpOutputsConstMeta,
       argValues: [encodedWallet, psbt],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleFillSpOutputsConstMeta =>
-      const TaskConstMeta(
+  TaskConstMeta get kCrateApiPsbtFillSpOutputsConstMeta => const TaskConstMeta(
         debugName: "fill_sp_outputs",
         argNames: ["encodedWallet", "psbt"],
       );
 
   @override
-  WalletStatus crateApiSimpleGetWalletInfo({required String encodedWallet}) {
+  String crateApiPsbtSignPsbt(
+      {required String encodedWallet,
+      required String psbt,
+      required bool finalize}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
+        sse_encode_String(psbt, serializer);
+        sse_encode_bool(finalize, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_wallet_status,
+        decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleGetWalletInfoConstMeta,
-      argValues: [encodedWallet],
+      constMeta: kCrateApiPsbtSignPsbtConstMeta,
+      argValues: [encodedWallet, psbt, finalize],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleGetWalletInfoConstMeta =>
-      const TaskConstMeta(
-        debugName: "get_wallet_info",
-        argNames: ["encodedWallet"],
+  TaskConstMeta get kCrateApiPsbtSignPsbtConstMeta => const TaskConstMeta(
+        debugName: "sign_psbt",
+        argNames: ["encodedWallet", "psbt", "finalize"],
       );
 
   @override
@@ -532,7 +320,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 15, port: port_);
+            funcId: 7, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -550,7 +338,301 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String crateApiSimpleMarkOutpointsSpent(
+  Stream<BigInt> crateApiStreamCreateAmountStream() {
+    final s = RustStreamSink<BigInt>();
+    handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_StreamSink_u_64_Sse(s, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiStreamCreateAmountStreamConstMeta,
+      argValues: [s],
+      apiImpl: this,
+    ));
+    return s.stream;
+  }
+
+  TaskConstMeta get kCrateApiStreamCreateAmountStreamConstMeta =>
+      const TaskConstMeta(
+        debugName: "create_amount_stream",
+        argNames: ["s"],
+      );
+
+  @override
+  Stream<LogEntry> crateApiStreamCreateLogStream(
+      {required LogLevel level, required bool logDependencies}) {
+    final s = RustStreamSink<LogEntry>();
+    handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_StreamSink_log_entry_Sse(s, serializer);
+        sse_encode_log_level(level, serializer);
+        sse_encode_bool(logDependencies, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiStreamCreateLogStreamConstMeta,
+      argValues: [s, level, logDependencies],
+      apiImpl: this,
+    ));
+    return s.stream;
+  }
+
+  TaskConstMeta get kCrateApiStreamCreateLogStreamConstMeta =>
+      const TaskConstMeta(
+        debugName: "create_log_stream",
+        argNames: ["s", "level", "logDependencies"],
+      );
+
+  @override
+  Stream<ScanProgress> crateApiStreamCreateScanProgressStream() {
+    final s = RustStreamSink<ScanProgress>();
+    handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_StreamSink_scan_progress_Sse(s, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiStreamCreateScanProgressStreamConstMeta,
+      argValues: [s],
+      apiImpl: this,
+    ));
+    return s.stream;
+  }
+
+  TaskConstMeta get kCrateApiStreamCreateScanProgressStreamConstMeta =>
+      const TaskConstMeta(
+        debugName: "create_scan_progress_stream",
+        argNames: ["s"],
+      );
+
+  @override
+  Stream<SyncStatus> crateApiStreamCreateSyncStream() {
+    final s = RustStreamSink<SyncStatus>();
+    handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_StreamSink_sync_status_Sse(s, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiStreamCreateSyncStreamConstMeta,
+      argValues: [s],
+      apiImpl: this,
+    ));
+    return s.stream;
+  }
+
+  TaskConstMeta get kCrateApiStreamCreateSyncStreamConstMeta =>
+      const TaskConstMeta(
+        debugName: "create_sync_stream",
+        argNames: ["s"],
+      );
+
+  @override
+  BigInt crateApiStructsAmountToInt({required Amount that}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_box_autoadd_amount(that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_u_64,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiStructsAmountToIntConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiStructsAmountToIntConstMeta => const TaskConstMeta(
+        debugName: "amount_to_int",
+        argNames: ["that"],
+      );
+
+  @override
+  String crateApiStructsRecordedTransactionIncomingToString(
+      {required RecordedTransactionIncoming that}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_box_autoadd_recorded_transaction_incoming(that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiStructsRecordedTransactionIncomingToStringConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta
+      get kCrateApiStructsRecordedTransactionIncomingToStringConstMeta =>
+          const TaskConstMeta(
+            debugName: "recorded_transaction_incoming_to_string",
+            argNames: ["that"],
+          );
+
+  @override
+  String crateApiStructsRecordedTransactionOutgoingToString(
+      {required RecordedTransactionOutgoing that}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_box_autoadd_recorded_transaction_outgoing(that, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiStructsRecordedTransactionOutgoingToStringConstMeta,
+      argValues: [that],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta
+      get kCrateApiStructsRecordedTransactionOutgoingToStringConstMeta =>
+          const TaskConstMeta(
+            debugName: "recorded_transaction_outgoing_to_string",
+            argNames: ["that"],
+          );
+
+  @override
+  String crateApiWalletAddIncomingTxToHistory(
+      {required String encodedWallet,
+      required String txid,
+      required Amount amount,
+      required int height}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(encodedWallet, serializer);
+        sse_encode_String(txid, serializer);
+        sse_encode_box_autoadd_amount(amount, serializer);
+        sse_encode_u_32(height, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
+      ),
+      constMeta: kCrateApiWalletAddIncomingTxToHistoryConstMeta,
+      argValues: [encodedWallet, txid, amount, height],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiWalletAddIncomingTxToHistoryConstMeta =>
+      const TaskConstMeta(
+        debugName: "add_incoming_tx_to_history",
+        argNames: ["encodedWallet", "txid", "amount", "height"],
+      );
+
+  @override
+  String crateApiWalletAddOutgoingTxToHistory(
+      {required String encodedWallet,
+      required String txid,
+      required List<String> spentOutpoints,
+      required List<Recipient> recipients}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(encodedWallet, serializer);
+        sse_encode_String(txid, serializer);
+        sse_encode_list_String(spentOutpoints, serializer);
+        sse_encode_list_recipient(recipients, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
+      ),
+      constMeta: kCrateApiWalletAddOutgoingTxToHistoryConstMeta,
+      argValues: [encodedWallet, txid, spentOutpoints, recipients],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiWalletAddOutgoingTxToHistoryConstMeta =>
+      const TaskConstMeta(
+        debugName: "add_outgoing_tx_to_history",
+        argNames: ["encodedWallet", "txid", "spentOutpoints", "recipients"],
+      );
+
+  @override
+  String crateApiWalletChangeBirthday(
+      {required String encodedWallet, required int birthday}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(encodedWallet, serializer);
+        sse_encode_u_32(birthday, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
+      ),
+      constMeta: kCrateApiWalletChangeBirthdayConstMeta,
+      argValues: [encodedWallet, birthday],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiWalletChangeBirthdayConstMeta =>
+      const TaskConstMeta(
+        debugName: "change_birthday",
+        argNames: ["encodedWallet", "birthday"],
+      );
+
+  @override
+  WalletStatus crateApiWalletGetWalletInfo({required String encodedWallet}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(encodedWallet, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_wallet_status,
+        decodeErrorData: sse_decode_AnyhowException,
+      ),
+      constMeta: kCrateApiWalletGetWalletInfoConstMeta,
+      argValues: [encodedWallet],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiWalletGetWalletInfoConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_wallet_info",
+        argNames: ["encodedWallet"],
+      );
+
+  @override
+  String crateApiWalletMarkOutpointsSpent(
       {required String encodedWallet,
       required String spentBy,
       required List<String> spent}) {
@@ -560,125 +642,73 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(encodedWallet, serializer);
         sse_encode_String(spentBy, serializer);
         sse_encode_list_String(spent, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleMarkOutpointsSpentConstMeta,
-      argValues: [encodedWallet, spentBy, spent],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleMarkOutpointsSpentConstMeta =>
-      const TaskConstMeta(
-        debugName: "mark_outpoints_spent",
-        argNames: ["encodedWallet", "spentBy", "spent"],
-      );
-
-  @override
-  String crateApiSimpleRecordedTransactionIncomingToString(
-      {required RecordedTransactionIncoming that}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_recorded_transaction_incoming(that, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleRecordedTransactionIncomingToStringConstMeta,
-      argValues: [that],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta
-      get kCrateApiSimpleRecordedTransactionIncomingToStringConstMeta =>
-          const TaskConstMeta(
-            debugName: "recorded_transaction_incoming_to_string",
-            argNames: ["that"],
-          );
-
-  @override
-  String crateApiSimpleRecordedTransactionOutgoingToString(
-      {required RecordedTransactionOutgoing that}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_recorded_transaction_outgoing(that, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleRecordedTransactionOutgoingToStringConstMeta,
-      argValues: [that],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta
-      get kCrateApiSimpleRecordedTransactionOutgoingToStringConstMeta =>
-          const TaskConstMeta(
-            debugName: "recorded_transaction_outgoing_to_string",
-            argNames: ["that"],
-          );
-
-  @override
-  String crateApiSimpleResetWallet({required String encodedWallet}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(encodedWallet, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleResetWalletConstMeta,
-      argValues: [encodedWallet],
+      constMeta: kCrateApiWalletMarkOutpointsSpentConstMeta,
+      argValues: [encodedWallet, spentBy, spent],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleResetWalletConstMeta => const TaskConstMeta(
-        debugName: "reset_wallet",
-        argNames: ["encodedWallet"],
+  TaskConstMeta get kCrateApiWalletMarkOutpointsSpentConstMeta =>
+      const TaskConstMeta(
+        debugName: "mark_outpoints_spent",
+        argNames: ["encodedWallet", "spentBy", "spent"],
       );
 
   @override
-  Future<String> crateApiSimpleScanToTip({required String encodedWallet}) {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
+  String crateApiWalletResetWallet({required String encodedWallet}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 20, port: port_);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleScanToTipConstMeta,
+      constMeta: kCrateApiWalletResetWalletConstMeta,
       argValues: [encodedWallet],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleScanToTipConstMeta => const TaskConstMeta(
+  TaskConstMeta get kCrateApiWalletResetWalletConstMeta => const TaskConstMeta(
+        debugName: "reset_wallet",
+        argNames: ["encodedWallet"],
+      );
+
+  @override
+  Future<String> crateApiWalletScanToTip({required String encodedWallet}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(encodedWallet, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 21, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
+      ),
+      constMeta: kCrateApiWalletScanToTipConstMeta,
+      argValues: [encodedWallet],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiWalletScanToTipConstMeta => const TaskConstMeta(
         debugName: "scan_to_tip",
         argNames: ["encodedWallet"],
       );
 
   @override
-  Future<String> crateApiSimpleSetup(
+  Future<String> crateApiWalletSetup(
       {required String label,
       String? mnemonic,
       String? scanKey,
@@ -695,19 +725,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_u_32(birthday, serializer);
         sse_encode_String(network, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 21, port: port_);
+            funcId: 22, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleSetupConstMeta,
+      constMeta: kCrateApiWalletSetupConstMeta,
       argValues: [label, mnemonic, scanKey, spendKey, birthday, network],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleSetupConstMeta => const TaskConstMeta(
+  TaskConstMeta get kCrateApiWalletSetupConstMeta => const TaskConstMeta(
         debugName: "setup",
         argNames: [
           "label",
@@ -720,58 +750,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String? crateApiSimpleShowMnemonic({required String encodedWallet}) {
+  String? crateApiWalletShowMnemonic({required String encodedWallet}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_opt_String,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleShowMnemonicConstMeta,
+      constMeta: kCrateApiWalletShowMnemonicConstMeta,
       argValues: [encodedWallet],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleShowMnemonicConstMeta => const TaskConstMeta(
+  TaskConstMeta get kCrateApiWalletShowMnemonicConstMeta => const TaskConstMeta(
         debugName: "show_mnemonic",
         argNames: ["encodedWallet"],
       );
 
   @override
-  String crateApiSimpleSignPsbt(
-      {required String encodedWallet,
-      required String psbt,
-      required bool finalize}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(encodedWallet, serializer);
-        sse_encode_String(psbt, serializer);
-        sse_encode_bool(finalize, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23)!;
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_String,
-        decodeErrorData: sse_decode_AnyhowException,
-      ),
-      constMeta: kCrateApiSimpleSignPsbtConstMeta,
-      argValues: [encodedWallet, psbt, finalize],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleSignPsbtConstMeta => const TaskConstMeta(
-        debugName: "sign_psbt",
-        argNames: ["encodedWallet", "psbt", "finalize"],
-      );
-
-  @override
-  Future<void> crateApiSimpleSyncBlockchain() {
+  Future<void> crateApiWalletSyncBlockchain() {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -782,13 +784,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeSuccessData: sse_decode_unit,
         decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiSimpleSyncBlockchainConstMeta,
+      constMeta: kCrateApiWalletSyncBlockchainConstMeta,
       argValues: [],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleSyncBlockchainConstMeta =>
+  TaskConstMeta get kCrateApiWalletSyncBlockchainConstMeta =>
       const TaskConstMeta(
         debugName: "sync_blockchain",
         argNames: [],
