@@ -1,7 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
+import 'package:donationwallet/rust/api/wallet.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -71,9 +71,8 @@ class SettingsScreen extends StatelessWidget {
         final walletState = Provider.of<WalletState>(context, listen: false);
         try {
           final wallet = await walletState.getWalletFromSecureStorage();
-          final updatedWallet = changeBirthday(
-              encodedWallet: wallet,
-              birthday: value);
+          final updatedWallet =
+              changeBirthday(encodedWallet: wallet, birthday: value);
           walletState.saveWalletToSecureStorage(updatedWallet);
           callback(null);
           await walletState.updateWalletStatus();

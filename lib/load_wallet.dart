@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/home.dart';
+import 'package:donationwallet/rust/api/wallet.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

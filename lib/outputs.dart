@@ -1,7 +1,7 @@
+import 'package:donationwallet/rust/api/structs.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:donationwallet/rust/api/simple.dart';
 
 class OutputsScreen extends StatelessWidget {
   const OutputsScreen({super.key});
