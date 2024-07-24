@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:donationwallet/main.dart';
 import 'package:donationwallet/rust/api/simple.dart';
 import 'package:donationwallet/rust/logger.dart';
+import 'package:donationwallet/services/synchronization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
