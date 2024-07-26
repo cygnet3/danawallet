@@ -2,13 +2,63 @@ import 'dart:async';
 
 import 'package:donationwallet/home.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
+import 'package:donationwallet/states/theme_notifier.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-class LoadWalletScreen extends StatelessWidget {
+class LoadWalletScreen extends StatefulWidget {
   const LoadWalletScreen({super.key});
+
+  @override
+  LoadWalletScreenState createState() => LoadWalletScreenState();
+}
+
+class LoadWalletScreenState extends State<LoadWalletScreen> {
+  String _network = "signet";
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _updateTheme(String? newValue) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+
+    ThemeData newTheme;
+    switch (newValue) {
+      case 'main':
+        newTheme = ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
+          useMaterial3: true,
+        );
+        break;
+      case 'signet':
+        newTheme = ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
+          useMaterial3: true,
+        );
+        break;
+      case 'testnet':
+        newTheme = ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+          useMaterial3: true,
+        );
+        break;
+      default:
+        newTheme = ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey),
+          useMaterial3: true,
+        );
+        break;
+    }
+
+    themeNotifier.setTheme(newTheme);
+    setState(() {
+      _network = newValue!;
+    });
+  }
 
   Future<void> _setup(BuildContext context, String? mnemonic, String? scanKey,
       String? spendKey, int birthday) async {
@@ -28,7 +78,7 @@ class LoadWalletScreen extends StatelessWidget {
         scanKey: scanKey,
         spendKey: spendKey,
         birthday: birthday,
-        network: walletState.network,
+        network: _network,
       );
       await walletState.saveWalletToSecureStorage(wallet);
       await walletState.updateWalletStatus();
@@ -234,6 +284,29 @@ class LoadWalletScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Spacer(),
+            const Text(
+              'Select a Network',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            DropdownButton<String>(
+              hint: const Text('Select a network'),
+              value: _network,
+              onChanged: (String? newValue) {
+                _updateTheme(newValue);
+              },
+              items: [
+                {'display': 'Bitcoin Mainnet', 'value': 'main'},
+                {'display': 'Signet', 'value': 'signet'},
+                {'display': 'Test', 'value': 'testnet'}
+              ].map<DropdownMenuItem<String>>((Map<String, String> item) {
+                return DropdownMenuItem<String>(
+                  value: item['value'],
+                  child: Text(item['display']!),
+                );
+              }).toList(),
+            ),
             const Spacer(),
             Expanded(
               child: _buildButton(
