@@ -4,6 +4,7 @@ import 'package:donationwallet/rust/frb_generated.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
 import 'package:donationwallet/states/wallet_state.dart';
+import 'package:donationwallet/states/theme_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,9 +13,18 @@ void main() async {
   await RustLib.init();
   final walletState = WalletState();
   await walletState.initialize();
+  final themeNotifier = ThemeNotifier(
+    ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.green),
+      useMaterial3: true,
+    ),
+  );
   runApp(
-    ChangeNotifierProvider.value(
-      value: walletState,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: walletState),
+        ChangeNotifierProvider.value(value: themeNotifier),
+      ],
       child: const SilentPaymentApp(),
     ),
   );
@@ -25,13 +35,12 @@ class SilentPaymentApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+
     return MaterialApp(
       title: 'Donation wallet',
       navigatorKey: globalNavigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.green),
-        useMaterial3: true,
-      ),
+      theme: themeNotifier.themeData,
       home: const HomeScreen(),
     );
   }
