@@ -24,11 +24,17 @@ use crate::{
 
 use super::client::FilterResponse;
 
-const HOST: &str = "https://silentpayments.dev/blindbit/signet";
+const HOST: &str = "https://silentpayments.dev/blindbit";
 const CONCURRENT_FILTER_REQUESTS: usize = 200;
 
-pub async fn sync_blockchain() -> Result<()> {
-    let blindbit_client = BlindbitClient::new(HOST.to_string());
+pub async fn sync_blockchain(network: String) -> Result<()> {
+    let blindbit_client: BlindbitClient;
+    match network.as_str() {
+        "main" => blindbit_client = BlindbitClient::new(format!("{}/mainnet", HOST)),
+        "test" => blindbit_client = BlindbitClient::new(format!("{}/testnet", HOST)),
+        "signet" => blindbit_client = BlindbitClient::new(format!("{}/signet", HOST)),
+        _ => return Err(Error::msg("unknown network"))
+    }
 
     let height = blindbit_client.block_height().await?;
 
@@ -39,8 +45,14 @@ pub async fn sync_blockchain() -> Result<()> {
     Ok(())
 }
 
-pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet) -> Result<()> {
-    let blindbit_client = BlindbitClient::new(HOST.to_string());
+pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet, network: String) -> Result<()> {
+    let blindbit_client: BlindbitClient;
+    match network.as_str() {
+        "main" => blindbit_client = BlindbitClient::new(format!("{}/mainnet", HOST)),
+        "test" => blindbit_client = BlindbitClient::new(format!("{}/testnet", HOST)),
+        "signet" => blindbit_client = BlindbitClient::new(format!("{}/signet", HOST)),
+        _ => return Err(Error::msg("unknown network"))
+    }
 
     let last_scan = sp_wallet.get_outputs().get_last_scan();
     let tip_height = blindbit_client.block_height().await?;

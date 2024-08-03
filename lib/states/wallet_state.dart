@@ -15,7 +15,7 @@ class WalletState extends ChangeNotifier {
   int tip = 0;
   double progress = 0.0;
   bool scanning = false;
-  String network = 'signet';
+  String _network = '';
   bool walletLoaded = false;
   String address = "";
   Map<String, OwnedOutput> ownedOutputs = {};
@@ -29,14 +29,17 @@ class WalletState extends ChangeNotifier {
   late StreamSubscription amountStreamSubscription;
   late StreamSubscription syncStreamSubscription;
 
-  final _synchronizationService = SynchronizationService();
-
   WalletState();
+
+  String get network => _network;
+  set network(String value) {
+    _network = value;
+    notifyListeners();
+  }
 
   Future<void> initialize() async {
     try {
       await _initStreams();
-      _synchronizationService.startSyncTimer();
     } catch (e) {
       rethrow;
     }
@@ -87,12 +90,13 @@ class WalletState extends ChangeNotifier {
     scanProgressSubscription.cancel();
     amountStreamSubscription.cancel();
     syncStreamSubscription.cancel();
-    _synchronizationService.stopSyncTimer();
     super.dispose();
   }
 
   Future<void> reset() async {
     amount = BigInt.zero;
+    network = "";
+    tip = 0;
     birthday = 0;
     lastScan = 0;
     progress = 0.0;
@@ -138,6 +142,7 @@ class WalletState extends ChangeNotifier {
     lastScan = walletInfo.lastScan;
     ownedOutputs = walletInfo.outputs;
     txHistory = walletInfo.txHistory;
+    network = walletInfo.network;
     notifyListeners();
   }
 
@@ -203,9 +208,9 @@ class WalletState extends ChangeNotifier {
   Future<void> scan() async {
     try {
       scanning = true;
-      await syncBlockchain();
+      await syncBlockchain(network: network);
       final wallet = await getWalletFromSecureStorage();
-      final updatedWallet = await scanToTip(encodedWallet: wallet);
+      final updatedWallet = await scanToTip(encodedWallet: wallet, network: network);
       print(updatedWallet);
       await saveWalletToSecureStorage(updatedWallet);
       await updateWalletStatus();

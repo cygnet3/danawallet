@@ -240,6 +240,7 @@ impl From<RecordedTransactionOutgoing> for sp_client::spclient::RecordedTransact
 
 pub struct WalletStatus {
     pub address: String,
+    pub network: String,
     pub balance: u64,
     pub birthday: u32,
     pub last_scan: u32,

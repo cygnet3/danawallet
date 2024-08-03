@@ -24,13 +24,7 @@ pub async fn setup(
 ) -> Result<String> {
     let sp_client: SpClient;
 
-    let network = match network.as_str() {
-        "main" => Network::Bitcoin,
-        "testnet" => Network::Testnet,
-        "signet" => Network::Signet,
-        "regtest" => Network::Regtest,
-        _ => return Err(Error::msg("unknown network")),
-    };
+    let network = Network::from_core_arg(&network)?;
 
     match (mnemonic, scan_key, spend_key) {
         (None, None, None) => {
@@ -105,14 +99,14 @@ pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
     Ok(serde_json::to_string(&wallet).unwrap())
 }
 
-pub async fn sync_blockchain() -> Result<()> {
-    blindbit::logic::sync_blockchain().await
+pub async fn sync_blockchain(network: String) -> Result<()> {
+    blindbit::logic::sync_blockchain(network).await
 }
 
-pub async fn scan_to_tip(encoded_wallet: String) -> Result<String> {
+pub async fn scan_to_tip(encoded_wallet: String, network: String) -> Result<String> {
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    blindbit::logic::scan_blocks(0, &mut wallet).await?;
-    Ok(serde_json::to_string(&wallet).unwrap())
+    blindbit::logic::scan_blocks(0, &mut wallet, network).await?;
+    Ok(serde_json::to_string(&wallet)?)
 }
 
 #[flutter_rust_bridge::frb(sync)]
@@ -120,6 +114,7 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<WalletStatus> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     Ok(WalletStatus {
         address: wallet.get_client().get_receiving_address(),
+        network: wallet.get_client().get_network().to_core_arg().to_owned(),
         balance: wallet.get_outputs().get_balance().to_sat(),
         birthday: wallet.get_outputs().get_birthday(),
         last_scan: wallet.get_outputs().get_last_scan(),
