@@ -187,6 +187,7 @@ class RecordedTransactionOutgoing {
 
 class WalletStatus {
   final String address;
+  final String network;
   final BigInt balance;
   final int birthday;
   final int lastScan;
@@ -195,6 +196,7 @@ class WalletStatus {
 
   const WalletStatus({
     required this.address,
+    required this.network,
     required this.balance,
     required this.birthday,
     required this.lastScan,
@@ -205,6 +207,7 @@ class WalletStatus {
   @override
   int get hashCode =>
       address.hashCode ^
+      network.hashCode ^
       balance.hashCode ^
       birthday.hashCode ^
       lastScan.hashCode ^
@@ -217,6 +220,7 @@ class WalletStatus {
       other is WalletStatus &&
           runtimeType == other.runtimeType &&
           address == other.address &&
+          network == other.network &&
           balance == other.balance &&
           birthday == other.birthday &&
           lastScan == other.lastScan &&

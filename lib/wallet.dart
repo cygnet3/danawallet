@@ -2,14 +2,36 @@ import 'dart:async';
 
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/global_functions.dart';
+import 'package:donationwallet/services/synchronization_service.dart';
 import 'package:donationwallet/spend.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 
-class WalletScreen extends StatelessWidget {
+class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
+
+  @override
+  WalletScreenState createState() => WalletScreenState();
+}
+
+class WalletScreenState extends State<WalletScreen> {
+  late SynchronizationService _synchronizationService;
+
+  @override
+  void initState() {
+    super.initState(); 
+    _synchronizationService = SynchronizationService(context);
+    _synchronizationService.startSyncTimer();
+  }
+
+  @override
+  void dispose() {
+    _synchronizationService.stopSyncTimer();
+    super.dispose();
+  }
 
   Future<void> _updateOwnedOutputs(
       WalletState walletState, Function(Exception? e) callback) async {
@@ -63,7 +85,8 @@ class WalletScreen extends StatelessWidget {
     } else if (toScan == 0) {
       text = 'Up to date!';
     } else {
-      text = 'New blocks: $toScan';
+      text = 'tip: ${walletState.tip} lastScan: ${walletState.lastScan}';
+      // text = 'New blocks: $toScan';
     }
 
     return Text(

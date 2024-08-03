@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:donationwallet/home.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
-import 'package:donationwallet/states/theme_notifier.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class LoadWalletScreen extends StatefulWidget {
@@ -23,53 +23,34 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
     super.initState();
   }
 
-  void _updateTheme(String? newValue) {
-    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
-
-    ThemeData newTheme;
-    switch (newValue) {
-      case 'main':
-        newTheme = ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
-          useMaterial3: true,
-        );
-        break;
-      case 'signet':
-        newTheme = ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
-          useMaterial3: true,
-        );
-        break;
-      case 'testnet':
-        newTheme = ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-          useMaterial3: true,
-        );
-        break;
-      default:
-        newTheme = ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey),
-          useMaterial3: true,
-        );
-        break;
+  void _updateNetwork(String? newValue) {
+    if (newValue == null) {
+      throw Exception("Trying to update network with null value");
     }
 
-    themeNotifier.setTheme(newTheme);
     setState(() {
-      _network = newValue!;
+      _network = newValue;
     });
   }
 
   Future<void> _setup(BuildContext context, String? mnemonic, String? scanKey,
-      String? spendKey, int birthday) async {
+      String? spendKey) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     try {
       await walletState.updateWalletStatus();
       walletState.walletLoaded = true;
       return;
     } catch (e) {
-      print("Creating a new wallet");
+      Logger().i("Creating a new wallet");
     }
+
+    try {
+      await syncBlockchain(network: _network);
+    } catch (e) {
+      rethrow;
+    }
+
+    final birthday = walletState.tip;
 
     try {
       final wallet = await setup(
@@ -183,7 +164,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                 }
 
                 try {
-                  await _setup(context, null, scanKey, spendKey, birthday);
+                  await _setup(context, null, scanKey, spendKey);
                   onSetupComplete(null);
                 } on Exception catch (e) {
                   onSetupComplete(e);
@@ -262,7 +243,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                 final mnemonic = seedController.text;
                 final birthday = int.parse(birthdayController.text);
                 try {
-                  await _setup(context, mnemonic, null, null, birthday);
+                  await _setup(context, mnemonic, null, null);
                   onSetupComplete(null);
                 } on Exception catch (e) {
                   onSetupComplete(e);
@@ -294,12 +275,12 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
               hint: const Text('Select a network'),
               value: _network,
               onChanged: (String? newValue) {
-                _updateTheme(newValue);
+                _updateNetwork(newValue);
               },
               items: [
                 {'display': 'Bitcoin Mainnet', 'value': 'main'},
                 {'display': 'Signet', 'value': 'signet'},
-                {'display': 'Test', 'value': 'testnet'}
+                {'display': 'Test', 'value': 'test'}
               ].map<DropdownMenuItem<String>>((Map<String, String> item) {
                 return DropdownMenuItem<String>(
                   value: item['value'],
@@ -317,7 +298,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                   final walletState =
                       Provider.of<WalletState>(context, listen: false);
                   try {
-                    await _setup(context, null, null, null, walletState.tip);
+                    await _setup(context, null, null, null);
                   } catch (e) {
                     rethrow;
                   }

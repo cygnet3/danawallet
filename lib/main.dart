@@ -1,4 +1,3 @@
-import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/rust/frb_generated.dart';
 
 import 'package:donationwallet/global_functions.dart';
@@ -13,12 +12,7 @@ void main() async {
   await RustLib.init();
   final walletState = WalletState();
   await walletState.initialize();
-  final themeNotifier = ThemeNotifier(
-    ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.green),
-      useMaterial3: true,
-    ),
-  );
+  final themeNotifier = ThemeNotifier("signet");
   runApp(
     MultiProvider(
       providers: [
