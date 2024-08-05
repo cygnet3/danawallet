@@ -3,10 +3,11 @@ use std::{collections::HashMap, str::FromStr};
 use bip39::rand::RngCore;
 use bitcoin::{consensus::encode::serialize_hex, OutPoint, Psbt};
 use log::info;
+use pushtx::Network;
 use sp_client::spclient::{SpClient, SpWallet};
 
 use super::structs::{Amount, OwnedOutput, Recipient};
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Error, Result};
 
 #[flutter_rust_bridge::frb(sync)]
 pub fn create_new_psbt(
@@ -82,13 +83,23 @@ pub fn extract_tx_from_psbt(psbt: String) -> Result<String> {
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn broadcast_tx(tx: String) -> Result<String> {
+pub fn broadcast_tx(tx: String, network: String) -> Result<String> {
     let tx: pushtx::Transaction = tx.parse().unwrap();
 
     let txid = tx.txid();
 
+    let network = bitcoin::Network::from_core_arg(&network)?;
+
+    let network = match network {
+        bitcoin::Network::Bitcoin => Network::Mainnet,
+        bitcoin::Network::Testnet => Network::Testnet,
+        bitcoin::Network::Signet => Network::Signet,
+        bitcoin::Network::Regtest => Network::Regtest,
+        _ => return Err(Error::msg("unknown network for broadcasting")),
+    };
+
     let opts = pushtx::Opts {
-        network: pushtx::Network::Signet,
+        network,
         ..Default::default()
     };
 

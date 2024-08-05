@@ -94,8 +94,11 @@ fn wire__crate__api__psbt__broadcast_tx_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_tx = <String>::sse_decode(&mut deserializer);
+            let api_network = <String>::sse_decode(&mut deserializer);
             deserializer.end();
-            transform_result_sse((move || crate::api::psbt::broadcast_tx(api_tx))())
+            transform_result_sse((move || {
+                crate::api::psbt::broadcast_tx(api_tx, api_network)
+            })())
         },
     )
 }

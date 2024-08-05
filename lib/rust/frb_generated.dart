@@ -76,7 +76,7 @@ abstract class RustLibApi extends BaseApi {
   String crateApiPsbtAddFeeForFeeRate(
       {required String psbt, required int feeRate, required String payer});
 
-  String crateApiPsbtBroadcastTx({required String tx});
+  String crateApiPsbtBroadcastTx({required String tx, required String network});
 
   String crateApiPsbtCreateNewPsbt(
       {required String encodedWallet,
@@ -188,11 +188,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String crateApiPsbtBroadcastTx({required String tx}) {
+  String crateApiPsbtBroadcastTx(
+      {required String tx, required String network}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(tx, serializer);
+        sse_encode_String(network, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
       },
       codec: SseCodec(
@@ -200,14 +202,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiPsbtBroadcastTxConstMeta,
-      argValues: [tx],
+      argValues: [tx, network],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiPsbtBroadcastTxConstMeta => const TaskConstMeta(
         debugName: "broadcast_tx",
-        argNames: ["tx"],
+        argNames: ["tx", "network"],
       );
 
   @override
