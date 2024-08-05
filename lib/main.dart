@@ -3,6 +3,7 @@ import 'package:donationwallet/rust/frb_generated.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
 import 'package:donationwallet/states/chain_state.dart';
+import 'package:donationwallet/states/spend_state.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:donationwallet/states/theme_notifier.dart';
 import 'package:flutter/material.dart';
@@ -13,14 +14,16 @@ void main() async {
   await RustLib.init();
   final walletState = WalletState();
   await walletState.initialize();
-  final themeNotifier = ThemeNotifier("signet");
+  final themeNotifier = ThemeNotifier();
   final chainState = ChainState();
+  final spendState = SpendState();
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: walletState),
         ChangeNotifierProvider.value(value: themeNotifier),
         ChangeNotifierProvider.value(value: chainState),
+        ChangeNotifierProvider.value(value: spendState),
       ],
       child: const SilentPaymentApp(),
     ),

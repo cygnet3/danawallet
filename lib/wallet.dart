@@ -74,9 +74,7 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget showWalletStateText(context) {
-    final walletState = Provider.of<WalletState>(context);
-    final chainState = Provider.of<ChainState>(context);
+  Widget showWalletStateText(WalletState walletState, ChainState chainState) {
     final toScan = chainState.tip - walletState.lastScan;
     String text;
 
@@ -95,9 +93,48 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
+  Widget buildBottomButtons(WalletState walletState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: BitcoinButtonFilled(
+              title: 'Receive',
+              onPressed: () {
+                _showReceiveDialog(context, walletState.address);
+              },
+            ),
+          ),
+          const SizedBox(width: 10), // Spacing between the buttons
+          Expanded(
+            child: BitcoinButtonFilled(
+              title: 'Send',
+              onPressed: () async {
+                // Logic for send button
+                await _updateOwnedOutputs(walletState, (Exception? e) async {
+                  if (e != null) {
+                    throw e;
+                  } else {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SpendScreen()));
+                  }
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
+    final chainState = Provider.of<ChainState>(context);
 
     Widget progressWidget = walletState.scanning
         ? SizedBox(
@@ -147,57 +184,15 @@ class WalletScreenState extends State<WalletScreen> {
                 const Spacer(),
                 progressWidget,
                 const Spacer(),
-                showWalletStateText(context),
+                showWalletStateText(walletState, chainState),
                 const Spacer(),
-                buildBottomButtons(context),
+                buildBottomButtons(walletState),
                 const Spacer(),
               ],
             ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget buildBottomButtons(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: BitcoinButtonFilled(
-              title: 'Receive',
-              onPressed: () {
-                final walletState =
-                    Provider.of<WalletState>(context, listen: false);
-                _showReceiveDialog(context, walletState.address);
-              },
-            ),
-          ),
-          const SizedBox(width: 10), // Spacing between the buttons
-          Expanded(
-            child: BitcoinButtonFilled(
-              title: 'Send',
-              onPressed: () async {
-                // Logic for send button
-                final walletState =
-                    Provider.of<WalletState>(context, listen: false);
-                await _updateOwnedOutputs(walletState, (Exception? e) async {
-                  if (e != null) {
-                    throw e;
-                  } else {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SpendScreen()));
-                  }
-                });
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

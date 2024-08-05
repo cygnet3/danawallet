@@ -40,11 +40,12 @@ class HomeScreenState extends State<HomeScreen> {
     try {
       await walletState.updateWalletStatus();
       await chainState.initialize(walletState.network);
+      themeNotifier.setTheme(walletState.network);
+
       walletState.walletLoaded = true;
     } catch (e) {
       walletState.walletLoaded = false;
     }
-    themeNotifier.setTheme(walletState.network);
     setState(() {
       isLoading = false;
     });

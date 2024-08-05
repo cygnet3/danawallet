@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class ThemeNotifier extends ChangeNotifier {
   late ThemeData _themeData;
 
-  ThemeNotifier(String network) : _themeData = _getThemeFromNetwork(network);
+  ThemeNotifier() : _themeData = _getThemeFromNetwork(null);
 
   ThemeData get themeData => _themeData;
 
-  static ThemeData _getThemeFromNetwork(String network) {
+  static ThemeData _getThemeFromNetwork(String? network) {
     switch (network) {
       case 'main':
         return ThemeData(
@@ -32,7 +32,7 @@ class ThemeNotifier extends ChangeNotifier {
     }
   }
 
-  void setTheme(String network) {
+  void setTheme(String? network) {
     _themeData = _getThemeFromNetwork(network);
     notifyListeners();
   }
