@@ -6,7 +6,7 @@ use bitcoin::{
     bip158::BlockFilter,
     hashes::{sha256, Hash},
     secp256k1::{PublicKey, Scalar},
-    Amount, BlockHash, OutPoint, Txid, XOnlyPublicKey,
+    Amount, BlockHash, Network, OutPoint, Txid, XOnlyPublicKey,
 };
 use futures::{stream, StreamExt};
 use log::info;
@@ -25,16 +25,22 @@ use crate::{
 use super::client::FilterResponse;
 
 const HOST: &str = "https://silentpayments.dev/blindbit";
+const PATH_MAINNET: &str = "/mainnet";
+const PATH_TESTNET: &str = "/testnet";
+const PATH_SIGNET: &str = "/signet";
 const CONCURRENT_FILTER_REQUESTS: usize = 200;
 
-pub async fn sync_blockchain(network: String) -> Result<()> {
-    let blindbit_client: BlindbitClient;
-    match network.as_str() {
-        "main" => blindbit_client = BlindbitClient::new(format!("{}/mainnet", HOST)),
-        "test" => blindbit_client = BlindbitClient::new(format!("{}/testnet", HOST)),
-        "signet" => blindbit_client = BlindbitClient::new(format!("{}/signet", HOST)),
-        _ => return Err(Error::msg("unknown network"))
+fn get_blindbit_client(network: Network) -> Result<BlindbitClient> {
+    match network {
+        Network::Bitcoin => Ok(BlindbitClient::new(format!("{}{}", HOST, PATH_MAINNET))),
+        Network::Testnet => Ok(BlindbitClient::new(format!("{}{}", HOST, PATH_TESTNET))),
+        Network::Signet => Ok(BlindbitClient::new(format!("{}{}", HOST, PATH_SIGNET))),
+        _ => Err(Error::msg("unknown network")),
     }
+}
+
+pub async fn sync_blockchain(network: Network) -> Result<()> {
+    let blindbit_client = get_blindbit_client(network)?;
 
     let height = blindbit_client.block_height().await?;
 
@@ -45,14 +51,12 @@ pub async fn sync_blockchain(network: String) -> Result<()> {
     Ok(())
 }
 
-pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet, network: String) -> Result<()> {
-    let blindbit_client: BlindbitClient;
-    match network.as_str() {
-        "main" => blindbit_client = BlindbitClient::new(format!("{}/mainnet", HOST)),
-        "test" => blindbit_client = BlindbitClient::new(format!("{}/testnet", HOST)),
-        "signet" => blindbit_client = BlindbitClient::new(format!("{}/signet", HOST)),
-        _ => return Err(Error::msg("unknown network"))
-    }
+pub async fn scan_blocks(
+    mut n_blocks_to_scan: u32,
+    sp_wallet: &mut SpWallet,
+    network: Network,
+) -> Result<()> {
+    let blindbit_client = get_blindbit_client(network)?;
 
     let last_scan = sp_wallet.get_outputs().get_last_scan();
     let tip_height = blindbit_client.block_height().await?;
