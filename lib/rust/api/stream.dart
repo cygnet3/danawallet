@@ -13,9 +13,6 @@ Stream<LogEntry> createLogStream(
     RustLib.instance.api.crateApiStreamCreateLogStream(
         level: level, logDependencies: logDependencies);
 
-Stream<SyncStatus> createSyncStream() =>
-    RustLib.instance.api.crateApiStreamCreateSyncStream();
-
 Stream<ScanProgress> createScanProgressStream() =>
     RustLib.instance.api.crateApiStreamCreateScanProgressStream();
 

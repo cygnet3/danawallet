@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/rust/api/wallet.dart';
-import 'package:donationwallet/states/wallet_state.dart';
+import 'package:donationwallet/states/chain_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +25,8 @@ class SynchronizationService {
 
   Future<void> performSynchronizationTask() async {
     try {
-      await syncBlockchain(network: Provider.of<WalletState>(context, listen: false).network);
+      final chainState = Provider.of<ChainState>(context, listen: false);
+      await chainState.updateChainTip();
     } catch (e) {
       displayNotification(e.toString());
     }

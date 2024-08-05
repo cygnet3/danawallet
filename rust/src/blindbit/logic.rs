@@ -16,11 +16,8 @@ use sp_client::{
     spclient::{OutputList, SpWallet},
 };
 
+use crate::blindbit::client::{BlindbitClient, UtxoResponse};
 use crate::stream::{send_amount_update, send_scan_progress, ScanProgress};
-use crate::{
-    blindbit::client::{BlindbitClient, UtxoResponse},
-    stream::{send_sync_progress, SyncStatus},
-};
 
 use super::client::FilterResponse;
 
@@ -39,23 +36,15 @@ fn get_blindbit_client(network: Network) -> Result<BlindbitClient> {
     }
 }
 
-pub async fn sync_blockchain(network: Network) -> Result<()> {
+pub async fn get_chain_height(network: Network) -> Result<u32> {
     let blindbit_client = get_blindbit_client(network)?;
 
-    let height = blindbit_client.block_height().await?;
-
-    send_sync_progress(SyncStatus {
-        blockheight: height,
-    });
-
-    Ok(())
+    blindbit_client.block_height().await
 }
 
-pub async fn scan_blocks(
-    mut n_blocks_to_scan: u32,
-    sp_wallet: &mut SpWallet,
-    network: Network,
-) -> Result<()> {
+pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet) -> Result<()> {
+    let network = sp_wallet.get_client().get_network();
+
     let blindbit_client = get_blindbit_client(network)?;
 
     let last_scan = sp_wallet.get_outputs().get_last_scan();

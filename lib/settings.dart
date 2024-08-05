@@ -2,6 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
+import 'package:donationwallet/states/chain_state.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,13 +11,13 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   Future<void> _removeWallet(
-      WalletState walletState, Function(Exception? e) callback) async {
+    WalletState walletState,
+    ChainState chainState,
+  ) async {
     try {
       await walletState.rmWalletFromSecureStorage();
       await walletState.reset();
-      callback(null);
-    } on Exception catch (e) {
-      callback(e);
+      chainState.reset();
     } catch (e) {
       rethrow;
     }
@@ -87,6 +88,9 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final walletState = Provider.of<WalletState>(context);
+    final chainState = Provider.of<ChainState>(context);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -94,9 +98,6 @@ class SettingsScreen extends StatelessWidget {
           BitcoinButtonOutlined(
             title: 'Show seed phrase',
             onPressed: () async {
-              final walletState =
-                  Provider.of<WalletState>(context, listen: false);
-
               const title = 'Backup seed phrase';
               final text = await _getSeedPhrase(walletState) ??
                   'Seed phrase unknown! Did you import from keys?';
@@ -122,21 +123,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           BitcoinButtonOutlined(
             title: 'Wipe wallet',
-            onPressed: () async {
-              final walletState =
-                  Provider.of<WalletState>(context, listen: false);
-              await _removeWallet(walletState, (Exception? e) async {
-                if (e != null) {
-                  throw e;
-                } else {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                    (Route<dynamic> route) => false,
-                  );
-                }
-              });
-            },
+            onPressed: () => _removeWallet(walletState, chainState),
           ),
         ],
       ),
