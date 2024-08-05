@@ -16,5 +16,8 @@ Stream<LogEntry> createLogStream(
 Stream<ScanProgress> createScanProgressStream() =>
     RustLib.instance.api.crateApiStreamCreateScanProgressStream();
 
+Stream<ScanResult> createScanResultStream() =>
+    RustLib.instance.api.crateApiStreamCreateScanResultStream();
+
 Stream<BigInt> createAmountStream() =>
     RustLib.instance.api.crateApiStreamCreateAmountStream();
