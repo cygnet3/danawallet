@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:donationwallet/home.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
 import 'package:donationwallet/states/chain_state.dart';
+import 'package:donationwallet/states/theme_notifier.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,11 +34,16 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
     });
   }
 
-  Future<void> _setup(BuildContext context, String? mnemonic, String? scanKey,
-      String? spendKey, int? birthday) async {
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final chainState = Provider.of<ChainState>(context, listen: false);
+  Future<void> _setup(
+      WalletState walletState,
+      ChainState chainState,
+      ThemeNotifier themeNotifier,
+      String? mnemonic,
+      String? scanKey,
+      String? spendKey,
+      int? birthday) async {
     await chainState.initialize(_network);
+    themeNotifier.setTheme(_network);
 
     try {
       await walletState.updateWalletStatus();
@@ -73,8 +78,12 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
     }
   }
 
-  Future<void> _showKeysInputDialog(BuildContext context, bool watchOnly,
-      Function(Exception? e) onSetupComplete) async {
+  Future<void> _showKeysInputDialog(
+    WalletState walletState,
+    ChainState chainState,
+    ThemeNotifier themeNotifier,
+    bool watchOnly,
+  ) async {
     TextEditingController scanKeyController = TextEditingController();
     TextEditingController spendKeyController = TextEditingController();
     TextEditingController birthdayController = TextEditingController();
@@ -168,10 +177,8 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                 }
 
                 try {
-                  await _setup(context, null, scanKey, spendKey, birthday);
-                  onSetupComplete(null);
-                } on Exception catch (e) {
-                  onSetupComplete(e);
+                  await _setup(walletState, chainState, themeNotifier, null,
+                      scanKey, spendKey, birthday);
                 } catch (e) {
                   rethrow;
                 }
@@ -184,7 +191,10 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
   }
 
   Future<void> _showSeedInputDialog(
-      BuildContext context, Function(Exception?) onSetupComplete) async {
+    WalletState walletState,
+    ChainState chainState,
+    ThemeNotifier themeNotifier,
+  ) async {
     TextEditingController seedController = TextEditingController();
     TextEditingController birthdayController = TextEditingController();
 
@@ -247,10 +257,8 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                 final mnemonic = seedController.text;
                 final birthday = int.parse(birthdayController.text);
                 try {
-                  await _setup(context, mnemonic, null, null, birthday);
-                  onSetupComplete(null);
-                } on Exception catch (e) {
-                  onSetupComplete(e);
+                  await _setup(walletState, chainState, themeNotifier, mnemonic,
+                      null, null, birthday);
                 } catch (e) {
                   rethrow;
                 }
@@ -264,6 +272,10 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final chainState = Provider.of<ChainState>(context, listen: false);
+    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+
     return Scaffold(
         appBar: AppBar(
           title: const Text('Wallet creation/restoration'),
@@ -303,17 +315,11 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                     context,
                     'Create New Wallet',
                     () async {
-                      final navigator = Navigator.of(context);
-                      final walletState =
-                          Provider.of<WalletState>(context, listen: false);
                       try {
-                        await _setup(context, null, null, null, null);
+                        await _setup(walletState, chainState, themeNotifier,
+                            null, null, null, null);
                       } catch (e) {
                         rethrow;
-                      }
-                      if (walletState.walletLoaded) {
-                        navigator.pushReplacement(MaterialPageRoute(
-                            builder: (context) => const HomeScreen()));
                       }
                     },
                   ),
@@ -322,18 +328,12 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                   child: _buildButton(
                     context,
                     'Restore from seed',
-                    () async {
-                      final navigator = Navigator.of(context);
-                      final walletState =
-                          Provider.of<WalletState>(context, listen: false);
-                      await _showSeedInputDialog(context, (Exception? e) async {
-                        if (e != null) {
-                          throw e;
-                        } else if (walletState.walletLoaded) {
-                          navigator.pushReplacement(MaterialPageRoute(
-                              builder: (context) => const HomeScreen()));
-                        }
-                      });
+                    () {
+                      _showSeedInputDialog(
+                        walletState,
+                        chainState,
+                        themeNotifier,
+                      );
                     },
                   ),
                 ),
@@ -341,19 +341,9 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                   child: _buildButton(
                     context,
                     'Restore from keys',
-                    () async {
-                      final navigator = Navigator.of(context);
-                      final walletState =
-                          Provider.of<WalletState>(context, listen: false);
-                      await _showKeysInputDialog(context, false,
-                          (Exception? e) async {
-                        if (e != null) {
-                          throw e;
-                        } else if (walletState.walletLoaded) {
-                          navigator.pushReplacement(MaterialPageRoute(
-                              builder: (context) => const HomeScreen()));
-                        }
-                      });
+                    () {
+                      _showKeysInputDialog(
+                          walletState, chainState, themeNotifier, false);
                     },
                   ),
                 ),
@@ -361,19 +351,9 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                   child: _buildButton(
                     context,
                     'Watch-only',
-                    () async {
-                      final navigator = Navigator.of(context);
-                      final walletState =
-                          Provider.of<WalletState>(context, listen: false);
-                      await _showKeysInputDialog(context, true,
-                          (Exception? e) async {
-                        if (e != null) {
-                          throw e;
-                        } else if (walletState.walletLoaded) {
-                          navigator.pushReplacement(MaterialPageRoute(
-                              builder: (context) => const HomeScreen()));
-                        }
-                      });
+                    () {
+                      _showKeysInputDialog(
+                          walletState, chainState, themeNotifier, true);
                     },
                   ),
                 ),

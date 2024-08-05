@@ -4,6 +4,7 @@ import 'package:donationwallet/destination.dart';
 import 'package:donationwallet/rust/api/psbt.dart';
 import 'package:donationwallet/rust/api/structs.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
+import 'package:donationwallet/states/spend_state.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -147,9 +148,11 @@ class SpendScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextEditingController feeRateController = TextEditingController();
 
-    final walletState = Provider.of<WalletState>(context);
-    final selectedOutputs = walletState.selectedOutputs;
-    final recipients = walletState.recipients;
+    final spendState = Provider.of<SpendState>(context, listen: true);
+    final walletState = Provider.of<WalletState>(context, listen: false);
+
+    final selectedOutputs = spendState.selectedOutputs;
+    final recipients = spendState.recipients;
 
     return Scaffold(
       appBar: AppBar(
@@ -164,7 +167,7 @@ class SpendScreen extends StatelessWidget {
             SummaryWidget(
                 displayText: selectedOutputs.isEmpty
                     ? "Tap here to choose which coin to spend"
-                    : "Spending ${selectedOutputs.length} output(s) for a total of ${walletState.outputSelectionTotalAmt()} sats available",
+                    : "Spending ${selectedOutputs.length} output(s) for a total of ${spendState.outputSelectionTotalAmt()} sats available",
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -175,7 +178,7 @@ class SpendScreen extends StatelessWidget {
             SummaryWidget(
                 displayText: recipients.isEmpty
                     ? "Tap here to add destinations"
-                    : "Sending to ${recipients.length} output(s) for a total of ${walletState.recipientTotalAmt()} sats",
+                    : "Sending to ${recipients.length} output(s) for a total of ${spendState.recipientTotalAmt()} sats",
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -199,29 +202,24 @@ class SpendScreen extends StatelessWidget {
                 if (fees == null) {
                   throw Exception("No fees input");
                 }
-                final walletState =
-                    Provider.of<WalletState>(context, listen: false);
                 final wallet = await walletState.getWalletFromSecureStorage();
                 try {
-                  final unsignedPsbt = _newTransactionWithFees(
-                      wallet,
-                      walletState.selectedOutputs,
-                      walletState.recipients,
-                      fees);
+                  final unsignedPsbt = _newTransactionWithFees(wallet,
+                      spendState.selectedOutputs, spendState.recipients, fees);
                   final signedPsbt = _signPsbt(wallet, unsignedPsbt);
                   final sentTxId =
                       _broadcastSignedPsbt(signedPsbt, walletState.network);
                   final markedAsSpentWallet = _markAsSpent(
-                      wallet, sentTxId, walletState.selectedOutputs);
+                      wallet, sentTxId, spendState.selectedOutputs);
                   final updatedWallet = _addTxToHistory(
                       markedAsSpentWallet,
                       sentTxId,
-                      walletState.selectedOutputs.keys.toList(),
-                      walletState.recipients);
+                      spendState.selectedOutputs.keys.toList(),
+                      spendState.recipients);
 
                   // Clear selections
-                  walletState.selectedOutputs.clear();
-                  walletState.recipients.clear();
+                  spendState.selectedOutputs.clear();
+                  spendState.recipients.clear();
 
                   // save the updated wallet
                   walletState.saveWalletToSecureStorage(updatedWallet);

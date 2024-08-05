@@ -1,5 +1,5 @@
 import 'package:donationwallet/rust/api/structs.dart';
-import 'package:donationwallet/states/wallet_state.dart';
+import 'package:donationwallet/states/spend_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -60,9 +60,8 @@ Future<void> _showAddRecipientDialog(
                 rethrow;
               }
 
-              final walletState =
-                  Provider.of<WalletState>(context, listen: false);
-              walletState.addRecipients(address, amount, 1);
+              final spendState = Provider.of<SpendState>(context);
+              spendState.addRecipients(address, amount, 1);
 
               addressController.clear();
               amountController.clear();
@@ -80,7 +79,7 @@ class DestinationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final walletState = Provider.of<WalletState>(context);
+    final spendState = Provider.of<SpendState>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -89,12 +88,12 @@ class DestinationScreen extends StatelessWidget {
       body: Stack(
         children: [
           ListView.builder(
-              itemCount: walletState.recipients.length,
+              itemCount: spendState.recipients.length,
               itemBuilder: (context, index) {
-                Recipient recipient = walletState.recipients[index];
+                Recipient recipient = spendState.recipients[index];
                 return GestureDetector(
                     onTap: () {
-                      walletState.rmRecipient(recipient.address);
+                      spendState.rmRecipient(recipient.address);
                     },
                     child: Card(
                       color: Colors.blue[100],

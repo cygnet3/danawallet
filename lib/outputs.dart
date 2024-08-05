@@ -1,4 +1,5 @@
 import 'package:donationwallet/rust/api/structs.dart';
+import 'package:donationwallet/states/spend_state.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,8 @@ class OutputsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
-    final walletState = Provider.of<WalletState>(context);
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final spendState = Provider.of<SpendState>(context);
 
     return Scaffold(
         appBar: AppBar(
@@ -30,10 +32,10 @@ class OutputsScreen extends StatelessWidget {
                     OwnedOutput output = walletState
                         .getSpendableOutputs()[outpoint] as OwnedOutput;
                     bool isSelected =
-                        walletState.selectedOutputs.containsKey(outpoint);
+                        spendState.selectedOutputs.containsKey(outpoint);
                     return GestureDetector(
                         onTap: () {
-                          walletState.toggleOutputSelection(outpoint, output);
+                          spendState.toggleOutputSelection(outpoint, output);
                         },
                         child: Card(
                           color: isSelected ? Colors.blue[100] : null,
