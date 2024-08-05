@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:donationwallet/home.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
+import 'package:donationwallet/states/chain_state.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +37,9 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
   Future<void> _setup(BuildContext context, String? mnemonic, String? scanKey,
       String? spendKey, int? birthday) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
+    final chainState = Provider.of<ChainState>(context, listen: false);
+    await chainState.initialize(_network);
+
     try {
       await walletState.updateWalletStatus();
       walletState.walletLoaded = true;
@@ -46,12 +50,10 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
 
     if (birthday == null) {
       try {
-        await syncBlockchain(network: _network);
+        birthday = chainState.tip;
       } catch (e) {
         rethrow;
       }
-
-      birthday = walletState.tip;
     }
 
     try {
@@ -263,118 +265,123 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            const Text(
-              'Select a Network',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            DropdownButton<String>(
-              hint: const Text('Select a network'),
-              value: _network,
-              onChanged: (String? newValue) {
-                _updateNetwork(newValue);
-              },
-              items: [
-                {'display': 'Bitcoin Mainnet', 'value': 'main'},
-                {'display': 'Signet', 'value': 'signet'},
-                {'display': 'Test', 'value': 'test'}
-              ].map<DropdownMenuItem<String>>((Map<String, String> item) {
-                return DropdownMenuItem<String>(
-                  value: item['value'],
-                  child: Text(item['display']!),
-                );
-              }).toList(),
-            ),
-            const Spacer(),
-            Expanded(
-              child: _buildButton(
-                context,
-                'Create New Wallet',
-                () async {
-                  final navigator = Navigator.of(context);
-                  final walletState =
-                      Provider.of<WalletState>(context, listen: false);
-                  try {
-                    await _setup(context, null, null, null, null);
-                  } catch (e) {
-                    rethrow;
-                  }
-                  if (walletState.walletLoaded) {
-                    navigator.pushReplacement(MaterialPageRoute(
-                        builder: (context) => const HomeScreen()));
-                  }
-                },
-              ),
-            ),
-            Expanded(
-              child: _buildButton(
-                context,
-                'Restore from seed',
-                () async {
-                  final navigator = Navigator.of(context);
-                  final walletState =
-                      Provider.of<WalletState>(context, listen: false);
-                  await _showSeedInputDialog(context, (Exception? e) async {
-                    if (e != null) {
-                      throw e;
-                    } else if (walletState.walletLoaded) {
-                      navigator.pushReplacement(MaterialPageRoute(
-                          builder: (context) => const HomeScreen()));
-                    }
-                  });
-                },
-              ),
-            ),
-            Expanded(
-              child: _buildButton(
-                context,
-                'Restore from keys',
-                () async {
-                  final navigator = Navigator.of(context);
-                  final walletState =
-                      Provider.of<WalletState>(context, listen: false);
-                  await _showKeysInputDialog(context, false,
-                      (Exception? e) async {
-                    if (e != null) {
-                      throw e;
-                    } else if (walletState.walletLoaded) {
-                      navigator.pushReplacement(MaterialPageRoute(
-                          builder: (context) => const HomeScreen()));
-                    }
-                  });
-                },
-              ),
-            ),
-            Expanded(
-              child: _buildButton(
-                context,
-                'Watch-only',
-                () async {
-                  final navigator = Navigator.of(context);
-                  final walletState =
-                      Provider.of<WalletState>(context, listen: false);
-                  await _showKeysInputDialog(context, true,
-                      (Exception? e) async {
-                    if (e != null) {
-                      throw e;
-                    } else if (walletState.walletLoaded) {
-                      navigator.pushReplacement(MaterialPageRoute(
-                          builder: (context) => const HomeScreen()));
-                    }
-                  });
-                },
-              ),
-            ),
-            const Spacer(),
-          ],
+        appBar: AppBar(
+          title: const Text('Wallet creation/restoration'),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         ),
-      ),
-    );
+        body: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                const Text(
+                  'Select a Network',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                DropdownButton<String>(
+                  hint: const Text('Select a network'),
+                  value: _network,
+                  onChanged: (String? newValue) {
+                    _updateNetwork(newValue);
+                  },
+                  items: [
+                    {'display': 'Bitcoin Mainnet', 'value': 'main'},
+                    {'display': 'Signet', 'value': 'signet'},
+                    {'display': 'Test', 'value': 'test'}
+                  ].map<DropdownMenuItem<String>>((Map<String, String> item) {
+                    return DropdownMenuItem<String>(
+                      value: item['value'],
+                      child: Text(item['display']!),
+                    );
+                  }).toList(),
+                ),
+                const Spacer(),
+                Expanded(
+                  child: _buildButton(
+                    context,
+                    'Create New Wallet',
+                    () async {
+                      final navigator = Navigator.of(context);
+                      final walletState =
+                          Provider.of<WalletState>(context, listen: false);
+                      try {
+                        await _setup(context, null, null, null, null);
+                      } catch (e) {
+                        rethrow;
+                      }
+                      if (walletState.walletLoaded) {
+                        navigator.pushReplacement(MaterialPageRoute(
+                            builder: (context) => const HomeScreen()));
+                      }
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: _buildButton(
+                    context,
+                    'Restore from seed',
+                    () async {
+                      final navigator = Navigator.of(context);
+                      final walletState =
+                          Provider.of<WalletState>(context, listen: false);
+                      await _showSeedInputDialog(context, (Exception? e) async {
+                        if (e != null) {
+                          throw e;
+                        } else if (walletState.walletLoaded) {
+                          navigator.pushReplacement(MaterialPageRoute(
+                              builder: (context) => const HomeScreen()));
+                        }
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: _buildButton(
+                    context,
+                    'Restore from keys',
+                    () async {
+                      final navigator = Navigator.of(context);
+                      final walletState =
+                          Provider.of<WalletState>(context, listen: false);
+                      await _showKeysInputDialog(context, false,
+                          (Exception? e) async {
+                        if (e != null) {
+                          throw e;
+                        } else if (walletState.walletLoaded) {
+                          navigator.pushReplacement(MaterialPageRoute(
+                              builder: (context) => const HomeScreen()));
+                        }
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: _buildButton(
+                    context,
+                    'Watch-only',
+                    () async {
+                      final navigator = Navigator.of(context);
+                      final walletState =
+                          Provider.of<WalletState>(context, listen: false);
+                      await _showKeysInputDialog(context, true,
+                          (Exception? e) async {
+                        if (e != null) {
+                          throw e;
+                        } else if (walletState.walletLoaded) {
+                          navigator.pushReplacement(MaterialPageRoute(
+                              builder: (context) => const HomeScreen()));
+                        }
+                      });
+                    },
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
+          ),
+        ));
   }
 
   Widget _buildButton(

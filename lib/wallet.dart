@@ -4,9 +4,9 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/services/synchronization_service.dart';
 import 'package:donationwallet/spend.dart';
+import 'package:donationwallet/states/chain_state.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 
@@ -22,7 +22,7 @@ class WalletScreenState extends State<WalletScreen> {
 
   @override
   void initState() {
-    super.initState(); 
+    super.initState();
     _synchronizationService = SynchronizationService(context);
     _synchronizationService.startSyncTimer();
   }
@@ -76,8 +76,8 @@ class WalletScreenState extends State<WalletScreen> {
 
   Widget showWalletStateText(context) {
     final walletState = Provider.of<WalletState>(context);
-    final toScan = walletState.tip - walletState.lastScan;
-
+    final chainState = Provider.of<ChainState>(context);
+    final toScan = chainState.tip - walletState.lastScan;
     String text;
 
     if (walletState.scanning) {
@@ -85,7 +85,7 @@ class WalletScreenState extends State<WalletScreen> {
     } else if (toScan == 0) {
       text = 'Up to date!';
     } else {
-      text = 'tip: ${walletState.tip} lastScan: ${walletState.lastScan}';
+      text = 'tip: ${chainState.tip} lastScan: ${walletState.lastScan}';
       // text = 'New blocks: $toScan';
     }
 

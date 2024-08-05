@@ -32,13 +32,8 @@ String changeBirthday({required String encodedWallet, required int birthday}) =>
 String resetWallet({required String encodedWallet}) => RustLib.instance.api
     .crateApiWalletResetWallet(encodedWallet: encodedWallet);
 
-Future<void> syncBlockchain({required String network}) =>
-    RustLib.instance.api.crateApiWalletSyncBlockchain(network: network);
-
-Future<String> scanToTip(
-        {required String encodedWallet, required String network}) =>
-    RustLib.instance.api.crateApiWalletScanToTip(
-        encodedWallet: encodedWallet, network: network);
+Future<String> scanToTip({required String encodedWallet}) =>
+    RustLib.instance.api.crateApiWalletScanToTip(encodedWallet: encodedWallet);
 
 WalletStatus getWalletInfo({required String encodedWallet}) =>
     RustLib.instance.api

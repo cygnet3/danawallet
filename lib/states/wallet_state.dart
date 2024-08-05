@@ -3,7 +3,6 @@ import 'package:donationwallet/rust/api/stream.dart';
 import 'package:donationwallet/rust/api/structs.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
 import 'package:donationwallet/rust/logger.dart';
-import 'package:donationwallet/services/synchronization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -12,7 +11,6 @@ class WalletState extends ChangeNotifier {
   BigInt amount = BigInt.from(0);
   int birthday = 0;
   int lastScan = 0;
-  int tip = 0;
   double progress = 0.0;
   bool scanning = false;
   String _network = '';
@@ -70,14 +68,6 @@ class WalletState extends ChangeNotifier {
       notifyListeners();
     }));
 
-    syncStreamSubscription = createSyncStream().listen((event) {
-      tip = event.blockheight;
-
-      print('tip: $tip');
-
-      notifyListeners();
-    });
-
     amountStreamSubscription = createAmountStream().listen((event) {
       amount = event;
       notifyListeners();
@@ -96,7 +86,6 @@ class WalletState extends ChangeNotifier {
   Future<void> reset() async {
     amount = BigInt.zero;
     network = "";
-    tip = 0;
     birthday = 0;
     lastScan = 0;
     progress = 0.0;
@@ -208,9 +197,8 @@ class WalletState extends ChangeNotifier {
   Future<void> scan() async {
     try {
       scanning = true;
-      await syncBlockchain(network: network);
       final wallet = await getWalletFromSecureStorage();
-      final updatedWallet = await scanToTip(encodedWallet: wallet, network: network);
+      final updatedWallet = await scanToTip(encodedWallet: wallet);
       print(updatedWallet);
       await saveWalletToSecureStorage(updatedWallet);
       await updateWalletStatus();
