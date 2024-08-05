@@ -87,57 +87,59 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        BitcoinButtonOutlined(
-          title: 'Show seed phrase',
-          onPressed: () async {
-            final walletState =
-                Provider.of<WalletState>(context, listen: false);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          BitcoinButtonOutlined(
+            title: 'Show seed phrase',
+            onPressed: () async {
+              final walletState =
+                  Provider.of<WalletState>(context, listen: false);
 
-            const title = 'Backup seed phrase';
-            final text = await _getSeedPhrase(walletState) ??
-                'Seed phrase unknown! Did you import from keys?';
+              const title = 'Backup seed phrase';
+              final text = await _getSeedPhrase(walletState) ??
+                  'Seed phrase unknown! Did you import from keys?';
 
-            showAlertDialog(title, text);
-          },
-        ),
-        BitcoinButtonOutlined(
-          title: 'Set wallet birthday',
-          onPressed: () async {
-            final controller = TextEditingController();
-            await _setBirthday(context, controller, (Exception? e) async {
-              if (e != null) {
-                throw e;
-              } else {
-                Navigator.pushReplacement(
+              showAlertDialog(title, text);
+            },
+          ),
+          BitcoinButtonOutlined(
+            title: 'Set wallet birthday',
+            onPressed: () async {
+              final controller = TextEditingController();
+              await _setBirthday(context, controller, (Exception? e) async {
+                if (e != null) {
+                  throw e;
+                } else {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const HomeScreen()));
+                }
+              });
+            },
+          ),
+          BitcoinButtonOutlined(
+            title: 'Wipe wallet',
+            onPressed: () async {
+              final walletState =
+                  Provider.of<WalletState>(context, listen: false);
+              await _removeWallet(walletState, (Exception? e) async {
+                if (e != null) {
+                  throw e;
+                } else {
+                  Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => const HomeScreen()));
-              }
-            });
-          },
-        ),
-        BitcoinButtonOutlined(
-          title: 'Wipe wallet',
-          onPressed: () async {
-            final walletState =
-                Provider.of<WalletState>(context, listen: false);
-            await _removeWallet(walletState, (Exception? e) async {
-              if (e != null) {
-                throw e;
-              } else {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (Route<dynamic> route) => false,
-                );
-              }
-            });
-          },
-        ),
-      ],
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    (Route<dynamic> route) => false,
+                  );
+                }
+              });
+            },
+          ),
+        ],
+      ),
     );
   }
 }
