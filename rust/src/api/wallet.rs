@@ -99,11 +99,11 @@ pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
     Ok(serde_json::to_string(&wallet).unwrap())
 }
 
-pub async fn scan_to_tip(encoded_wallet: String) -> Result<String> {
+pub async fn scan_to_tip(encoded_wallet: String) -> Result<()> {
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
     blindbit::logic::scan_blocks(0, &mut wallet).await?;
-    Ok(serde_json::to_string(&wallet)?)
+    Ok(())
 }
 
 #[flutter_rust_bridge::frb(sync)]

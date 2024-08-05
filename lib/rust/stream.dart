@@ -29,3 +29,21 @@ class ScanProgress {
           current == other.current &&
           end == other.end;
 }
+
+class ScanResult {
+  final String updatedWallet;
+
+  const ScanResult({
+    required this.updatedWallet,
+  });
+
+  @override
+  int get hashCode => updatedWallet.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ScanResult &&
+          runtimeType == other.runtimeType &&
+          updatedWallet == other.updatedWallet;
+}
