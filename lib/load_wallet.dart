@@ -34,7 +34,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
   }
 
   Future<void> _setup(BuildContext context, String? mnemonic, String? scanKey,
-      String? spendKey) async {
+      String? spendKey, int? birthday) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     try {
       await walletState.updateWalletStatus();
@@ -44,13 +44,15 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
       Logger().i("Creating a new wallet");
     }
 
-    try {
-      await syncBlockchain(network: _network);
-    } catch (e) {
-      rethrow;
-    }
+    if (birthday == null) {
+      try {
+        await syncBlockchain(network: _network);
+      } catch (e) {
+        rethrow;
+      }
 
-    final birthday = walletState.tip;
+      birthday = walletState.tip;
+    }
 
     try {
       final wallet = await setup(
@@ -164,7 +166,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                 }
 
                 try {
-                  await _setup(context, null, scanKey, spendKey);
+                  await _setup(context, null, scanKey, spendKey, birthday);
                   onSetupComplete(null);
                 } on Exception catch (e) {
                   onSetupComplete(e);
@@ -243,7 +245,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                 final mnemonic = seedController.text;
                 final birthday = int.parse(birthdayController.text);
                 try {
-                  await _setup(context, mnemonic, null, null);
+                  await _setup(context, mnemonic, null, null, birthday);
                   onSetupComplete(null);
                 } on Exception catch (e) {
                   onSetupComplete(e);
@@ -298,7 +300,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                   final walletState =
                       Provider.of<WalletState>(context, listen: false);
                   try {
-                    await _setup(context, null, null, null);
+                    await _setup(context, null, null, null, null);
                   } catch (e) {
                     rethrow;
                   }
