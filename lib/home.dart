@@ -76,7 +76,13 @@ class HomeScreenState extends State<HomeScreen> {
     } else {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Silent Payments'),
+          title: Row(
+            children: [
+              const Text('Silent Payments'),
+              const Spacer(),
+              Text(walletState.network),
+            ],
+          ),
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         ),
         body: IndexedStack(
