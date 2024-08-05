@@ -102,11 +102,11 @@ class SpendScreen extends StatelessWidget {
     return signPsbt(encodedWallet: wallet, psbt: unsignedPsbt, finalize: true);
   }
 
-  String _broadcastSignedPsbt(String signedPsbt) {
+  String _broadcastSignedPsbt(String signedPsbt, String network) {
     try {
       final tx = extractTxFromPsbt(psbt: signedPsbt);
       print(tx);
-      final txid = broadcastTx(tx: tx);
+      final txid = broadcastTx(tx: tx, network: network);
       return txid;
     } catch (e) {
       rethrow;
@@ -209,7 +209,8 @@ class SpendScreen extends StatelessWidget {
                       walletState.recipients,
                       fees);
                   final signedPsbt = _signPsbt(wallet, unsignedPsbt);
-                  final sentTxId = _broadcastSignedPsbt(signedPsbt);
+                  final sentTxId =
+                      _broadcastSignedPsbt(signedPsbt, walletState.network);
                   final markedAsSpentWallet = _markAsSpent(
                       wallet, sentTxId, walletState.selectedOutputs);
                   final updatedWallet = _addTxToHistory(
