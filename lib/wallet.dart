@@ -77,19 +77,29 @@ class WalletScreenState extends State<WalletScreen> {
   Widget showWalletStateText(WalletState walletState, ChainState chainState) {
     final toScan = chainState.tip - walletState.lastScan;
     String text;
+    String subtext;
 
     if (walletState.scanning) {
       text = 'Scanning: $toScan blocks';
+      subtext = '(${walletState.lastScan}-${chainState.tip})';
     } else if (toScan == 0) {
       text = 'Up to date!';
+      subtext = '(${chainState.tip})';
     } else {
-      text = 'tip: ${chainState.tip} lastScan: ${walletState.lastScan}';
-      // text = 'New blocks: $toScan';
+      text = 'New blocks: $toScan';
+      subtext = '(${walletState.lastScan}-${chainState.tip})';
     }
-
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.displaySmall,
+    return Column(
+      children: [
+        Text(
+          text,
+          style: Theme.of(context).textTheme.displaySmall,
+        ),
+        Text(
+          subtext,
+          style: Theme.of(context).textTheme.bodyLarge,
+        )
+      ],
     );
   }
 
