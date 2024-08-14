@@ -1,6 +1,6 @@
 ## Rust component
 
-This is the rust component of Donation wallet.
+This is the rust component of Dana wallet.
 
 We use flutter\_rust\_bridge to generate bindings between the flutter and rust components.
 

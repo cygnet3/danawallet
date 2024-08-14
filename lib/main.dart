@@ -38,7 +38,7 @@ class SilentPaymentApp extends StatelessWidget {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
 
     return MaterialApp(
-      title: 'Donation wallet',
+      title: 'Dana wallet',
       navigatorKey: globalNavigatorKey,
       theme: themeNotifier.themeData,
       home: const HomeScreen(),

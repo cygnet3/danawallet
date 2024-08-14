@@ -1,6 +1,6 @@
-# Donation wallet
+# Dana wallet
 
-Donationwallet is a flutter app used for accepting bitcoin donations. It uses silent payments, a new static payments protocol, to receive donations while preserving on-chain privacy.
+Dana is a flutter app used for accepting bitcoin donations. It uses silent payments, a new static payments protocol, to receive donations while preserving on-chain privacy.
 
 ## Building for android
 
