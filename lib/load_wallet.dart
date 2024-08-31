@@ -42,7 +42,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
       String? scanKey,
       String? spendKey,
       int? birthday) async {
-    await chainState.initialize(_network);
+    await chainState.initialize();
     themeNotifier.setTheme(_network);
 
     try {

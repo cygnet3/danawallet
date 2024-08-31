@@ -48,6 +48,7 @@ dependencies:
   rust_lib_donationwallet:
     path: rust_builder
   logger: ^2.4.0
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

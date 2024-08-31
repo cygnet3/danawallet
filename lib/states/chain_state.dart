@@ -1,26 +1,31 @@
 import 'package:donationwallet/rust/api/chain.dart';
+import 'package:donationwallet/services/preferences_service.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 class ChainState extends ChangeNotifier {
-  String? _network;
   int? _tip;
 
   ChainState();
 
-  Future<void> initialize(String network) async {
-    _network = network;
-    _tip = await getChainHeight(network: network);
+  Future<void> initialize() async {
+    final url = await SettingsService().getBlindbitUrl();
 
-    print('initialized with tip: $_tip');
+    if (url != null) {
+      _tip = await getChainHeight(blindbitUrl: url);
+      print('initialized with tip: $_tip');
+    } else {
+      Logger()
+          .w('Attempted to initialize chain state before blindbit url was set');
+    }
   }
 
   void reset() {
-    _network = null;
     _tip = null;
   }
 
   bool _isInitialized() {
-    return _network != null && _tip != null;
+    return _tip != null;
   }
 
   int get tip {
@@ -33,7 +38,9 @@ class ChainState extends ChangeNotifier {
 
   Future<void> updateChainTip() async {
     if (_isInitialized()) {
-      _tip = await getChainHeight(network: _network!);
+      final url = await SettingsService().getBlindbitUrl();
+
+      _tip = await getChainHeight(blindbitUrl: url!);
       print('updating tip: $_tip');
 
       notifyListeners();

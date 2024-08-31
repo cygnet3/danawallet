@@ -3,6 +3,7 @@ import 'package:donationwallet/rust/api/stream.dart';
 import 'package:donationwallet/rust/api/structs.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
 import 'package:donationwallet/rust/logger.dart';
+import 'package:donationwallet/services/preferences_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -150,7 +151,9 @@ class WalletState extends ChangeNotifier {
     try {
       scanning = true;
       final wallet = await getWalletFromSecureStorage();
-      await scanToTip(encodedWallet: wallet);
+      final blindbitUrl = await SettingsService().getBlindbitUrl();
+
+      await scanToTip(blindbitUrl: blindbitUrl!, encodedWallet: wallet);
     } catch (e) {
       scanning = false;
       notifyListeners();

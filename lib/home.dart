@@ -39,7 +39,7 @@ class HomeScreenState extends State<HomeScreen> {
     final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
     try {
       await walletState.updateWalletStatus();
-      await chainState.initialize(walletState.network);
+      await chainState.initialize();
       themeNotifier.setTheme(walletState.network);
 
       walletState.walletLoaded = true;
