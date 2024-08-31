@@ -1,3 +1,4 @@
+import 'package:donationwallet/constants.dart';
 import 'package:flutter/material.dart';
 
 class ThemeNotifier extends ChangeNotifier {
@@ -7,19 +8,19 @@ class ThemeNotifier extends ChangeNotifier {
 
   ThemeData get themeData => _themeData;
 
-  static ThemeData _getThemeFromNetwork(String? network) {
+  static ThemeData _getThemeFromNetwork(Network? network) {
     switch (network) {
-      case 'main':
+      case Network.mainnet:
         return ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
           useMaterial3: true,
         );
-      case 'signet':
+      case Network.signet:
         return ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
           useMaterial3: true,
         );
-      case 'test':
+      case Network.testnet:
         return ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
           useMaterial3: true,
@@ -32,7 +33,7 @@ class ThemeNotifier extends ChangeNotifier {
     }
   }
 
-  void setTheme(String? network) {
+  void setTheme(Network? network) {
     _themeData = _getThemeFromNetwork(network);
     notifyListeners();
   }
