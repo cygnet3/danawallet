@@ -6,5 +6,5 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<int> getChainHeight({required String network}) =>
-    RustLib.instance.api.crateApiChainGetChainHeight(network: network);
+Future<int> getChainHeight({required String blindbitUrl}) =>
+    RustLib.instance.api.crateApiChainGetChainHeight(blindbitUrl: blindbitUrl);

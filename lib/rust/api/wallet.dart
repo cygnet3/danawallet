@@ -32,8 +32,10 @@ String changeBirthday({required String encodedWallet, required int birthday}) =>
 String resetWallet({required String encodedWallet}) => RustLib.instance.api
     .crateApiWalletResetWallet(encodedWallet: encodedWallet);
 
-Future<void> scanToTip({required String encodedWallet}) =>
-    RustLib.instance.api.crateApiWalletScanToTip(encodedWallet: encodedWallet);
+Future<void> scanToTip(
+        {required String blindbitUrl, required String encodedWallet}) =>
+    RustLib.instance.api.crateApiWalletScanToTip(
+        blindbitUrl: blindbitUrl, encodedWallet: encodedWallet);
 
 WalletStatus getWalletInfo({required String encodedWallet}) =>
     RustLib.instance.api

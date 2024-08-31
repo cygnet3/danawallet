@@ -6,6 +6,7 @@ use bitcoin::{
     secp256k1::{PublicKey, SecretKey},
     Network, OutPoint, Txid,
 };
+use reqwest::Url;
 use sp_client::spclient::{derive_keys_from_seed, SpClient, SpWallet, SpendKey};
 
 use crate::blindbit;
@@ -99,10 +100,12 @@ pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
     Ok(serde_json::to_string(&wallet).unwrap())
 }
 
-pub async fn scan_to_tip(encoded_wallet: String) -> Result<()> {
+pub async fn scan_to_tip(blindbit_url: String, encoded_wallet: String) -> Result<()> {
+    let blindbit_url = Url::parse(&blindbit_url)?;
+
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
-    blindbit::logic::scan_blocks(0, &mut wallet).await?;
+    blindbit::logic::scan_blocks(blindbit_url, 0, &mut wallet).await?;
     Ok(())
 }
 

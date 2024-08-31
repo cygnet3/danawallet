@@ -9,10 +9,11 @@ use bitcoin::{
     bip158::BlockFilter,
     hashes::{sha256, Hash},
     secp256k1::{PublicKey, Scalar},
-    Amount, BlockHash, Network, OutPoint, Txid, XOnlyPublicKey,
+    Amount, BlockHash, OutPoint, Txid, XOnlyPublicKey,
 };
 use futures::{stream, StreamExt};
 use log::info;
+use reqwest::Url;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput, SpClient};
 use sp_client::{
     silentpayments::receiving::Label,
@@ -27,31 +28,24 @@ use crate::{
 
 use super::client::FilterResponse;
 
-const HOST: &str = "https://silentpayments.dev/blindbit";
-const PATH_MAINNET: &str = "/mainnet";
-const PATH_TESTNET: &str = "/testnet";
-const PATH_SIGNET: &str = "/signet";
 const CONCURRENT_FILTER_REQUESTS: usize = 200;
 
-fn get_blindbit_client(network: Network) -> Result<BlindbitClient> {
-    match network {
-        Network::Bitcoin => Ok(BlindbitClient::new(format!("{}{}", HOST, PATH_MAINNET))),
-        Network::Testnet => Ok(BlindbitClient::new(format!("{}{}", HOST, PATH_TESTNET))),
-        Network::Signet => Ok(BlindbitClient::new(format!("{}{}", HOST, PATH_SIGNET))),
-        _ => Err(Error::msg("unknown network")),
-    }
+fn get_blindbit_client(host_url: Url) -> BlindbitClient {
+    BlindbitClient::new(host_url)
 }
 
-pub async fn get_chain_height(network: Network) -> Result<u32> {
-    let blindbit_client = get_blindbit_client(network)?;
+pub async fn get_chain_height(host_url: Url) -> Result<u32> {
+    let blindbit_client = get_blindbit_client(host_url);
 
     blindbit_client.block_height().await
 }
 
-pub async fn scan_blocks(mut n_blocks_to_scan: u32, sp_wallet: &mut SpWallet) -> Result<()> {
-    let network = sp_wallet.get_client().get_network();
-
-    let blindbit_client = get_blindbit_client(network)?;
+pub async fn scan_blocks(
+    host_url: Url,
+    mut n_blocks_to_scan: u32,
+    sp_wallet: &mut SpWallet,
+) -> Result<()> {
+    let blindbit_client = get_blindbit_client(host_url);
 
     let last_scan = sp_wallet.get_outputs().get_last_scan();
     let tip_height = blindbit_client.block_height().await?;
