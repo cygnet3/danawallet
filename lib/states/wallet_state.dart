@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:donationwallet/constants.dart';
 import 'package:donationwallet/rust/api/stream.dart';
 import 'package:donationwallet/rust/api/structs.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
 import 'package:donationwallet/rust/logger.dart';
-import 'package:donationwallet/services/preferences_service.dart';
+import 'package:donationwallet/services/settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -14,7 +15,7 @@ class WalletState extends ChangeNotifier {
   int lastScan = 0;
   double progress = 0.0;
   bool scanning = false;
-  String _network = '';
+  Network _network = Network.signet;
   bool walletLoaded = false;
   String address = "";
   Map<String, OwnedOutput> ownedOutputs = {};
@@ -29,8 +30,8 @@ class WalletState extends ChangeNotifier {
 
   WalletState();
 
-  String get network => _network;
-  set network(String value) {
+  Network get network => _network;
+  set network(Network value) {
     _network = value;
     notifyListeners();
   }
@@ -93,7 +94,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> reset() async {
     amount = BigInt.zero;
-    network = "";
+    network = Network.signet;
     birthday = 0;
     lastScan = 0;
     progress = 0.0;
@@ -137,7 +138,7 @@ class WalletState extends ChangeNotifier {
     lastScan = walletInfo.lastScan;
     ownedOutputs = walletInfo.outputs;
     txHistory = walletInfo.txHistory;
-    network = walletInfo.network;
+    network = Network.fromBitcoinNetwork(walletInfo.network);
     notifyListeners();
   }
 

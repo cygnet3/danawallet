@@ -80,7 +80,7 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             const Text('Silent Payments'),
             const Spacer(),
-            Text(walletState.network),
+            Text(walletState.network.toString()),
           ],
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,

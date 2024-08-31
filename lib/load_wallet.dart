@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:donationwallet/constants.dart';
 import 'package:donationwallet/rust/api/wallet.dart';
+import 'package:donationwallet/services/settings_service.dart';
 import 'package:donationwallet/states/chain_state.dart';
 import 'package:donationwallet/states/theme_notifier.dart';
 import 'package:donationwallet/states/wallet_state.dart';
@@ -17,20 +19,20 @@ class LoadWalletScreen extends StatefulWidget {
 }
 
 class LoadWalletScreenState extends State<LoadWalletScreen> {
-  String _network = "signet";
+  Network _selectedNetwork = Network.signet;
 
   @override
   void initState() {
     super.initState();
   }
 
-  void _updateNetwork(String? newValue) {
+  void _updateNetwork(Network? newValue) {
     if (newValue == null) {
       throw Exception("Trying to update network with null value");
     }
 
     setState(() {
-      _network = newValue;
+      _selectedNetwork = newValue;
     });
   }
 
@@ -42,8 +44,12 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
       String? scanKey,
       String? spendKey,
       int? birthday) async {
+    // todo: maybe make it so the blindbit url can already be changed at this state
+    final String blindbitUrl = _selectedNetwork.getDefaultBlindbitUrl();
+    await SettingsService().setBlindbitUrl(blindbitUrl);
+
     await chainState.initialize();
-    themeNotifier.setTheme(_network);
+    themeNotifier.setTheme(_selectedNetwork);
 
     try {
       await walletState.updateWalletStatus();
@@ -68,7 +74,7 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
         scanKey: scanKey,
         spendKey: spendKey,
         birthday: birthday,
-        network: _network,
+        network: _selectedNetwork.toBitcoinNetwork,
       );
       await walletState.saveWalletToSecureStorage(wallet);
       await walletState.updateWalletStatus();
@@ -292,21 +298,19 @@ class LoadWalletScreenState extends State<LoadWalletScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                DropdownButton<String>(
+                DropdownButton<Network>(
                   hint: const Text('Select a network'),
-                  value: _network,
-                  onChanged: (String? newValue) {
+                  value: _selectedNetwork,
+                  onChanged: (Network? newValue) {
                     _updateNetwork(newValue);
                   },
                   items: [
-                    {'display': 'Bitcoin Mainnet', 'value': 'main'},
-                    {'display': 'Signet', 'value': 'signet'},
-                    {'display': 'Test', 'value': 'test'}
-                  ].map<DropdownMenuItem<String>>((Map<String, String> item) {
-                    return DropdownMenuItem<String>(
-                      value: item['value'],
-                      child: Text(item['display']!),
-                    );
+                    Network.mainnet,
+                    Network.testnet,
+                    Network.signet,
+                  ].map((Network network) {
+                    return DropdownMenuItem<Network>(
+                        value: network, child: Text(network.toString()));
                   }).toList(),
                 ),
                 const Spacer(),

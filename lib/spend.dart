@@ -1,3 +1,4 @@
+import 'package:donationwallet/constants.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/outputs.dart';
 import 'package:donationwallet/destination.dart';
@@ -103,11 +104,11 @@ class SpendScreen extends StatelessWidget {
     return signPsbt(encodedWallet: wallet, psbt: unsignedPsbt, finalize: true);
   }
 
-  String _broadcastSignedPsbt(String signedPsbt, String network) {
+  String _broadcastSignedPsbt(String signedPsbt, Network network) {
     try {
       final tx = extractTxFromPsbt(psbt: signedPsbt);
       print(tx);
-      final txid = broadcastTx(tx: tx, network: network);
+      final txid = broadcastTx(tx: tx, network: network.toBitcoinNetwork);
       return txid;
     } catch (e) {
       rethrow;
