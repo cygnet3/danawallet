@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use bitcoin::{secp256k1::PublicKey, BlockHash, ScriptBuf, Txid};
-use reqwest::Client;
+use reqwest::{Client, Url};
 use serde::Deserialize;
 
 use anyhow::Result;
@@ -45,84 +45,74 @@ pub struct FilterResponse {
 
 pub struct BlindbitClient {
     client: Client,
-    host: String,
+    host_url: Url,
 }
 
 impl BlindbitClient {
-    pub fn new(host: String) -> Self {
+    pub fn new(host_url: Url) -> Self {
         let client = reqwest::Client::new();
-        BlindbitClient { client, host }
+        BlindbitClient { client, host_url }
     }
     pub async fn block_height(&self) -> Result<u32> {
-        let res = self
-            .client
-            .get(format!("{}/block-height", self.host))
-            .send()
-            .await?;
-        let blkheight: BlockHeightResponse = serde_json::from_str(&res.text().await?)?;
+        let url = self.host_url.join("block-height")?;
 
+        let res = self.client.get(url).send().await?;
+        let blkheight: BlockHeightResponse = serde_json::from_str(&res.text().await?)?;
         Ok(blkheight.block_height)
     }
 
     pub async fn tweaks(&self, block_height: u32) -> Result<Vec<PublicKey>> {
-        let res = self
-            .client
-            .get(format!("{}/tweaks/{}", self.host, block_height))
-            .send()
-            .await?;
+        let url = self.host_url.join(&format!("tweaks/{}", block_height))?;
+
+        let res = self.client.get(url).send().await?;
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
     pub async fn tweak_index(&self, block_height: u32) -> Result<Vec<PublicKey>> {
-        let res = self
-            .client
-            .get(format!("{}/tweak-index/{}", self.host, block_height))
-            .send()
-            .await?;
+        let url = self
+            .host_url
+            .join(&format!("tweak-index/{}", block_height))?;
+        let res = self.client.get(url).send().await?;
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
     pub async fn utxos(&self, block_height: u32) -> Result<Vec<UtxoResponse>> {
-        let res = self
-            .client
-            .get(format!("{}/utxos/{}", self.host, block_height))
-            .send()
-            .await?;
+        let url = self.host_url.join(&format!("utxos/{}", block_height))?;
+        let res = self.client.get(url).send().await?;
 
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
     pub async fn spent_index(&self, block_height: u32) -> Result<SpentIndexResponse> {
-        let res = self
-            .client
-            .get(format!("{}/spent-index/{}", self.host, block_height))
-            .send()
-            .await?;
+        let url = self
+            .host_url
+            .join(&format!("spent-index/{}", block_height))?;
+        let res = self.client.get(url).send().await?;
 
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
     pub async fn filter_new_utxos(&self, block_height: u32) -> Result<FilterResponse> {
-        let res = self
-            .client
-            .get(format!("{}/filter/new-utxos/{}", self.host, block_height))
-            .send()
-            .await?;
+        let url = self
+            .host_url
+            .join(&format!("filter/new-utxos/{}", block_height))?;
+
+        let res = self.client.get(url).send().await?;
 
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
     pub async fn filter_spent(&self, block_height: u32) -> Result<FilterResponse> {
-        let res = self
-            .client
-            .get(format!("{}/filter/spent/{}", self.host, block_height))
-            .send()
-            .await?;
+        let url = self
+            .host_url
+            .join(&format!("filter/spent/{}", block_height))?;
+
+        let res = self.client.get(url).send().await?;
 
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
     pub async fn forward_tx(&self) {
-        // todo
+        // not needed
     }
 }

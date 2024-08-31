@@ -74,7 +74,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<int> crateApiChainGetChainHeight({required String network});
+  Future<int> crateApiChainGetChainHeight({required String blindbitUrl});
 
   String crateApiPsbtAddFeeForFeeRate(
       {required String psbt, required int feeRate, required String payer});
@@ -139,7 +139,8 @@ abstract class RustLibApi extends BaseApi {
 
   String crateApiWalletResetWallet({required String encodedWallet});
 
-  Future<void> crateApiWalletScanToTip({required String encodedWallet});
+  Future<void> crateApiWalletScanToTip(
+      {required String blindbitUrl, required String encodedWallet});
 
   Future<String> crateApiWalletSetup(
       {required String label,
@@ -161,11 +162,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<int> crateApiChainGetChainHeight({required String network}) {
+  Future<int> crateApiChainGetChainHeight({required String blindbitUrl}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(network, serializer);
+        sse_encode_String(blindbitUrl, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 1, port: port_);
       },
@@ -174,7 +175,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiChainGetChainHeightConstMeta,
-      argValues: [network],
+      argValues: [blindbitUrl],
       apiImpl: this,
     ));
   }
@@ -182,7 +183,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiChainGetChainHeightConstMeta =>
       const TaskConstMeta(
         debugName: "get_chain_height",
-        argNames: ["network"],
+        argNames: ["blindbitUrl"],
       );
 
   @override
@@ -712,10 +713,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiWalletScanToTip({required String encodedWallet}) {
+  Future<void> crateApiWalletScanToTip(
+      {required String blindbitUrl, required String encodedWallet}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(blindbitUrl, serializer);
         sse_encode_String(encodedWallet, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 22, port: port_);
@@ -725,14 +728,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiWalletScanToTipConstMeta,
-      argValues: [encodedWallet],
+      argValues: [blindbitUrl, encodedWallet],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiWalletScanToTipConstMeta => const TaskConstMeta(
         debugName: "scan_to_tip",
-        argNames: ["encodedWallet"],
+        argNames: ["blindbitUrl", "encodedWallet"],
       );
 
   @override
