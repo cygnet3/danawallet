@@ -46,7 +46,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> _initStreams() async {
     logStreamSubscription =
-        createLogStream(level: LogLevel.debug, logDependencies: true)
+        createLogStream(level: LogLevel.info, logDependencies: true)
             .listen((event) {
       print('${event.level} (${event.tag}): ${event.msg}');
       notifyListeners();
