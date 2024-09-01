@@ -60,7 +60,8 @@ Future<void> _showAddRecipientDialog(
                 rethrow;
               }
 
-              final spendState = Provider.of<SpendState>(context);
+              final spendState =
+                  Provider.of<SpendState>(context, listen: false);
               spendState.addRecipients(address, amount, 1);
 
               addressController.clear();
