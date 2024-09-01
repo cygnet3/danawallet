@@ -1,3 +1,4 @@
+import 'package:dart_bip353/dart_bip353.dart';
 import 'package:donationwallet/generated/rust/api/structs.dart';
 import 'package:donationwallet/states/spend_state.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,8 @@ Future<void> _showAddRecipientDialog(
             TextFormField(
               controller: addressController,
               decoration: InputDecoration(
-                labelText: 'Address',
+                labelText: 'Recipient',
+                hintText: 'satoshi@bitcoin.org, sqp1q..., bc1q...',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.content_paste),
                   onPressed: () async {
@@ -62,6 +64,14 @@ Future<void> _showAddRecipientDialog(
 
               final spendState =
                   Provider.of<SpendState>(context, listen: false);
+
+              if (address.contains('@')) {
+                final data = await Bip353.getAdressResolve(address);
+                if (data.silentpayment != null) {
+                  address = data.silentpayment!;
+                }
+              }
+
               spendState.addRecipients(address, amount, 1);
 
               addressController.clear();
