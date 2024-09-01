@@ -164,6 +164,7 @@ class WalletScreenState extends State<WalletScreen> {
             ),
             onPressed: () async {
               try {
+                await chainState.updateChainTip();
                 await walletState.scan();
               } catch (e) {
                 displayNotification(e.toString());
