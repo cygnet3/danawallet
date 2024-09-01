@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:donationwallet/constants.dart';
-import 'package:donationwallet/rust/api/wallet.dart';
+import 'package:donationwallet/generated/rust/api/wallet.dart';
 import 'package:donationwallet/services/settings_service.dart';
 import 'package:donationwallet/states/chain_state.dart';
 import 'package:donationwallet/states/theme_notifier.dart';

@@ -1,7 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';
-import 'package:donationwallet/rust/api/wallet.dart';
+import 'package:donationwallet/generated/rust/api/wallet.dart';
 import 'package:donationwallet/services/settings_service.dart';
 import 'package:donationwallet/states/chain_state.dart';
 import 'package:donationwallet/states/spend_state.dart';

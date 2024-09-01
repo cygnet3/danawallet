@@ -1,4 +1,4 @@
-import 'package:donationwallet/rust/frb_generated.dart';
+import 'package:donationwallet/generated/rust/frb_generated.dart';
 
 import 'package:donationwallet/global_functions.dart';
 import 'package:donationwallet/home.dart';

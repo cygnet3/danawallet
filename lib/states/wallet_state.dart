@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:donationwallet/constants.dart';
-import 'package:donationwallet/rust/api/stream.dart';
-import 'package:donationwallet/rust/api/structs.dart';
-import 'package:donationwallet/rust/api/wallet.dart';
-import 'package:donationwallet/rust/logger.dart';
+import 'package:donationwallet/generated/rust/api/stream.dart';
+import 'package:donationwallet/generated/rust/api/structs.dart';
+import 'package:donationwallet/generated/rust/api/wallet.dart';
+import 'package:donationwallet/generated/rust/logger.dart';
 import 'package:donationwallet/services/settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

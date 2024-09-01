@@ -1,4 +1,4 @@
-import 'package:donationwallet/rust/api/structs.dart';
+import 'package:donationwallet/generated/rust/api/structs.dart';
 import 'package:donationwallet/states/spend_state.dart';
 import 'package:donationwallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';

@@ -29,4 +29,4 @@ linter:
 analyzer:
   exclude:
     - rust_builder
-    - lib/rust
+    - lib/generated
