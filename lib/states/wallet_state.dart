@@ -71,7 +71,6 @@ class WalletState extends ChangeNotifier {
 
     scanResultSubscription = createScanResultStream().listen(((event) async {
       String updatedWallet = event.updatedWallet;
-      print(updatedWallet);
       await saveWalletToSecureStorage(updatedWallet);
       await updateWalletStatus();
     }));
