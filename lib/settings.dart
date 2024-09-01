@@ -44,45 +44,15 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _setBirthday(BuildContext context,
       TextEditingController controller, Function(Exception? e) callback) async {
-    showDialog<int>(
-        context: context,
-        builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            title: const Text('Enter Birthday'),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                  hintText: 'Enter wallet\'s birthday (numeric value)'),
-              onSubmitted: (value) {
-                Navigator.of(dialogContext).pop(int.tryParse(value));
-              },
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext)
-                      .pop(); // Close the dialog without saving
-                },
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext)
-                      .pop(int.tryParse(controller.text));
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        }).then((value) async {
-      if (value != null) {
+    showInputAlertDialog(controller, TextInputType.number, 'Enter Birthday',
+            'Enter wallet\'s birthday (numeric value)')
+        .then((value) async {
+      if (value != null && int.tryParse(value) != null) {
         final walletState = Provider.of<WalletState>(context, listen: false);
         try {
           final wallet = await walletState.getWalletFromSecureStorage();
           final updatedWallet =
-              changeBirthday(encodedWallet: wallet, birthday: value);
+              changeBirthday(encodedWallet: wallet, birthday: int.parse(value));
           walletState.saveWalletToSecureStorage(updatedWallet);
           callback(null);
           await walletState.updateWalletStatus();
@@ -91,6 +61,20 @@ class SettingsScreen extends StatelessWidget {
         } catch (e) {
           rethrow;
         }
+      }
+    });
+  }
+
+  Future<void> _setBlindbitUrl(
+      BuildContext context, TextEditingController controller) async {
+    SettingsService settings = SettingsService();
+    controller.text = await settings.getBlindbitUrl() ?? '';
+
+    showInputAlertDialog(controller, TextInputType.url, 'Set blindbit url',
+            'Only blindbit is currently supported')
+        .then((value) async {
+      if (value != null) {
+        settings.setBlindbitUrl(value);
       }
     });
   }
@@ -130,6 +114,13 @@ class SettingsScreen extends StatelessWidget {
                           builder: (context) => const HomeScreen()));
                 }
               });
+            },
+          ),
+          BitcoinButtonOutlined(
+            title: 'Change backend url',
+            onPressed: () {
+              final controller = TextEditingController();
+              _setBlindbitUrl(context, controller);
             },
           ),
           BitcoinButtonOutlined(
