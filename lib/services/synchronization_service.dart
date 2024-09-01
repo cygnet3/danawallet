@@ -16,9 +16,8 @@ class SynchronizationService {
   }
 
   void _scheduleNextTask() async {
-    _timer?.cancel();
-    await performSynchronizationTask();
     _timer = Timer(_interval, () async {
+      await performSynchronizationTask();
       _scheduleNextTask();
     });
   }
