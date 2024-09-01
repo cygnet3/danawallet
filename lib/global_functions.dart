@@ -1,3 +1,4 @@
+import 'package:donationwallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
 
 final globalNavigatorKey = GlobalKey<NavigatorState>();
@@ -29,5 +30,23 @@ void showAlertDialog(String title, String text) {
         ],
       ),
     );
+  }
+}
+
+Future<String?> showInputAlertDialog(TextEditingController controller,
+    TextInputType inputType, String titleText, String hintText) {
+  if (globalNavigatorKey.currentContext != null) {
+    return showDialog<String>(
+        context: globalNavigatorKey.currentContext!,
+        builder: (BuildContext dialogContext) {
+          return InputAlertWidget(
+            controller: controller,
+            inputType: inputType,
+            titleText: titleText,
+            hintText: hintText,
+          );
+        });
+  } else {
+    return Future.value(null);
   }
 }
