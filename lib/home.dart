@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:donationwallet/load_wallet.dart';
+import 'package:donationwallet/create_wallet.dart';
 import 'package:donationwallet/states/chain_state.dart';
 import 'package:donationwallet/states/theme_notifier.dart';
 import 'package:donationwallet/states/wallet_state.dart';
@@ -71,7 +71,7 @@ class HomeScreenState extends State<HomeScreen> {
 
     if (!walletState.walletLoaded) {
       // go to create wallet screen
-      return const LoadWalletScreen();
+      return const CreateWalletScreen();
     }
 
     return Scaffold(

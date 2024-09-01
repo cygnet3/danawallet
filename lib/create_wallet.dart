@@ -11,14 +11,14 @@ import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
-class LoadWalletScreen extends StatefulWidget {
-  const LoadWalletScreen({super.key});
+class CreateWalletScreen extends StatefulWidget {
+  const CreateWalletScreen({super.key});
 
   @override
-  LoadWalletScreenState createState() => LoadWalletScreenState();
+  CreateWalletScreenState createState() => CreateWalletScreenState();
 }
 
-class LoadWalletScreenState extends State<LoadWalletScreen> {
+class CreateWalletScreenState extends State<CreateWalletScreen> {
   Network _selectedNetwork = Network.signet;
 
   @override
