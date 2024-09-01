@@ -51,7 +51,6 @@ enum Network {
   }
 }
 
-// very important that these have a trailing slash
-const String defaultMainnet = "https://silentpayments.dev/blindbit/mainnet/";
-const String defaultTestnet = "https://silentpayments.dev/blindbit/testnet/";
-const String defaultSignet = "https://silentpayments.dev/blindbit/signet/";
+const String defaultMainnet = "https://silentpayments.dev/blindbit/mainnet";
+const String defaultTestnet = "https://silentpayments.dev/blindbit/testnet";
+const String defaultSignet = "https://silentpayments.dev/blindbit/signet";

@@ -49,8 +49,14 @@ pub struct BlindbitClient {
 }
 
 impl BlindbitClient {
-    pub fn new(host_url: Url) -> Self {
+    pub fn new(mut host_url: Url) -> Self {
         let client = reqwest::Client::new();
+
+        // we need a trailing slash, if not present we append it
+        if !host_url.path().ends_with('/') {
+            host_url.set_path(&format!("{}/", host_url.path()));
+        }
+
         BlindbitClient { client, host_url }
     }
     pub async fn block_height(&self) -> Result<u32> {
