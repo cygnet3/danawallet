@@ -1,7 +1,7 @@
 import 'package:donationwallet/generated/rust/frb_generated.dart';
 
 import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/home.dart';
+import 'package:donationwallet/screens/home/home.dart';
 import 'package:donationwallet/states/chain_state.dart';
 import 'package:donationwallet/states/spend_state.dart';
 import 'package:donationwallet/states/wallet_state.dart';

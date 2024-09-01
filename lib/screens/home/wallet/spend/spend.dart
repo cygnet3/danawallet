@@ -1,7 +1,7 @@
 import 'package:donationwallet/constants.dart';
 import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/outputs.dart';
-import 'package:donationwallet/destination.dart';
+import 'package:donationwallet/screens/home/wallet/spend/outputs.dart';
+import 'package:donationwallet/screens/home/wallet/spend/destination.dart';
 import 'package:donationwallet/generated/rust/api/psbt.dart';
 import 'package:donationwallet/generated/rust/api/structs.dart';
 import 'package:donationwallet/generated/rust/api/wallet.dart';
