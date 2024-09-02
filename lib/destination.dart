@@ -6,83 +6,122 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 Future<void> _showAddRecipientDialog(
-    BuildContext context,
-    TextEditingController addressController,
-    TextEditingController amountController) async {
+  BuildContext context,
+) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Add New Recipient'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            TextFormField(
-              controller: addressController,
-              decoration: InputDecoration(
-                labelText: 'Recipient',
-                hintText: 'satoshi@bitcoin.org, sqp1q..., bc1q...',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.content_paste),
-                  onPressed: () async {
-                    ClipboardData? data =
-                        await Clipboard.getData(Clipboard.kTextPlain);
-                    if (data != null) {
-                      addressController.text = data.text ?? '';
-                    }
-                  },
-                ),
+      return const AddRecipientWidget();
+    },
+  );
+}
+
+class AddRecipientWidget extends StatefulWidget {
+  const AddRecipientWidget({
+    super.key,
+  });
+
+  @override
+  AddRecipientWidgetState createState() => AddRecipientWidgetState();
+}
+
+class AddRecipientWidgetState extends State<AddRecipientWidget> {
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
+  String? addressErrorText;
+  String? amountErrorText;
+
+  AddRecipientWidgetState();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add New Recipient'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          TextFormField(
+            controller: addressController,
+            decoration: InputDecoration(
+              labelText: 'Recipient',
+              hintText: 'satoshi@bitcoin.org, sp1q..., bc1q...',
+              errorText: addressErrorText,
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.content_paste),
+                onPressed: () async {
+                  ClipboardData? data =
+                      await Clipboard.getData(Clipboard.kTextPlain);
+                  if (data != null) {
+                    addressController.text = data.text ?? '';
+                  }
+                },
               ),
             ),
-            TextFormField(
-              controller: amountController,
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-              ),
-              keyboardType: TextInputType.number,
+          ),
+          TextFormField(
+            controller: amountController,
+            decoration: InputDecoration(
+              labelText: 'Amount',
+              errorText: amountErrorText,
             ),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                addressController.clear();
-                amountController.clear();
-              }),
-          TextButton(
-            child: const Text('Add'),
-            onPressed: () async {
-              String address = addressController.text;
-              BigInt amount;
+            keyboardType: TextInputType.number,
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              addressController.clear();
+              amountController.clear();
+            }),
+        TextButton(
+          child: const Text('Add'),
+          onPressed: () async {
+            // reset errors
+            setState(() {
+              amountErrorText = null;
+              addressErrorText = null;
+            });
+
+            String address = addressController.text;
+            BigInt amount;
+            try {
+              amount = BigInt.from(int.parse(amountController.text));
+            } on FormatException {
+              setState(() {
+                amountErrorText = 'Invalid amount';
+              });
+              return;
+            }
+
+            if (address.contains('@')) {
+              // we interpret the address as a bip353 address
               try {
-                amount = BigInt.from(int.parse(amountController.text));
-              } on FormatException {
-                rethrow;
-              }
-
-              final spendState =
-                  Provider.of<SpendState>(context, listen: false);
-
-              if (address.contains('@')) {
                 final data = await Bip353.getAdressResolve(address);
                 if (data.silentpayment != null) {
                   address = data.silentpayment!;
                 }
+              } catch (e) {
+                setState(() {
+                  addressErrorText = 'Failed to look up address';
+                });
+                return;
               }
+            }
 
+            if (context.mounted) {
+              final spendState =
+                  Provider.of<SpendState>(context, listen: false);
               spendState.addRecipients(address, amount, 1);
-
-              addressController.clear();
-              amountController.clear();
               Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
+            }
+          },
+        ),
+      ],
+    );
+  }
 }
 
 class DestinationScreen extends StatelessWidget {
@@ -125,15 +164,8 @@ class DestinationScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: FloatingActionButton(
-                onPressed: () async {
-                  final addressController = TextEditingController();
-                  final amountController = TextEditingController();
-                  try {
-                    await _showAddRecipientDialog(
-                        context, addressController, amountController);
-                  } catch (e) {
-                    rethrow;
-                  }
+                onPressed: () {
+                  _showAddRecipientDialog(context);
                 },
                 child: const Icon(Icons.add),
               ),
