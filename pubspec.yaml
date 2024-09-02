@@ -52,7 +52,7 @@ dependencies:
   dart_bip353:
     git:
       url: https://github.com/cygnet3/dart_bip353.git
-      ref: main
+      ref: add-sp
 
 dev_dependencies:
   flutter_test:
