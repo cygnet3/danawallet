@@ -213,7 +213,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: main
+      ref: add-sp
       resolved-ref: a727ffbaf4fa8cd16f7d55a507ea3c6136f54fef
       url: "https://github.com/cygnet3/dart_bip353.git"
     source: git
