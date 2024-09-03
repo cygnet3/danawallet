@@ -43,7 +43,7 @@ pub async fn get_chain_height(host_url: Url) -> Result<u32> {
 pub async fn scan_blocks(
     host_url: Url,
     mut n_blocks_to_scan: u32,
-    dust_limit: Option<u32>,
+    dust_limit: u32,
     sp_wallet: &mut SpWallet,
 ) -> Result<()> {
     let blindbit_client = get_blindbit_client(host_url);
