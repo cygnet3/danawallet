@@ -74,11 +74,22 @@ impl BlindbitClient {
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
-    pub async fn tweak_index(&self, block_height: u32) -> Result<Vec<PublicKey>> {
+    pub async fn tweak_index(
+        &self,
+        block_height: u32,
+        dust_limit: Option<u32>,
+    ) -> Result<Vec<PublicKey>> {
         let url = self
             .host_url
             .join(&format!("tweak-index/{}", block_height))?;
-        let res = self.client.get(url).send().await?;
+
+        let mut req = self.client.get(url);
+
+        if let Some(limit) = dust_limit {
+            req = req.query(&[("dustLimit", format!("{}", limit))]);
+        }
+
+        let res = req.send().await?;
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
