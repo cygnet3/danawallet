@@ -151,9 +151,15 @@ class WalletState extends ChangeNotifier {
     try {
       scanning = true;
       final wallet = await getWalletFromSecureStorage();
-      final blindbitUrl = await SettingsService().getBlindbitUrl();
 
-      await scanToTip(blindbitUrl: blindbitUrl!, encodedWallet: wallet);
+      final settings = SettingsService();
+      final blindbitUrl = await settings.getBlindbitUrl();
+      final dustLimit = await settings.getDustLimit();
+
+      await scanToTip(
+          blindbitUrl: blindbitUrl!,
+          encodedWallet: wallet,
+          dustLimit: dustLimit);
     } catch (e) {
       scanning = false;
       notifyListeners();

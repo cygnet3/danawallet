@@ -4,14 +4,14 @@ class InputAlertWidget<T> extends StatelessWidget {
   final TextEditingController controller;
   final TextInputType inputType;
   final String titleText;
-  final String hintText;
+  final String labelText;
 
   const InputAlertWidget(
       {super.key,
       required this.controller,
       required this.inputType,
       required this.titleText,
-      required this.hintText});
+      required this.labelText});
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +21,7 @@ class InputAlertWidget<T> extends StatelessWidget {
         controller: controller,
         autofocus: true,
         keyboardType: inputType,
-        decoration: InputDecoration(hintText: hintText),
-        // onSubmitted: (value) {
-        //   Navigator.of(context).pop(int.tryParse(value));
-        // },
+        decoration: InputDecoration(labelText: labelText),
       ),
       actions: <Widget>[
         TextButton(

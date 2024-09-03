@@ -44,9 +44,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
       String? scanKey,
       String? spendKey,
       int? birthday) async {
-    // todo: maybe make it so the blindbit url can already be changed at this state
-    final String blindbitUrl = _selectedNetwork.getDefaultBlindbitUrl();
-    await SettingsService().setBlindbitUrl(blindbitUrl);
+    await SettingsService().defaultSettings(_selectedNetwork);
 
     await chainState.initialize();
     themeNotifier.setTheme(_selectedNetwork);

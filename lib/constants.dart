@@ -51,6 +51,10 @@ enum Network {
   }
 }
 
+// The default blindbit backend used
 const String defaultMainnet = "https://silentpayments.dev/blindbit/mainnet";
 const String defaultTestnet = "https://silentpayments.dev/blindbit/testnet";
 const String defaultSignet = "https://silentpayments.dev/blindbit/signet";
+
+// dust limit used in scanning. outputs < dust limit will not be scanned
+const int defaultDustLimit = 1000;

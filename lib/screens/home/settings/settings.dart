@@ -23,7 +23,7 @@ class SettingsScreen extends StatelessWidget {
       await walletState.rmWalletFromSecureStorage();
       await walletState.reset();
 
-      SettingsService().resetBlindbitUrl();
+      await SettingsService().resetAll();
       spendSelectionState.reset();
       chainState.reset();
       themeNotifier.setTheme(null);
@@ -65,16 +65,35 @@ class SettingsScreen extends StatelessWidget {
     });
   }
 
-  Future<void> _setBlindbitUrl(
-      BuildContext context, TextEditingController controller) async {
+  Future<void> _setBlindbitUrl(BuildContext context) async {
     SettingsService settings = SettingsService();
+    final controller = TextEditingController();
     controller.text = await settings.getBlindbitUrl() ?? '';
 
     showInputAlertDialog(controller, TextInputType.url, 'Set blindbit url',
             'Only blindbit is currently supported')
         .then((value) async {
       if (value != null) {
-        settings.setBlindbitUrl(value);
+        await settings.setBlindbitUrl(value);
+      }
+    });
+  }
+
+  Future<void> _changeDustLimit(BuildContext context) async {
+    SettingsService settings = SettingsService();
+    final controller = TextEditingController();
+    final dustLimit = await settings.getDustLimit();
+    if (dustLimit != null) {
+      controller.text = dustLimit.toString();
+    } else {
+      controller.text = '';
+    }
+
+    showInputAlertDialog(controller, TextInputType.number, 'Set dust limit',
+            'Payments below this value are ignored')
+        .then((value) async {
+      if (value != null && int.tryParse(value) != null) {
+        await settings.setDustLimit(int.parse(value));
       }
     });
   }
@@ -117,10 +136,15 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           BitcoinButtonOutlined(
-            title: 'Change backend url',
+            title: 'Set backend url',
             onPressed: () {
-              final controller = TextEditingController();
-              _setBlindbitUrl(context, controller);
+              _setBlindbitUrl(context);
+            },
+          ),
+          BitcoinButtonOutlined(
+            title: 'Set dust threshold',
+            onPressed: () {
+              _changeDustLimit(context);
             },
           ),
           BitcoinButtonOutlined(
