@@ -43,6 +43,7 @@ pub async fn get_chain_height(host_url: Url) -> Result<u32> {
 pub async fn scan_blocks(
     host_url: Url,
     mut n_blocks_to_scan: u32,
+    dust_limit: Option<u32>,
     sp_wallet: &mut SpWallet,
 ) -> Result<()> {
     let blindbit_client = get_blindbit_client(host_url);
@@ -77,7 +78,7 @@ pub async fn scan_blocks(
         .map(|n| {
             let bb_client = &blindbit_client;
             async move {
-                let tweaks = bb_client.tweak_index(n).await.unwrap();
+                let tweaks = bb_client.tweak_index(n, dust_limit).await.unwrap();
                 let new_utxo_filter = bb_client.filter_new_utxos(n).await.unwrap();
                 let spent_filter = bb_client.filter_spent(n).await.unwrap();
                 let blkhash = new_utxo_filter.block_hash;

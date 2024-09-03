@@ -33,9 +33,13 @@ String resetWallet({required String encodedWallet}) => RustLib.instance.api
     .crateApiWalletResetWallet(encodedWallet: encodedWallet);
 
 Future<void> scanToTip(
-        {required String blindbitUrl, required String encodedWallet}) =>
+        {required String blindbitUrl,
+        required String encodedWallet,
+        int? dustLimit}) =>
     RustLib.instance.api.crateApiWalletScanToTip(
-        blindbitUrl: blindbitUrl, encodedWallet: encodedWallet);
+        blindbitUrl: blindbitUrl,
+        encodedWallet: encodedWallet,
+        dustLimit: dustLimit);
 
 WalletStatus getWalletInfo({required String encodedWallet}) =>
     RustLib.instance.api

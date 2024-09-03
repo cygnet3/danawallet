@@ -736,11 +736,17 @@ fn wire__crate__api__wallet__scan_to_tip_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_blindbit_url = <String>::sse_decode(&mut deserializer);
             let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
+            let api_dust_limit = <Option<u32>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse(
                     (move || async move {
-                        crate::api::wallet::scan_to_tip(api_blindbit_url, api_encoded_wallet).await
+                        crate::api::wallet::scan_to_tip(
+                            api_blindbit_url,
+                            api_encoded_wallet,
+                            api_dust_limit,
+                        )
+                        .await
                     })()
                     .await,
                 )
