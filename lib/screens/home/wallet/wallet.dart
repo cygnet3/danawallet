@@ -75,20 +75,27 @@ class WalletScreenState extends State<WalletScreen> {
   }
 
   Widget showWalletStateText(WalletState walletState, ChainState chainState) {
-    final toScan = chainState.tip - walletState.lastScan;
     String text;
     String subtext;
 
-    if (walletState.scanning) {
-      text = 'Scanning: $toScan blocks';
-      subtext = '(${walletState.lastScan}-${chainState.tip})';
-    } else if (toScan == 0) {
-      text = 'Up to date!';
-      subtext = '(${chainState.tip})';
+    if (chainState.isInitialized()) {
+      final toScan = chainState.tip - walletState.lastScan;
+
+      if (walletState.scanning) {
+        text = 'Scanning: $toScan blocks';
+        subtext = '(${walletState.lastScan}-${chainState.tip})';
+      } else if (toScan == 0) {
+        text = 'Up to date!';
+        subtext = '(${chainState.tip})';
+      } else {
+        text = 'New blocks: $toScan';
+        subtext = '(${walletState.lastScan}-${chainState.tip})';
+      }
     } else {
-      text = 'New blocks: $toScan';
-      subtext = '(${walletState.lastScan}-${chainState.tip})';
+      text = 'Unknown status';
+      subtext = 'Unable to get block height';
     }
+
     return Column(
       children: [
         Text(

@@ -12,8 +12,12 @@ class ChainState extends ChangeNotifier {
     final url = await SettingsService().getBlindbitUrl();
 
     if (url != null) {
-      _tip = await getChainHeight(blindbitUrl: url);
-      print('initialized with tip: $_tip');
+      try {
+        _tip = await getChainHeight(blindbitUrl: url);
+        Logger().i('initialized with tip: $_tip');
+      } catch (e) {
+        Logger().e('Failed to get block height during initialization');
+      }
     } else {
       Logger()
           .w('Attempted to initialize chain state before blindbit url was set');
@@ -24,28 +28,27 @@ class ChainState extends ChangeNotifier {
     _tip = null;
   }
 
-  bool _isInitialized() {
+  bool isInitialized() {
     return _tip != null;
   }
 
   int get tip {
-    if (_isInitialized()) {
+    if (isInitialized()) {
       return _tip!;
     } else {
-      throw Exception('attempted to get chain tip without initializing');
+      throw Exception('Attempted to get chain tip without initializing');
     }
   }
 
   Future<void> updateChainTip() async {
-    if (_isInitialized()) {
+    try {
       final url = await SettingsService().getBlindbitUrl();
-
       _tip = await getChainHeight(blindbitUrl: url!);
-      print('updating tip: $_tip');
+      Logger().i('updating tip: $_tip');
 
       notifyListeners();
-    } else {
-      throw Exception('attempted to update chain tip without initializing');
+    } catch (e) {
+      Logger().e('Failed to update chain height');
     }
   }
 }

@@ -61,7 +61,9 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
       try {
         birthday = chainState.tip;
       } catch (e) {
-        rethrow;
+        Logger().w(
+            'Unable to get block height, using default network birthday instead');
+        birthday = _selectedNetwork.defaultBirthday;
       }
     }
 
