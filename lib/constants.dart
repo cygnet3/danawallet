@@ -37,6 +37,17 @@ enum Network {
     }
   }
 
+  int get defaultBirthday {
+    switch (this) {
+      case Network.mainnet:
+        return defaultMainnetBirthday;
+      case Network.testnet:
+        return defaultTestnetBirthday;
+      case Network.signet:
+        return defaultSignetBirthday;
+    }
+  }
+
   static Network fromBitcoinNetwork(String network) {
     switch (network) {
       case 'main':
@@ -55,6 +66,12 @@ enum Network {
 const String defaultMainnet = "https://silentpayments.dev/blindbit/mainnet";
 const String defaultTestnet = "https://silentpayments.dev/blindbit/testnet";
 const String defaultSignet = "https://silentpayments.dev/blindbit/signet";
+
+// Default birthdays used in case we can't get the block height from blindbit
+// These values are pretty arbitrary, they can be updated for newer heights later
+const int defaultMainnetBirthday = 850000;
+const int defaultTestnetBirthday = 2900000;
+const int defaultSignetBirthday = 200000;
 
 // dust limit used in scanning. outputs < dust limit will not be scanned
 const int defaultDustLimit = 1000;

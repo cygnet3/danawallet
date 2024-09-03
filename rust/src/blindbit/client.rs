@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use std::time::Duration;
+
 use bitcoin::{secp256k1::PublicKey, BlockHash, ScriptBuf, Txid};
 use reqwest::{Client, Url};
 use serde::Deserialize;
@@ -62,7 +64,12 @@ impl BlindbitClient {
     pub async fn block_height(&self) -> Result<u32> {
         let url = self.host_url.join("block-height")?;
 
-        let res = self.client.get(url).send().await?;
+        let res = self
+            .client
+            .get(url)
+            .timeout(Duration::from_secs(5))
+            .send()
+            .await?;
         let blkheight: BlockHeightResponse = serde_json::from_str(&res.text().await?)?;
         Ok(blkheight.block_height)
     }
