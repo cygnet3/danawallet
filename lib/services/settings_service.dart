@@ -1,7 +1,19 @@
+import 'package:donationwallet/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsService {
   final SharedPreferencesAsync prefs = SharedPreferencesAsync();
+
+  Future<void> defaultSettings(Network network) async {
+    final String blindbitUrl = network.getDefaultBlindbitUrl();
+    await SettingsService().setBlindbitUrl(blindbitUrl);
+    await SettingsService().setDustLimit(defaultDustLimit);
+  }
+
+  Future<void> resetAll() async {
+    await prefs.remove('blindbitUrl');
+    await prefs.remove('dustLimit');
+  }
 
   Future<void> setBlindbitUrl(String url) async {
     return await prefs.setString('blindbitUrl', url);
@@ -11,7 +23,11 @@ class SettingsService {
     return await prefs.getString('blindbitUrl');
   }
 
-  void resetBlindbitUrl() async {
-    await prefs.remove('blindbitUrl');
+  Future<void> setDustLimit(int value) async {
+    return await prefs.setInt('dustLimit', value);
+  }
+
+  Future<int?> getDustLimit() async {
+    return await prefs.getInt('dustLimit');
   }
 }

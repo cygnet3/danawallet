@@ -25,7 +25,7 @@ class ThemeNotifier extends ChangeNotifier {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
           useMaterial3: true,
         );
-      default:
+      case null:
         return ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey),
           useMaterial3: true,
