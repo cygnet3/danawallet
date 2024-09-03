@@ -102,8 +102,8 @@ pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
 
 pub async fn scan_to_tip(
     blindbit_url: String,
+    dust_limit: u32,
     encoded_wallet: String,
-    dust_limit: Option<u32>,
 ) -> Result<()> {
     let blindbit_url = Url::parse(&blindbit_url)?;
 

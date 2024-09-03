@@ -158,8 +158,8 @@ class WalletState extends ChangeNotifier {
 
       await scanToTip(
           blindbitUrl: blindbitUrl!,
-          encodedWallet: wallet,
-          dustLimit: dustLimit);
+          dustLimit: dustLimit!,
+          encodedWallet: wallet);
     } catch (e) {
       scanning = false;
       notifyListeners();

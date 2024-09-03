@@ -141,8 +141,8 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiWalletScanToTip(
       {required String blindbitUrl,
-      required String encodedWallet,
-      int? dustLimit});
+      required int dustLimit,
+      required String encodedWallet});
 
   Future<String> crateApiWalletSetup(
       {required String label,
@@ -717,14 +717,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<void> crateApiWalletScanToTip(
       {required String blindbitUrl,
-      required String encodedWallet,
-      int? dustLimit}) {
+      required int dustLimit,
+      required String encodedWallet}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(blindbitUrl, serializer);
+        sse_encode_u_32(dustLimit, serializer);
         sse_encode_String(encodedWallet, serializer);
-        sse_encode_opt_box_autoadd_u_32(dustLimit, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 22, port: port_);
       },
@@ -733,14 +733,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiWalletScanToTipConstMeta,
-      argValues: [blindbitUrl, encodedWallet, dustLimit],
+      argValues: [blindbitUrl, dustLimit, encodedWallet],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiWalletScanToTipConstMeta => const TaskConstMeta(
         debugName: "scan_to_tip",
-        argNames: ["blindbitUrl", "encodedWallet", "dustLimit"],
+        argNames: ["blindbitUrl", "dustLimit", "encodedWallet"],
       );
 
   @override
