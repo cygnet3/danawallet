@@ -43,8 +43,7 @@ class SummaryWidget extends StatelessWidget {
   final VoidCallback? onTap;
 
   const SummaryWidget(
-      {Key? key, required this.displayText, required this.onTap})
-      : super(key: key);
+      {super.key, required this.displayText, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +75,17 @@ class SummaryWidget extends StatelessWidget {
   }
 }
 
-class SpendScreen extends StatelessWidget {
+class SpendScreen extends StatefulWidget {
   const SpendScreen({super.key});
+
+  @override
+  SpendScreenState createState() => SpendScreenState();
+}
+
+class SpendScreenState extends State<SpendScreen> {
+  final TextEditingController feeRateController = TextEditingController();
+  bool _isSending = false;
+  String? _error;
 
   String _newTransactionWithFees(
       String wallet,
@@ -108,7 +116,6 @@ class SpendScreen extends StatelessWidget {
       String signedPsbt, Network network) async {
     try {
       final tx = extractTxFromPsbt(psbt: signedPsbt);
-      print(tx);
       final txid = await broadcastTx(tx: tx, network: network.toBitcoinNetwork);
       return txid;
     } catch (e) {
@@ -146,10 +153,59 @@ class SpendScreen extends StatelessWidget {
     }
   }
 
+  Future<void> onSpendButtonPressed(
+      WalletState walletState, SpendState spendState) async {
+    {
+      setState(() {
+        _isSending = true;
+        _error = null;
+      });
+
+      final int? fees = int.tryParse(feeRateController.text);
+      if (fees == null) {
+        setState(() {
+          _isSending = false;
+          _error = "No fees input";
+        });
+        return;
+      }
+      try {
+        final wallet = await walletState.getWalletFromSecureStorage();
+        final unsignedPsbt = _newTransactionWithFees(
+            wallet, spendState.selectedOutputs, spendState.recipients, fees);
+        final signedPsbt = _signPsbt(wallet, unsignedPsbt);
+        final sentTxId =
+            await _broadcastSignedPsbt(signedPsbt, walletState.network);
+        final markedAsSpentWallet =
+            _markAsSpent(wallet, sentTxId, spendState.selectedOutputs);
+        final updatedWallet = _addTxToHistory(markedAsSpentWallet, sentTxId,
+            spendState.selectedOutputs.keys.toList(), spendState.recipients);
+
+        // Clear selections
+        spendState.selectedOutputs.clear();
+        spendState.recipients.clear();
+
+        // save the updated wallet
+        walletState.saveWalletToSecureStorage(updatedWallet);
+        await walletState.updateWalletStatus();
+
+        if (mounted) {
+          // navigate to main screen
+          Navigator.popUntil(context, (route) => route.isFirst);
+
+          showAlertDialog('Transaction successfully sent', sentTxId);
+        }
+      } catch (e) {
+        setState(() {
+          _isSending = false;
+          _error = e.toString();
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final TextEditingController feeRateController = TextEditingController();
-
     final spendState = Provider.of<SpendState>(context, listen: true);
     final walletState = Provider.of<WalletState>(context, listen: false);
 
@@ -199,49 +255,17 @@ class SpendScreen extends StatelessWidget {
             ),
             const Spacer(),
             ElevatedButton(
-              onPressed: () async {
-                final int? fees = int.tryParse(feeRateController.text);
-                if (fees == null) {
-                  throw Exception("No fees input");
-                }
-                final wallet = await walletState.getWalletFromSecureStorage();
-                try {
-                  final unsignedPsbt = _newTransactionWithFees(wallet,
-                      spendState.selectedOutputs, spendState.recipients, fees);
-                  final signedPsbt = _signPsbt(wallet, unsignedPsbt);
-                  final sentTxId = await _broadcastSignedPsbt(
-                      signedPsbt, walletState.network);
-                  final markedAsSpentWallet = _markAsSpent(
-                      wallet, sentTxId, spendState.selectedOutputs);
-                  final updatedWallet = _addTxToHistory(
-                      markedAsSpentWallet,
-                      sentTxId,
-                      spendState.selectedOutputs.keys.toList(),
-                      spendState.recipients);
-
-                  // Clear selections
-                  spendState.selectedOutputs.clear();
-                  spendState.recipients.clear();
-
-                  // save the updated wallet
-                  walletState.saveWalletToSecureStorage(updatedWallet);
-                  await walletState.updateWalletStatus();
-
-                  if (!context.mounted) return;
-
-                  // navigate to main screen
-                  Navigator.popUntil(context, (route) => route.isFirst);
-
-                  showAlertDialog('Transaction successfully sent', sentTxId);
-                } catch (e) {
-                  rethrow;
-                }
-              },
+              onPressed: _isSending
+                  ? null
+                  : () => onSpendButtonPressed(walletState, spendState),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
               ),
               child: const Text('Spend'),
             ),
+            const SizedBox(height: 10.0),
+            if (_error != null) Center(child: Text('Error: $_error')),
+            if (_isSending) const Center(child: CircularProgressIndicator()),
             const Spacer()
           ],
         ),
