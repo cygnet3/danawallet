@@ -82,8 +82,7 @@ pub fn extract_tx_from_psbt(psbt: String) -> Result<String> {
     Ok(serialize_hex(&final_tx))
 }
 
-#[flutter_rust_bridge::frb(sync)]
-pub fn broadcast_tx(tx: String, network: String) -> Result<String> {
+pub async fn broadcast_tx(tx: String, network: String) -> Result<String> {
     let tx: pushtx::Transaction = tx.parse().unwrap();
 
     let txid = tx.txid();
@@ -103,18 +102,22 @@ pub fn broadcast_tx(tx: String, network: String) -> Result<String> {
         ..Default::default()
     };
 
-    let receiver = pushtx::broadcast(vec![tx], opts);
+    tokio::task::spawn_blocking(move || {
+        let receiver = pushtx::broadcast(vec![tx], opts);
 
-    loop {
-        match receiver.recv().unwrap() {
-            pushtx::Info::Done(Ok(report)) => {
-                info!("broadcasted to {} peers", report.broadcasts);
-                break;
+        loop {
+            match receiver.recv().unwrap() {
+                pushtx::Info::Done(Ok(report)) => {
+                    info!("broadcasted to {} peers", report.broadcasts);
+                    break;
+                }
+                pushtx::Info::Done(Err(err)) => return Err(anyhow!(err.to_string())),
+                _ => {}
             }
-            pushtx::Info::Done(Err(err)) => return Err(anyhow!(err.to_string())),
-            _ => {}
         }
-    }
+        Ok(())
+    })
+    .await??;
 
     Ok(txid.to_string())
 }

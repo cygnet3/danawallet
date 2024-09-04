@@ -33,5 +33,5 @@ String signPsbt(
 String extractTxFromPsbt({required String psbt}) =>
     RustLib.instance.api.crateApiPsbtExtractTxFromPsbt(psbt: psbt);
 
-String broadcastTx({required String tx, required String network}) =>
+Future<String> broadcastTx({required String tx, required String network}) =>
     RustLib.instance.api.crateApiPsbtBroadcastTx(tx: tx, network: network);
