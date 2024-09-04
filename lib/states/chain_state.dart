@@ -1,5 +1,5 @@
-import 'package:donationwallet/generated/rust/api/chain.dart';
-import 'package:donationwallet/services/settings_service.dart';
+import 'package:danawallet/generated/rust/api/chain.dart';
+import 'package:danawallet/services/settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 

@@ -1,4 +1,4 @@
-import 'package:donationwallet/constants.dart';
+import 'package:danawallet/constants.dart';
 import 'package:flutter/material.dart';
 
 class ThemeNotifier extends ChangeNotifier {

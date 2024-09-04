@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/states/chain_state.dart';
+import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

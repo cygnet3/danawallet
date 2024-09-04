@@ -1,11 +1,11 @@
-import 'package:donationwallet/generated/rust/frb_generated.dart';
+import 'package:danawallet/generated/rust/frb_generated.dart';
 
-import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/screens/home/home.dart';
-import 'package:donationwallet/states/chain_state.dart';
-import 'package:donationwallet/states/spend_state.dart';
-import 'package:donationwallet/states/wallet_state.dart';
-import 'package:donationwallet/states/theme_notifier.dart';
+import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/screens/home/home.dart';
+import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/spend_state.dart';
+import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/states/theme_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

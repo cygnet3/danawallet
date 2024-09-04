@@ -1,4 +1,4 @@
-import 'package:donationwallet/constants.dart';
+import 'package:danawallet/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsService {

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "donationwallet" "\0"
+            VALUE "CompanyName", "dev.silentpayments" "\0"
+            VALUE "FileDescription", "danawallet" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "donationwallet" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "donationwallet.exe" "\0"
-            VALUE "ProductName", "donationwallet" "\0"
+            VALUE "InternalName", "danawallet" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 dev.silentpayments. All rights reserved." "\0"
+            VALUE "OriginalFilename", "danawallet.exe" "\0"
+            VALUE "ProductName", "danawallet" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

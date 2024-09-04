@@ -1,4 +1,4 @@
-import 'package:donationwallet/generated/rust/api/structs.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:flutter/material.dart';
 
 class SpendState extends ChangeNotifier {
