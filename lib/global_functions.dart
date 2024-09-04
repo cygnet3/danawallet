@@ -1,4 +1,4 @@
-import 'package:donationwallet/widgets/input_alert_widget.dart';
+import 'package:danawallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
 
 final globalNavigatorKey = GlobalKey<NavigatorState>();

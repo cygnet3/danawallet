@@ -1,5 +1,5 @@
 import 'package:dart_bip353/dart_bip353.dart';
-import 'package:donationwallet/states/spend_state.dart';
+import 'package:danawallet/states/spend_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';

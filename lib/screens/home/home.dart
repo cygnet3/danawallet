@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:donationwallet/screens/create/create_wallet.dart';
-import 'package:donationwallet/states/chain_state.dart';
-import 'package:donationwallet/states/theme_notifier.dart';
-import 'package:donationwallet/states/wallet_state.dart';
-import 'package:donationwallet/screens/home/history/tx_history.dart';
-import 'package:donationwallet/screens/home/wallet/wallet.dart';
-import 'package:donationwallet/screens/home/settings/settings.dart';
+import 'package:danawallet/screens/create/create_wallet.dart';
+import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/theme_notifier.dart';
+import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/screens/home/history/tx_history.dart';
+import 'package:danawallet/screens/home/wallet/wallet.dart';
+import 'package:danawallet/screens/home/settings/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

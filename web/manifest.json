@@ -1,6 +1,6 @@
 {
-    "name": "donationwallet",
-    "short_name": "donationwallet",
+    "name": "danawallet",
+    "short_name": "danawallet",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

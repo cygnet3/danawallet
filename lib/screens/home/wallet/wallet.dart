@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/services/synchronization_service.dart';
-import 'package:donationwallet/screens/home/wallet/spend/spend.dart';
-import 'package:donationwallet/states/chain_state.dart';
-import 'package:donationwallet/states/wallet_state.dart';
+import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/services/synchronization_service.dart';
+import 'package:danawallet/screens/home/wallet/spend/spend.dart';
+import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:barcode_widget/barcode_widget.dart';

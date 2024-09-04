@@ -1,5 +1,5 @@
 [package]
-name = "rust_lib_donationwallet"
+name = "rust_lib_danawallet"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-flutter_rust_bridge = "=2.0.0-dev.37"
+flutter_rust_bridge = "=2.3.0"
 sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "master"}
 lazy_static = "1.4"
 anyhow = "1.0"

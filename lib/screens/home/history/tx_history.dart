@@ -1,7 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/generated/rust/api/structs.dart';
-import 'package:donationwallet/states/wallet_state.dart';
+import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

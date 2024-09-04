@@ -1,12 +1,12 @@
-import 'package:donationwallet/constants.dart';
-import 'package:donationwallet/global_functions.dart';
-import 'package:donationwallet/screens/home/wallet/spend/outputs.dart';
-import 'package:donationwallet/screens/home/wallet/spend/destination.dart';
-import 'package:donationwallet/generated/rust/api/psbt.dart';
-import 'package:donationwallet/generated/rust/api/structs.dart';
-import 'package:donationwallet/generated/rust/api/wallet.dart';
-import 'package:donationwallet/states/spend_state.dart';
-import 'package:donationwallet/states/wallet_state.dart';
+import 'package:danawallet/constants.dart';
+import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/screens/home/wallet/spend/outputs.dart';
+import 'package:danawallet/screens/home/wallet/spend/destination.dart';
+import 'package:danawallet/generated/rust/api/psbt.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/states/spend_state.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
