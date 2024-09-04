@@ -79,7 +79,8 @@ abstract class RustLibApi extends BaseApi {
   String crateApiPsbtAddFeeForFeeRate(
       {required String psbt, required int feeRate, required String payer});
 
-  String crateApiPsbtBroadcastTx({required String tx, required String network});
+  Future<String> crateApiPsbtBroadcastTx(
+      {required String tx, required String network});
 
   String crateApiPsbtCreateNewPsbt(
       {required String encodedWallet,
@@ -216,14 +217,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String crateApiPsbtBroadcastTx(
+  Future<String> crateApiPsbtBroadcastTx(
       {required String tx, required String network}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(tx, serializer);
         sse_encode_String(network, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 3, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,

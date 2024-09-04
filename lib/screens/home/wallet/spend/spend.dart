@@ -104,11 +104,12 @@ class SpendScreen extends StatelessWidget {
     return signPsbt(encodedWallet: wallet, psbt: unsignedPsbt, finalize: true);
   }
 
-  String _broadcastSignedPsbt(String signedPsbt, Network network) {
+  Future<String> _broadcastSignedPsbt(
+      String signedPsbt, Network network) async {
     try {
       final tx = extractTxFromPsbt(psbt: signedPsbt);
       print(tx);
-      final txid = broadcastTx(tx: tx, network: network.toBitcoinNetwork);
+      final txid = await broadcastTx(tx: tx, network: network.toBitcoinNetwork);
       return txid;
     } catch (e) {
       rethrow;
@@ -208,8 +209,8 @@ class SpendScreen extends StatelessWidget {
                   final unsignedPsbt = _newTransactionWithFees(wallet,
                       spendState.selectedOutputs, spendState.recipients, fees);
                   final signedPsbt = _signPsbt(wallet, unsignedPsbt);
-                  final sentTxId =
-                      _broadcastSignedPsbt(signedPsbt, walletState.network);
+                  final sentTxId = await _broadcastSignedPsbt(
+                      signedPsbt, walletState.network);
                   final markedAsSpentWallet = _markAsSpent(
                       wallet, sentTxId, spendState.selectedOutputs);
                   final updatedWallet = _addTxToHistory(
