@@ -107,8 +107,8 @@ pub async fn broadcast_tx(tx: String, network: String) -> Result<String> {
 
         loop {
             match receiver.recv().unwrap() {
-                pushtx::Info::Done(Ok(_report)) => {
-                    info!("broadcasted to x peers");
+                pushtx::Info::Done(Ok(report)) => {
+                    info!("broadcasted {} transactions", report.success.len());
                     break;
                 }
                 pushtx::Info::Done(Err(err)) => return Err(anyhow!(err.to_string())),
