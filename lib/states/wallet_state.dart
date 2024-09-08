@@ -75,10 +75,6 @@ class WalletState extends ChangeNotifier {
       await updateWalletStatus();
     }));
 
-    amountStreamSubscription = createAmountStream().listen((event) {
-      amount = event;
-      notifyListeners();
-    });
   }
 
   @override

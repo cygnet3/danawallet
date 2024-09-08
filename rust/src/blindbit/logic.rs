@@ -20,7 +20,7 @@ use sp_client::{
     spclient::{OutputList, SpWallet},
 };
 
-use crate::stream::{send_amount_update, send_scan_progress, send_scan_result, ScanProgress};
+use crate::stream::{send_scan_progress, send_scan_result, ScanProgress};
 use crate::{
     blindbit::client::{BlindbitClient, UtxoResponse},
     stream::ScanResult,
@@ -122,7 +122,6 @@ pub async fn scan_blocks(
             send_update = true;
             let height = Height::from_consensus(blkheight)?;
             sp_wallet.record_block_outputs(height, found_outputs);
-            send_amount_update(sp_wallet.get_outputs().get_balance().to_sat());
         }
 
         if !found_inputs.is_empty() {
