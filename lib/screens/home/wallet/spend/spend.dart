@@ -87,19 +87,30 @@ class SpendScreenState extends State<SpendScreen> {
   bool _isSending = false;
   String? _error;
 
-  String _newTransactionWithFees(
+  (String, BigInt?) _newTransactionWithFees(
       String wallet,
       Map<String, OwnedOutput> selectedOutputs,
       List<Recipient> recipients,
       int feeRate) {
     try {
-      final psbt = createNewPsbt(
+      final (psbt, changeIdx) = createNewPsbt(
           encodedWallet: wallet,
           inputs: selectedOutputs,
           recipients: recipients);
-      final fee = addFeeForFeeRate(
+
+      // todo: use change address for fees instead of first address
+      final psbtWithFee = addFeeForFeeRate(
           psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
-      return fillSpOutputs(encodedWallet: wallet, psbt: fee);
+
+      // get change amount after reducing fees
+      BigInt? changeAmt;
+      if (changeIdx != null) {
+        changeAmt = readAmtFromPsbtOutput(psbt: psbt, idx: changeIdx);
+      }
+
+      final psbtWithSpOutputsFilled =
+          fillSpOutputs(encodedWallet: wallet, psbt: psbtWithFee);
+      return (psbtWithSpOutputsFilled, changeAmt);
     } catch (e) {
       rethrow;
     }
@@ -139,14 +150,20 @@ class SpendScreenState extends State<SpendScreen> {
     }
   }
 
-  String _addTxToHistory(String wallet, String txid,
-      List<String> selectedOutpoints, List<Recipient> recipients) {
+  String _addTxToHistory(
+      String wallet,
+      String txid,
+      List<String> selectedOutpoints,
+      List<Recipient> recipients,
+      BigInt? changeAmount) {
+    final changeAmt = Amount(field0: changeAmount ?? BigInt.from(0));
     try {
       final updatedWallet = addOutgoingTxToHistory(
           encodedWallet: wallet,
           txid: txid,
           spentOutpoints: selectedOutpoints,
-          recipients: recipients);
+          recipients: recipients,
+          change: changeAmt);
       return updatedWallet;
     } catch (e) {
       rethrow;
@@ -171,15 +188,20 @@ class SpendScreenState extends State<SpendScreen> {
       }
       try {
         final wallet = await walletState.getWalletFromSecureStorage();
-        final unsignedPsbt = _newTransactionWithFees(
+        final (unsignedPsbt, changeAmt) = _newTransactionWithFees(
             wallet, spendState.selectedOutputs, spendState.recipients, fees);
+
         final signedPsbt = _signPsbt(wallet, unsignedPsbt);
         final sentTxId =
             await _broadcastSignedPsbt(signedPsbt, walletState.network);
         final markedAsSpentWallet =
             _markAsSpent(wallet, sentTxId, spendState.selectedOutputs);
-        final updatedWallet = _addTxToHistory(markedAsSpentWallet, sentTxId,
-            spendState.selectedOutputs.keys.toList(), spendState.recipients);
+        final updatedWallet = _addTxToHistory(
+            markedAsSpentWallet,
+            sentTxId,
+            spendState.selectedOutputs.keys.toList(),
+            spendState.recipients,
+            changeAmt);
 
         // Clear selections
         spendState.selectedOutputs.clear();

@@ -122,8 +122,22 @@ class WalletState extends ChangeNotifier {
     } catch (e) {
       rethrow;
     }
+
+    BigInt amount = walletInfo.balance;
+
+    for (RecordedTransaction tx in walletInfo.txHistory) {
+      switch (tx) {
+        case RecordedTransaction_Outgoing(:final field0):
+          if (field0.confirmedAt == null) {
+            // while an outgoing transaction is not yet confirmed, we add the change outputs manually
+            amount += field0.change.field0;
+          }
+        default:
+      }
+    }
+
     address = walletInfo.address;
-    amount = walletInfo.balance;
+    this.amount = amount;
     birthday = walletInfo.birthday;
     lastScan = walletInfo.lastScan;
     ownedOutputs = walletInfo.outputs;

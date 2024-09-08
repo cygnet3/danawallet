@@ -154,12 +154,14 @@ class RecordedTransactionOutgoing {
   final List<String> spentOutpoints;
   final List<Recipient> recipients;
   final int? confirmedAt;
+  final Amount change;
 
   const RecordedTransactionOutgoing({
     required this.txid,
     required this.spentOutpoints,
     required this.recipients,
     this.confirmedAt,
+    required this.change,
   });
 
   String toString() =>
@@ -172,7 +174,8 @@ class RecordedTransactionOutgoing {
       txid.hashCode ^
       spentOutpoints.hashCode ^
       recipients.hashCode ^
-      confirmedAt.hashCode;
+      confirmedAt.hashCode ^
+      change.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -182,7 +185,8 @@ class RecordedTransactionOutgoing {
           txid == other.txid &&
           spentOutpoints == other.spentOutpoints &&
           recipients == other.recipients &&
-          confirmedAt == other.confirmedAt;
+          confirmedAt == other.confirmedAt &&
+          change == other.change;
 }
 
 class WalletStatus {

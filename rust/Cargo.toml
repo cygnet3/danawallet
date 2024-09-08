@@ -8,7 +8,7 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.3.0"
-sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "master"}
+sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "add-change-tx-history"}
 lazy_static = "1.4"
 anyhow = "1.0"
 serde = { version = "1.0.188", features = ["derive"] }

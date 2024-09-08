@@ -14,7 +14,7 @@ pub fn create_new_psbt(
     encoded_wallet: String,
     inputs: HashMap<String, OwnedOutput>,
     recipients: Vec<Recipient>,
-) -> Result<String> {
+) -> Result<(String, Option<usize>)> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
     // convert to spclient inputs
@@ -25,11 +25,11 @@ pub fn create_new_psbt(
 
     let recipients = recipients.into_iter().map(Into::into).collect();
 
-    let psbt = wallet
+    let (psbt, change_idx) = wallet
         .get_client()
         .create_new_psbt(inputs, recipients, None)?;
 
-    Ok(psbt.to_string())
+    Ok((psbt.to_string(), change_idx))
 }
 
 // payer is an address, either Silent Payment or not
@@ -124,4 +124,17 @@ pub async fn broadcast_tx(tx: String, network: String) -> Result<String> {
     .await??;
 
     Ok(txid.to_string())
+}
+
+#[flutter_rust_bridge::frb(sync)]
+pub fn read_amt_from_psbt_output(psbt: String, idx: usize) -> Result<u64> {
+    let psbt = Psbt::from_str(&psbt)?;
+    let tx = psbt.extract_tx()?;
+
+    if tx.output.len() > idx {
+        let amt = tx.output.get(idx).unwrap().value;
+        Ok(amt.to_sat())
+    } else {
+        Err(Error::msg("idx not in range of output length"))
+    }
 }
