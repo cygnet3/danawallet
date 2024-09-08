@@ -25,8 +25,6 @@ class WalletState extends ChangeNotifier {
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
   late StreamSubscription scanResultSubscription;
-  late StreamSubscription amountStreamSubscription;
-  late StreamSubscription syncStreamSubscription;
 
   WalletState();
 
@@ -74,7 +72,6 @@ class WalletState extends ChangeNotifier {
       await saveWalletToSecureStorage(updatedWallet);
       await updateWalletStatus();
     }));
-
   }
 
   @override
@@ -82,8 +79,6 @@ class WalletState extends ChangeNotifier {
     logStreamSubscription.cancel();
     scanProgressSubscription.cancel();
     scanResultSubscription.cancel();
-    amountStreamSubscription.cancel();
-    syncStreamSubscription.cancel();
     super.dispose();
   }
 
