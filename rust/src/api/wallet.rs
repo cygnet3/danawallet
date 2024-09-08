@@ -161,6 +161,7 @@ pub fn add_outgoing_tx_to_history(
     txid: String,
     spent_outpoints: Vec<String>,
     recipients: Vec<Recipient>,
+    change: Amount,
 ) -> Result<String> {
     let txid = Txid::from_str(&txid)?;
     let spent_outpoints = spent_outpoints
@@ -172,7 +173,7 @@ pub fn add_outgoing_tx_to_history(
 
     let recipients = recipients.into_iter().map(Into::into).collect();
 
-    wallet.record_outgoing_transaction(txid, spent_outpoints, recipients);
+    wallet.record_outgoing_transaction(txid, spent_outpoints, recipients, change.into());
 
     Ok(serde_json::to_string(&wallet)?)
 }

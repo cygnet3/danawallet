@@ -151,6 +151,7 @@ pub struct RecordedTransactionOutgoing {
     pub spent_outpoints: Vec<String>,
     pub recipients: Vec<Recipient>,
     pub confirmed_at: Option<u32>,
+    pub change: Amount,
 }
 
 impl From<sp_client::spclient::RecordedTransaction> for RecordedTransaction {
@@ -215,6 +216,7 @@ impl From<sp_client::spclient::RecordedTransactionOutgoing> for RecordedTransact
                 .collect(),
             recipients: value.recipients.into_iter().map(Into::into).collect(),
             confirmed_at,
+            change: value.change.into(),
         }
     }
 }
@@ -234,6 +236,7 @@ impl From<RecordedTransactionOutgoing> for sp_client::spclient::RecordedTransact
                 .collect(),
             recipients: value.recipients.into_iter().map(Into::into).collect(),
             confirmed_at,
+            change: value.change.into(),
         }
     }
 }

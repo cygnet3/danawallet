@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
-String createNewPsbt(
+(String, BigInt?) createNewPsbt(
         {required String encodedWallet,
         required Map<String, OwnedOutput> inputs,
         required List<Recipient> recipients}) =>
@@ -35,3 +35,7 @@ String extractTxFromPsbt({required String psbt}) =>
 
 Future<String> broadcastTx({required String tx, required String network}) =>
     RustLib.instance.api.crateApiPsbtBroadcastTx(tx: tx, network: network);
+
+BigInt readAmtFromPsbtOutput({required String psbt, required BigInt idx}) =>
+    RustLib.instance.api
+        .crateApiPsbtReadAmtFromPsbtOutput(psbt: psbt, idx: idx);
