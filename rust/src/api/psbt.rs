@@ -108,8 +108,12 @@ pub async fn broadcast_tx(tx: String, network: String) -> Result<String> {
         loop {
             match receiver.recv().unwrap() {
                 pushtx::Info::Done(Ok(report)) => {
-                    info!("broadcasted {} transactions", report.success.len());
-                    break;
+                    if report.success.len() > 0 {
+                        info!("broadcasted {} transactions", report.success.len());
+                        break;
+                    } else {
+                         return Err(Error::msg("Failed to broadcast transaction, probably unable to connect to Tor peers"));
+                    }
                 }
                 pushtx::Info::Done(Err(err)) => return Err(anyhow!(err.to_string())),
                 _ => {}
