@@ -18,6 +18,3 @@ Stream<ScanProgress> createScanProgressStream() =>
 
 Stream<ScanResult> createScanResultStream() =>
     RustLib.instance.api.crateApiStreamCreateScanResultStream();
-
-Stream<BigInt> createAmountStream() =>
-    RustLib.instance.api.crateApiStreamCreateAmountStream();

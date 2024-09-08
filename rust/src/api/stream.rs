@@ -19,8 +19,3 @@ pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {
 pub fn create_scan_result_stream(s: StreamSink<ScanResult>) {
     stream::create_scan_result_stream(s);
 }
-
-#[flutter_rust_bridge::frb(sync)]
-pub fn create_amount_stream(s: StreamSink<u64>) {
-    stream::create_amount_stream(s);
-}
