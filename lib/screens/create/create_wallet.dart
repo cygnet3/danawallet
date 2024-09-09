@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/services/settings_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/theme_notifier.dart';
@@ -51,7 +52,10 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
 
     try {
       await walletState.updateWalletStatus();
-      walletState.walletLoaded = true;
+      if (mounted) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
+      }
       return;
     } catch (e) {
       Logger().i("Creating a new wallet");
@@ -78,7 +82,11 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
       );
       await walletState.saveWalletToSecureStorage(wallet);
       await walletState.updateWalletStatus();
-      walletState.walletLoaded = true;
+
+      if (mounted) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
+      }
     } catch (e) {
       rethrow;
     }

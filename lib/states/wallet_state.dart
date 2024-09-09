@@ -16,7 +16,6 @@ class WalletState extends ChangeNotifier {
   double progress = 0.0;
   bool scanning = false;
   Network _network = Network.signet;
-  bool walletLoaded = false;
   String address = "";
   Map<String, OwnedOutput> ownedOutputs = {};
   List<RecordedTransaction> txHistory = List.empty(growable: true);
@@ -34,9 +33,26 @@ class WalletState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> initialize() async {
+  Future<bool> initialize() async {
+    // todo: move logging stream to more sensible place
+    await _initStreams();
+
+    // we check if wallet str is present in database
+    final walletStr = await secureStorage.read(key: label);
+
+    // if not present, we have no wallet and return false
+    if (walletStr == null) {
+      return false;
+    }
+
+    // We try to load the wallet data blob.
+    // This may fail if we make a change to the wallet data struct.
+    // This case should crash the app, rather than continue.
+    // If we continue, we risk the user accidentally
+    // deleting their seed phrase.
     try {
-      await _initStreams();
+      await _updateWalletStatus(walletStr);
+      return true;
     } catch (e) {
       rethrow;
     }
@@ -89,7 +105,6 @@ class WalletState extends ChangeNotifier {
     lastScan = 0;
     progress = 0.0;
     scanning = false;
-    walletLoaded = false;
     address = "";
     ownedOutputs = {};
     txHistory = List.empty(growable: true);
@@ -115,35 +130,43 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> updateWalletStatus() async {
-    WalletStatus walletInfo;
     try {
       final wallet = await getWalletFromSecureStorage();
+      _updateWalletStatus(wallet);
+    } catch (e) {
+      rethrow;
+    }
+    notifyListeners();
+  }
+
+  Future<void> _updateWalletStatus(String wallet) async {
+    WalletStatus walletInfo;
+    try {
       walletInfo = getWalletInfo(encodedWallet: wallet);
     } catch (e) {
       rethrow;
     }
 
-    BigInt amount = walletInfo.balance;
+    BigInt totalAmount = walletInfo.balance;
 
     for (RecordedTransaction tx in walletInfo.txHistory) {
       switch (tx) {
         case RecordedTransaction_Outgoing(:final field0):
           if (field0.confirmedAt == null) {
             // while an outgoing transaction is not yet confirmed, we add the change outputs manually
-            amount += field0.change.field0;
+            totalAmount += field0.change.field0;
           }
         default:
       }
     }
 
     address = walletInfo.address;
-    this.amount = amount;
+    amount = totalAmount;
     birthday = walletInfo.birthday;
     lastScan = walletInfo.lastScan;
     ownedOutputs = walletInfo.outputs;
     txHistory = walletInfo.txHistory;
     network = Network.fromBitcoinNetwork(walletInfo.network);
-    notifyListeners();
   }
 
   Map<String, OwnedOutput> getSpendableOutputs() {
