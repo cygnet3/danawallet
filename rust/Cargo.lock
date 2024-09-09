@@ -1536,7 +1536,7 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-client?branch=add-change-tx-history#4ba9e5178602faf906475bf1afaa1423883fb071"
+source = "git+https://github.com/cygnet3/sp-client?branch=master#2ec5d85486f2301fff6b32777f0e70d2f95821c0"
 dependencies = [
  "anyhow",
  "bitcoin",
