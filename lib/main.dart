@@ -3,6 +3,7 @@ import 'package:danawallet/generated/rust/frb_generated.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/states/theme_notifier.dart';
@@ -14,16 +15,14 @@ void main() async {
   await RustLib.init();
   final walletState = WalletState();
   await walletState.initialize();
-  final themeNotifier = ThemeNotifier();
-  final chainState = ChainState();
-  final spendState = SpendState();
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: walletState),
-        ChangeNotifierProvider.value(value: themeNotifier),
-        ChangeNotifierProvider.value(value: chainState),
-        ChangeNotifierProvider.value(value: spendState),
+        ChangeNotifierProvider.value(value: ThemeNotifier()),
+        ChangeNotifierProvider.value(value: ChainState()),
+        ChangeNotifierProvider.value(value: SpendState()),
+        ChangeNotifierProvider.value(value: HomeState())
       ],
       child: const SilentPaymentApp(),
     ),

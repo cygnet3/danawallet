@@ -1,9 +1,9 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/services/settings_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/theme_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -18,6 +18,7 @@ class SettingsScreen extends StatelessWidget {
     ChainState chainState,
     SpendState spendSelectionState,
     ThemeNotifier themeNotifier,
+    HomeState homeIndexProvider,
   ) async {
     try {
       await walletState.rmWalletFromSecureStorage();
@@ -27,6 +28,7 @@ class SettingsScreen extends StatelessWidget {
       spendSelectionState.reset();
       chainState.reset();
       themeNotifier.setTheme(null);
+      homeIndexProvider.showMainScreen();
     } catch (e) {
       rethrow;
     }
@@ -42,8 +44,9 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _setBirthday(BuildContext context,
-      TextEditingController controller, Function(Exception? e) callback) async {
+  Future<void> _setBirthday(
+      BuildContext context, HomeState homeProvider) async {
+    TextEditingController controller = TextEditingController();
     showInputAlertDialog(controller, TextInputType.number, 'Enter Birthday',
             'Enter wallet\'s birthday (numeric value)')
         .then((value) async {
@@ -53,11 +56,9 @@ class SettingsScreen extends StatelessWidget {
           final wallet = await walletState.getWalletFromSecureStorage();
           final updatedWallet =
               changeBirthday(encodedWallet: wallet, birthday: int.parse(value));
-          walletState.saveWalletToSecureStorage(updatedWallet);
-          callback(null);
+          await walletState.saveWalletToSecureStorage(updatedWallet);
           await walletState.updateWalletStatus();
-        } on Exception catch (e) {
-          callback(e);
+          homeProvider.showMainScreen();
         } catch (e) {
           rethrow;
         }
@@ -104,6 +105,7 @@ class SettingsScreen extends StatelessWidget {
     final chainState = Provider.of<ChainState>(context, listen: false);
     final spendState = Provider.of<SpendState>(context, listen: false);
     final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+    final homeProvider = Provider.of<HomeState>(context, listen: false);
 
     return Center(
       child: Column(
@@ -120,21 +122,8 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           BitcoinButtonOutlined(
-            title: 'Set wallet birthday',
-            onPressed: () async {
-              final controller = TextEditingController();
-              await _setBirthday(context, controller, (Exception? e) async {
-                if (e != null) {
-                  throw e;
-                } else {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const HomeScreen()));
-                }
-              });
-            },
-          ),
+              title: 'Set wallet birthday',
+              onPressed: () => _setBirthday(context, homeProvider)),
           BitcoinButtonOutlined(
             title: 'Set backend url',
             onPressed: () {
@@ -149,8 +138,8 @@ class SettingsScreen extends StatelessWidget {
           ),
           BitcoinButtonOutlined(
             title: 'Wipe wallet',
-            onPressed: () => _removeWallet(
-                walletState, chainState, spendState, themeNotifier),
+            onPressed: () => _removeWallet(walletState, chainState, spendState,
+                themeNotifier, homeProvider),
           ),
         ],
       ),

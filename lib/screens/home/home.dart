@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/theme_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/screens/home/history/tx_history.dart';
@@ -20,7 +21,6 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   bool isLoading = true;
-  int _selectedIndex = 0;
   final List<Widget> _widgetOptions = [
     const WalletScreen(),
     const TxHistoryscreen(),
@@ -51,15 +51,10 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context, listen: true);
+    final homeState = Provider.of<HomeState>(context, listen: true);
 
     if (isLoading) {
       return const MaterialApp(
@@ -86,7 +81,7 @@ class HomeScreenState extends State<HomeScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: IndexedStack(
-        index: _selectedIndex,
+        index: homeState.selectedIndex,
         children: _widgetOptions,
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -113,9 +108,9 @@ class HomeScreenState extends State<HomeScreen> {
             label: 'Settings',
           ),
         ],
-        currentIndex: _selectedIndex,
+        currentIndex: homeState.selectedIndex,
         selectedItemColor: Colors.green,
-        onTap: _onItemTapped,
+        onTap: homeState.setIndex,
       ),
     );
   }
