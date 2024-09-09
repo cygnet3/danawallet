@@ -1,6 +1,7 @@
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
@@ -14,33 +15,50 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   final walletState = WalletState();
-  await walletState.initialize();
+  final chainState = ChainState();
+  final themeNotifier = ThemeNotifier();
+
+  final bool walletLoaded;
+  try {
+    walletLoaded = await walletState.initialize();
+  } catch (e) {
+    // todo: show an error screen when wallet is present but fails to load
+    rethrow;
+  }
+
+  if (walletLoaded) {
+    await chainState.initialize();
+    themeNotifier.setTheme(walletState.network);
+  }
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: walletState),
-        ChangeNotifierProvider.value(value: ThemeNotifier()),
-        ChangeNotifierProvider.value(value: ChainState()),
+        ChangeNotifierProvider.value(value: themeNotifier),
+        ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: SpendState()),
         ChangeNotifierProvider.value(value: HomeState())
       ],
-      child: const SilentPaymentApp(),
+      child: SilentPaymentApp(walletLoaded: walletLoaded),
     ),
   );
 }
 
 class SilentPaymentApp extends StatelessWidget {
-  const SilentPaymentApp({super.key});
+  final bool walletLoaded;
+
+  const SilentPaymentApp({super.key, required this.walletLoaded});
 
   @override
   Widget build(BuildContext context) {
-    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: true);
 
     return MaterialApp(
       title: 'Dana wallet',
       navigatorKey: globalNavigatorKey,
       theme: themeNotifier.themeData,
-      home: const HomeScreen(),
+      home: walletLoaded ? const HomeScreen() : const CreateWalletScreen(),
     );
   }
 }

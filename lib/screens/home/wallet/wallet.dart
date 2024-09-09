@@ -179,12 +179,6 @@ class WalletScreenState extends State<WalletScreen> {
             },
             child: const Text('Scan'));
 
-    if (!walletState.walletLoaded) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
     return Column(
       children: [
         Expanded(

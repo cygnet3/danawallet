@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/services/settings_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
@@ -18,7 +19,6 @@ class SettingsScreen extends StatelessWidget {
     ChainState chainState,
     SpendState spendSelectionState,
     ThemeNotifier themeNotifier,
-    HomeState homeIndexProvider,
   ) async {
     try {
       await walletState.rmWalletFromSecureStorage();
@@ -28,7 +28,6 @@ class SettingsScreen extends StatelessWidget {
       spendSelectionState.reset();
       chainState.reset();
       themeNotifier.setTheme(null);
-      homeIndexProvider.showMainScreen();
     } catch (e) {
       rethrow;
     }
@@ -137,10 +136,18 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           BitcoinButtonOutlined(
-            title: 'Wipe wallet',
-            onPressed: () => _removeWallet(walletState, chainState, spendState,
-                themeNotifier, homeProvider),
-          ),
+              title: 'Wipe wallet',
+              onPressed: () async {
+                await _removeWallet(
+                    walletState, chainState, spendState, themeNotifier);
+                homeProvider.showMainScreen();
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CreateWalletScreen()));
+                }
+              }),
         ],
       ),
     );
