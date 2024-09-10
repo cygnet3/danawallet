@@ -174,7 +174,7 @@ class WalletScreenState extends State<WalletScreen> {
                 await chainState.updateChainTip();
                 await walletState.scan();
               } catch (e) {
-                displayNotification(e.toString());
+                displayNotification(exceptionToString(e));
               }
             },
             child: const Text('Scan'));

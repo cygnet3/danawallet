@@ -38,7 +38,7 @@ class SettingsScreen extends StatelessWidget {
       final wallet = await walletState.getWalletFromSecureStorage();
       return showMnemonic(encodedWallet: wallet);
     } catch (e) {
-      displayNotification(e.toString());
+      displayNotification(exceptionToString(e));
       return null;
     }
   }
