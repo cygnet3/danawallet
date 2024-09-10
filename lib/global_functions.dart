@@ -1,5 +1,6 @@
 import 'package:danawallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 final globalNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -49,4 +50,15 @@ Future<String?> showInputAlertDialog(TextEditingController controller,
   } else {
     return Future.value(null);
   }
+}
+
+String exceptionToString(Object e) {
+  String message;
+  if (e is AnyhowException) {
+    // remove stack trace from anyhow exception
+    message = e.message.split('\n').first;
+  } else {
+    message = e.toString();
+  }
+  return message;
 }

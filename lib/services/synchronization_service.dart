@@ -27,7 +27,7 @@ class SynchronizationService {
       final chainState = Provider.of<ChainState>(context, listen: false);
       await chainState.updateChainTip();
     } catch (e) {
-      displayNotification(e.toString());
+      displayNotification(exceptionToString(e));
     }
   }
 

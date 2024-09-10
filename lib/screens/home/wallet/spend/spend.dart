@@ -220,7 +220,7 @@ class SpendScreenState extends State<SpendScreen> {
       } catch (e) {
         setState(() {
           _isSending = false;
-          _error = e.toString();
+          _error = exceptionToString(e);
         });
       }
     }
