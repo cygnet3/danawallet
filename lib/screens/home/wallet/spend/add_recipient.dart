@@ -30,6 +30,7 @@ class AddRecipientWidgetState extends State<AddRecipientWidget> {
         children: <Widget>[
           TextFormField(
             controller: addressController,
+            keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               labelText: 'Recipient',
               hintText: 'satoshi@bitcoin.org, sp1q..., bc1q...',
