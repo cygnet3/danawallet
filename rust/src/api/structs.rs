@@ -3,6 +3,8 @@ use std::{collections::HashMap, str::FromStr};
 use serde::{Deserialize, Serialize};
 use sp_client::bitcoin::{self, absolute::Height, OutPoint, Txid};
 
+use crate::wallet;
+
 type SpendingTxId = String;
 type MinedInBlock = String;
 
@@ -154,21 +156,21 @@ pub struct RecordedTransactionOutgoing {
     pub change: Amount,
 }
 
-impl From<sp_client::spclient::RecordedTransaction> for RecordedTransaction {
-    fn from(value: sp_client::spclient::RecordedTransaction) -> Self {
+impl From<wallet::recorded::RecordedTransaction> for RecordedTransaction {
+    fn from(value: wallet::recorded::RecordedTransaction) -> Self {
         match value {
-            sp_client::spclient::RecordedTransaction::Incoming(incoming) => {
+            wallet::recorded::RecordedTransaction::Incoming(incoming) => {
                 Self::Incoming(incoming.into())
             }
 
-            sp_client::spclient::RecordedTransaction::Outgoing(outgoing) => {
+            wallet::recorded::RecordedTransaction::Outgoing(outgoing) => {
                 Self::Outgoing(outgoing.into())
             }
         }
     }
 }
 
-impl From<RecordedTransaction> for sp_client::spclient::RecordedTransaction {
+impl From<RecordedTransaction> for wallet::recorded::RecordedTransaction {
     fn from(value: RecordedTransaction) -> Self {
         match value {
             RecordedTransaction::Incoming(incoming) => Self::Incoming(incoming.into()),
@@ -177,8 +179,8 @@ impl From<RecordedTransaction> for sp_client::spclient::RecordedTransaction {
     }
 }
 
-impl From<sp_client::spclient::RecordedTransactionIncoming> for RecordedTransactionIncoming {
-    fn from(value: sp_client::spclient::RecordedTransactionIncoming) -> Self {
+impl From<wallet::recorded::RecordedTransactionIncoming> for RecordedTransactionIncoming {
+    fn from(value: wallet::recorded::RecordedTransactionIncoming) -> Self {
         let confirmed_at = value.confirmed_at.map(|height| height.to_consensus_u32());
 
         Self {
@@ -189,7 +191,7 @@ impl From<sp_client::spclient::RecordedTransactionIncoming> for RecordedTransact
     }
 }
 
-impl From<RecordedTransactionIncoming> for sp_client::spclient::RecordedTransactionIncoming {
+impl From<RecordedTransactionIncoming> for wallet::recorded::RecordedTransactionIncoming {
     fn from(value: RecordedTransactionIncoming) -> Self {
         let confirmed_at = value
             .confirmed_at
@@ -203,8 +205,8 @@ impl From<RecordedTransactionIncoming> for sp_client::spclient::RecordedTransact
     }
 }
 
-impl From<sp_client::spclient::RecordedTransactionOutgoing> for RecordedTransactionOutgoing {
-    fn from(value: sp_client::spclient::RecordedTransactionOutgoing) -> Self {
+impl From<wallet::recorded::RecordedTransactionOutgoing> for RecordedTransactionOutgoing {
+    fn from(value: wallet::recorded::RecordedTransactionOutgoing) -> Self {
         let confirmed_at = value.confirmed_at.map(|height| height.to_consensus_u32());
 
         Self {
@@ -221,7 +223,7 @@ impl From<sp_client::spclient::RecordedTransactionOutgoing> for RecordedTransact
     }
 }
 
-impl From<RecordedTransactionOutgoing> for sp_client::spclient::RecordedTransactionOutgoing {
+impl From<RecordedTransactionOutgoing> for wallet::recorded::RecordedTransactionOutgoing {
     fn from(value: RecordedTransactionOutgoing) -> Self {
         let confirmed_at = value
             .confirmed_at

@@ -1535,7 +1535,7 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-client?branch=master#2ec5d85486f2301fff6b32777f0e70d2f95821c0"
+source = "git+https://github.com/cygnet3/sp-client?branch=master#1e9fc52fe3f7971c2f5935eaea8c386f7c5f4e05"
 dependencies = [
  "anyhow",
  "bitcoin",

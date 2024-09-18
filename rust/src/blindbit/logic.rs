@@ -14,16 +14,17 @@ use sp_client::bitcoin::{
     secp256k1::{PublicKey, Scalar},
     Amount, BlockHash, OutPoint, Txid, XOnlyPublicKey,
 };
+use sp_client::silentpayments::receiving::Label;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput, SpClient};
-use sp_client::{
-    silentpayments::receiving::Label,
-    spclient::{OutputList, SpWallet},
-};
 
-use crate::stream::{send_scan_progress, send_scan_result, ScanProgress};
 use crate::{
     blindbit::client::{BlindbitClient, UtxoResponse},
     stream::ScanResult,
+    wallet::outputslist::OutputList,
+};
+use crate::{
+    stream::{send_scan_progress, send_scan_result, ScanProgress},
+    wallet::spwallet::SpWallet,
 };
 
 use super::client::FilterResponse;

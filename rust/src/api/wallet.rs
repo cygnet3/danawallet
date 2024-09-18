@@ -1,15 +1,19 @@
 use std::str::FromStr;
 
+use crate::{
+    blindbit,
+    wallet::spwallet::{derive_keys_from_seed, SpWallet},
+};
 use anyhow::{Error, Result};
 use reqwest::Url;
-use sp_client::bitcoin::{
-    absolute::Height,
-    secp256k1::{PublicKey, SecretKey},
-    Network, OutPoint, Txid,
+use sp_client::{
+    bitcoin::{
+        absolute::Height,
+        secp256k1::{PublicKey, SecretKey},
+        Network, OutPoint, Txid,
+    },
+    spclient::{SpClient, SpendKey},
 };
-use sp_client::spclient::{derive_keys_from_seed, SpClient, SpWallet, SpendKey};
-
-use crate::blindbit;
 
 use super::structs::{Amount, Recipient, WalletStatus};
 
