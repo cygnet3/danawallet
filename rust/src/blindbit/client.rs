@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 use std::time::Duration;
 
-use bitcoin::{secp256k1::PublicKey, BlockHash, ScriptBuf, Txid};
 use reqwest::{Client, Url};
 use serde::Deserialize;
+use sp_client::bitcoin::{secp256k1::PublicKey, BlockHash, ScriptBuf, Txid};
 
 use anyhow::Result;
 

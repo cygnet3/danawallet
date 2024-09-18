@@ -19,7 +19,6 @@ hex = { version = "0.4.3", features = ["serde"] }
 serde_with = "3.6.0"
 log = "0.4.20"
 simplelog = "0.12.1"
-bitcoin = { version = "0.31.1", features = ["serde", "rand", "base64"] }
 reqwest = { version = "0.12.4", features = ["rustls-tls"], default-features = false }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 pushtx = { git = "https://github.com/cygnet3/pushtx", branch = "master" }

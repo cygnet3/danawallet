@@ -1,12 +1,12 @@
 use std::str::FromStr;
 
 use anyhow::{Error, Result};
-use bitcoin::{
+use reqwest::Url;
+use sp_client::bitcoin::{
     absolute::Height,
     secp256k1::{PublicKey, SecretKey},
     Network, OutPoint, Txid,
 };
-use reqwest::Url;
 use sp_client::spclient::{derive_keys_from_seed, SpClient, SpWallet, SpendKey};
 
 use crate::blindbit;
