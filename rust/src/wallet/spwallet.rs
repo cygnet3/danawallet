@@ -14,55 +14,41 @@ use anyhow::{Error, Result};
 use sp_client::silentpayments::utils as sp_utils;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput, Recipient, SpClient};
 
-use super::outputslist::OutputList;
 use super::recorded::{
     RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
 };
 
+type WalletFingerprint = [u8; 8];
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct SpWallet {
     client: SpClient,
-    outputs: OutputList,
+    wallet_fingerprint: WalletFingerprint,
     tx_history: Vec<RecordedTransaction>,
+    birthday: u32,
+    last_scan: u32,
+    outputs: HashMap<OutPoint, OwnedOutput>,
 }
 
 impl SpWallet {
-    pub fn new(
-        client: SpClient,
-        outputs: Option<OutputList>,
-        tx_history: Vec<RecordedTransaction>,
-    ) -> Result<Self> {
-        if let Some(existing_outputs) = outputs {
-            if existing_outputs.check_fingerprint(&client) {
-                Ok(Self {
-                    client,
-                    outputs: existing_outputs,
-                    tx_history,
-                })
-            } else {
-                Err(Error::msg("outputs don't match client"))
-            }
-        } else {
-            // Create a new outputs list
-            let outputs = OutputList::new(
-                client.get_scan_key().public_key(&Secp256k1::signing_only()),
-                client.get_spend_key().into(),
-                0,
-            );
-            Ok(Self {
-                client,
-                outputs,
-                tx_history,
-            })
-        }
+    pub fn new(client: SpClient, birthday: u32) -> Result<Self> {
+        let wallet_fingerprint = client.get_client_fingerprint()?;
+        let last_scan = birthday;
+        let tx_history = vec![];
+        let outputs = HashMap::new();
+
+        Ok(Self {
+            client,
+            birthday,
+            wallet_fingerprint,
+            last_scan,
+            tx_history,
+            outputs,
+        })
     }
 
     pub fn get_client(&self) -> &SpClient {
         &self.client
-    }
-
-    pub fn get_outputs(&self) -> &OutputList {
-        &self.outputs
     }
 
     pub fn get_tx_history(&self) -> Vec<RecordedTransaction> {
@@ -74,8 +60,35 @@ impl SpWallet {
         &mut self.client
     }
 
-    pub fn get_mut_outputs(&mut self) -> &mut OutputList {
-        &mut self.outputs
+    pub fn get_birthday(&self) -> u32 {
+        self.birthday
+    }
+
+    pub fn set_birthday(&mut self, new_birthday: u32) {
+        self.birthday = new_birthday;
+    }
+
+    pub fn get_last_scan(&self) -> u32 {
+        self.last_scan
+    }
+
+    pub fn set_last_scan(&mut self, new_scan: u32) {
+        self.last_scan = new_scan;
+    }
+
+    pub fn get_outputs(self) -> HashMap<OutPoint, OwnedOutput> {
+        self.outputs.clone()
+    }
+
+    pub fn get_owned_outpoints(&self) -> Vec<OutPoint> {
+        self.outputs.keys().cloned().collect()
+    }
+
+    pub fn get_balance(&self) -> Amount {
+        self.outputs
+            .iter()
+            .filter(|(_, o)| o.spend_status == OutputSpendStatus::Unspent)
+            .fold(Amount::from_sat(0), |acc, x| acc + x.1.amount)
     }
 
     #[allow(dead_code)]
@@ -89,21 +102,17 @@ impl SpWallet {
         let txid = tx.txid();
 
         for i in 0..tx.output.len() {
-            if self
-                .get_outputs()
-                .get_outpoint(OutPoint {
-                    txid,
-                    vout: i as u32,
-                })
-                .is_ok()
-            {
+            if self.outputs.contains_key(&OutPoint {
+                txid,
+                vout: i as u32,
+            }) {
                 return Err(Error::msg("Transaction already scanned"));
             }
         }
 
         for input in tx.input.iter() {
-            if let Ok((_, output)) = self.get_outputs().get_outpoint(input.previous_output) {
-                match output.spend_status {
+            if let Some(output) = self.outputs.get_mut(&input.previous_output) {
+                match output.spend_status.clone() {
                     OutputSpendStatus::Spent(tx) => {
                         if tx == txid.to_string() {
                             return Err(Error::msg("Transaction already scanned"));
@@ -158,7 +167,7 @@ impl SpWallet {
             }
         }
         let mut res = new_outputs.clone();
-        self.outputs.extend_from(new_outputs);
+        self.outputs.extend(new_outputs);
 
         let txid = tx.txid().to_string();
         // update outputs that we own and that are spent
@@ -229,7 +238,7 @@ impl SpWallet {
 
     fn reset_to_height(&mut self, blkheight: u32) {
         // reset known outputs to height
-        self.outputs.reset_to_height(blkheight);
+        self.outputs.retain(|_, o| o.blockheight < blkheight);
 
         // reset tx history to height
         self.tx_history.retain(|tx| match tx {
@@ -243,9 +252,8 @@ impl SpWallet {
     }
 
     pub fn reset_to_birthday(&mut self) {
-        self.reset_to_height(self.outputs.get_birthday());
-
-        self.outputs.update_last_scan(self.outputs.get_birthday());
+        self.reset_to_height(self.birthday);
+        self.last_scan = self.birthday;
     }
 
     pub fn record_block_outputs(
@@ -269,7 +277,7 @@ impl SpWallet {
         }
 
         // add outputs to known outputs
-        self.outputs.extend_from(found_outputs);
+        self.outputs.extend(found_outputs);
     }
 
     pub fn record_block_inputs(
@@ -281,9 +289,76 @@ impl SpWallet {
         for outpoint in found_inputs {
             // this may confirm the same tx multiple times, but this shouldn't be a problem
             self.confirm_recorded_outgoing_transaction(outpoint, blkheight)?;
-            self.outputs.mark_mined(outpoint, blkhash)?;
+            self.mark_mined(outpoint, blkhash)?;
         }
 
+        Ok(())
+    }
+
+    pub fn mark_spent(
+        &mut self,
+        outpoint: OutPoint,
+        spending_tx: Txid,
+        force_update: bool,
+    ) -> Result<()> {
+        let output = self
+            .outputs
+            .get_mut(&outpoint)
+            .ok_or(Error::msg("Outpoint not in list"))?;
+
+        match &output.spend_status {
+            OutputSpendStatus::Unspent => {
+                let tx_hex = spending_tx.to_string();
+                output.spend_status = OutputSpendStatus::Spent(tx_hex);
+                //self.outputs.insert(outpoint, output);
+                Ok(())
+            }
+            OutputSpendStatus::Spent(tx_hex) => {
+                // We may want to fail if that's the case, or force update if we know what we're doing
+                if force_update {
+                    let tx_hex = spending_tx.to_string();
+                    output.spend_status = OutputSpendStatus::Spent(tx_hex);
+                    //self.outputs.insert(outpoint, output);
+                    Ok(())
+                } else {
+                    Err(Error::msg(format!(
+                        "Output already spent by transaction {}",
+                        tx_hex
+                    )))
+                }
+            }
+            OutputSpendStatus::Mined(block) => Err(Error::msg(format!(
+                "Output already mined in block {}",
+                block
+            ))),
+        }
+    }
+
+    /// Mark the output as being spent in block `mined_in_block`
+    /// We don't really need to check the previous status, if it's in a block there's nothing we can do
+    pub fn mark_mined(&mut self, outpoint: OutPoint, mined_in_block: BlockHash) -> Result<()> {
+        let output = self
+            .outputs
+            .get_mut(&outpoint)
+            .ok_or(Error::msg("Outpoint not in list"))?;
+
+        let block_hex = mined_in_block.to_string();
+        output.spend_status = OutputSpendStatus::Mined(block_hex);
+        //self.outputs.insert(outpoint, output);
+        Ok(())
+    }
+
+    /// Revert the outpoint status to Unspent, regardless of the current status
+    /// This could be useful on some rare occurrences, like a transaction falling out of mempool after a while
+    /// Watch out we also reverse the mined state, use with caution
+    #[allow(dead_code)]
+    pub fn revert_spent_status(&mut self, outpoint: OutPoint) -> Result<()> {
+        let output = self
+            .outputs
+            .get_mut(&outpoint)
+            .ok_or(Error::msg("Outpoint not in list"))?;
+
+        output.spend_status = OutputSpendStatus::Unspent;
         Ok(())
     }
 }

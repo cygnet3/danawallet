@@ -77,10 +77,7 @@ pub async fn setup(
             ))
         }
     }
-    let mut sp_wallet = SpWallet::new(sp_client, None, vec![]).unwrap();
-
-    sp_wallet.get_mut_outputs().set_birthday(birthday);
-    sp_wallet.reset_to_birthday();
+    let sp_wallet = SpWallet::new(sp_client, birthday).unwrap();
 
     Ok(serde_json::to_string(&sp_wallet).unwrap())
 }
@@ -90,8 +87,7 @@ pub async fn setup(
 #[flutter_rust_bridge::frb(sync)]
 pub fn change_birthday(encoded_wallet: String, birthday: u32) -> Result<String> {
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    let outputs = wallet.get_mut_outputs();
-    outputs.set_birthday(birthday);
+    wallet.set_birthday(birthday);
     wallet.reset_to_birthday();
     Ok(serde_json::to_string(&wallet).unwrap())
 }
@@ -123,9 +119,9 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<WalletStatus> {
     Ok(WalletStatus {
         address: wallet.get_client().get_receiving_address(),
         network: wallet.get_client().get_network().to_core_arg().to_owned(),
-        balance: wallet.get_outputs().get_balance().to_sat(),
-        birthday: wallet.get_outputs().get_birthday(),
-        last_scan: wallet.get_outputs().get_last_scan(),
+        balance: wallet.get_balance().to_sat(),
+        birthday: wallet.get_birthday(),
+        last_scan: wallet.get_last_scan(),
         tx_history: wallet
             .get_tx_history()
             .into_iter()
@@ -133,7 +129,6 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<WalletStatus> {
             .collect(),
         outputs: wallet
             .get_outputs()
-            .to_outpoints_list()
             .into_iter()
             .map(|(outpoint, output)| (outpoint.to_string(), output.into()))
             .collect(),
@@ -149,7 +144,7 @@ pub fn mark_outpoints_spent(
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
     for outpoint in spent {
-        wallet.get_mut_outputs().mark_spent(
+        wallet.mark_spent(
             OutPoint::from_str(&outpoint)?,
             Txid::from_str(&spent_by)?,
             true,

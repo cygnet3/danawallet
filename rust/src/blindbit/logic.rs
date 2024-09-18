@@ -20,7 +20,6 @@ use sp_client::spclient::{OutputSpendStatus, OwnedOutput, SpClient};
 use crate::{
     blindbit::client::{BlindbitClient, UtxoResponse},
     stream::ScanResult,
-    wallet::outputslist::OutputList,
 };
 use crate::{
     stream::{send_scan_progress, send_scan_result, ScanProgress},
@@ -49,7 +48,7 @@ pub async fn scan_blocks(
 ) -> Result<()> {
     let blindbit_client = get_blindbit_client(host_url);
 
-    let last_scan = sp_wallet.get_outputs().get_last_scan();
+    let last_scan = sp_wallet.get_last_scan();
     let tip_height = blindbit_client.block_height().await?;
 
     // 0 means scan to tip
@@ -114,7 +113,8 @@ pub async fn scan_blocks(
             tweaks,
             new_utxo_filter,
             spent_filter,
-            sp_wallet,
+            sp_wallet.get_client(),
+            sp_wallet.get_owned_outpoints(),
             &blindbit_client,
         )
         .await?;
@@ -132,7 +132,7 @@ pub async fn scan_blocks(
         }
 
         if send_update {
-            sp_wallet.get_mut_outputs().update_last_scan(blkheight);
+            sp_wallet.set_last_scan(blkheight);
 
             let wallet_str = serde_json::to_string(&sp_wallet)?;
 
@@ -156,14 +156,15 @@ pub async fn process_block(
     tweaks: Vec<PublicKey>,
     new_utxo_filter: FilterResponse,
     spent_filter: FilterResponse,
-    sp_wallet: &SpWallet,
+    sp_client: &SpClient,
+    owned_outpoints: Vec<OutPoint>,
     blindbit_client: &BlindbitClient,
 ) -> Result<(HashMap<OutPoint, OwnedOutput>, Vec<OutPoint>)> {
     let outs = process_block_outputs(
         blkheight,
         tweaks,
         new_utxo_filter,
-        sp_wallet.get_client(),
+        sp_client,
         blindbit_client,
     )
     .await?;
@@ -171,7 +172,7 @@ pub async fn process_block(
     let ins = process_block_inputs(
         blkheight,
         spent_filter,
-        sp_wallet.get_outputs(),
+        owned_outpoints,
         blindbit_client,
     )
     .await?;
@@ -233,7 +234,7 @@ pub async fn process_block_outputs(
 pub async fn process_block_inputs(
     blkheight: u32,
     spent_filter: FilterResponse,
-    outputs: &OutputList,
+    outputs: Vec<OutPoint>,
     blindbit_client: &BlindbitClient,
 ) -> Result<Vec<OutPoint>> {
     let mut res = vec![];
@@ -359,13 +360,11 @@ pub fn check_block_outputs(
 
 pub fn get_input_hashes(
     blkhash: BlockHash,
-    outputs: &OutputList,
+    outpoints: Vec<OutPoint>,
 ) -> Result<HashMap<[u8; 8], OutPoint>> {
-    let owned = outputs.to_outpoints_list();
-
     let mut map: HashMap<[u8; 8], OutPoint> = HashMap::new();
 
-    for (outpoint, _) in owned {
+    for outpoint in outpoints {
         let mut arr = [0u8; 68];
         arr[..32].copy_from_slice(&outpoint.txid.to_raw_hash().to_byte_array());
         arr[32..36].copy_from_slice(&outpoint.vout.to_le_bytes());
