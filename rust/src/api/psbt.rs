@@ -5,7 +5,9 @@ use log::info;
 use pushtx::Network;
 use sp_client::bitcoin;
 use sp_client::bitcoin::{consensus::encode::serialize_hex, OutPoint, Psbt};
-use sp_client::spclient::{SpClient, SpWallet};
+use sp_client::spclient::SpClient;
+
+use crate::wallet::spwallet::SpWallet;
 
 use super::structs::{Amount, OwnedOutput, Recipient};
 use anyhow::{anyhow, Error, Result};
