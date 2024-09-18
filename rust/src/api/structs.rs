@@ -1,7 +1,7 @@
 use std::{collections::HashMap, str::FromStr};
 
-use bitcoin::{absolute::Height, OutPoint, Txid};
 use serde::{Deserialize, Serialize};
+use sp_client::bitcoin::{self, absolute::Height, OutPoint, Txid};
 
 type SpendingTxId = String;
 type MinedInBlock = String;

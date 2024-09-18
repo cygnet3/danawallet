@@ -1,9 +1,10 @@
 use std::{collections::HashMap, str::FromStr};
 
 use bip39::rand::RngCore;
-use bitcoin::{consensus::encode::serialize_hex, OutPoint, Psbt};
 use log::info;
 use pushtx::Network;
+use sp_client::bitcoin;
+use sp_client::bitcoin::{consensus::encode::serialize_hex, OutPoint, Psbt};
 use sp_client::spclient::{SpClient, SpWallet};
 
 use super::structs::{Amount, OwnedOutput, Recipient};

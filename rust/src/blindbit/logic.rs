@@ -4,16 +4,16 @@ use std::{
 };
 
 use anyhow::{Error, Result};
-use bitcoin::{
+use futures::{stream, StreamExt};
+use log::info;
+use reqwest::Url;
+use sp_client::bitcoin::{
     absolute::Height,
     bip158::BlockFilter,
     hashes::{sha256, Hash},
     secp256k1::{PublicKey, Scalar},
     Amount, BlockHash, OutPoint, Txid, XOnlyPublicKey,
 };
-use futures::{stream, StreamExt};
-use log::info;
-use reqwest::Url;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput, SpClient};
 use sp_client::{
     silentpayments::receiving::Label,
