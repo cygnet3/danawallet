@@ -22,12 +22,12 @@ type WalletFingerprint = [u8; 8];
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct SpWallet {
-    client: SpClient,
-    wallet_fingerprint: WalletFingerprint,
-    tx_history: Vec<RecordedTransaction>,
-    birthday: u32,
-    last_scan: u32,
-    outputs: HashMap<OutPoint, OwnedOutput>,
+    pub client: SpClient,
+    pub wallet_fingerprint: WalletFingerprint,
+    pub tx_history: Vec<RecordedTransaction>,
+    pub birthday: u32,
+    pub last_scan: u32,
+    pub outputs: HashMap<OutPoint, OwnedOutput>,
 }
 
 impl SpWallet {
@@ -45,43 +45,6 @@ impl SpWallet {
             tx_history,
             outputs,
         })
-    }
-
-    pub fn get_client(&self) -> &SpClient {
-        &self.client
-    }
-
-    pub fn get_tx_history(&self) -> Vec<RecordedTransaction> {
-        self.tx_history.clone()
-    }
-
-    #[allow(dead_code)]
-    pub fn get_mut_client(&mut self) -> &mut SpClient {
-        &mut self.client
-    }
-
-    pub fn get_birthday(&self) -> u32 {
-        self.birthday
-    }
-
-    pub fn set_birthday(&mut self, new_birthday: u32) {
-        self.birthday = new_birthday;
-    }
-
-    pub fn get_last_scan(&self) -> u32 {
-        self.last_scan
-    }
-
-    pub fn set_last_scan(&mut self, new_scan: u32) {
-        self.last_scan = new_scan;
-    }
-
-    pub fn get_outputs(self) -> HashMap<OutPoint, OwnedOutput> {
-        self.outputs.clone()
-    }
-
-    pub fn get_owned_outpoints(&self) -> Vec<OutPoint> {
-        self.outputs.keys().cloned().collect()
     }
 
     pub fn get_balance(&self) -> Amount {

@@ -87,7 +87,7 @@ pub async fn setup(
 #[flutter_rust_bridge::frb(sync)]
 pub fn change_birthday(encoded_wallet: String, birthday: u32) -> Result<String> {
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    wallet.set_birthday(birthday);
+    wallet.birthday = birthday;
     wallet.reset_to_birthday();
     Ok(serde_json::to_string(&wallet).unwrap())
 }
@@ -106,10 +106,12 @@ pub async fn scan_to_tip(
     encoded_wallet: String,
 ) -> Result<()> {
     let blindbit_url = Url::parse(&blindbit_url)?;
+    let blindbit_client = blindbit::BlindbitClient::new(blindbit_url);
 
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
-    blindbit::logic::scan_blocks(blindbit_url, 0, dust_limit, &mut wallet).await?;
+    wallet.scan_blocks(&blindbit_client, 0, dust_limit).await?;
+
     Ok(())
 }
 
@@ -117,18 +119,14 @@ pub async fn scan_to_tip(
 pub fn get_wallet_info(encoded_wallet: String) -> Result<WalletStatus> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     Ok(WalletStatus {
-        address: wallet.get_client().get_receiving_address(),
-        network: wallet.get_client().get_network().to_core_arg().to_owned(),
+        address: wallet.client.get_receiving_address(),
+        network: wallet.client.get_network().to_core_arg().to_owned(),
         balance: wallet.get_balance().to_sat(),
-        birthday: wallet.get_birthday(),
-        last_scan: wallet.get_last_scan(),
-        tx_history: wallet
-            .get_tx_history()
-            .into_iter()
-            .map(Into::into)
-            .collect(),
+        birthday: wallet.birthday,
+        last_scan: wallet.last_scan,
+        tx_history: wallet.tx_history.into_iter().map(Into::into).collect(),
         outputs: wallet
-            .get_outputs()
+            .outputs
             .into_iter()
             .map(|(outpoint, output)| (outpoint.to_string(), output.into()))
             .collect(),
@@ -200,7 +198,7 @@ pub fn add_incoming_tx_to_history(
 #[flutter_rust_bridge::frb(sync)]
 pub fn show_mnemonic(encoded_wallet: String) -> Result<Option<String>> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    let mnemonic = wallet.get_client().get_mnemonic();
+    let mnemonic = wallet.client.get_mnemonic();
 
     Ok(mnemonic)
 }

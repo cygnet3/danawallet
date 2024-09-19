@@ -1,2 +1,3 @@
-pub mod client;
-pub mod logic;
+mod client;
+
+pub use client::*;
