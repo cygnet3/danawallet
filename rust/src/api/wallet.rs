@@ -2,7 +2,8 @@ use std::str::FromStr;
 
 use crate::{
     blindbit,
-    wallet::spwallet::{derive_keys_from_seed, SpWallet},
+    scanner::{SpScanner, Updater},
+    wallet::{utils::derive_keys_from_seed, SpWallet},
 };
 use anyhow::{Error, Result};
 use reqwest::Url;
@@ -105,17 +106,22 @@ pub async fn scan_to_tip(
     dust_limit: u64,
     encoded_wallet: String,
 ) -> Result<()> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+
     let blindbit_url = Url::parse(&blindbit_url)?;
     let blindbit_client = blindbit::BlindbitClient::new(blindbit_url);
-
-    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
     let dust_limit = sp_client::bitcoin::Amount::from_sat(dust_limit);
 
     let start = Height::from_consensus(wallet.last_scan.to_consensus_u32() + 1)?;
     let end = blindbit_client.block_height().await?;
 
-    wallet.scan_blocks(&blindbit_client, start, end, dust_limit).await?;
+    let sp_client = wallet.client.clone();
+    let updater = Updater::new(wallet);
+
+    let mut scanner = SpScanner::new(sp_client, updater, blindbit_client);
+
+    scanner.scan_blocks(start, end, dust_limit).await?;
 
     Ok(())
 }
@@ -176,26 +182,6 @@ pub fn add_outgoing_tx_to_history(
     let recipients = recipients.into_iter().map(Into::into).collect();
 
     wallet.record_outgoing_transaction(txid, spent_outpoints, recipients, change.into());
-
-    Ok(serde_json::to_string(&wallet)?)
-}
-
-#[flutter_rust_bridge::frb(sync)]
-pub fn add_incoming_tx_to_history(
-    encoded_wallet: String,
-    txid: String,
-    amount: Amount,
-    height: u32,
-) -> Result<String> {
-    let txid = Txid::from_str(&txid)?;
-
-    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-
-    wallet.record_incoming_transaction(
-        txid,
-        amount.into(),
-        Height::from_consensus(height).unwrap(),
-    );
 
     Ok(serde_json::to_string(&wallet)?)
 }

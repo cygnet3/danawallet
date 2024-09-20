@@ -65,16 +65,5 @@ String addOutgoingTxToHistory(
         recipients: recipients,
         change: change);
 
-String addIncomingTxToHistory(
-        {required String encodedWallet,
-        required String txid,
-        required Amount amount,
-        required int height}) =>
-    RustLib.instance.api.crateApiWalletAddIncomingTxToHistory(
-        encodedWallet: encodedWallet,
-        txid: txid,
-        amount: amount,
-        height: height);
-
 String? showMnemonic({required String encodedWallet}) => RustLib.instance.api
     .crateApiWalletShowMnemonic(encodedWallet: encodedWallet);

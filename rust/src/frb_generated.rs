@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.3.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -154598911;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 141683958;
 
 // Section: executor
 
@@ -565,46 +565,6 @@ fn wire__crate__api__structs__recorded_transaction_outgoing_to_string_impl(
                 )?;
                 Ok(output_ok)
             })())
-        },
-    )
-}
-fn wire__crate__api__wallet__add_incoming_tx_to_history_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "add_incoming_tx_to_history",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
-            let api_txid = <String>::sse_decode(&mut deserializer);
-            let api_amount = <crate::api::structs::Amount>::sse_decode(&mut deserializer);
-            let api_height = <u32>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                (move || {
-                    let output_ok = crate::api::wallet::add_incoming_tx_to_history(
-                        api_encoded_wallet,
-                        api_txid,
-                        api_amount,
-                        api_height,
-                    )?;
-                    Ok(output_ok)
-                })(),
-            )
         },
     )
 }
@@ -1350,8 +1310,8 @@ fn pde_ffi_dispatcher_primary_impl(
         1 => wire__crate__api__chain__get_chain_height_impl(port, ptr, rust_vec_len, data_len),
         3 => wire__crate__api__psbt__broadcast_tx_impl(port, ptr, rust_vec_len, data_len),
         9 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__wallet__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__wallet__setup_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__wallet__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__wallet__setup_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1387,16 +1347,13 @@ fn pde_ffi_dispatcher_sync_impl(
             data_len,
         ),
         16 => {
-            wire__crate__api__wallet__add_incoming_tx_to_history_impl(ptr, rust_vec_len, data_len)
-        }
-        17 => {
             wire__crate__api__wallet__add_outgoing_tx_to_history_impl(ptr, rust_vec_len, data_len)
         }
-        18 => wire__crate__api__wallet__change_birthday_impl(ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__wallet__get_wallet_info_impl(ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__wallet__mark_outpoints_spent_impl(ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__wallet__reset_wallet_impl(ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__wallet__show_mnemonic_impl(ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__wallet__change_birthday_impl(ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__wallet__get_wallet_info_impl(ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__wallet__mark_outpoints_spent_impl(ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__wallet__reset_wallet_impl(ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__wallet__show_mnemonic_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

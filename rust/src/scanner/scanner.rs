@@ -6,31 +6,42 @@ use std::{
 use anyhow::{bail, Error, Result};
 use futures::{stream, StreamExt};
 use log::info;
-use sp_client::bitcoin::{
-    absolute::Height,
-    bip158::BlockFilter,
-    hashes::{sha256, Hash},
-    secp256k1::{PublicKey, Scalar},
-    Amount, BlockHash, OutPoint, Txid, XOnlyPublicKey,
-};
 use sp_client::silentpayments::receiving::Label;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput};
+use sp_client::{
+    bitcoin::{
+        absolute::Height,
+        bip158::BlockFilter,
+        hashes::{sha256, Hash},
+        secp256k1::{PublicKey, Scalar},
+        Amount, BlockHash, OutPoint, Txid, XOnlyPublicKey,
+    },
+    spclient::SpClient,
+};
 
-use crate::{
-    blindbit::{BlindbitClient, FilterResponse, UtxoResponse},
-    stream::ScanResult,
-};
-use crate::{
-    stream::{send_scan_progress, send_scan_result, ScanProgress},
-    wallet::spwallet::SpWallet,
-};
+use crate::blindbit::{BlindbitClient, FilterResponse, UtxoResponse};
+
+use super::updater::Updater;
 
 const CONCURRENT_FILTER_REQUESTS: usize = 200;
 
-impl SpWallet {
+pub struct SpScanner {
+    client: SpClient,
+    updater: Updater,
+    backend: BlindbitClient,
+}
+
+impl SpScanner {
+    pub fn new(client: SpClient, updater: Updater, backend: BlindbitClient) -> Self {
+        Self {
+            client,
+            updater,
+            backend,
+        }
+    }
+
     pub async fn scan_blocks(
         &mut self,
-        blindbit_client: &BlindbitClient,
         start: Height,
         end: Height,
         dust_limit: Amount,
@@ -47,7 +58,7 @@ impl SpWallet {
 
         let mut data = stream::iter(range)
             .map(|n| {
-                let bb_client = &blindbit_client;
+                let bb_client = &self.backend;
                 async move {
                     let blkheight = Height::from_consensus(n).unwrap();
                     let tweaks = bb_client.tweak_index(blkheight, dust_limit).await.unwrap();
@@ -75,40 +86,25 @@ impl SpWallet {
                 update_time = Instant::now();
             }
 
-            send_scan_progress(ScanProgress {
-                start: start.to_consensus_u32(),
-                current: blkheight.to_consensus_u32(),
-                end: end.to_consensus_u32(),
-            });
+            self.updater.send_scan_progress(start, blkheight, end);
 
             let (found_outputs, found_inputs) = self
-                .process_block(
-                    blkheight,
-                    tweaks,
-                    new_utxo_filter,
-                    spent_filter,
-                    &blindbit_client,
-                )
+                .process_block(blkheight, tweaks, new_utxo_filter, spent_filter)
                 .await?;
 
             if !found_outputs.is_empty() {
                 send_update = true;
-                self.record_block_outputs(blkheight, found_outputs);
+                self.updater.record_block_outputs(blkheight, found_outputs);
             }
 
             if !found_inputs.is_empty() {
                 send_update = true;
-                self.record_block_inputs(blkheight, blkhash, found_inputs)?;
+                self.updater
+                    .record_block_inputs(blkheight, blkhash, found_inputs)?;
             }
 
             if send_update {
-                self.last_scan = blkheight;
-
-                let wallet_str = serde_json::to_string(&self)?;
-
-                send_scan_result(ScanResult {
-                    updated_wallet: wallet_str,
-                });
+                self.updater.update_last_scan(blkheight);
             }
         }
 
@@ -121,31 +117,27 @@ impl SpWallet {
         Ok(())
     }
 
-    pub async fn process_block(
+    async fn process_block(
         &self,
         blkheight: Height,
         tweaks: Vec<PublicKey>,
         new_utxo_filter: FilterResponse,
         spent_filter: FilterResponse,
-        blindbit_client: &BlindbitClient,
     ) -> Result<(HashMap<OutPoint, OwnedOutput>, Vec<OutPoint>)> {
         let outs = self
-            .process_block_outputs(blkheight, tweaks, new_utxo_filter, blindbit_client)
+            .process_block_outputs(blkheight, tweaks, new_utxo_filter)
             .await?;
 
-        let ins = self
-            .process_block_inputs(blkheight, spent_filter, blindbit_client)
-            .await?;
+        let ins = self.process_block_inputs(blkheight, spent_filter).await?;
 
         Ok((outs, ins))
     }
 
-    pub async fn process_block_outputs(
+    async fn process_block_outputs(
         &self,
         blkheight: Height,
         tweaks: Vec<PublicKey>,
         new_utxo_filter: FilterResponse,
-        blindbit_client: &BlindbitClient,
     ) -> Result<HashMap<OutPoint, OwnedOutput>> {
         let mut res = HashMap::new();
 
@@ -164,8 +156,7 @@ impl SpWallet {
             //if match: fetch and scan utxos
             if matched_outputs {
                 info!("matched outputs on: {}", blkheight);
-                let utxos = blindbit_client.utxos(blkheight).await?;
-                let found = self.scan_utxos(utxos, secrets_map).await?;
+                let found = self.scan_utxos(blkheight, secrets_map).await?;
 
                 if !found.is_empty() {
                     for (label, utxo, tweak) in found {
@@ -191,11 +182,10 @@ impl SpWallet {
         Ok(res)
     }
 
-    pub async fn process_block_inputs(
+    async fn process_block_inputs(
         &self,
         blkheight: Height,
         spent_filter: FilterResponse,
-        blindbit_client: &BlindbitClient,
     ) -> Result<Vec<OutPoint>> {
         let mut res = vec![];
 
@@ -215,7 +205,7 @@ impl SpWallet {
         // if match: download spent data, collect the outpoints that are spent
         if matched_inputs {
             info!("matched inputs on: {}", blkheight);
-            let spent = blindbit_client.spent_index(blkheight).await?.data;
+            let spent = self.backend.spent_index(blkheight).await?.data;
 
             for spent in spent {
                 let hex: &[u8] = spent.hex.as_ref();
@@ -228,11 +218,13 @@ impl SpWallet {
         Ok(res)
     }
 
-    pub async fn scan_utxos(
+    async fn scan_utxos(
         &self,
-        utxos: Vec<UtxoResponse>,
+        blkheight: Height,
         secrets_map: HashMap<[u8; 34], PublicKey>,
     ) -> Result<Vec<(Option<Label>, UtxoResponse, Scalar)>> {
+        let utxos = self.backend.utxos(blkheight).await?;
+
         let mut res: Vec<(Option<Label>, UtxoResponse, Scalar)> = vec![];
 
         // group utxos by the txid
@@ -300,7 +292,7 @@ impl SpWallet {
     }
 
     // Check if this block contains relevant transactions
-    pub fn check_block_outputs(
+    fn check_block_outputs(
         created_utxo_filter: BlockFilter,
         blkhash: BlockHash,
         candidate_spks: Vec<&[u8; 34]>,
@@ -319,10 +311,15 @@ impl SpWallet {
         }
     }
 
-    pub fn get_input_hashes(&self, blkhash: BlockHash) -> Result<HashMap<[u8; 8], OutPoint>> {
+    fn get_input_hashes(&self, blkhash: BlockHash) -> Result<HashMap<[u8; 8], OutPoint>> {
         let mut map: HashMap<[u8; 8], OutPoint> = HashMap::new();
 
-        for outpoint in self.outputs.keys() {
+        // todo: to process the block's inputs, we need the currently owned outpoints.
+        // here we get it from the updater, but this is pretty ugly
+        // instead, we should probably take the owned outpoints as an argument when scanning
+        let owned_outpoints = self.updater.get_owned_outpoints();
+
+        for outpoint in owned_outpoints {
             let mut arr = [0u8; 68];
             arr[..32].copy_from_slice(&outpoint.txid.to_raw_hash().to_byte_array());
             arr[32..36].copy_from_slice(&outpoint.vout.to_le_bytes());
@@ -339,7 +336,7 @@ impl SpWallet {
     }
 
     // Check if this block contains relevant transactions
-    pub fn check_block_inputs(
+    fn check_block_inputs(
         &self,
         spent_filter: BlockFilter,
         blkhash: BlockHash,

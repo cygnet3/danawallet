@@ -7,7 +7,7 @@ use sp_client::bitcoin;
 use sp_client::bitcoin::{consensus::encode::serialize_hex, OutPoint, Psbt};
 use sp_client::spclient::SpClient;
 
-use crate::wallet::spwallet::SpWallet;
+use crate::wallet::SpWallet;
 
 use super::structs::{Amount, OwnedOutput, Recipient};
 use anyhow::{anyhow, Error, Result};
