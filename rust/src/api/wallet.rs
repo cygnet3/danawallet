@@ -87,7 +87,7 @@ pub async fn setup(
 #[flutter_rust_bridge::frb(sync)]
 pub fn change_birthday(encoded_wallet: String, birthday: u32) -> Result<String> {
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    wallet.birthday = birthday;
+    wallet.birthday = Height::from_consensus(birthday)?;
     wallet.reset_to_birthday();
     Ok(serde_json::to_string(&wallet).unwrap())
 }
@@ -102,13 +102,15 @@ pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
 
 pub async fn scan_to_tip(
     blindbit_url: String,
-    dust_limit: u32,
+    dust_limit: u64,
     encoded_wallet: String,
 ) -> Result<()> {
     let blindbit_url = Url::parse(&blindbit_url)?;
     let blindbit_client = blindbit::BlindbitClient::new(blindbit_url);
 
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+
+    let dust_limit = sp_client::bitcoin::Amount::from_sat(dust_limit);
 
     wallet.scan_blocks(&blindbit_client, 0, dust_limit).await?;
 
@@ -122,8 +124,8 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<WalletStatus> {
         address: wallet.client.get_receiving_address(),
         network: wallet.client.get_network().to_core_arg().to_owned(),
         balance: wallet.get_balance().to_sat(),
-        birthday: wallet.birthday,
-        last_scan: wallet.last_scan,
+        birthday: wallet.birthday.to_consensus_u32(),
+        last_scan: wallet.last_scan.to_consensus_u32(),
         tx_history: wallet.tx_history.into_iter().map(Into::into).collect(),
         outputs: wallet
             .outputs

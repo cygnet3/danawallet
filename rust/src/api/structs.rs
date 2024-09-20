@@ -1,7 +1,7 @@
 use std::{collections::HashMap, str::FromStr};
 
 use serde::{Deserialize, Serialize};
-use sp_client::bitcoin::{self, absolute::Height, OutPoint, Txid};
+use sp_client::bitcoin::{self, absolute::Height, OutPoint, ScriptBuf, Txid};
 
 use crate::wallet;
 
@@ -70,10 +70,10 @@ pub struct OwnedOutput {
 impl From<sp_client::spclient::OwnedOutput> for OwnedOutput {
     fn from(value: sp_client::spclient::OwnedOutput) -> Self {
         OwnedOutput {
-            blockheight: value.blockheight,
-            tweak: value.tweak,
+            blockheight: value.blockheight.to_consensus_u32(),
+            tweak: hex::encode(value.tweak),
             amount: value.amount.into(),
-            script: value.script,
+            script: value.script.to_hex_string(),
             label: value.label,
             spend_status: value.spend_status.into(),
         }
@@ -83,10 +83,10 @@ impl From<sp_client::spclient::OwnedOutput> for OwnedOutput {
 impl From<OwnedOutput> for sp_client::spclient::OwnedOutput {
     fn from(value: OwnedOutput) -> Self {
         sp_client::spclient::OwnedOutput {
-            blockheight: value.blockheight,
-            tweak: value.tweak,
+            blockheight: Height::from_consensus(value.blockheight).unwrap(),
+            tweak: hex::decode(value.tweak).unwrap().try_into().unwrap(),
             amount: value.amount.into(),
-            script: value.script,
+            script: ScriptBuf::from_hex(&value.script).unwrap(),
             label: value.label,
             spend_status: value.spend_status.into(),
         }

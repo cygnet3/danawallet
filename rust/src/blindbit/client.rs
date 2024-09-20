@@ -3,22 +3,24 @@ use std::time::Duration;
 
 use reqwest::{Client, Url};
 use serde::Deserialize;
-use sp_client::bitcoin::{secp256k1::PublicKey, BlockHash, ScriptBuf, Txid};
+use sp_client::bitcoin::{
+    absolute::Height, secp256k1::PublicKey, Amount, BlockHash, ScriptBuf, Txid,
+};
 
 use anyhow::Result;
 
 #[derive(Debug, Deserialize)]
 pub struct BlockHeightResponse {
-    block_height: u32,
+    block_height: Height,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct UtxoResponse {
     pub txid: Txid,
     pub vout: u32,
-    pub value: u64,
+    pub value: Amount,
     pub scriptpubkey: ScriptBuf,
-    pub block_height: i32,
+    pub block_height: Height,
     pub block_hash: BlockHash,
     pub timestamp: i32,
     pub spent: bool,
@@ -40,7 +42,7 @@ pub struct MyHex {
 #[derive(Debug, Deserialize)]
 pub struct FilterResponse {
     pub block_hash: BlockHash,
-    pub block_height: i32,
+    pub block_height: Height,
     pub data: String,
     pub filter_type: i32,
 }
@@ -61,7 +63,7 @@ impl BlindbitClient {
 
         BlindbitClient { client, host_url }
     }
-    pub async fn block_height(&self) -> Result<u32> {
+    pub async fn block_height(&self) -> Result<Height> {
         let url = self.host_url.join("block-height")?;
 
         let res = self
@@ -74,14 +76,18 @@ impl BlindbitClient {
         Ok(blkheight.block_height)
     }
 
-    pub async fn tweaks(&self, block_height: u32) -> Result<Vec<PublicKey>> {
+    pub async fn tweaks(&self, block_height: Height) -> Result<Vec<PublicKey>> {
         let url = self.host_url.join(&format!("tweaks/{}", block_height))?;
 
         let res = self.client.get(url).send().await?;
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
-    pub async fn tweak_index(&self, block_height: u32, dust_limit: u32) -> Result<Vec<PublicKey>> {
+    pub async fn tweak_index(
+        &self,
+        block_height: Height,
+        dust_limit: Amount,
+    ) -> Result<Vec<PublicKey>> {
         let url = self
             .host_url
             .join(&format!("tweak-index/{}", block_height))?;
@@ -89,20 +95,20 @@ impl BlindbitClient {
         let res = self
             .client
             .get(url)
-            .query(&[("dustLimit", format!("{}", dust_limit))])
+            .query(&[("dustLimit", format!("{}", dust_limit.to_sat()))])
             .send()
             .await?;
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
-    pub async fn utxos(&self, block_height: u32) -> Result<Vec<UtxoResponse>> {
+    pub async fn utxos(&self, block_height: Height) -> Result<Vec<UtxoResponse>> {
         let url = self.host_url.join(&format!("utxos/{}", block_height))?;
         let res = self.client.get(url).send().await?;
 
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
-    pub async fn spent_index(&self, block_height: u32) -> Result<SpentIndexResponse> {
+    pub async fn spent_index(&self, block_height: Height) -> Result<SpentIndexResponse> {
         let url = self
             .host_url
             .join(&format!("spent-index/{}", block_height))?;
@@ -111,7 +117,7 @@ impl BlindbitClient {
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
-    pub async fn filter_new_utxos(&self, block_height: u32) -> Result<FilterResponse> {
+    pub async fn filter_new_utxos(&self, block_height: Height) -> Result<FilterResponse> {
         let url = self
             .host_url
             .join(&format!("filter/new-utxos/{}", block_height))?;
@@ -121,7 +127,7 @@ impl BlindbitClient {
         Ok(serde_json::from_str(&res.text().await?)?)
     }
 
-    pub async fn filter_spent(&self, block_height: u32) -> Result<FilterResponse> {
+    pub async fn filter_spent(&self, block_height: Height) -> Result<FilterResponse> {
         let url = self
             .host_url
             .join(&format!("filter/spent/{}", block_height))?;

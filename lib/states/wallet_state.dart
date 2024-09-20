@@ -186,7 +186,7 @@ class WalletState extends ChangeNotifier {
 
       await scanToTip(
           blindbitUrl: blindbitUrl!,
-          dustLimit: dustLimit!,
+          dustLimit: BigInt.from(dustLimit!),
           encodedWallet: wallet);
     } catch (e) {
       scanning = false;

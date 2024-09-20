@@ -155,7 +155,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiWalletScanToTip(
       {required String blindbitUrl,
-      required int dustLimit,
+      required BigInt dustLimit,
       required String encodedWallet});
 
   Future<String> crateApiWalletSetup(
@@ -740,13 +740,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<void> crateApiWalletScanToTip(
       {required String blindbitUrl,
-      required int dustLimit,
+      required BigInt dustLimit,
       required String encodedWallet}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(blindbitUrl, serializer);
-        sse_encode_u_32(dustLimit, serializer);
+        sse_encode_u_64(dustLimit, serializer);
         sse_encode_String(encodedWallet, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 22, port: port_);

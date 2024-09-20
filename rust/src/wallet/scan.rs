@@ -32,10 +32,10 @@ impl SpWallet {
         &mut self,
         blindbit_client: &BlindbitClient,
         mut n_blocks_to_scan: u32,
-        dust_limit: u32,
+        dust_limit: Amount,
     ) -> Result<()> {
-        let last_scan = self.last_scan;
-        let tip_height = blindbit_client.block_height().await?;
+        let last_scan = self.last_scan.to_consensus_u32();
+        let tip_height = blindbit_client.block_height().await?.to_consensus_u32();
 
         // 0 means scan to tip
         if n_blocks_to_scan == 0 {
@@ -64,11 +64,12 @@ impl SpWallet {
             .map(|n| {
                 let bb_client = &blindbit_client;
                 async move {
-                    let tweaks = bb_client.tweak_index(n, dust_limit).await.unwrap();
-                    let new_utxo_filter = bb_client.filter_new_utxos(n).await.unwrap();
-                    let spent_filter = bb_client.filter_spent(n).await.unwrap();
+                    let blkheight = Height::from_consensus(n).unwrap();
+                    let tweaks = bb_client.tweak_index(blkheight, dust_limit).await.unwrap();
+                    let new_utxo_filter = bb_client.filter_new_utxos(blkheight).await.unwrap();
+                    let spent_filter = bb_client.filter_spent(blkheight).await.unwrap();
                     let blkhash = new_utxo_filter.block_hash;
-                    (n, blkhash, tweaks, new_utxo_filter, spent_filter)
+                    (blkheight, blkhash, tweaks, new_utxo_filter, spent_filter)
                 }
             })
             .buffered(CONCURRENT_FILTER_REQUESTS);
@@ -79,7 +80,7 @@ impl SpWallet {
             let mut send_update = false;
 
             // send update if we are currently at the final block
-            if blkheight == end {
+            if blkheight.to_consensus_u32() == end {
                 send_update = true;
             }
 
@@ -91,7 +92,7 @@ impl SpWallet {
 
             send_scan_progress(ScanProgress {
                 start,
-                current: blkheight,
+                current: blkheight.to_consensus_u32(),
                 end,
             });
 
@@ -107,14 +108,12 @@ impl SpWallet {
 
             if !found_outputs.is_empty() {
                 send_update = true;
-                let height = Height::from_consensus(blkheight)?;
-                self.record_block_outputs(height, found_outputs);
+                self.record_block_outputs(blkheight, found_outputs);
             }
 
             if !found_inputs.is_empty() {
                 send_update = true;
-                let height = Height::from_consensus(blkheight)?;
-                self.record_block_inputs(height, blkhash, found_inputs)?;
+                self.record_block_inputs(blkheight, blkhash, found_inputs)?;
             }
 
             if send_update {
@@ -139,7 +138,7 @@ impl SpWallet {
 
     pub async fn process_block(
         &self,
-        blkheight: u32,
+        blkheight: Height,
         tweaks: Vec<PublicKey>,
         new_utxo_filter: FilterResponse,
         spent_filter: FilterResponse,
@@ -158,7 +157,7 @@ impl SpWallet {
 
     pub async fn process_block_outputs(
         &self,
-        blkheight: u32,
+        blkheight: Height,
         tweaks: Vec<PublicKey>,
         new_utxo_filter: FilterResponse,
         blindbit_client: &BlindbitClient,
@@ -192,9 +191,9 @@ impl SpWallet {
 
                         let out = OwnedOutput {
                             blockheight: blkheight,
-                            tweak: hex::encode(tweak.to_be_bytes()),
-                            amount: Amount::from_sat(utxo.value),
-                            script: utxo.scriptpubkey.to_hex_string(),
+                            tweak: tweak.to_be_bytes(),
+                            amount: utxo.value,
+                            script: utxo.scriptpubkey,
                             label: label.map(|l| l.as_string()),
                             spend_status: OutputSpendStatus::Unspent,
                         };
@@ -209,7 +208,7 @@ impl SpWallet {
 
     pub async fn process_block_inputs(
         &self,
-        blkheight: u32,
+        blkheight: Height,
         spent_filter: FilterResponse,
         blindbit_client: &BlindbitClient,
     ) -> Result<Vec<OutPoint>> {

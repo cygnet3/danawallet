@@ -77,6 +77,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3d1d046238990b9cf5bcde22a3fb3584ee5cf65fb2765f454ed428c7a0063da"
 
 [[package]]
+name = "async-trait"
+version = "0.1.83"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "721cae7de5c34fbb2acd27e21e6d2cf7b886dce0c27388d46c4e6c47ea4318dd"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "atomic"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1535,11 +1546,16 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-client?branch=master#9908afd45e5ea51e2a8629fd606f64f3ce0178ab"
+source = "git+https://github.com/cygnet3/sp-client?branch=refactor-spclient#32868cfefd5fa57dd1927152286d034d3fd4d10c"
 dependencies = [
  "anyhow",
+ "async-trait",
  "bitcoin",
+ "futures",
+ "hex",
+ "log",
  "rayon",
+ "reqwest",
  "serde",
  "serde_json",
  "silentpayments",

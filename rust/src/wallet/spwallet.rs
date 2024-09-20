@@ -4,7 +4,6 @@ use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 use sp_client::bitcoin::absolute::Height;
 use sp_client::bitcoin::bip32::{DerivationPath, Xpriv};
-use sp_client::bitcoin::hex::DisplayHex;
 use sp_client::bitcoin::secp256k1::SecretKey;
 use sp_client::bitcoin::{self, Amount, BlockHash, Network, Txid, XOnlyPublicKey};
 use sp_client::bitcoin::{key::Secp256k1, secp256k1::PublicKey, OutPoint, Transaction};
@@ -20,19 +19,20 @@ use super::recorded::{
 
 type WalletFingerprint = [u8; 8];
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpWallet {
     pub client: SpClient,
     pub wallet_fingerprint: WalletFingerprint,
     pub tx_history: Vec<RecordedTransaction>,
-    pub birthday: u32,
-    pub last_scan: u32,
+    pub birthday: Height,
+    pub last_scan: Height,
     pub outputs: HashMap<OutPoint, OwnedOutput>,
 }
 
 impl SpWallet {
     pub fn new(client: SpClient, birthday: u32) -> Result<Self> {
         let wallet_fingerprint = client.get_client_fingerprint()?;
+        let birthday = Height::from_consensus(birthday)?;
         let last_scan = birthday;
         let tx_history = vec![];
         let outputs = HashMap::new();
@@ -58,7 +58,7 @@ impl SpWallet {
     pub fn update_wallet_with_transaction(
         &mut self,
         tx: &Transaction,
-        blockheight: u32,
+        blockheight: Height,
         partial_tweak: PublicKey,
     ) -> Result<HashMap<OutPoint, OwnedOutput>> {
         // First check that we haven't already scanned this transaction
@@ -120,9 +120,9 @@ impl SpWallet {
                 let outpoint = OutPoint::new(tx.txid(), vout);
                 let owned = OwnedOutput {
                     blockheight,
-                    tweak: scalar.to_be_bytes().to_lower_hex_string(),
+                    tweak: scalar.to_be_bytes(),
                     amount: txout.value,
-                    script: txout.script_pubkey.as_bytes().to_lower_hex_string(),
+                    script: txout.script_pubkey.clone(),
                     label: label_str,
                     spend_status: OutputSpendStatus::Unspent,
                 };
@@ -199,18 +199,18 @@ impl SpWallet {
             }))
     }
 
-    fn reset_to_height(&mut self, blkheight: u32) {
+    fn reset_to_height(&mut self, blkheight: Height) {
         // reset known outputs to height
         self.outputs.retain(|_, o| o.blockheight < blkheight);
 
         // reset tx history to height
         self.tx_history.retain(|tx| match tx {
-            RecordedTransaction::Incoming(incoming) => incoming
-                .confirmed_at
-                .is_some_and(|x| x.to_consensus_u32() < blkheight),
-            RecordedTransaction::Outgoing(outgoing) => outgoing
-                .confirmed_at
-                .is_some_and(|x| x.to_consensus_u32() < blkheight),
+            RecordedTransaction::Incoming(incoming) => {
+                incoming.confirmed_at.is_some_and(|x| x < blkheight)
+            }
+            RecordedTransaction::Outgoing(outgoing) => {
+                outgoing.confirmed_at.is_some_and(|x| x < blkheight)
+            }
         });
     }
 

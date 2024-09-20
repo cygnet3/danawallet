@@ -1,3 +1,3 @@
 pub mod recorded;
-pub mod spwallet;
 pub mod scan;
+pub mod spwallet;
