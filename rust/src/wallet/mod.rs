@@ -1,5 +1,5 @@
 pub mod recorded;
-mod wallet;
 pub mod utils;
+mod wallet;
 
 pub use wallet::SpWallet;

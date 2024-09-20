@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     time::{Duration, Instant},
 };
 
@@ -29,14 +29,21 @@ pub struct SpScanner {
     client: SpClient,
     updater: Updater,
     backend: BlindbitClient,
+    owned_outpoints: HashSet<OutPoint>, // used to scan block inputs
 }
 
 impl SpScanner {
-    pub fn new(client: SpClient, updater: Updater, backend: BlindbitClient) -> Self {
+    pub fn new(
+        client: SpClient,
+        updater: Updater,
+        backend: BlindbitClient,
+        owned_outpoints: HashSet<OutPoint>,
+    ) -> Self {
         Self {
             client,
             updater,
             backend,
+            owned_outpoints,
         }
     }
 
@@ -56,9 +63,10 @@ impl SpScanner {
 
         let range = start.to_consensus_u32()..=end.to_consensus_u32();
 
+        let bb_client = self.backend.clone();
         let mut data = stream::iter(range)
             .map(|n| {
-                let bb_client = &self.backend;
+                let bb_client = &bb_client;
                 async move {
                     let blkheight = Height::from_consensus(n).unwrap();
                     let tweaks = bb_client.tweak_index(blkheight, dust_limit).await.unwrap();
@@ -118,17 +126,23 @@ impl SpScanner {
     }
 
     async fn process_block(
-        &self,
+        &mut self,
         blkheight: Height,
         tweaks: Vec<PublicKey>,
         new_utxo_filter: FilterResponse,
         spent_filter: FilterResponse,
-    ) -> Result<(HashMap<OutPoint, OwnedOutput>, Vec<OutPoint>)> {
+    ) -> Result<(HashMap<OutPoint, OwnedOutput>, HashSet<OutPoint>)> {
         let outs = self
             .process_block_outputs(blkheight, tweaks, new_utxo_filter)
             .await?;
 
+        // after processing outputs, we add the found outputs to our list
+        self.owned_outpoints.extend(outs.keys());
+
         let ins = self.process_block_inputs(blkheight, spent_filter).await?;
+
+        // after processing inputs, we remove the found inputs
+        self.owned_outpoints.retain(|item| !ins.contains(item));
 
         Ok((outs, ins))
     }
@@ -186,8 +200,8 @@ impl SpScanner {
         &self,
         blkheight: Height,
         spent_filter: FilterResponse,
-    ) -> Result<Vec<OutPoint>> {
-        let mut res = vec![];
+    ) -> Result<HashSet<OutPoint>> {
+        let mut res = HashSet::new();
 
         let blkhash = spent_filter.block_hash;
 
@@ -211,7 +225,7 @@ impl SpScanner {
                 let hex: &[u8] = spent.hex.as_ref();
 
                 if let Some(outpoint) = input_hashes_map.get(hex) {
-                    res.push(*outpoint)
+                    res.insert(*outpoint);
                 }
             }
         }
@@ -314,12 +328,7 @@ impl SpScanner {
     fn get_input_hashes(&self, blkhash: BlockHash) -> Result<HashMap<[u8; 8], OutPoint>> {
         let mut map: HashMap<[u8; 8], OutPoint> = HashMap::new();
 
-        // todo: to process the block's inputs, we need the currently owned outpoints.
-        // here we get it from the updater, but this is pretty ugly
-        // instead, we should probably take the owned outpoints as an argument when scanning
-        let owned_outpoints = self.updater.get_owned_outpoints();
-
-        for outpoint in owned_outpoints {
+        for outpoint in &self.owned_outpoints {
             let mut arr = [0u8; 68];
             arr[..32].copy_from_slice(&outpoint.txid.to_raw_hash().to_byte_array());
             arr[32..36].copy_from_slice(&outpoint.vout.to_le_bytes());

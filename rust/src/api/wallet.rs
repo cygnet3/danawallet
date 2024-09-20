@@ -116,10 +116,12 @@ pub async fn scan_to_tip(
     let start = Height::from_consensus(wallet.last_scan.to_consensus_u32() + 1)?;
     let end = blindbit_client.block_height().await?;
 
+    let owned_outpoints = wallet.outputs.keys().cloned().collect();
+
     let sp_client = wallet.client.clone();
     let updater = Updater::new(wallet);
 
-    let mut scanner = SpScanner::new(sp_client, updater, blindbit_client);
+    let mut scanner = SpScanner::new(sp_client, updater, blindbit_client, owned_outpoints);
 
     scanner.scan_blocks(start, end, dust_limit).await?;
 

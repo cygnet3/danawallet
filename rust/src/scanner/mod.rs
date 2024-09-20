@@ -1,5 +1,5 @@
 mod scanner;
 mod updater;
 
-pub use updater::Updater;
 pub use scanner::SpScanner;
+pub use updater::Updater;

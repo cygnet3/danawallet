@@ -47,6 +47,7 @@ pub struct FilterResponse {
     pub filter_type: i32,
 }
 
+#[derive(Clone)]
 pub struct BlindbitClient {
     client: Client,
     host_url: Url,

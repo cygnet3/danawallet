@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use sp_client::{
     bitcoin::{
@@ -8,7 +8,13 @@ use sp_client::{
     spclient::{OutputSpendStatus, OwnedOutput},
 };
 
-use crate::{stream::{send_scan_progress, send_scan_result, ScanProgress, ScanResult}, wallet::{recorded::{RecordedTransaction, RecordedTransactionIncoming}, SpWallet}};
+use crate::{
+    stream::{send_scan_progress, send_scan_result, ScanProgress, ScanResult},
+    wallet::{
+        recorded::{RecordedTransaction, RecordedTransactionIncoming},
+        SpWallet,
+    },
+};
 
 use sp_client::silentpayments::utils as sp_utils;
 
@@ -63,7 +69,7 @@ impl Updater {
         &mut self,
         blkheight: Height,
         blkhash: BlockHash,
-        found_inputs: Vec<OutPoint>,
+        found_inputs: HashSet<OutPoint>,
     ) -> Result<()> {
         for outpoint in found_inputs {
             // this may confirm the same tx multiple times, but this shouldn't be a problem
@@ -232,9 +238,5 @@ impl Updater {
                 amount,
                 confirmed_at: Some(confirmed_at),
             }))
-    }
-
-    pub fn get_owned_outpoints(&self) -> impl Iterator<Item = &OutPoint> {
-        self.wallet.outputs.keys()
     }
 }
