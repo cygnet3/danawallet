@@ -3,7 +3,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use anyhow::{Error, Result};
+use anyhow::{bail, Error, Result};
 use futures::{stream, StreamExt};
 use log::info;
 use sp_client::bitcoin::{
@@ -31,34 +31,19 @@ impl SpWallet {
     pub async fn scan_blocks(
         &mut self,
         blindbit_client: &BlindbitClient,
-        mut n_blocks_to_scan: u32,
+        start: Height,
+        end: Height,
         dust_limit: Amount,
     ) -> Result<()> {
-        let last_scan = self.last_scan.to_consensus_u32();
-        let tip_height = blindbit_client.block_height().await?.to_consensus_u32();
-
-        // 0 means scan to tip
-        if n_blocks_to_scan == 0 {
-            n_blocks_to_scan = tip_height - last_scan;
-        }
-
-        let start = last_scan + 1;
-        let end = if last_scan + n_blocks_to_scan <= tip_height {
-            last_scan + n_blocks_to_scan
-        } else {
-            tip_height
-        };
-
         if start > end {
-            info!("scan_blocks called with start > end: {} > {}", start, end);
-            return Ok(());
+            bail!("bigger start than end: {} > {}", start, end);
         }
 
         info!("start: {} end: {}", start, end);
         let start_time: Instant = Instant::now();
         let mut update_time: Instant = start_time;
 
-        let range = start..=end;
+        let range = start.to_consensus_u32()..=end.to_consensus_u32();
 
         let mut data = stream::iter(range)
             .map(|n| {
@@ -80,7 +65,7 @@ impl SpWallet {
             let mut send_update = false;
 
             // send update if we are currently at the final block
-            if blkheight.to_consensus_u32() == end {
+            if blkheight == end {
                 send_update = true;
             }
 
@@ -91,9 +76,9 @@ impl SpWallet {
             }
 
             send_scan_progress(ScanProgress {
-                start,
+                start: start.to_consensus_u32(),
                 current: blkheight.to_consensus_u32(),
-                end,
+                end: end.to_consensus_u32(),
             });
 
             let (found_outputs, found_inputs) = self

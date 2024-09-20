@@ -112,7 +112,10 @@ pub async fn scan_to_tip(
 
     let dust_limit = sp_client::bitcoin::Amount::from_sat(dust_limit);
 
-    wallet.scan_blocks(&blindbit_client, 0, dust_limit).await?;
+    let start = Height::from_consensus(wallet.last_scan.to_consensus_u32() + 1)?;
+    let end = blindbit_client.block_height().await?;
+
+    wallet.scan_blocks(&blindbit_client, start, end, dust_limit).await?;
 
     Ok(())
 }
