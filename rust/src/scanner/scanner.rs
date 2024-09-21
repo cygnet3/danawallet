@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::{bail, Error, Result};
-use futures::{stream, StreamExt};
+use futures::StreamExt;
 use log::info;
 use sp_client::silentpayments::receiving::Label;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput};
@@ -19,11 +19,11 @@ use sp_client::{
     spclient::SpClient,
 };
 
-use crate::blindbit::{BlindbitClient, FilterResponse, UtxoResponse};
+use crate::blindbit::{
+    get_block_data_for_range, BlindbitClient, BlockData, FilterResponse, UtxoResponse,
+};
 
 use super::updater::Updater;
-
-const CONCURRENT_FILTER_REQUESTS: usize = 200;
 
 pub struct SpScanner {
     client: SpClient,
@@ -64,23 +64,17 @@ impl SpScanner {
         let range = start.to_consensus_u32()..=end.to_consensus_u32();
 
         let bb_client = self.backend.clone();
-        let mut data = stream::iter(range)
-            .map(|n| {
-                let bb_client = &bb_client;
-                async move {
-                    let blkheight = Height::from_consensus(n).unwrap();
-                    let tweaks = bb_client.tweak_index(blkheight, dust_limit).await.unwrap();
-                    let new_utxo_filter = bb_client.filter_new_utxos(blkheight).await.unwrap();
-                    let spent_filter = bb_client.filter_spent(blkheight).await.unwrap();
-                    let blkhash = new_utxo_filter.block_hash;
-                    (blkheight, blkhash, tweaks, new_utxo_filter, spent_filter)
-                }
-            })
-            .buffered(CONCURRENT_FILTER_REQUESTS);
+        let mut block_data_stream = get_block_data_for_range(&bb_client, range, dust_limit);
 
-        while let Some((blkheight, blkhash, tweaks, new_utxo_filter, spent_filter)) =
-            data.next().await
-        {
+        while let Some(blockdata) = block_data_stream.next().await {
+            let BlockData {
+                blkheight,
+                blkhash,
+                tweaks,
+                new_utxo_filter,
+                spent_filter,
+            } = blockdata?;
+
             let mut send_update = false;
 
             // send update if we are currently at the final block
