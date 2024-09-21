@@ -38,49 +38,39 @@ pub async fn setup(
             let m = bip39::Mnemonic::generate(12).unwrap();
             let seed = m.to_seed(PASSPHRASE);
             let (scan_sk, spend_sk) = derive_keys_from_seed(&seed, network)?;
-            sp_client = SpClient::new(
-                label,
-                scan_sk,
-                SpendKey::Secret(spend_sk),
-                Some(m.to_string()),
-                network,
-            )?;
+            sp_client = SpClient::new(scan_sk, SpendKey::Secret(spend_sk), network)?;
+
+            let sp_wallet = SpWallet::new(sp_client, birthday, Some(m.to_string()), label).unwrap();
+            Ok(serde_json::to_string(&sp_wallet).unwrap())
         }
         (mnemonic, None, None) => {
             // We restore from seed
             let m = bip39::Mnemonic::from_str(mnemonic.as_ref().unwrap()).unwrap();
             let seed = m.to_seed(PASSPHRASE);
             let (scan_sk, spend_sk) = derive_keys_from_seed(&seed, network)?;
-            sp_client = SpClient::new(
-                label,
-                scan_sk,
-                SpendKey::Secret(spend_sk),
-                mnemonic,
-                network,
-            )?;
+            sp_client = SpClient::new(scan_sk, SpendKey::Secret(spend_sk), network)?;
+
+            let sp_wallet = SpWallet::new(sp_client, birthday, mnemonic, label).unwrap();
+            Ok(serde_json::to_string(&sp_wallet).unwrap())
         }
         (None, scan_sk_hex, spend_key_hex) => {
             // We directly restore with the keys
             let scan_sk = SecretKey::from_str(scan_sk_hex.as_ref().unwrap())?;
             if let Ok(spend_key) = SecretKey::from_str(spend_key_hex.as_ref().unwrap()) {
-                sp_client =
-                    SpClient::new(label, scan_sk, SpendKey::Secret(spend_key), None, network)?;
+                sp_client = SpClient::new(scan_sk, SpendKey::Secret(spend_key), network)?;
             } else if let Ok(spend_key) = PublicKey::from_str(spend_key_hex.as_ref().unwrap()) {
-                sp_client =
-                    SpClient::new(label, scan_sk, SpendKey::Public(spend_key), None, network)?;
+                sp_client = SpClient::new(scan_sk, SpendKey::Public(spend_key), network)?;
             } else {
                 return Err(Error::msg("Can't parse spend key".to_owned()));
             }
-        }
-        _ => {
-            return Err(Error::msg(
-                "Invalid combination of mnemonic and keys".to_owned(),
-            ))
-        }
-    }
-    let sp_wallet = SpWallet::new(sp_client, birthday).unwrap();
 
-    Ok(serde_json::to_string(&sp_wallet).unwrap())
+            let sp_wallet = SpWallet::new(sp_client, birthday, None, label).unwrap();
+            Ok(serde_json::to_string(&sp_wallet).unwrap())
+        }
+        _ => Err(Error::msg(
+            "Invalid combination of mnemonic and keys".to_owned(),
+        )),
+    }
 }
 
 /// Change wallet birthday
@@ -196,7 +186,7 @@ pub fn add_outgoing_tx_to_history(
 #[flutter_rust_bridge::frb(sync)]
 pub fn show_mnemonic(encoded_wallet: String) -> Result<Option<String>> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    let mnemonic = wallet.client.get_mnemonic();
+    let mnemonic = wallet.mnemonic;
 
     Ok(mnemonic)
 }

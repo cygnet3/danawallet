@@ -21,10 +21,12 @@ pub struct SpWallet {
     pub birthday: Height,
     pub last_scan: Height,
     pub outputs: HashMap<OutPoint, OwnedOutput>,
+    pub mnemonic: Option<String>,
+    pub label: String,
 }
 
 impl SpWallet {
-    pub fn new(client: SpClient, birthday: u32) -> Result<Self> {
+    pub fn new(client: SpClient, birthday: u32, mnemonic: Option<String>, label: String) -> Result<Self> {
         let wallet_fingerprint = client.get_client_fingerprint()?;
         let birthday = Height::from_consensus(birthday)?;
         let last_scan = birthday;
@@ -38,6 +40,8 @@ impl SpWallet {
             last_scan,
             tx_history,
             outputs,
+            mnemonic,
+            label,
         })
     }
 
