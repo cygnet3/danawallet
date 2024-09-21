@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::{bail, Error, Result};
-use futures::StreamExt;
+use futures::{pin_mut, Stream, StreamExt};
 use log::info;
 use sp_client::silentpayments::receiving::Label;
 use sp_client::spclient::{OutputSpendStatus, OwnedOutput};
@@ -59,28 +59,43 @@ impl SpScanner {
 
         info!("start: {} end: {}", start, end);
         let start_time: Instant = Instant::now();
-        let mut update_time: Instant = start_time;
 
+        // get block data stream
         let range = start.to_consensus_u32()..=end.to_consensus_u32();
-
         let bb_client = self.backend.clone();
-        let mut block_data_stream = get_block_data_for_range(&bb_client, range, dust_limit);
+        let block_data_stream = get_block_data_for_range(&bb_client, range, dust_limit);
+
+        // process blocks using block data stream
+        self.process_blocks(block_data_stream).await?;
+
+        // after processing, always send update
+        self.updater.update_last_scan(end);
+
+        // time elapsed for the scan
+        info!(
+            "Blindbit scan complete in {} seconds",
+            start_time.elapsed().as_secs()
+        );
+
+        Ok(())
+    }
+
+    async fn process_blocks(
+        &mut self,
+        block_data_stream: impl Stream<Item = Result<BlockData>>,
+    ) -> Result<()> {
+        pin_mut!(block_data_stream);
+
+        let mut update_time: Instant = Instant::now();
 
         while let Some(blockdata) = block_data_stream.next().await {
-            let BlockData {
-                blkheight,
-                blkhash,
-                tweaks,
-                new_utxo_filter,
-                spent_filter,
-            } = blockdata?;
+            let blockdata = blockdata?;
+            let blkheight = blockdata.blkheight;
+            let blkhash = blockdata.blkhash;
+
+            self.updater.send_scan_progress(blkheight);
 
             let mut send_update = false;
-
-            // send update if we are currently at the final block
-            if blkheight == end {
-                send_update = true;
-            }
 
             // send update after 30 seconds since last update
             if update_time.elapsed() > Duration::from_secs(30) {
@@ -88,11 +103,7 @@ impl SpScanner {
                 update_time = Instant::now();
             }
 
-            self.updater.send_scan_progress(start, blkheight, end);
-
-            let (found_outputs, found_inputs) = self
-                .process_block(blkheight, tweaks, new_utxo_filter, spent_filter)
-                .await?;
+            let (found_outputs, found_inputs) = self.process_block(blockdata).await?;
 
             if !found_outputs.is_empty() {
                 send_update = true;
@@ -110,22 +121,21 @@ impl SpScanner {
             }
         }
 
-        // time elapsed for the scan
-        info!(
-            "Blindbit scan complete in {} seconds",
-            start_time.elapsed().as_secs()
-        );
-
         Ok(())
     }
 
     async fn process_block(
         &mut self,
-        blkheight: Height,
-        tweaks: Vec<PublicKey>,
-        new_utxo_filter: FilterResponse,
-        spent_filter: FilterResponse,
+        blockdata: BlockData,
     ) -> Result<(HashMap<OutPoint, OwnedOutput>, HashSet<OutPoint>)> {
+        let BlockData {
+            blkheight,
+            tweaks,
+            new_utxo_filter,
+            spent_filter,
+            ..
+        } = blockdata;
+
         let outs = self
             .process_block_outputs(blkheight, tweaks, new_utxo_filter)
             .await?;

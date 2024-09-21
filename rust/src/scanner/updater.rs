@@ -20,13 +20,19 @@ use sp_client::silentpayments::utils as sp_utils;
 
 pub struct Updater {
     wallet: SpWallet,
+    scan_start: Height,
+    scan_end: Height,
 }
 
 use anyhow::{Error, Result};
 
 impl Updater {
-    pub fn new(wallet: SpWallet) -> Self {
-        Self { wallet }
+    pub fn new(wallet: SpWallet, scan_start: Height, scan_end: Height) -> Self {
+        Self {
+            wallet,
+            scan_start,
+            scan_end,
+        }
     }
 
     pub fn update_last_scan(&mut self, height: Height) {
@@ -38,11 +44,11 @@ impl Updater {
         });
     }
 
-    pub fn send_scan_progress(&self, start: Height, current: Height, end: Height) {
+    pub fn send_scan_progress(&self, current: Height) {
         send_scan_progress(ScanProgress {
-            start: start.to_consensus_u32(),
+            start: self.scan_start.to_consensus_u32(),
             current: current.to_consensus_u32(),
-            end: end.to_consensus_u32(),
+            end: self.scan_end.to_consensus_u32(),
         });
     }
 

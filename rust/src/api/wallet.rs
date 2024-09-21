@@ -119,7 +119,7 @@ pub async fn scan_to_tip(
     let owned_outpoints = wallet.outputs.keys().cloned().collect();
 
     let sp_client = wallet.client.clone();
-    let updater = Updater::new(wallet);
+    let updater = Updater::new(wallet, start, end);
 
     let mut scanner = SpScanner::new(sp_client, updater, blindbit_client, owned_outpoints);
 
