@@ -2,8 +2,8 @@ use std::str::FromStr;
 
 use crate::{
     blindbit,
-    scanner::{SpScanner, Updater},
-    wallet::{utils::derive_keys_from_seed, SpWallet},
+    scanner::SpScanner,
+    wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater},
 };
 use anyhow::{Error, Result};
 use reqwest::Url;
@@ -119,9 +119,14 @@ pub async fn scan_to_tip(
     let owned_outpoints = wallet.outputs.keys().cloned().collect();
 
     let sp_client = wallet.client.clone();
-    let updater = Updater::new(wallet, start, end);
+    let updater = WalletUpdater::new(wallet, start, end);
 
-    let mut scanner = SpScanner::new(sp_client, updater, blindbit_client, owned_outpoints);
+    let mut scanner = SpScanner::new(
+        sp_client,
+        Box::new(updater),
+        blindbit_client,
+        owned_outpoints,
+    );
 
     scanner.scan_blocks(start, end, dust_limit).await?;
 

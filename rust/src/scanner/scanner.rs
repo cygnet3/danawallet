@@ -26,8 +26,8 @@ use crate::blindbit::{
 use super::updater::Updater;
 
 pub struct SpScanner {
+    updater: Box<dyn Updater + Sync + Send>,
     client: SpClient,
-    updater: Updater,
     backend: BlindbitClient,
     owned_outpoints: HashSet<OutPoint>, // used to scan block inputs
 }
@@ -35,7 +35,7 @@ pub struct SpScanner {
 impl SpScanner {
     pub fn new(
         client: SpClient,
-        updater: Updater,
+        updater: Box<dyn Updater + Sync + Send>,
         backend: BlindbitClient,
         owned_outpoints: HashSet<OutPoint>,
     ) -> Self {
