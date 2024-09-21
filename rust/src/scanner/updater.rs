@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use sp_client::{
-    bitcoin::{absolute::Height, secp256k1::PublicKey, BlockHash, OutPoint, Transaction},
+    bitcoin::{absolute::Height, BlockHash, OutPoint},
     spclient::OwnedOutput,
 };
 
@@ -28,12 +28,4 @@ pub trait Updater {
 
     #[allow(dead_code)]
     fn revert_spent_status(&mut self, outpoint: OutPoint) -> Result<()>;
-
-    #[allow(dead_code)]
-    fn update_wallet_with_transaction(
-        &mut self,
-        tx: &Transaction,
-        blockheight: Height,
-        partial_tweak: PublicKey,
-    ) -> Result<HashMap<OutPoint, OwnedOutput>>;
 }

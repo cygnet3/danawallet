@@ -1,21 +1,18 @@
 use std::collections::{HashMap, HashSet};
 
 use sp_client::{
-    bitcoin::{
-        absolute::Height, secp256k1::PublicKey, Amount, BlockHash, OutPoint, Transaction, Txid,
-        XOnlyPublicKey,
-    },
+    bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
     spclient::{OutputSpendStatus, OwnedOutput},
 };
 
 use crate::{
-    scanner::Updater, stream::{send_scan_progress, send_scan_result, ScanProgress, ScanResult}, wallet::{
+    scanner::Updater,
+    stream::{send_scan_progress, send_scan_result, ScanProgress, ScanResult},
+    wallet::{
         recorded::{RecordedTransaction, RecordedTransactionIncoming},
         SpWallet,
-    }
+    },
 };
-
-use sp_client::silentpayments::utils as sp_utils;
 
 use anyhow::{Error, Result};
 
@@ -147,96 +144,5 @@ impl Updater for WalletUpdater {
 
         output.spend_status = OutputSpendStatus::Unspent;
         Ok(())
-    }
-
-    fn update_wallet_with_transaction(
-        &mut self,
-        tx: &Transaction,
-        blockheight: Height,
-        partial_tweak: PublicKey,
-    ) -> Result<HashMap<OutPoint, OwnedOutput>> {
-        // First check that we haven't already scanned this transaction
-        let txid = tx.txid();
-
-        for i in 0..tx.output.len() {
-            if self.wallet.outputs.contains_key(&OutPoint {
-                txid,
-                vout: i as u32,
-            }) {
-                return Err(Error::msg("Transaction already scanned"));
-            }
-        }
-
-        for input in tx.input.iter() {
-            if let Some(output) = self.wallet.outputs.get_mut(&input.previous_output) {
-                match output.spend_status.clone() {
-                    OutputSpendStatus::Spent(tx) => {
-                        if tx == txid.to_string() {
-                            return Err(Error::msg("Transaction already scanned"));
-                        }
-                    }
-                    OutputSpendStatus::Mined(_) => {
-                        return Err(Error::msg("Transaction already scanned"))
-                    }
-                    _ => continue,
-                }
-            }
-        }
-
-        let shared_secret = sp_utils::receiving::calculate_ecdh_shared_secret(
-            &partial_tweak,
-            &self.wallet.client.get_scan_key(),
-        );
-        let mut pubkeys_to_check: HashMap<XOnlyPublicKey, u32> = HashMap::new();
-        for (vout, output) in (0u32..).zip(tx.output.iter()) {
-            if output.script_pubkey.is_p2tr() {
-                let xonly = XOnlyPublicKey::from_slice(&output.script_pubkey.as_bytes()[2..])?;
-                pubkeys_to_check.insert(xonly, vout);
-            }
-        }
-        let ours = self
-            .wallet
-            .client
-            .sp_receiver
-            .scan_transaction(&shared_secret, pubkeys_to_check.keys().cloned().collect())?;
-        let mut new_outputs: HashMap<OutPoint, OwnedOutput> = HashMap::new();
-        for (label, map) in ours {
-            for (key, scalar) in map {
-                let vout = pubkeys_to_check.get(&key).unwrap().to_owned();
-                let txout = tx.output.get(vout as usize).unwrap();
-
-                let label_str: Option<String>;
-                if let Some(ref l) = label {
-                    label_str = Some(l.as_string());
-                } else {
-                    label_str = None;
-                }
-
-                let outpoint = OutPoint::new(tx.txid(), vout);
-                let owned = OwnedOutput {
-                    blockheight,
-                    tweak: scalar.to_be_bytes(),
-                    amount: txout.value,
-                    script: txout.script_pubkey.clone(),
-                    label: label_str,
-                    spend_status: OutputSpendStatus::Unspent,
-                };
-                new_outputs.insert(outpoint, owned);
-            }
-        }
-        let mut res = new_outputs.clone();
-        self.wallet.outputs.extend(new_outputs);
-
-        let txid = tx.txid().to_string();
-        // update outputs that we own and that are spent
-        for input in tx.input.iter() {
-            if let Some(prevout) = self.wallet.outputs.get_mut(&input.previous_output) {
-                // This is spent by this tx
-                prevout.spend_status = OutputSpendStatus::Spent(txid.clone());
-                res.insert(input.previous_output, prevout.clone());
-            }
-        }
-
-        Ok(res)
     }
 }
