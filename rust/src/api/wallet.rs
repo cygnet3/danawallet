@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
 use crate::{
-    blindbit,
-    scanner::SpScanner,
+    backend::BlindbitBackend,
+    scanner::{ChainBackend, SpScanner},
     wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater},
 };
 use anyhow::{Error, Result};
@@ -99,12 +99,12 @@ pub async fn scan_to_tip(
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
     let blindbit_url = Url::parse(&blindbit_url)?;
-    let blindbit_client = blindbit::BlindbitClient::new(blindbit_url);
+    let backend = BlindbitBackend::new(blindbit_url);
 
     let dust_limit = sp_client::bitcoin::Amount::from_sat(dust_limit);
 
     let start = Height::from_consensus(wallet.last_scan.to_consensus_u32() + 1)?;
-    let end = blindbit_client.block_height().await?;
+    let end = backend.block_height().await?;
 
     let owned_outpoints = wallet.outputs.keys().cloned().collect();
 
@@ -114,7 +114,7 @@ pub async fn scan_to_tip(
     let mut scanner = SpScanner::new(
         sp_client,
         Box::new(updater),
-        blindbit_client,
+        Box::new(backend),
         owned_outpoints,
     );
 

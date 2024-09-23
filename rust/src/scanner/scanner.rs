@@ -19,16 +19,14 @@ use sp_client::{
     spclient::SpClient,
 };
 
-use crate::blindbit::{
-    get_block_data_for_range, BlindbitClient, BlockData, FilterResponse, UtxoResponse,
-};
+use crate::blindbit::{BlockData, FilterResponse, UtxoResponse};
 
-use super::updater::Updater;
+use super::{updater::Updater, ChainBackend};
 
 pub struct SpScanner {
     updater: Box<dyn Updater + Sync + Send>,
+    backend: Box<dyn ChainBackend + Sync + Send>,
     client: SpClient,
-    backend: BlindbitClient,
     owned_outpoints: HashSet<OutPoint>, // used to scan block inputs
 }
 
@@ -36,7 +34,7 @@ impl SpScanner {
     pub fn new(
         client: SpClient,
         updater: Box<dyn Updater + Sync + Send>,
-        backend: BlindbitClient,
+        backend: Box<dyn ChainBackend + Sync + Send>,
         owned_outpoints: HashSet<OutPoint>,
     ) -> Self {
         Self {
@@ -62,8 +60,7 @@ impl SpScanner {
 
         // get block data stream
         let range = start.to_consensus_u32()..=end.to_consensus_u32();
-        let bb_client = self.backend.clone();
-        let block_data_stream = get_block_data_for_range(&bb_client, range, dust_limit);
+        let block_data_stream = self.backend.get_block_data_for_range(range, dust_limit);
 
         // process blocks using block data stream
         self.process_blocks(block_data_stream).await?;

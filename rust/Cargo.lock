@@ -1294,6 +1294,7 @@ name = "rust_lib_danawallet"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "bip39",
  "flutter_rust_bridge",
  "futures",
