@@ -1,7 +1,7 @@
 pub mod recorded;
+mod updater;
 pub mod utils;
 mod wallet;
-mod updater;
 
-pub use wallet::SpWallet;
 pub use updater::WalletUpdater;
+pub use wallet::SpWallet;

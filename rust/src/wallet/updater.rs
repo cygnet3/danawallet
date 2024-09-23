@@ -2,11 +2,10 @@ use std::collections::{HashMap, HashSet};
 
 use sp_client::{
     bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
-    spclient::{OutputSpendStatus, OwnedOutput},
+    OutputSpendStatus, OwnedOutput, Updater,
 };
 
 use crate::{
-    scanner::Updater,
     stream::{send_scan_progress, send_scan_result, ScanProgress, ScanResult},
     wallet::{
         recorded::{RecordedTransaction, RecordedTransactionIncoming},

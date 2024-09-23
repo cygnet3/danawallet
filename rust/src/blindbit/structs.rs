@@ -1,13 +1,8 @@
 use serde::Deserialize;
-use sp_client::bitcoin::{absolute::Height, secp256k1::PublicKey, Amount, BlockHash, ScriptBuf, Txid};
-
-pub struct BlockData {
-    pub blkheight: Height,
-    pub blkhash: BlockHash,
-    pub tweaks: Vec<PublicKey>,
-    pub new_utxo_filter: FilterResponse,
-    pub spent_filter: FilterResponse,
-}
+use sp_client::{
+    bitcoin::{absolute::Height, Amount, BlockHash, ScriptBuf, Txid},
+    FilterData, SpentIndexData, UtxoData,
+};
 
 #[derive(Debug, Deserialize)]
 pub struct BlockHeightResponse {
@@ -26,10 +21,30 @@ pub struct UtxoResponse {
     pub spent: bool,
 }
 
+impl From<UtxoResponse> for UtxoData {
+    fn from(value: UtxoResponse) -> Self {
+        Self {
+            txid: value.txid,
+            vout: value.vout,
+            value: value.value,
+            scriptpubkey: value.scriptpubkey,
+            spent: value.spent,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct SpentIndexResponse {
     pub block_hash: BlockHash,
     pub data: Vec<MyHex>,
+}
+
+impl From<SpentIndexResponse> for SpentIndexData {
+    fn from(value: SpentIndexResponse) -> Self {
+        Self {
+            data: value.data.into_iter().map(|x| x.hex).collect(),
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -43,7 +58,15 @@ pub struct MyHex {
 pub struct FilterResponse {
     pub block_hash: BlockHash,
     pub block_height: Height,
-    pub data: String,
+    pub data: MyHex,
     pub filter_type: i32,
 }
 
+impl From<FilterResponse> for FilterData {
+    fn from(value: FilterResponse) -> Self {
+        Self {
+            block_hash: value.block_hash,
+            data: value.data.hex,
+        }
+    }
+}

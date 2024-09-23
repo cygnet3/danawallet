@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sp_client::{
     bitcoin::{absolute::Height, Amount, OutPoint, Txid},
-    spclient::Recipient,
+    Recipient,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

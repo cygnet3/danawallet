@@ -1,16 +1,16 @@
-use crate::{
-    blindbit::{BlindbitClient, BlockData, SpentIndexResponse, UtxoResponse},
-    scanner::ChainBackend,
-};
-
 use std::{ops::RangeInclusive, pin::Pin, sync::Arc};
 
 use async_trait::async_trait;
 use futures::{stream, Stream, StreamExt};
 use reqwest::Url;
-use sp_client::bitcoin::{absolute::Height, Amount};
+use sp_client::{
+    bitcoin::{absolute::Height, Amount},
+    BlockData, ChainBackend, SpentIndexData, UtxoData,
+};
 
 use anyhow::Result;
+
+use crate::blindbit::BlindbitClient;
 
 const CONCURRENT_FILTER_REQUESTS: usize = 200;
 
@@ -36,8 +36,6 @@ impl ChainBackend for BlindbitBackend {
         &self,
         range: RangeInclusive<u32>,
         dust_limit: Amount,
-        //) -> Pin<Box<dyn Stream<Item = Result<BlockData>> + Send>> {
-        //) -> impl Stream<Item = anyhow::Result<BlockData>> {
     ) -> Pin<Box<dyn Stream<Item = Result<BlockData>> + Send>> {
         let client = Arc::new(self.client.clone());
 
@@ -55,8 +53,8 @@ impl ChainBackend for BlindbitBackend {
                         blkheight,
                         blkhash,
                         tweaks,
-                        new_utxo_filter,
-                        spent_filter,
+                        new_utxo_filter: new_utxo_filter.into(),
+                        spent_filter: spent_filter.into(),
                     })
                 }
             })
@@ -65,12 +63,18 @@ impl ChainBackend for BlindbitBackend {
         Box::pin(res)
     }
 
-    async fn spent_index(&self, block_height: Height) -> Result<SpentIndexResponse> {
-        self.client.spent_index(block_height).await
+    async fn spent_index(&self, block_height: Height) -> Result<SpentIndexData> {
+        self.client.spent_index(block_height).await.map(Into::into)
     }
 
-    async fn utxos(&self, block_height: Height) -> Result<Vec<UtxoResponse>> {
-        self.client.utxos(block_height).await
+    async fn utxos(&self, block_height: Height) -> Result<Vec<UtxoData>> {
+        Ok(self
+            .client
+            .utxos(block_height)
+            .await?
+            .into_iter()
+            .map(Into::into)
+            .collect())
     }
 
     async fn block_height(&self) -> Result<Height> {

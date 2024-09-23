@@ -7,7 +7,7 @@ use sp_client::bitcoin::{Amount, Txid};
 
 use anyhow::{Error, Result};
 
-use sp_client::spclient::{OutputSpendStatus, OwnedOutput, Recipient, SpClient};
+use sp_client::{OutputSpendStatus, OwnedOutput, Recipient, SpClient};
 
 use super::recorded::{RecordedTransaction, RecordedTransactionOutgoing};
 
@@ -26,7 +26,12 @@ pub struct SpWallet {
 }
 
 impl SpWallet {
-    pub fn new(client: SpClient, birthday: u32, mnemonic: Option<String>, label: String) -> Result<Self> {
+    pub fn new(
+        client: SpClient,
+        birthday: u32,
+        mnemonic: Option<String>,
+        label: String,
+    ) -> Result<Self> {
         let wallet_fingerprint = client.get_client_fingerprint()?;
         let birthday = Height::from_consensus(birthday)?;
         let last_scan = birthday;

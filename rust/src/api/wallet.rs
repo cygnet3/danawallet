@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use crate::{
     backend::BlindbitBackend,
-    scanner::{ChainBackend, SpScanner},
     wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater},
 };
 use anyhow::{Error, Result};
@@ -13,7 +12,7 @@ use sp_client::{
         secp256k1::{PublicKey, SecretKey},
         Network, OutPoint, Txid,
     },
-    spclient::{SpClient, SpendKey},
+    ChainBackend, SpClient, SpScanner, SpendKey,
 };
 
 use super::structs::{Amount, Recipient, WalletStatus};

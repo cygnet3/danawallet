@@ -15,22 +15,22 @@ pub enum OutputSpendStatus {
     Mined(MinedInBlock),
 }
 
-impl From<sp_client::spclient::OutputSpendStatus> for OutputSpendStatus {
-    fn from(value: sp_client::spclient::OutputSpendStatus) -> Self {
+impl From<sp_client::OutputSpendStatus> for OutputSpendStatus {
+    fn from(value: sp_client::OutputSpendStatus) -> Self {
         match value {
-            sp_client::spclient::OutputSpendStatus::Unspent => OutputSpendStatus::Unspent,
-            sp_client::spclient::OutputSpendStatus::Spent(txid) => OutputSpendStatus::Spent(txid),
-            sp_client::spclient::OutputSpendStatus::Mined(block) => OutputSpendStatus::Mined(block),
+            sp_client::OutputSpendStatus::Unspent => OutputSpendStatus::Unspent,
+            sp_client::OutputSpendStatus::Spent(txid) => OutputSpendStatus::Spent(txid),
+            sp_client::OutputSpendStatus::Mined(block) => OutputSpendStatus::Mined(block),
         }
     }
 }
 
-impl From<OutputSpendStatus> for sp_client::spclient::OutputSpendStatus {
+impl From<OutputSpendStatus> for sp_client::OutputSpendStatus {
     fn from(value: OutputSpendStatus) -> Self {
         match value {
-            OutputSpendStatus::Unspent => sp_client::spclient::OutputSpendStatus::Unspent,
-            OutputSpendStatus::Spent(txid) => sp_client::spclient::OutputSpendStatus::Spent(txid),
-            OutputSpendStatus::Mined(block) => sp_client::spclient::OutputSpendStatus::Mined(block),
+            OutputSpendStatus::Unspent => sp_client::OutputSpendStatus::Unspent,
+            OutputSpendStatus::Spent(txid) => sp_client::OutputSpendStatus::Spent(txid),
+            OutputSpendStatus::Mined(block) => sp_client::OutputSpendStatus::Mined(block),
         }
     }
 }
@@ -67,8 +67,8 @@ pub struct OwnedOutput {
     pub spend_status: OutputSpendStatus,
 }
 
-impl From<sp_client::spclient::OwnedOutput> for OwnedOutput {
-    fn from(value: sp_client::spclient::OwnedOutput) -> Self {
+impl From<sp_client::OwnedOutput> for OwnedOutput {
+    fn from(value: sp_client::OwnedOutput) -> Self {
         OwnedOutput {
             blockheight: value.blockheight.to_consensus_u32(),
             tweak: hex::encode(value.tweak),
@@ -80,9 +80,9 @@ impl From<sp_client::spclient::OwnedOutput> for OwnedOutput {
     }
 }
 
-impl From<OwnedOutput> for sp_client::spclient::OwnedOutput {
+impl From<OwnedOutput> for sp_client::OwnedOutput {
     fn from(value: OwnedOutput) -> Self {
-        sp_client::spclient::OwnedOutput {
+        sp_client::OwnedOutput {
             blockheight: Height::from_consensus(value.blockheight).unwrap(),
             tweak: hex::decode(value.tweak).unwrap().try_into().unwrap(),
             amount: value.amount.into(),
@@ -100,8 +100,8 @@ pub struct Recipient {
     pub nb_outputs: u32, // if address is not SP, only 1 is valid
 }
 
-impl From<sp_client::spclient::Recipient> for Recipient {
-    fn from(value: sp_client::spclient::Recipient) -> Self {
+impl From<sp_client::Recipient> for Recipient {
+    fn from(value: sp_client::Recipient) -> Self {
         Recipient {
             address: value.address,
             amount: value.amount.into(),
@@ -110,9 +110,9 @@ impl From<sp_client::spclient::Recipient> for Recipient {
     }
 }
 
-impl From<Recipient> for sp_client::spclient::Recipient {
+impl From<Recipient> for sp_client::Recipient {
     fn from(value: Recipient) -> Self {
-        sp_client::spclient::Recipient {
+        sp_client::Recipient {
             address: value.address,
             amount: value.amount.into(),
             nb_outputs: value.nb_outputs,
