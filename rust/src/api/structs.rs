@@ -60,7 +60,7 @@ impl Amount {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct OwnedOutput {
     pub blockheight: u32,
-    pub tweak: String,
+    pub tweak: [u8; 32],
     pub amount: Amount,
     pub script: String,
     pub label: Option<String>,
@@ -71,7 +71,7 @@ impl From<sp_client::OwnedOutput> for OwnedOutput {
     fn from(value: sp_client::OwnedOutput) -> Self {
         OwnedOutput {
             blockheight: value.blockheight.to_consensus_u32(),
-            tweak: hex::encode(value.tweak),
+            tweak: value.tweak,
             amount: value.amount.into(),
             script: value.script.to_hex_string(),
             label: value.label,
@@ -84,7 +84,7 @@ impl From<OwnedOutput> for sp_client::OwnedOutput {
     fn from(value: OwnedOutput) -> Self {
         sp_client::OwnedOutput {
             blockheight: Height::from_consensus(value.blockheight).unwrap(),
-            tweak: hex::decode(value.tweak).unwrap().try_into().unwrap(),
+            tweak: value.tweak,
             amount: value.amount.into(),
             script: ScriptBuf::from_hex(&value.script).unwrap(),
             label: value.label,

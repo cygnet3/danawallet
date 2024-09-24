@@ -1,13 +1,7 @@
-use reqwest::Url;
-
-use crate::blindbit;
+use sp_client::{BlindbitBackend, ChainBackend};
 
 pub async fn get_chain_height(blindbit_url: String) -> anyhow::Result<u32> {
-    let url = Url::parse(&blindbit_url)?;
-    let blindbit_client = blindbit::BlindbitClient::new(url);
+    let backend = BlindbitBackend::new(blindbit_url)?;
 
-    blindbit_client
-        .block_height()
-        .await
-        .map(|height| height.to_consensus_u32())
+    Ok(backend.block_height().await?.to_consensus_u32())
 }

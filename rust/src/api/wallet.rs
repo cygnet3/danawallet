@@ -1,18 +1,15 @@
 use std::str::FromStr;
 
-use crate::{
-    backend::BlindbitBackend,
-    wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater},
-};
+use crate::wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater};
 use anyhow::{Error, Result};
-use reqwest::Url;
+//use reqwest::Url;
 use sp_client::{
     bitcoin::{
         absolute::Height,
         secp256k1::{PublicKey, SecretKey},
         Network, OutPoint, Txid,
     },
-    ChainBackend, SpClient, SpScanner, SpendKey,
+    BlindbitBackend, ChainBackend, SpClient, SpScanner, SpendKey,
 };
 
 use super::structs::{Amount, Recipient, WalletStatus};
@@ -97,8 +94,7 @@ pub async fn scan_to_tip(
 ) -> Result<()> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
-    let blindbit_url = Url::parse(&blindbit_url)?;
-    let backend = BlindbitBackend::new(blindbit_url);
+    let backend = BlindbitBackend::new(blindbit_url)?;
 
     let dust_limit = sp_client::bitcoin::Amount::from_sat(dust_limit);
 
