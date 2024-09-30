@@ -5,9 +5,9 @@ use log::info;
 use pushtx::Network;
 use sp_client::bitcoin;
 use sp_client::bitcoin::{consensus::encode::serialize_hex, OutPoint, Psbt};
-use sp_client::spclient::SpClient;
+use sp_client::SpClient;
 
-use crate::wallet::spwallet::SpWallet;
+use crate::wallet::SpWallet;
 
 use super::structs::{Amount, OwnedOutput, Recipient};
 use anyhow::{anyhow, Error, Result};
@@ -28,9 +28,7 @@ pub fn create_new_psbt(
 
     let recipients = recipients.into_iter().map(Into::into).collect();
 
-    let (psbt, change_idx) = wallet
-        .get_client()
-        .create_new_psbt(inputs, recipients, None)?;
+    let (psbt, change_idx) = wallet.client.create_new_psbt(inputs, recipients, None)?;
 
     Ok((psbt.to_string(), change_idx))
 }
@@ -50,11 +48,9 @@ pub fn fill_sp_outputs(encoded_wallet: String, psbt: String) -> Result<String> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let mut psbt = Psbt::from_str(&psbt)?;
 
-    let partial_secret = wallet.get_client().get_partial_secret_from_psbt(&psbt)?;
+    let partial_secret = wallet.client.get_partial_secret_from_psbt(&psbt)?;
 
-    wallet
-        .get_client()
-        .fill_sp_outputs(&mut psbt, partial_secret)?;
+    wallet.client.fill_sp_outputs(&mut psbt, partial_secret)?;
 
     Ok(psbt.to_string())
 }
@@ -68,7 +64,7 @@ pub fn sign_psbt(encoded_wallet: String, psbt: String, finalize: bool) -> Result
     let mut aux_rand = [0u8; 32];
     rng.fill_bytes(&mut aux_rand);
 
-    let mut signed = wallet.get_client().sign_psbt(psbt, &aux_rand)?;
+    let mut signed = wallet.client.sign_psbt(psbt, &aux_rand)?;
 
     if finalize {
         SpClient::finalize_psbt(&mut signed)?;

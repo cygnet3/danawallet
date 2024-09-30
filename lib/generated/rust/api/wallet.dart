@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
@@ -34,7 +35,7 @@ String resetWallet({required String encodedWallet}) => RustLib.instance.api
 
 Future<void> scanToTip(
         {required String blindbitUrl,
-        required int dustLimit,
+        required BigInt dustLimit,
         required String encodedWallet}) =>
     RustLib.instance.api.crateApiWalletScanToTip(
         blindbitUrl: blindbitUrl,
@@ -64,17 +65,6 @@ String addOutgoingTxToHistory(
         spentOutpoints: spentOutpoints,
         recipients: recipients,
         change: change);
-
-String addIncomingTxToHistory(
-        {required String encodedWallet,
-        required String txid,
-        required Amount amount,
-        required int height}) =>
-    RustLib.instance.api.crateApiWalletAddIncomingTxToHistory(
-        encodedWallet: encodedWallet,
-        txid: txid,
-        amount: amount,
-        height: height);
 
 String? showMnemonic({required String encodedWallet}) => RustLib.instance.api
     .crateApiWalletShowMnemonic(encodedWallet: encodedWallet);

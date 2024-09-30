@@ -8,18 +8,17 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.3.0"
-sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "master"}
+sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "refactor-spclient", features = ["blindbit-backend"]}
 lazy_static = "1.4"
 anyhow = "1.0"
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.107"
 once_cell = "1.18.0"
 bip39 = { version = "2.0.0", features = ["rand"] }
-hex = { version = "0.4.3", features = ["serde"] }
 serde_with = "3.6.0"
 log = "0.4.20"
 simplelog = "0.12.1"
-reqwest = { version = "0.12.4", features = ["rustls-tls"], default-features = false }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 pushtx = { git = "https://github.com/cygnet3/pushtx", branch = "master" }
-futures = "0.3.30"
+futures = "0.3"
+async-trait = "0.1"

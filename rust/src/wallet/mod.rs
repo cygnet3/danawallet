@@ -1,3 +1,7 @@
-pub mod outputslist;
 pub mod recorded;
-pub mod spwallet;
+mod updater;
+pub mod utils;
+mod wallet;
+
+pub use updater::WalletUpdater;
+pub use wallet::SpWallet;

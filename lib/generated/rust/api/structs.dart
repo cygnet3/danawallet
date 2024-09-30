@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'structs.freezed.dart';
@@ -47,7 +48,7 @@ sealed class OutputSpendStatus with _$OutputSpendStatus {
 
 class OwnedOutput {
   final int blockheight;
-  final String tweak;
+  final U8Array32 tweak;
   final Amount amount;
   final String script;
   final String? label;
