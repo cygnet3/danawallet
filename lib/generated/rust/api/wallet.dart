@@ -9,14 +9,12 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
 Future<String> setup(
-        {required String label,
-        String? mnemonic,
+        {String? mnemonic,
         String? scanKey,
         String? spendKey,
         required int birthday,
         required String network}) =>
     RustLib.instance.api.crateApiWalletSetup(
-        label: label,
         mnemonic: mnemonic,
         scanKey: scanKey,
         spendKey: spendKey,

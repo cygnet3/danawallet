@@ -812,7 +812,6 @@ fn wire__crate__api__wallet__setup_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_label = <String>::sse_decode(&mut deserializer);
             let api_mnemonic = <Option<String>>::sse_decode(&mut deserializer);
             let api_scan_key = <Option<String>>::sse_decode(&mut deserializer);
             let api_spend_key = <Option<String>>::sse_decode(&mut deserializer);
@@ -823,7 +822,6 @@ fn wire__crate__api__wallet__setup_impl(
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::wallet::setup(
-                            api_label,
                             api_mnemonic,
                             api_scan_key,
                             api_spend_key,
