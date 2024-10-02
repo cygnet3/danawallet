@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class WalletRepository {
-  final String keyWalletBlob = "default";
+  final String keyWalletBlob = "wallet";
   final secureStorage = const FlutterSecureStorage();
 
   WalletRepository();
