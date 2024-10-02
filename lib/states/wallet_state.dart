@@ -4,12 +4,12 @@ import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/generated/rust/logger.dart';
+import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:danawallet/services/settings_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class WalletState extends ChangeNotifier {
-  final String label = "default";
+  final walletRepository = WalletRepository();
   BigInt amount = BigInt.from(0);
   int birthday = 0;
   int lastScan = 0;
@@ -19,7 +19,6 @@ class WalletState extends ChangeNotifier {
   String address = "";
   Map<String, OwnedOutput> ownedOutputs = {};
   List<RecordedTransaction> txHistory = List.empty(growable: true);
-  final secureStorage = const FlutterSecureStorage();
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanProgressSubscription;
@@ -38,7 +37,7 @@ class WalletState extends ChangeNotifier {
     await _initStreams();
 
     // we check if wallet str is present in database
-    final walletStr = await secureStorage.read(key: label);
+    final walletStr = await walletRepository.readWalletBlob();
 
     // if not present, we have no wallet and return false
     if (walletStr == null) {
@@ -85,7 +84,7 @@ class WalletState extends ChangeNotifier {
 
     scanResultSubscription = createScanResultStream().listen(((event) async {
       String updatedWallet = event.updatedWallet;
-      await saveWalletToSecureStorage(updatedWallet);
+      await walletRepository.saveWalletBlob(updatedWallet);
       await updateWalletStatus();
     }));
   }
@@ -113,15 +112,15 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> saveWalletToSecureStorage(String wallet) async {
-    await secureStorage.write(key: label, value: wallet);
+    await walletRepository.saveWalletBlob(wallet);
   }
 
   Future<void> rmWalletFromSecureStorage() async {
-    await secureStorage.write(key: label, value: null);
+    await walletRepository.deleteWalletBlob();
   }
 
   Future<String> getWalletFromSecureStorage() async {
-    final wallet = await secureStorage.read(key: label);
+    final wallet = await walletRepository.readWalletBlob();
     if (wallet != null) {
       return wallet;
     } else {
