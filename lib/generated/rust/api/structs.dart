@@ -33,6 +33,69 @@ class Amount {
           field0 == other.field0;
 }
 
+class ApiSetupResult {
+  final String walletBlob;
+  final String? mnemonic;
+
+  const ApiSetupResult({
+    required this.walletBlob,
+    this.mnemonic,
+  });
+
+  @override
+  int get hashCode => walletBlob.hashCode ^ mnemonic.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiSetupResult &&
+          runtimeType == other.runtimeType &&
+          walletBlob == other.walletBlob &&
+          mnemonic == other.mnemonic;
+}
+
+class ApiSetupWalletArgs {
+  final ApiSetupWalletType setupType;
+  final int birthday;
+  final String network;
+
+  const ApiSetupWalletArgs({
+    required this.setupType,
+    required this.birthday,
+    required this.network,
+  });
+
+  @override
+  int get hashCode => setupType.hashCode ^ birthday.hashCode ^ network.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiSetupWalletArgs &&
+          runtimeType == other.runtimeType &&
+          setupType == other.setupType &&
+          birthday == other.birthday &&
+          network == other.network;
+}
+
+@freezed
+sealed class ApiSetupWalletType with _$ApiSetupWalletType {
+  const ApiSetupWalletType._();
+
+  const factory ApiSetupWalletType.newWallet() = ApiSetupWalletType_NewWallet;
+  const factory ApiSetupWalletType.mnemonic(
+    String field0,
+  ) = ApiSetupWalletType_Mnemonic;
+  const factory ApiSetupWalletType.full(
+    String field0,
+    String field1,
+  ) = ApiSetupWalletType_Full;
+  const factory ApiSetupWalletType.watchOnly(
+    String field0,
+    String field1,
+  ) = ApiSetupWalletType_WatchOnly;
+}
+
 @freezed
 sealed class OutputSpendStatus with _$OutputSpendStatus {
   const OutputSpendStatus._();

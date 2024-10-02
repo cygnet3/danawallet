@@ -21,7 +21,6 @@ class SettingsScreen extends StatelessWidget {
     ThemeNotifier themeNotifier,
   ) async {
     try {
-      await walletState.rmWalletFromSecureStorage();
       await walletState.reset();
 
       await SettingsService().resetAll();
@@ -30,16 +29,6 @@ class SettingsScreen extends StatelessWidget {
       themeNotifier.setTheme(null);
     } catch (e) {
       rethrow;
-    }
-  }
-
-  Future<String?> _getSeedPhrase(WalletState walletState) async {
-    try {
-      final wallet = await walletState.getWalletFromSecureStorage();
-      return showMnemonic(encodedWallet: wallet);
-    } catch (e) {
-      displayNotification(exceptionToString(e));
-      return null;
     }
   }
 
@@ -114,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
             title: 'Show seed phrase',
             onPressed: () async {
               const title = 'Backup seed phrase';
-              final text = await _getSeedPhrase(walletState) ??
+              final text = await walletState.getSeedPhrase() ??
                   'Seed phrase unknown! Did you import from keys?';
 
               showAlertDialog(title, text);

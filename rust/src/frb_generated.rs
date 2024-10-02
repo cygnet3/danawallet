@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.3.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 141683958;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1563776657;
 
 // Section: executor
 
@@ -790,61 +790,14 @@ fn wire__crate__api__wallet__scan_to_tip_impl(
         },
     )
 }
-fn wire__crate__api__wallet__setup_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "setup",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_mnemonic = <Option<String>>::sse_decode(&mut deserializer);
-            let api_scan_key = <Option<String>>::sse_decode(&mut deserializer);
-            let api_spend_key = <Option<String>>::sse_decode(&mut deserializer);
-            let api_birthday = <u32>::sse_decode(&mut deserializer);
-            let api_network = <String>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| async move {
-                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                    (move || async move {
-                        let output_ok = crate::api::wallet::setup(
-                            api_mnemonic,
-                            api_scan_key,
-                            api_spend_key,
-                            api_birthday,
-                            api_network,
-                        )
-                        .await?;
-                        Ok(output_ok)
-                    })()
-                    .await,
-                )
-            }
-        },
-    )
-}
-fn wire__crate__api__wallet__show_mnemonic_impl(
+fn wire__crate__api__wallet__setup_wallet_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "show_mnemonic",
+            debug_name: "setup_wallet",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -858,11 +811,12 @@ fn wire__crate__api__wallet__show_mnemonic_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
+            let api_setup_args =
+                <crate::api::structs::ApiSetupWalletArgs>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                 (move || {
-                    let output_ok = crate::api::wallet::show_mnemonic(api_encoded_wallet)?;
+                    let output_ok = crate::api::wallet::setup_wallet(api_setup_args)?;
                     Ok(output_ok)
                 })(),
             )
@@ -931,6 +885,61 @@ impl SseDecode for crate::api::structs::Amount {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_field0 = <u64>::sse_decode(deserializer);
         return crate::api::structs::Amount(var_field0);
+    }
+}
+
+impl SseDecode for crate::api::structs::ApiSetupResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_walletBlob = <String>::sse_decode(deserializer);
+        let mut var_mnemonic = <Option<String>>::sse_decode(deserializer);
+        return crate::api::structs::ApiSetupResult {
+            wallet_blob: var_walletBlob,
+            mnemonic: var_mnemonic,
+        };
+    }
+}
+
+impl SseDecode for crate::api::structs::ApiSetupWalletArgs {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_setupType = <crate::api::structs::ApiSetupWalletType>::sse_decode(deserializer);
+        let mut var_birthday = <u32>::sse_decode(deserializer);
+        let mut var_network = <String>::sse_decode(deserializer);
+        return crate::api::structs::ApiSetupWalletArgs {
+            setup_type: var_setupType,
+            birthday: var_birthday,
+            network: var_network,
+        };
+    }
+}
+
+impl SseDecode for crate::api::structs::ApiSetupWalletType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                return crate::api::structs::ApiSetupWalletType::NewWallet;
+            }
+            1 => {
+                let mut var_field0 = <String>::sse_decode(deserializer);
+                return crate::api::structs::ApiSetupWalletType::Mnemonic(var_field0);
+            }
+            2 => {
+                let mut var_field0 = <String>::sse_decode(deserializer);
+                let mut var_field1 = <String>::sse_decode(deserializer);
+                return crate::api::structs::ApiSetupWalletType::Full(var_field0, var_field1);
+            }
+            3 => {
+                let mut var_field0 = <String>::sse_decode(deserializer);
+                let mut var_field1 = <String>::sse_decode(deserializer);
+                return crate::api::structs::ApiSetupWalletType::WatchOnly(var_field0, var_field1);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
@@ -1317,7 +1326,6 @@ fn pde_ffi_dispatcher_primary_impl(
         3 => wire__crate__api__psbt__broadcast_tx_impl(port, ptr, rust_vec_len, data_len),
         9 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
         21 => wire__crate__api__wallet__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__wallet__setup_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1359,7 +1367,7 @@ fn pde_ffi_dispatcher_sync_impl(
         18 => wire__crate__api__wallet__get_wallet_info_impl(ptr, rust_vec_len, data_len),
         19 => wire__crate__api__wallet__mark_outpoints_spent_impl(ptr, rust_vec_len, data_len),
         20 => wire__crate__api__wallet__reset_wallet_impl(ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__wallet__show_mnemonic_impl(ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__wallet__setup_wallet_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1377,6 +1385,86 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::structs::Amount>
     for crate::api::structs::Amount
 {
     fn into_into_dart(self) -> crate::api::structs::Amount {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::structs::ApiSetupResult {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.wallet_blob.into_into_dart().into_dart(),
+            self.mnemonic.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::structs::ApiSetupResult
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::structs::ApiSetupResult>
+    for crate::api::structs::ApiSetupResult
+{
+    fn into_into_dart(self) -> crate::api::structs::ApiSetupResult {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::structs::ApiSetupWalletArgs {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.setup_type.into_into_dart().into_dart(),
+            self.birthday.into_into_dart().into_dart(),
+            self.network.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::structs::ApiSetupWalletArgs
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::structs::ApiSetupWalletArgs>
+    for crate::api::structs::ApiSetupWalletArgs
+{
+    fn into_into_dart(self) -> crate::api::structs::ApiSetupWalletArgs {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::structs::ApiSetupWalletType {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            crate::api::structs::ApiSetupWalletType::NewWallet => [0.into_dart()].into_dart(),
+            crate::api::structs::ApiSetupWalletType::Mnemonic(field0) => {
+                [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::structs::ApiSetupWalletType::Full(field0, field1) => [
+                2.into_dart(),
+                field0.into_into_dart().into_dart(),
+                field1.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::structs::ApiSetupWalletType::WatchOnly(field0, field1) => [
+                3.into_dart(),
+                field0.into_into_dart().into_dart(),
+                field1.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::structs::ApiSetupWalletType
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::structs::ApiSetupWalletType>
+    for crate::api::structs::ApiSetupWalletType
+{
+    fn into_into_dart(self) -> crate::api::structs::ApiSetupWalletType {
         self
     }
 }
@@ -1678,6 +1766,51 @@ impl SseEncode for crate::api::structs::Amount {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <u64>::sse_encode(self.0, serializer);
+    }
+}
+
+impl SseEncode for crate::api::structs::ApiSetupResult {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.wallet_blob, serializer);
+        <Option<String>>::sse_encode(self.mnemonic, serializer);
+    }
+}
+
+impl SseEncode for crate::api::structs::ApiSetupWalletArgs {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::structs::ApiSetupWalletType>::sse_encode(self.setup_type, serializer);
+        <u32>::sse_encode(self.birthday, serializer);
+        <String>::sse_encode(self.network, serializer);
+    }
+}
+
+impl SseEncode for crate::api::structs::ApiSetupWalletType {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::structs::ApiSetupWalletType::NewWallet => {
+                <i32>::sse_encode(0, serializer);
+            }
+            crate::api::structs::ApiSetupWalletType::Mnemonic(field0) => {
+                <i32>::sse_encode(1, serializer);
+                <String>::sse_encode(field0, serializer);
+            }
+            crate::api::structs::ApiSetupWalletType::Full(field0, field1) => {
+                <i32>::sse_encode(2, serializer);
+                <String>::sse_encode(field0, serializer);
+                <String>::sse_encode(field1, serializer);
+            }
+            crate::api::structs::ApiSetupWalletType::WatchOnly(field0, field1) => {
+                <i32>::sse_encode(3, serializer);
+                <String>::sse_encode(field0, serializer);
+                <String>::sse_encode(field1, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
     }
 }
 
