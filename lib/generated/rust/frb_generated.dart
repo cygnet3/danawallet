@@ -154,8 +154,7 @@ abstract class RustLibApi extends BaseApi {
       required String encodedWallet});
 
   Future<String> crateApiWalletSetup(
-      {required String label,
-      String? mnemonic,
+      {String? mnemonic,
       String? scanKey,
       String? spendKey,
       required int birthday,
@@ -732,8 +731,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<String> crateApiWalletSetup(
-      {required String label,
-      String? mnemonic,
+      {String? mnemonic,
       String? scanKey,
       String? spendKey,
       required int birthday,
@@ -741,7 +739,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(label, serializer);
         sse_encode_opt_String(mnemonic, serializer);
         sse_encode_opt_String(scanKey, serializer);
         sse_encode_opt_String(spendKey, serializer);
@@ -755,21 +752,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiWalletSetupConstMeta,
-      argValues: [label, mnemonic, scanKey, spendKey, birthday, network],
+      argValues: [mnemonic, scanKey, spendKey, birthday, network],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta get kCrateApiWalletSetupConstMeta => const TaskConstMeta(
         debugName: "setup",
-        argNames: [
-          "label",
-          "mnemonic",
-          "scanKey",
-          "spendKey",
-          "birthday",
-          "network"
-        ],
+        argNames: ["mnemonic", "scanKey", "spendKey", "birthday", "network"],
       );
 
   @override

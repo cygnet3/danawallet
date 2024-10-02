@@ -73,7 +73,6 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
 
     try {
       final wallet = await setup(
-        label: walletState.label,
         mnemonic: mnemonic,
         scanKey: scanKey,
         spendKey: spendKey,

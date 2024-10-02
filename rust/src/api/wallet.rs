@@ -17,7 +17,6 @@ use super::structs::{Amount, Recipient, WalletStatus};
 const PASSPHRASE: &str = ""; // no passphrase for now
 
 pub async fn setup(
-    label: String,
     mnemonic: Option<String>,
     scan_key: Option<String>,
     spend_key: Option<String>,
@@ -36,7 +35,7 @@ pub async fn setup(
             let (scan_sk, spend_sk) = derive_keys_from_seed(&seed, network)?;
             sp_client = SpClient::new(scan_sk, SpendKey::Secret(spend_sk), network)?;
 
-            let sp_wallet = SpWallet::new(sp_client, birthday, Some(m.to_string()), label).unwrap();
+            let sp_wallet = SpWallet::new(sp_client, birthday, Some(m.to_string())).unwrap();
             Ok(serde_json::to_string(&sp_wallet).unwrap())
         }
         (mnemonic, None, None) => {
@@ -46,7 +45,7 @@ pub async fn setup(
             let (scan_sk, spend_sk) = derive_keys_from_seed(&seed, network)?;
             sp_client = SpClient::new(scan_sk, SpendKey::Secret(spend_sk), network)?;
 
-            let sp_wallet = SpWallet::new(sp_client, birthday, mnemonic, label).unwrap();
+            let sp_wallet = SpWallet::new(sp_client, birthday, mnemonic).unwrap();
             Ok(serde_json::to_string(&sp_wallet).unwrap())
         }
         (None, scan_sk_hex, spend_key_hex) => {
@@ -60,7 +59,7 @@ pub async fn setup(
                 return Err(Error::msg("Can't parse spend key".to_owned()));
             }
 
-            let sp_wallet = SpWallet::new(sp_client, birthday, None, label).unwrap();
+            let sp_wallet = SpWallet::new(sp_client, birthday, None).unwrap();
             Ok(serde_json::to_string(&sp_wallet).unwrap())
         }
         _ => Err(Error::msg(
