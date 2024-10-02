@@ -11,8 +11,7 @@ class SettingsService {
   }
 
   Future<void> resetAll() async {
-    await prefs.remove('blindbitUrl');
-    await prefs.remove('dustLimit');
+    await prefs.clear(allowList: {'blindbitUrl', 'dustLimit'});
   }
 
   Future<void> setBlindbitUrl(String url) async {
