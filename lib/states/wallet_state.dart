@@ -98,6 +98,8 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> reset() async {
+    await walletRepository.reset();
+
     amount = BigInt.zero;
     network = Network.signet;
     birthday = 0;
@@ -115,8 +117,8 @@ class WalletState extends ChangeNotifier {
     await walletRepository.saveWalletBlob(wallet);
   }
 
-  Future<void> rmWalletFromSecureStorage() async {
-    await walletRepository.deleteWalletBlob();
+  Future<void> saveSeedPhraseToSecureStorage(String seedphrase) async {
+    await walletRepository.saveSeedPhrase(seedphrase);
   }
 
   Future<String> getWalletFromSecureStorage() async {
@@ -126,6 +128,10 @@ class WalletState extends ChangeNotifier {
     } else {
       throw Exception("No wallet in storage");
     }
+  }
+
+  Future<String?> getSeedPhrase() async {
+    return await walletRepository.readSeedPhrase();
   }
 
   Future<void> updateWalletStatus() async {

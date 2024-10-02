@@ -252,3 +252,21 @@ pub struct WalletStatus {
     pub outputs: HashMap<String, OwnedOutput>,
     pub tx_history: Vec<RecordedTransaction>,
 }
+
+pub struct ApiSetupWalletArgs {
+    pub setup_type: ApiSetupWalletType,
+    pub birthday: u32,
+    pub network: String,
+}
+
+pub enum ApiSetupWalletType {
+    NewWallet,
+    Mnemonic(String),
+    Full(String, String),
+    WatchOnly(String, String),
+}
+
+pub struct ApiSetupResult {
+    pub wallet_blob: String,
+    pub mnemonic: Option<String>,
+}

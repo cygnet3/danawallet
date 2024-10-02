@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/services/settings_service.dart';
@@ -37,30 +38,19 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     });
   }
 
-  Future<void> _setup(
-      WalletState walletState,
-      ChainState chainState,
-      ThemeNotifier themeNotifier,
-      String? mnemonic,
-      String? scanKey,
-      String? spendKey,
-      int? birthday) async {
+  Future<void> _setupWallet(
+      ApiSetupWalletType setupWalletType, int? birthday) async {
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final chainState = Provider.of<ChainState>(context, listen: false);
+    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+
+    // todo settings has to be initialized before chainstate, make this independent
     await SettingsService().defaultSettings(_selectedNetwork);
 
     await chainState.initialize();
     themeNotifier.setTheme(_selectedNetwork);
 
-    try {
-      await walletState.updateWalletStatus();
-      if (mounted) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
-      }
-      return;
-    } catch (e) {
-      Logger().i("Creating a new wallet");
-    }
-
+    // todo check this only happens when creating new wallet
     if (birthday == null) {
       try {
         birthday = chainState.tip;
@@ -71,17 +61,21 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
       }
     }
 
-    try {
-      final wallet = await setup(
-        mnemonic: mnemonic,
-        scanKey: scanKey,
-        spendKey: spendKey,
+    final args = ApiSetupWalletArgs(
+        setupType: setupWalletType,
         birthday: birthday,
-        network: _selectedNetwork.toBitcoinNetwork,
-      );
-      await walletState.saveWalletToSecureStorage(wallet);
-      await walletState.updateWalletStatus();
+        network: _selectedNetwork.toBitcoinNetwork);
 
+    try {
+      final setupResult = setupWallet(setupArgs: args);
+
+      final walletBlob = setupResult.walletBlob;
+      final seedPhrase = setupResult.mnemonic;
+      await walletState.saveWalletToSecureStorage(walletBlob);
+      if (seedPhrase != null) {
+        await walletState.saveSeedPhraseToSecureStorage(seedPhrase);
+      }
+      await walletState.updateWalletStatus();
       if (mounted) {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const HomeScreen()));
@@ -91,10 +85,32 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     }
   }
 
+  Future<void> _createNewWallet() async {
+    const setupWalletType = ApiSetupWalletType.newWallet();
+
+    await _setupWallet(setupWalletType, null);
+  }
+
+  Future<void> _importFromSeed(String mnemonic, int birthday) async {
+    final setupWalletType = ApiSetupWalletType.mnemonic(mnemonic);
+
+    await _setupWallet(setupWalletType, birthday);
+  }
+
+  Future<void> _importFromKeys(
+      bool watchOnly, String scanKey, String spendKey, int birthday) async {
+    ApiSetupWalletType setupWalletType;
+
+    if (watchOnly) {
+      setupWalletType = ApiSetupWalletType.watchOnly(scanKey, spendKey);
+    } else {
+      setupWalletType = ApiSetupWalletType.full(scanKey, spendKey);
+    }
+
+    await _setupWallet(setupWalletType, birthday);
+  }
+
   Future<void> _showKeysInputDialog(
-    WalletState walletState,
-    ChainState chainState,
-    ThemeNotifier themeNotifier,
     bool watchOnly,
   ) async {
     TextEditingController scanKeyController = TextEditingController();
@@ -190,8 +206,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                 }
 
                 try {
-                  await _setup(walletState, chainState, themeNotifier, null,
-                      scanKey, spendKey, birthday);
+                  await _importFromKeys(watchOnly, scanKey, spendKey, birthday);
                 } catch (e) {
                   rethrow;
                 }
@@ -203,11 +218,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     );
   }
 
-  Future<void> _showSeedInputDialog(
-    WalletState walletState,
-    ChainState chainState,
-    ThemeNotifier themeNotifier,
-  ) async {
+  Future<void> _showSeedInputDialog() async {
     TextEditingController seedController = TextEditingController();
     TextEditingController birthdayController = TextEditingController();
 
@@ -270,8 +281,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                 final mnemonic = seedController.text;
                 final birthday = int.parse(birthdayController.text);
                 try {
-                  await _setup(walletState, chainState, themeNotifier, mnemonic,
-                      null, null, birthday);
+                  await _importFromSeed(mnemonic, birthday);
                 } catch (e) {
                   rethrow;
                 }
@@ -285,10 +295,6 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final chainState = Provider.of<ChainState>(context, listen: false);
-    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
-
     return Scaffold(
         appBar: AppBar(
           title: const Text('Wallet creation/restoration'),
@@ -327,8 +333,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                     'Create New Wallet',
                     () async {
                       try {
-                        await _setup(walletState, chainState, themeNotifier,
-                            null, null, null, null);
+                        await _createNewWallet();
                       } catch (e) {
                         rethrow;
                       }
@@ -340,11 +345,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                     context,
                     'Restore from seed',
                     () {
-                      _showSeedInputDialog(
-                        walletState,
-                        chainState,
-                        themeNotifier,
-                      );
+                      _showSeedInputDialog();
                     },
                   ),
                 ),
@@ -353,8 +354,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                     context,
                     'Restore from keys',
                     () {
-                      _showKeysInputDialog(
-                          walletState, chainState, themeNotifier, false);
+                      _showKeysInputDialog(false);
                     },
                   ),
                 ),
@@ -363,8 +363,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                     context,
                     'Watch-only',
                     () {
-                      _showKeysInputDialog(
-                          walletState, chainState, themeNotifier, true);
+                      _showKeysInputDialog(true);
                     },
                   ),
                 ),

@@ -8,18 +8,8 @@ import '../lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
-Future<String> setup(
-        {String? mnemonic,
-        String? scanKey,
-        String? spendKey,
-        required int birthday,
-        required String network}) =>
-    RustLib.instance.api.crateApiWalletSetup(
-        mnemonic: mnemonic,
-        scanKey: scanKey,
-        spendKey: spendKey,
-        birthday: birthday,
-        network: network);
+ApiSetupResult setupWallet({required ApiSetupWalletArgs setupArgs}) =>
+    RustLib.instance.api.crateApiWalletSetupWallet(setupArgs: setupArgs);
 
 /// Change wallet birthday
 /// Reset the output list and last_scan
@@ -63,6 +53,3 @@ String addOutgoingTxToHistory(
         spentOutpoints: spentOutpoints,
         recipients: recipients,
         change: change);
-
-String? showMnemonic({required String encodedWallet}) => RustLib.instance.api
-    .crateApiWalletShowMnemonic(encodedWallet: encodedWallet);

@@ -50,10 +50,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Amount dco_decode_amount(dynamic raw);
 
   @protected
+  ApiSetupResult dco_decode_api_setup_result(dynamic raw);
+
+  @protected
+  ApiSetupWalletArgs dco_decode_api_setup_wallet_args(dynamic raw);
+
+  @protected
+  ApiSetupWalletType dco_decode_api_setup_wallet_type(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
 
   @protected
   Amount dco_decode_box_autoadd_amount(dynamic raw);
+
+  @protected
+  ApiSetupWalletArgs dco_decode_box_autoadd_api_setup_wallet_args(dynamic raw);
 
   @protected
   RecordedTransactionIncoming
@@ -185,10 +197,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Amount sse_decode_amount(SseDeserializer deserializer);
 
   @protected
+  ApiSetupResult sse_decode_api_setup_result(SseDeserializer deserializer);
+
+  @protected
+  ApiSetupWalletArgs sse_decode_api_setup_wallet_args(
+      SseDeserializer deserializer);
+
+  @protected
+  ApiSetupWalletType sse_decode_api_setup_wallet_type(
+      SseDeserializer deserializer);
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
   Amount sse_decode_box_autoadd_amount(SseDeserializer deserializer);
+
+  @protected
+  ApiSetupWalletArgs sse_decode_box_autoadd_api_setup_wallet_args(
+      SseDeserializer deserializer);
 
   @protected
   RecordedTransactionIncoming
@@ -328,10 +355,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_amount(Amount self, SseSerializer serializer);
 
   @protected
+  void sse_encode_api_setup_result(
+      ApiSetupResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_setup_wallet_args(
+      ApiSetupWalletArgs self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_setup_wallet_type(
+      ApiSetupWalletType self, SseSerializer serializer);
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_amount(Amount self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_api_setup_wallet_args(
+      ApiSetupWalletArgs self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_recorded_transaction_incoming(
