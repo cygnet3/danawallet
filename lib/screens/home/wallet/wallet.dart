@@ -81,7 +81,12 @@ class WalletScreenState extends State<WalletScreen> {
     String subtext;
 
     if (chainState.isInitialized()) {
-      final toScan = chainState.tip - scanProgress.current;
+      final int toScan;
+      if (scanProgress.scanning) {
+        toScan = chainState.tip - scanProgress.current;
+      } else {
+        toScan = chainState.tip - walletState.lastScan;
+      }
 
       if (scanProgress.scanning) {
         text = 'Scanning: $toScan blocks';
