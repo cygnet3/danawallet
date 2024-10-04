@@ -1,8 +1,9 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+const String _keyWalletBlob = "wallet";
+const String _keySeedPhrase = "seedphrase";
+
 class WalletRepository {
-  final String keyWalletBlob = "wallet";
-  final String keySeedPhrase = "seedphrase";
   final secureStorage = const FlutterSecureStorage();
 
   WalletRepository();
@@ -12,18 +13,18 @@ class WalletRepository {
   }
 
   Future<String?> readWalletBlob() async {
-    return await secureStorage.read(key: keyWalletBlob);
+    return await secureStorage.read(key: _keyWalletBlob);
   }
 
   Future<void> saveWalletBlob(String wallet) async {
-    await secureStorage.write(key: keyWalletBlob, value: wallet);
+    await secureStorage.write(key: _keyWalletBlob, value: wallet);
   }
 
   Future<String?> readSeedPhrase() async {
-    return await secureStorage.read(key: keySeedPhrase);
+    return await secureStorage.read(key: _keySeedPhrase);
   }
 
   Future<void> saveSeedPhrase(String seedPhrase) async {
-    await secureStorage.write(key: keySeedPhrase, value: seedPhrase);
+    await secureStorage.write(key: _keySeedPhrase, value: seedPhrase);
   }
 }
