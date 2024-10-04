@@ -4,7 +4,7 @@ import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/screens/home/home.dart';
-import 'package:danawallet/services/settings_service.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/theme_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -45,7 +45,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
 
     // todo settings has to be initialized before chainstate, make this independent
-    await SettingsService().defaultSettings(_selectedNetwork);
+    await SettingsRepository().defaultSettings(_selectedNetwork);
 
     await chainState.initialize();
     themeNotifier.setTheme(_selectedNetwork);

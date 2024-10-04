@@ -2,7 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/screens/create/create_wallet.dart';
-import 'package:danawallet/services/settings_service.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/spend_state.dart';
@@ -23,7 +23,7 @@ class SettingsScreen extends StatelessWidget {
     try {
       await walletState.reset();
 
-      await SettingsService().resetAll();
+      await SettingsRepository().resetAll();
       spendSelectionState.reset();
       chainState.reset();
       themeNotifier.setTheme(null);
@@ -55,7 +55,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _setBlindbitUrl(BuildContext context) async {
-    SettingsService settings = SettingsService();
+    SettingsRepository settings = SettingsRepository();
     final controller = TextEditingController();
     controller.text = await settings.getBlindbitUrl() ?? '';
 
@@ -69,7 +69,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _changeDustLimit(BuildContext context) async {
-    SettingsService settings = SettingsService();
+    SettingsRepository settings = SettingsRepository();
     final controller = TextEditingController();
     final dustLimit = await settings.getDustLimit();
     if (dustLimit != null) {

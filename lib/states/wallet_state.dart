@@ -5,7 +5,7 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/generated/rust/logger.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
-import 'package:danawallet/services/settings_service.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:flutter/material.dart';
 
 class WalletState extends ChangeNotifier {
@@ -185,7 +185,7 @@ class WalletState extends ChangeNotifier {
       scanning = true;
       final wallet = await getWalletFromSecureStorage();
 
-      final settings = SettingsService();
+      final settings = SettingsRepository();
       final blindbitUrl = await settings.getBlindbitUrl();
       final dustLimit = await settings.getDustLimit();
 

@@ -1,5 +1,5 @@
 import 'package:danawallet/generated/rust/api/chain.dart';
-import 'package:danawallet/services/settings_service.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -9,7 +9,7 @@ class ChainState extends ChangeNotifier {
   ChainState();
 
   Future<void> initialize() async {
-    final url = await SettingsService().getBlindbitUrl();
+    final url = await SettingsRepository().getBlindbitUrl();
 
     if (url != null) {
       try {
@@ -42,7 +42,7 @@ class ChainState extends ChangeNotifier {
 
   Future<void> updateChainTip() async {
     try {
-      final url = await SettingsService().getBlindbitUrl();
+      final url = await SettingsRepository().getBlindbitUrl();
       _tip = await getChainHeight(blindbitUrl: url!);
       Logger().i('updating tip: $_tip');
 

@@ -1,13 +1,13 @@
 import 'package:danawallet/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SettingsService {
+class SettingsRepository {
   final SharedPreferencesAsync prefs = SharedPreferencesAsync();
 
   Future<void> defaultSettings(Network network) async {
     final String blindbitUrl = network.getDefaultBlindbitUrl();
-    await SettingsService().setBlindbitUrl(blindbitUrl);
-    await SettingsService().setDustLimit(defaultDustLimit);
+    await SettingsRepository().setBlindbitUrl(blindbitUrl);
+    await SettingsRepository().setDustLimit(defaultDustLimit);
   }
 
   Future<void> resetAll() async {
