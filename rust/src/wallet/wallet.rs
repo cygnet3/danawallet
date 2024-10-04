@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::atomic::AtomicBool;
 
 use serde::{Deserialize, Serialize};
 use sp_client::bitcoin::absolute::Height;
@@ -12,6 +13,12 @@ use sp_client::{OutputSpendStatus, OwnedOutput, Recipient, SpClient};
 use super::recorded::{RecordedTransaction, RecordedTransactionOutgoing};
 
 type WalletFingerprint = [u8; 8];
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref KEEP_SCANNING: AtomicBool = AtomicBool::new(true);
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpWallet {

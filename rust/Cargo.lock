@@ -1524,7 +1524,7 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-client?branch=refactor-spclient#32868cfefd5fa57dd1927152286d034d3fd4d10c"
+source = "git+https://github.com/cygnet3/sp-client?branch=master#787165a5e8947d03140294efbe862dbf536ee7ec"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1905,7 +1905,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
