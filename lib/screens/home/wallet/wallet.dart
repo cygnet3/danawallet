@@ -5,6 +5,7 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/services/synchronization_service.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -74,16 +75,17 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget showWalletStateText(WalletState walletState, ChainState chainState) {
+  Widget showWalletStateText(WalletState walletState, ChainState chainState,
+      ScanProgressNotifier scanProgress) {
     String text;
     String subtext;
 
     if (chainState.isInitialized()) {
-      final toScan = chainState.tip - walletState.lastScan;
+      final toScan = chainState.tip - scanProgress.current;
 
-      if (walletState.scanning) {
+      if (scanProgress.scanning) {
         text = 'Scanning: $toScan blocks';
-        subtext = '(${walletState.lastScan}-${chainState.tip})';
+        subtext = '(${scanProgress.current}-${chainState.tip})';
       } else if (toScan == 0) {
         text = 'Up to date!';
         subtext = '(${chainState.tip})';
@@ -152,14 +154,15 @@ class WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
     final chainState = Provider.of<ChainState>(context);
+    final scanProgress = Provider.of<ScanProgressNotifier>(context);
 
-    Widget progressWidget = walletState.scanning
+    Widget progressWidget = scanProgress.scanning
         ? SizedBox(
             width: 100,
             height: 100,
             child: CircularProgressIndicator(
               backgroundColor: Colors.grey[200],
-              value: walletState.progress,
+              value: scanProgress.progress,
               strokeWidth: 6.0,
             ),
           )
@@ -172,7 +175,7 @@ class WalletScreenState extends State<WalletScreen> {
             onPressed: () async {
               try {
                 await chainState.updateChainTip();
-                await walletState.scan();
+                await walletState.scan(scanProgress);
               } catch (e) {
                 displayNotification(exceptionToString(e));
               }
@@ -196,7 +199,7 @@ class WalletScreenState extends State<WalletScreen> {
                 const Spacer(),
                 progressWidget,
                 const Spacer(),
-                showWalletStateText(walletState, chainState),
+                showWalletStateText(walletState, chainState, scanProgress),
                 const Spacer(),
                 buildBottomButtons(walletState),
                 const Spacer(),

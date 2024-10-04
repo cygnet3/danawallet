@@ -4,8 +4,9 @@ import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/generated/rust/logger.dart';
-import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/repositories/wallet_repository.dart';
+import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:flutter/material.dart';
 
 class WalletState extends ChangeNotifier {
@@ -13,15 +14,12 @@ class WalletState extends ChangeNotifier {
   BigInt amount = BigInt.from(0);
   int birthday = 0;
   int lastScan = 0;
-  double progress = 0.0;
-  bool scanning = false;
   Network _network = Network.signet;
   String address = "";
   Map<String, OwnedOutput> ownedOutputs = {};
   List<RecordedTransaction> txHistory = List.empty(growable: true);
 
   late StreamSubscription logStreamSubscription;
-  late StreamSubscription scanProgressSubscription;
   late StreamSubscription scanResultSubscription;
 
   WalletState();
@@ -64,35 +62,20 @@ class WalletState extends ChangeNotifier {
       print('${event.level} (${event.tag}): ${event.msg}');
       notifyListeners();
     });
-
-    scanProgressSubscription = createScanProgressStream().listen(((event) {
-      int start = event.start;
-      int current = event.current;
-      int end = event.end;
-      double scanned = (current - start).toDouble();
-      double total = (end - start).toDouble();
-      double progress = scanned / total;
-      if (current == end) {
-        progress = 0.0;
-        scanning = false;
-      }
-      this.progress = progress;
-      lastScan = current;
-
-      notifyListeners();
-    }));
-
     scanResultSubscription = createScanResultStream().listen(((event) async {
-      String updatedWallet = event.updatedWallet;
-      await walletRepository.saveWalletBlob(updatedWallet);
-      await updateWalletStatus();
+      await saveWalletToSecureStorage(event.updatedWallet);
+      try {
+        await _updateWalletStatus(event.updatedWallet);
+      } catch (e) {
+        rethrow;
+      }
+      notifyListeners();
     }));
   }
 
   @override
   void dispose() {
     logStreamSubscription.cancel();
-    scanProgressSubscription.cancel();
     scanResultSubscription.cancel();
     super.dispose();
   }
@@ -104,8 +87,6 @@ class WalletState extends ChangeNotifier {
     network = Network.signet;
     birthday = 0;
     lastScan = 0;
-    progress = 0.0;
-    scanning = false;
     address = "";
     ownedOutputs = {};
     txHistory = List.empty(growable: true);
@@ -180,25 +161,23 @@ class WalletState extends ChangeNotifier {
     return Map.fromEntries(spendable);
   }
 
-  Future<void> scan() async {
+  Future<void> scan(ScanProgressNotifier scanProgress) async {
     try {
-      scanning = true;
       final wallet = await getWalletFromSecureStorage();
 
       final settings = SettingsRepository();
       final blindbitUrl = await settings.getBlindbitUrl();
       final dustLimit = await settings.getDustLimit();
 
+      scanProgress.activate(lastScan);
       await scanToTip(
           blindbitUrl: blindbitUrl!,
           dustLimit: BigInt.from(dustLimit!),
           encodedWallet: wallet);
     } catch (e) {
-      scanning = false;
-      notifyListeners();
+      scanProgress.deactivate();
       rethrow;
     }
-    scanning = false;
-    notifyListeners();
+    scanProgress.deactivate();
   }
 }
