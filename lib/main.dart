@@ -5,6 +5,7 @@ import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
+import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/states/theme_notifier.dart';
@@ -15,8 +16,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   final walletState = WalletState();
+  final scanNotifier = ScanProgressNotifier();
   final chainState = ChainState();
   final themeNotifier = ThemeNotifier();
+
+  await scanNotifier.initialize();
 
   final bool walletLoaded;
   try {
@@ -35,6 +39,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: walletState),
+        ChangeNotifierProvider.value(value: scanNotifier),
         ChangeNotifierProvider.value(value: themeNotifier),
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: SpendState()),
