@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater};
+use crate::wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater, KEEP_SCANNING};
 use anyhow::Result;
 use sp_client::{
     bitcoin::{
@@ -133,9 +133,18 @@ pub async fn scan_to_tip(
         owned_outpoints,
     );
 
-    scanner.scan_blocks(start, end, dust_limit).await?;
+    KEEP_SCANNING.store(true, std::sync::atomic::Ordering::Relaxed);
+
+    scanner
+        .scan_blocks(start, end, dust_limit, &KEEP_SCANNING)
+        .await?;
 
     Ok(())
+}
+
+#[flutter_rust_bridge::frb(sync)]
+pub fn interrupt_scanning() {
+    KEEP_SCANNING.store(false, std::sync::atomic::Ordering::Relaxed);
 }
 
 #[flutter_rust_bridge::frb(sync)]

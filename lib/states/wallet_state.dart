@@ -180,4 +180,9 @@ class WalletState extends ChangeNotifier {
     }
     scanProgress.deactivate();
   }
+
+  Future<void> interruptScan(ScanProgressNotifier scanProgress) async {
+    interruptScanning();
+    scanProgress.deactivate();
+  }
 }

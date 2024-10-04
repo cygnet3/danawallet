@@ -30,6 +30,9 @@ Future<void> scanToTip(
         dustLimit: dustLimit,
         encodedWallet: encodedWallet);
 
+void interruptScanning() =>
+    RustLib.instance.api.crateApiWalletInterruptScanning();
+
 WalletStatus getWalletInfo({required String encodedWallet}) =>
     RustLib.instance.api
         .crateApiWalletGetWalletInfo(encodedWallet: encodedWallet);
