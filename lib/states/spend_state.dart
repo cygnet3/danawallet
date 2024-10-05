@@ -1,4 +1,8 @@
+import 'package:danawallet/constants.dart';
+import 'package:danawallet/generated/rust/api/psbt.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 
 class SpendState extends ChangeNotifier {
@@ -65,5 +69,111 @@ class SpendState extends ChangeNotifier {
       recipients.removeWhere((r) => r.address == address);
     }
     notifyListeners();
+  }
+
+  Future<String> createSpendTx(WalletState walletState, int fees) async {
+    final wallet = await walletState.getWalletFromSecureStorage();
+    final (unsignedPsbt, changeAmt) =
+        _newTransactionWithFees(wallet, selectedOutputs, recipients, fees);
+
+    final signedPsbt = _signPsbt(wallet, unsignedPsbt);
+    final sentTxId =
+        await _broadcastSignedPsbt(signedPsbt, walletState.network);
+    final markedAsSpentWallet = _markAsSpent(wallet, sentTxId, selectedOutputs);
+    final updatedWallet = _addTxToHistory(markedAsSpentWallet, sentTxId,
+        selectedOutputs.keys.toList(), recipients, changeAmt);
+
+    // Clear selections
+    selectedOutputs.clear();
+    recipients.clear();
+
+    // save the updated wallet
+    walletState.saveWalletToSecureStorage(updatedWallet);
+    await walletState.updateWalletStatus();
+
+    return sentTxId;
+  }
+
+  (String, BigInt?) _newTransactionWithFees(
+      String wallet,
+      Map<String, OwnedOutput> selectedOutputs,
+      List<Recipient> recipients,
+      int feeRate) {
+    try {
+      final (psbt, changeIdx) = createNewPsbt(
+          encodedWallet: wallet,
+          inputs: selectedOutputs,
+          recipients: recipients);
+
+      // todo: use change address for fees instead of first address
+      final psbtWithFee = addFeeForFeeRate(
+          psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
+
+      // get change amount after reducing fees
+      BigInt? changeAmt;
+      if (changeIdx != null) {
+        changeAmt = readAmtFromPsbtOutput(psbt: psbt, idx: changeIdx);
+      }
+
+      final psbtWithSpOutputsFilled =
+          fillSpOutputs(encodedWallet: wallet, psbt: psbtWithFee);
+      return (psbtWithSpOutputsFilled, changeAmt);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  String _signPsbt(
+    String wallet,
+    String unsignedPsbt,
+  ) {
+    return signPsbt(encodedWallet: wallet, psbt: unsignedPsbt, finalize: true);
+  }
+
+  Future<String> _broadcastSignedPsbt(
+      String signedPsbt, Network network) async {
+    try {
+      final tx = extractTxFromPsbt(psbt: signedPsbt);
+      final txid = await broadcastTx(tx: tx, network: network.toBitcoinNetwork);
+      return txid;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  String _markAsSpent(
+    String wallet,
+    String txid,
+    Map<String, OwnedOutput> selectedOutputs,
+  ) {
+    try {
+      final updatedWallet = markOutpointsSpent(
+          encodedWallet: wallet,
+          spentBy: txid,
+          spent: selectedOutputs.keys.toList());
+      return updatedWallet;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  String _addTxToHistory(
+      String wallet,
+      String txid,
+      List<String> selectedOutpoints,
+      List<Recipient> recipients,
+      BigInt? changeAmount) {
+    final changeAmt = Amount(field0: changeAmount ?? BigInt.from(0));
+    try {
+      final updatedWallet = addOutgoingTxToHistory(
+          encodedWallet: wallet,
+          txid: txid,
+          spentOutpoints: selectedOutpoints,
+          recipients: recipients,
+          change: changeAmt);
+      return updatedWallet;
+    } catch (e) {
+      rethrow;
+    }
   }
 }
