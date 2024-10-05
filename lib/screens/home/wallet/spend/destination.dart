@@ -4,17 +4,6 @@ import 'package:danawallet/states/spend_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-Future<void> _showAddRecipientDialog(
-  BuildContext context,
-) async {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return const AddRecipientWidget();
-    },
-  );
-}
-
 class DestinationScreen extends StatelessWidget {
   const DestinationScreen({super.key});
 
@@ -56,7 +45,12 @@ class DestinationScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: FloatingActionButton(
                 onPressed: () {
-                  _showAddRecipientDialog(context);
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return const AddRecipientWidget();
+                    },
+                  );
                 },
                 child: const Icon(Icons.add),
               ),
