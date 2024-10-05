@@ -1,39 +1,10 @@
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/outputs.dart';
 import 'package:danawallet/screens/home/wallet/spend/destination.dart';
-import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-class TxDestination {
-  final String address;
-  int amount;
-
-  TxDestination({
-    required this.address,
-    this.amount = 0,
-  });
-}
-
-class SpendingRequest {
-  final List<OwnedOutput> inputs;
-  final List<String> outputs;
-  final int fee;
-
-  SpendingRequest({
-    required this.inputs,
-    required this.outputs,
-    required this.fee,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'inputs': inputs,
-        'outputs': outputs,
-        'fee': fee,
-      };
-}
 
 class SummaryWidget extends StatelessWidget {
   final String displayText;
