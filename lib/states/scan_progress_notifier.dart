@@ -25,9 +25,7 @@ class ScanProgressNotifier extends ChangeNotifier {
       double scanned = (current - start).toDouble();
       double total = (end - start).toDouble();
       double progress = scanned / total;
-      if (current == end) {
-        deactivate();
-      } else {
+      if (current != end) {
         this.progress = progress;
 
         notifyListeners();
