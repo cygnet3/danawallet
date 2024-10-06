@@ -1,7 +1,7 @@
 default: build-emulator build-android
 
 gen:
-    flutter_rust_bridge_codegen generate --config-file ../flutter_rust_bridge.yaml
+    flutter_rust_bridge_codegen generate --config-file ../flutter_rust_bridge.yaml --enable-lifetime
 
 build-emulator:
     cargo ndk -t x86_64 -o ../android/app/src/main/jniLibs build
