@@ -180,10 +180,10 @@ class WalletScreenState extends State<WalletScreen> {
                   onPressed: () async {
                     try {
                       if (scanProgress.scanning) {
-                        await walletState.interruptScan(scanProgress);
+                        await scanProgress.interruptScan();
                       } else {
                         await chainState.updateChainTip();
-                        await walletState.scan(scanProgress);
+                        await scanProgress.scan(walletState);
                       }
                     } catch (e) {
                       displayNotification(exceptionToString(e));
