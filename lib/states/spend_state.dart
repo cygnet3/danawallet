@@ -14,8 +14,6 @@ class SpendState extends ChangeNotifier {
   void reset() {
     selectedOutputs = {};
     recipients = List.empty(growable: true);
-
-    notifyListeners();
   }
 
   void toggleOutputSelection(String outpoint, ApiOwnedOutput output) {
