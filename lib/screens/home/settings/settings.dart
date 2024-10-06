@@ -1,6 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -37,25 +36,23 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _setBirthday(BuildContext context, HomeState homeState) async {
+  Future<void> _setBirthday(BuildContext context, WalletState walletState,
+      HomeState homeState) async {
     TextEditingController controller = TextEditingController();
-    showInputAlertDialog(controller, TextInputType.number, 'Enter Birthday',
-            'Enter wallet\'s birthday (numeric value)')
-        .then((value) async {
-      if (value != null && int.tryParse(value) != null) {
-        final walletState = Provider.of<WalletState>(context, listen: false);
-        try {
-          final wallet = await walletState.getWalletFromSecureStorage();
-          final updatedWallet =
-              changeBirthday(encodedWallet: wallet, birthday: int.parse(value));
-          await walletState.saveWalletToSecureStorage(updatedWallet);
-          await walletState.updateWalletStatus();
-          homeState.showMainScreen();
-        } catch (e) {
-          rethrow;
-        }
+    final birthday = await showInputAlertDialog(
+        controller,
+        TextInputType.number,
+        'Enter Birthday',
+        'Enter wallet\'s birthday (numeric value)');
+
+    if (birthday != null && int.tryParse(birthday) != null) {
+      try {
+        await walletState.updateWalletBirthday(int.parse(birthday));
+        homeState.showMainScreen();
+      } catch (e) {
+        rethrow;
       }
-    });
+    }
   }
 
   Future<void> _setBlindbitUrl(BuildContext context) async {
@@ -117,7 +114,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           BitcoinButtonOutlined(
               title: 'Set wallet birthday',
-              onPressed: () => _setBirthday(context, homeState)),
+              onPressed: () => _setBirthday(context, walletState, homeState)),
           BitcoinButtonOutlined(
             title: 'Set backend url',
             onPressed: () {

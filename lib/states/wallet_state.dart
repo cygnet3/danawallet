@@ -156,4 +156,12 @@ class WalletState extends ChangeNotifier {
         element.value.spendStatus == const ApiOutputSpendStatus.unspent());
     return Map.fromEntries(spendable);
   }
+
+  Future<void> updateWalletBirthday(int birthday) async {
+    final wallet = await getWalletFromSecureStorage();
+    final updatedWallet =
+        changeBirthday(encodedWallet: wallet, birthday: birthday);
+    await saveWalletToSecureStorage(updatedWallet);
+    await updateWalletStatus();
+  }
 }
