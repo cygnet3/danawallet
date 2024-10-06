@@ -75,7 +75,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.3.0';
 
   @override
-  int get rustContentHash => 920609522;
+  int get rustContentHash => 683121675;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -96,8 +96,8 @@ abstract class RustLibApi extends BaseApi {
 
   (String, BigInt?) crateApiPsbtCreateNewPsbt(
       {required String encodedWallet,
-      required Map<String, OwnedOutput> inputs,
-      required List<Recipient> recipients});
+      required Map<String, ApiOwnedOutput> inputs,
+      required List<ApiRecipient> recipients});
 
   String crateApiPsbtExtractTxFromPsbt({required String psbt});
 
@@ -123,23 +123,23 @@ abstract class RustLibApi extends BaseApi {
 
   BigInt crateApiStructsAmountToInt({required Amount that});
 
-  String crateApiStructsRecordedTransactionIncomingToString(
-      {required RecordedTransactionIncoming that});
+  String crateApiStructsApiRecordedTransactionIncomingToString(
+      {required ApiRecordedTransactionIncoming that});
 
-  String crateApiStructsRecordedTransactionOutgoingToString(
-      {required RecordedTransactionOutgoing that});
+  String crateApiStructsApiRecordedTransactionOutgoingToString(
+      {required ApiRecordedTransactionOutgoing that});
 
   String crateApiWalletAddOutgoingTxToHistory(
       {required String encodedWallet,
       required String txid,
       required List<String> spentOutpoints,
-      required List<Recipient> recipients,
+      required List<ApiRecipient> recipients,
       required Amount change});
 
   String crateApiWalletChangeBirthday(
       {required String encodedWallet, required int birthday});
 
-  WalletStatus crateApiWalletGetWalletInfo({required String encodedWallet});
+  ApiWalletStatus crateApiWalletGetWalletInfo({required String encodedWallet});
 
   void crateApiWalletInterruptScanning();
 
@@ -248,14 +248,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   (String, BigInt?) crateApiPsbtCreateNewPsbt(
       {required String encodedWallet,
-      required Map<String, OwnedOutput> inputs,
-      required List<Recipient> recipients}) {
+      required Map<String, ApiOwnedOutput> inputs,
+      required List<ApiRecipient> recipients}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
-        sse_encode_Map_String_owned_output(inputs, serializer);
-        sse_encode_list_recipient(recipients, serializer);
+        sse_encode_Map_String_api_owned_output(inputs, serializer);
+        sse_encode_list_api_recipient(recipients, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
       },
       codec: SseCodec(
@@ -504,54 +504,58 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String crateApiStructsRecordedTransactionIncomingToString(
-      {required RecordedTransactionIncoming that}) {
+  String crateApiStructsApiRecordedTransactionIncomingToString(
+      {required ApiRecordedTransactionIncoming that}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_recorded_transaction_incoming(that, serializer);
+        sse_encode_box_autoadd_api_recorded_transaction_incoming(
+            that, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: null,
       ),
-      constMeta: kCrateApiStructsRecordedTransactionIncomingToStringConstMeta,
+      constMeta:
+          kCrateApiStructsApiRecordedTransactionIncomingToStringConstMeta,
       argValues: [that],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta
-      get kCrateApiStructsRecordedTransactionIncomingToStringConstMeta =>
+      get kCrateApiStructsApiRecordedTransactionIncomingToStringConstMeta =>
           const TaskConstMeta(
-            debugName: "recorded_transaction_incoming_to_string",
+            debugName: "api_recorded_transaction_incoming_to_string",
             argNames: ["that"],
           );
 
   @override
-  String crateApiStructsRecordedTransactionOutgoingToString(
-      {required RecordedTransactionOutgoing that}) {
+  String crateApiStructsApiRecordedTransactionOutgoingToString(
+      {required ApiRecordedTransactionOutgoing that}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_box_autoadd_recorded_transaction_outgoing(that, serializer);
+        sse_encode_box_autoadd_api_recorded_transaction_outgoing(
+            that, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
         decodeErrorData: null,
       ),
-      constMeta: kCrateApiStructsRecordedTransactionOutgoingToStringConstMeta,
+      constMeta:
+          kCrateApiStructsApiRecordedTransactionOutgoingToStringConstMeta,
       argValues: [that],
       apiImpl: this,
     ));
   }
 
   TaskConstMeta
-      get kCrateApiStructsRecordedTransactionOutgoingToStringConstMeta =>
+      get kCrateApiStructsApiRecordedTransactionOutgoingToStringConstMeta =>
           const TaskConstMeta(
-            debugName: "recorded_transaction_outgoing_to_string",
+            debugName: "api_recorded_transaction_outgoing_to_string",
             argNames: ["that"],
           );
 
@@ -560,7 +564,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       {required String encodedWallet,
       required String txid,
       required List<String> spentOutpoints,
-      required List<Recipient> recipients,
+      required List<ApiRecipient> recipients,
       required Amount change}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
@@ -568,7 +572,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(encodedWallet, serializer);
         sse_encode_String(txid, serializer);
         sse_encode_list_String(spentOutpoints, serializer);
-        sse_encode_list_recipient(recipients, serializer);
+        sse_encode_list_api_recipient(recipients, serializer);
         sse_encode_box_autoadd_amount(change, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
       },
@@ -621,7 +625,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  WalletStatus crateApiWalletGetWalletInfo({required String encodedWallet}) {
+  ApiWalletStatus crateApiWalletGetWalletInfo({required String encodedWallet}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -629,7 +633,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_wallet_status,
+        decodeSuccessData: sse_decode_api_wallet_status,
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiWalletGetWalletInfoConstMeta,
@@ -779,9 +783,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Map<String, OwnedOutput> dco_decode_Map_String_owned_output(dynamic raw) {
+  Map<String, ApiOwnedOutput> dco_decode_Map_String_api_owned_output(
+      dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return Map.fromEntries(dco_decode_list_record_string_owned_output(raw)
+    return Map.fromEntries(dco_decode_list_record_string_api_owned_output(raw)
         .map((e) => MapEntry(e.$1, e.$2)));
   }
 
@@ -819,6 +824,101 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
     return Amount(
       field0: dco_decode_u_64(arr[0]),
+    );
+  }
+
+  @protected
+  ApiOutputSpendStatus dco_decode_api_output_spend_status(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return ApiOutputSpendStatus_Unspent();
+      case 1:
+        return ApiOutputSpendStatus_Spent(
+          dco_decode_String(raw[1]),
+        );
+      case 2:
+        return ApiOutputSpendStatus_Mined(
+          dco_decode_String(raw[1]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
+  }
+
+  @protected
+  ApiOwnedOutput dco_decode_api_owned_output(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return ApiOwnedOutput(
+      blockheight: dco_decode_u_32(arr[0]),
+      tweak: dco_decode_u_8_array_32(arr[1]),
+      amount: dco_decode_amount(arr[2]),
+      script: dco_decode_String(arr[3]),
+      label: dco_decode_opt_String(arr[4]),
+      spendStatus: dco_decode_api_output_spend_status(arr[5]),
+    );
+  }
+
+  @protected
+  ApiRecipient dco_decode_api_recipient(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ApiRecipient(
+      address: dco_decode_String(arr[0]),
+      amount: dco_decode_amount(arr[1]),
+      nbOutputs: dco_decode_u_32(arr[2]),
+    );
+  }
+
+  @protected
+  ApiRecordedTransaction dco_decode_api_recorded_transaction(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return ApiRecordedTransaction_Incoming(
+          dco_decode_box_autoadd_api_recorded_transaction_incoming(raw[1]),
+        );
+      case 1:
+        return ApiRecordedTransaction_Outgoing(
+          dco_decode_box_autoadd_api_recorded_transaction_outgoing(raw[1]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
+  }
+
+  @protected
+  ApiRecordedTransactionIncoming dco_decode_api_recorded_transaction_incoming(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ApiRecordedTransactionIncoming(
+      txid: dco_decode_String(arr[0]),
+      amount: dco_decode_amount(arr[1]),
+      confirmedAt: dco_decode_opt_box_autoadd_u_32(arr[2]),
+    );
+  }
+
+  @protected
+  ApiRecordedTransactionOutgoing dco_decode_api_recorded_transaction_outgoing(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return ApiRecordedTransactionOutgoing(
+      txid: dco_decode_String(arr[0]),
+      spentOutpoints: dco_decode_list_String(arr[1]),
+      recipients: dco_decode_list_api_recipient(arr[2]),
+      confirmedAt: dco_decode_opt_box_autoadd_u_32(arr[3]),
+      change: dco_decode_amount(arr[4]),
     );
   }
 
@@ -873,6 +973,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ApiWalletStatus dco_decode_api_wallet_status(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    return ApiWalletStatus(
+      address: dco_decode_String(arr[0]),
+      network: dco_decode_String(arr[1]),
+      balance: dco_decode_u_64(arr[2]),
+      birthday: dco_decode_u_32(arr[3]),
+      lastScan: dco_decode_u_32(arr[4]),
+      outputs: dco_decode_Map_String_api_owned_output(arr[5]),
+      txHistory: dco_decode_list_api_recorded_transaction(arr[6]),
+    );
+  }
+
+  @protected
   bool dco_decode_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as bool;
@@ -885,23 +1002,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ApiRecordedTransactionIncoming
+      dco_decode_box_autoadd_api_recorded_transaction_incoming(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_api_recorded_transaction_incoming(raw);
+  }
+
+  @protected
+  ApiRecordedTransactionOutgoing
+      dco_decode_box_autoadd_api_recorded_transaction_outgoing(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_api_recorded_transaction_outgoing(raw);
+  }
+
+  @protected
   ApiSetupWalletArgs dco_decode_box_autoadd_api_setup_wallet_args(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_api_setup_wallet_args(raw);
-  }
-
-  @protected
-  RecordedTransactionIncoming
-      dco_decode_box_autoadd_recorded_transaction_incoming(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_recorded_transaction_incoming(raw);
-  }
-
-  @protected
-  RecordedTransactionOutgoing
-      dco_decode_box_autoadd_recorded_transaction_outgoing(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_recorded_transaction_outgoing(raw);
   }
 
   @protected
@@ -935,30 +1052,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<ApiRecipient> dco_decode_list_api_recipient(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_api_recipient).toList();
+  }
+
+  @protected
+  List<ApiRecordedTransaction> dco_decode_list_api_recorded_transaction(
+      dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_api_recorded_transaction)
+        .toList();
+  }
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
   }
 
   @protected
-  List<Recipient> dco_decode_list_recipient(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_recipient).toList();
-  }
-
-  @protected
-  List<(String, OwnedOutput)> dco_decode_list_record_string_owned_output(
+  List<(String, ApiOwnedOutput)> dco_decode_list_record_string_api_owned_output(
       dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>)
-        .map(dco_decode_record_string_owned_output)
+        .map(dco_decode_record_string_api_owned_output)
         .toList();
-  }
-
-  @protected
-  List<RecordedTransaction> dco_decode_list_recorded_transaction(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_recorded_transaction).toList();
   }
 
   @protected
@@ -1000,50 +1120,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  OutputSpendStatus dco_decode_output_spend_status(dynamic raw) {
+  (String, ApiOwnedOutput) dco_decode_record_string_api_owned_output(
+      dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return OutputSpendStatus_Unspent();
-      case 1:
-        return OutputSpendStatus_Spent(
-          dco_decode_String(raw[1]),
-        );
-      case 2:
-        return OutputSpendStatus_Mined(
-          dco_decode_String(raw[1]),
-        );
-      default:
-        throw Exception("unreachable");
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2) {
+      throw Exception('Expected 2 elements, got ${arr.length}');
     }
-  }
-
-  @protected
-  OwnedOutput dco_decode_owned_output(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
-    return OwnedOutput(
-      blockheight: dco_decode_u_32(arr[0]),
-      tweak: dco_decode_u_8_array_32(arr[1]),
-      amount: dco_decode_amount(arr[2]),
-      script: dco_decode_String(arr[3]),
-      label: dco_decode_opt_String(arr[4]),
-      spendStatus: dco_decode_output_spend_status(arr[5]),
-    );
-  }
-
-  @protected
-  Recipient dco_decode_recipient(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return Recipient(
-      address: dco_decode_String(arr[0]),
-      amount: dco_decode_amount(arr[1]),
-      nbOutputs: dco_decode_u_32(arr[2]),
+    return (
+      dco_decode_String(arr[0]),
+      dco_decode_api_owned_output(arr[1]),
     );
   }
 
@@ -1058,66 +1144,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return (
       dco_decode_String(arr[0]),
       dco_decode_opt_box_autoadd_usize(arr[1]),
-    );
-  }
-
-  @protected
-  (String, OwnedOutput) dco_decode_record_string_owned_output(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2) {
-      throw Exception('Expected 2 elements, got ${arr.length}');
-    }
-    return (
-      dco_decode_String(arr[0]),
-      dco_decode_owned_output(arr[1]),
-    );
-  }
-
-  @protected
-  RecordedTransaction dco_decode_recorded_transaction(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    switch (raw[0]) {
-      case 0:
-        return RecordedTransaction_Incoming(
-          dco_decode_box_autoadd_recorded_transaction_incoming(raw[1]),
-        );
-      case 1:
-        return RecordedTransaction_Outgoing(
-          dco_decode_box_autoadd_recorded_transaction_outgoing(raw[1]),
-        );
-      default:
-        throw Exception("unreachable");
-    }
-  }
-
-  @protected
-  RecordedTransactionIncoming dco_decode_recorded_transaction_incoming(
-      dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return RecordedTransactionIncoming(
-      txid: dco_decode_String(arr[0]),
-      amount: dco_decode_amount(arr[1]),
-      confirmedAt: dco_decode_opt_box_autoadd_u_32(arr[2]),
-    );
-  }
-
-  @protected
-  RecordedTransactionOutgoing dco_decode_recorded_transaction_outgoing(
-      dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
-    return RecordedTransactionOutgoing(
-      txid: dco_decode_String(arr[0]),
-      spentOutpoints: dco_decode_list_String(arr[1]),
-      recipients: dco_decode_list_recipient(arr[2]),
-      confirmedAt: dco_decode_opt_box_autoadd_u_32(arr[3]),
-      change: dco_decode_amount(arr[4]),
     );
   }
 
@@ -1182,23 +1208,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  WalletStatus dco_decode_wallet_status(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
-    return WalletStatus(
-      address: dco_decode_String(arr[0]),
-      network: dco_decode_String(arr[1]),
-      balance: dco_decode_u_64(arr[2]),
-      birthday: dco_decode_u_32(arr[3]),
-      lastScan: dco_decode_u_32(arr[4]),
-      outputs: dco_decode_Map_String_owned_output(arr[5]),
-      txHistory: dco_decode_list_recorded_transaction(arr[6]),
-    );
-  }
-
-  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_String(deserializer);
@@ -1206,10 +1215,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Map<String, OwnedOutput> sse_decode_Map_String_owned_output(
+  Map<String, ApiOwnedOutput> sse_decode_Map_String_api_owned_output(
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_list_record_string_owned_output(deserializer);
+    var inner = sse_decode_list_record_string_api_owned_output(deserializer);
     return Map.fromEntries(inner.map((e) => MapEntry(e.$1, e.$2)));
   }
 
@@ -1246,6 +1255,104 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_field0 = sse_decode_u_64(deserializer);
     return Amount(field0: var_field0);
+  }
+
+  @protected
+  ApiOutputSpendStatus sse_decode_api_output_spend_status(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        return ApiOutputSpendStatus_Unspent();
+      case 1:
+        var var_field0 = sse_decode_String(deserializer);
+        return ApiOutputSpendStatus_Spent(var_field0);
+      case 2:
+        var var_field0 = sse_decode_String(deserializer);
+        return ApiOutputSpendStatus_Mined(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  ApiOwnedOutput sse_decode_api_owned_output(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_blockheight = sse_decode_u_32(deserializer);
+    var var_tweak = sse_decode_u_8_array_32(deserializer);
+    var var_amount = sse_decode_amount(deserializer);
+    var var_script = sse_decode_String(deserializer);
+    var var_label = sse_decode_opt_String(deserializer);
+    var var_spendStatus = sse_decode_api_output_spend_status(deserializer);
+    return ApiOwnedOutput(
+        blockheight: var_blockheight,
+        tweak: var_tweak,
+        amount: var_amount,
+        script: var_script,
+        label: var_label,
+        spendStatus: var_spendStatus);
+  }
+
+  @protected
+  ApiRecipient sse_decode_api_recipient(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_address = sse_decode_String(deserializer);
+    var var_amount = sse_decode_amount(deserializer);
+    var var_nbOutputs = sse_decode_u_32(deserializer);
+    return ApiRecipient(
+        address: var_address, amount: var_amount, nbOutputs: var_nbOutputs);
+  }
+
+  @protected
+  ApiRecordedTransaction sse_decode_api_recorded_transaction(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_field0 =
+            sse_decode_box_autoadd_api_recorded_transaction_incoming(
+                deserializer);
+        return ApiRecordedTransaction_Incoming(var_field0);
+      case 1:
+        var var_field0 =
+            sse_decode_box_autoadd_api_recorded_transaction_outgoing(
+                deserializer);
+        return ApiRecordedTransaction_Outgoing(var_field0);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  ApiRecordedTransactionIncoming sse_decode_api_recorded_transaction_incoming(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_txid = sse_decode_String(deserializer);
+    var var_amount = sse_decode_amount(deserializer);
+    var var_confirmedAt = sse_decode_opt_box_autoadd_u_32(deserializer);
+    return ApiRecordedTransactionIncoming(
+        txid: var_txid, amount: var_amount, confirmedAt: var_confirmedAt);
+  }
+
+  @protected
+  ApiRecordedTransactionOutgoing sse_decode_api_recorded_transaction_outgoing(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_txid = sse_decode_String(deserializer);
+    var var_spentOutpoints = sse_decode_list_String(deserializer);
+    var var_recipients = sse_decode_list_api_recipient(deserializer);
+    var var_confirmedAt = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_change = sse_decode_amount(deserializer);
+    return ApiRecordedTransactionOutgoing(
+        txid: var_txid,
+        spentOutpoints: var_spentOutpoints,
+        recipients: var_recipients,
+        confirmedAt: var_confirmedAt,
+        change: var_change);
   }
 
   @protected
@@ -1293,6 +1400,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ApiWalletStatus sse_decode_api_wallet_status(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_address = sse_decode_String(deserializer);
+    var var_network = sse_decode_String(deserializer);
+    var var_balance = sse_decode_u_64(deserializer);
+    var var_birthday = sse_decode_u_32(deserializer);
+    var var_lastScan = sse_decode_u_32(deserializer);
+    var var_outputs = sse_decode_Map_String_api_owned_output(deserializer);
+    var var_txHistory = sse_decode_list_api_recorded_transaction(deserializer);
+    return ApiWalletStatus(
+        address: var_address,
+        network: var_network,
+        balance: var_balance,
+        birthday: var_birthday,
+        lastScan: var_lastScan,
+        outputs: var_outputs,
+        txHistory: var_txHistory);
+  }
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8() != 0;
@@ -1305,26 +1432,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ApiRecordedTransactionIncoming
+      sse_decode_box_autoadd_api_recorded_transaction_incoming(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_api_recorded_transaction_incoming(deserializer));
+  }
+
+  @protected
+  ApiRecordedTransactionOutgoing
+      sse_decode_box_autoadd_api_recorded_transaction_outgoing(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_api_recorded_transaction_outgoing(deserializer));
+  }
+
+  @protected
   ApiSetupWalletArgs sse_decode_box_autoadd_api_setup_wallet_args(
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_api_setup_wallet_args(deserializer));
-  }
-
-  @protected
-  RecordedTransactionIncoming
-      sse_decode_box_autoadd_recorded_transaction_incoming(
-          SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_recorded_transaction_incoming(deserializer));
-  }
-
-  @protected
-  RecordedTransactionOutgoing
-      sse_decode_box_autoadd_recorded_transaction_outgoing(
-          SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_recorded_transaction_outgoing(deserializer));
   }
 
   @protected
@@ -1364,6 +1491,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<ApiRecipient> sse_decode_list_api_recipient(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ApiRecipient>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_api_recipient(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ApiRecordedTransaction> sse_decode_list_api_recorded_transaction(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ApiRecordedTransaction>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_api_recorded_transaction(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
@@ -1371,39 +1524,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<Recipient> sse_decode_list_recipient(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <Recipient>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_recipient(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<(String, OwnedOutput)> sse_decode_list_record_string_owned_output(
+  List<(String, ApiOwnedOutput)> sse_decode_list_record_string_api_owned_output(
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <(String, OwnedOutput)>[];
+    var ans_ = <(String, ApiOwnedOutput)>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_record_string_owned_output(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<RecordedTransaction> sse_decode_list_recorded_transaction(
-      SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <RecordedTransaction>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_recorded_transaction(deserializer));
+      ans_.add(sse_decode_record_string_api_owned_output(deserializer));
     }
     return ans_;
   }
@@ -1463,51 +1591,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  OutputSpendStatus sse_decode_output_spend_status(
+  (String, ApiOwnedOutput) sse_decode_record_string_api_owned_output(
       SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        return OutputSpendStatus_Unspent();
-      case 1:
-        var var_field0 = sse_decode_String(deserializer);
-        return OutputSpendStatus_Spent(var_field0);
-      case 2:
-        var var_field0 = sse_decode_String(deserializer);
-        return OutputSpendStatus_Mined(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  OwnedOutput sse_decode_owned_output(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_blockheight = sse_decode_u_32(deserializer);
-    var var_tweak = sse_decode_u_8_array_32(deserializer);
-    var var_amount = sse_decode_amount(deserializer);
-    var var_script = sse_decode_String(deserializer);
-    var var_label = sse_decode_opt_String(deserializer);
-    var var_spendStatus = sse_decode_output_spend_status(deserializer);
-    return OwnedOutput(
-        blockheight: var_blockheight,
-        tweak: var_tweak,
-        amount: var_amount,
-        script: var_script,
-        label: var_label,
-        spendStatus: var_spendStatus);
-  }
-
-  @protected
-  Recipient sse_decode_recipient(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_address = sse_decode_String(deserializer);
-    var var_amount = sse_decode_amount(deserializer);
-    var var_nbOutputs = sse_decode_u_32(deserializer);
-    return Recipient(
-        address: var_address, amount: var_amount, nbOutputs: var_nbOutputs);
+    var var_field0 = sse_decode_String(deserializer);
+    var var_field1 = sse_decode_api_owned_output(deserializer);
+    return (var_field0, var_field1);
   }
 
   @protected
@@ -1517,63 +1606,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_field0 = sse_decode_String(deserializer);
     var var_field1 = sse_decode_opt_box_autoadd_usize(deserializer);
     return (var_field0, var_field1);
-  }
-
-  @protected
-  (String, OwnedOutput) sse_decode_record_string_owned_output(
-      SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_field0 = sse_decode_String(deserializer);
-    var var_field1 = sse_decode_owned_output(deserializer);
-    return (var_field0, var_field1);
-  }
-
-  @protected
-  RecordedTransaction sse_decode_recorded_transaction(
-      SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var tag_ = sse_decode_i_32(deserializer);
-    switch (tag_) {
-      case 0:
-        var var_field0 =
-            sse_decode_box_autoadd_recorded_transaction_incoming(deserializer);
-        return RecordedTransaction_Incoming(var_field0);
-      case 1:
-        var var_field0 =
-            sse_decode_box_autoadd_recorded_transaction_outgoing(deserializer);
-        return RecordedTransaction_Outgoing(var_field0);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  RecordedTransactionIncoming sse_decode_recorded_transaction_incoming(
-      SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_txid = sse_decode_String(deserializer);
-    var var_amount = sse_decode_amount(deserializer);
-    var var_confirmedAt = sse_decode_opt_box_autoadd_u_32(deserializer);
-    return RecordedTransactionIncoming(
-        txid: var_txid, amount: var_amount, confirmedAt: var_confirmedAt);
-  }
-
-  @protected
-  RecordedTransactionOutgoing sse_decode_recorded_transaction_outgoing(
-      SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_txid = sse_decode_String(deserializer);
-    var var_spentOutpoints = sse_decode_list_String(deserializer);
-    var var_recipients = sse_decode_list_recipient(deserializer);
-    var var_confirmedAt = sse_decode_opt_box_autoadd_u_32(deserializer);
-    var var_change = sse_decode_amount(deserializer);
-    return RecordedTransactionOutgoing(
-        txid: var_txid,
-        spentOutpoints: var_spentOutpoints,
-        recipients: var_recipients,
-        confirmedAt: var_confirmedAt,
-        change: var_change);
   }
 
   @protected
@@ -1629,26 +1661,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  WalletStatus sse_decode_wallet_status(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_address = sse_decode_String(deserializer);
-    var var_network = sse_decode_String(deserializer);
-    var var_balance = sse_decode_u_64(deserializer);
-    var var_birthday = sse_decode_u_32(deserializer);
-    var var_lastScan = sse_decode_u_32(deserializer);
-    var var_outputs = sse_decode_Map_String_owned_output(deserializer);
-    var var_txHistory = sse_decode_list_recorded_transaction(deserializer);
-    return WalletStatus(
-        address: var_address,
-        network: var_network,
-        balance: var_balance,
-        birthday: var_birthday,
-        lastScan: var_lastScan,
-        outputs: var_outputs,
-        txHistory: var_txHistory);
-  }
-
-  @protected
   void sse_encode_AnyhowException(
       AnyhowException self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -1656,10 +1668,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_Map_String_owned_output(
-      Map<String, OwnedOutput> self, SseSerializer serializer) {
+  void sse_encode_Map_String_api_owned_output(
+      Map<String, ApiOwnedOutput> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_record_string_owned_output(
+    sse_encode_list_record_string_api_owned_output(
         self.entries.map((e) => (e.key, e.value)).toList(), serializer);
   }
 
@@ -1715,6 +1727,82 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_api_output_spend_status(
+      ApiOutputSpendStatus self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case ApiOutputSpendStatus_Unspent():
+        sse_encode_i_32(0, serializer);
+      case ApiOutputSpendStatus_Spent(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_String(field0, serializer);
+      case ApiOutputSpendStatus_Mined(field0: final field0):
+        sse_encode_i_32(2, serializer);
+        sse_encode_String(field0, serializer);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  void sse_encode_api_owned_output(
+      ApiOwnedOutput self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.blockheight, serializer);
+    sse_encode_u_8_array_32(self.tweak, serializer);
+    sse_encode_amount(self.amount, serializer);
+    sse_encode_String(self.script, serializer);
+    sse_encode_opt_String(self.label, serializer);
+    sse_encode_api_output_spend_status(self.spendStatus, serializer);
+  }
+
+  @protected
+  void sse_encode_api_recipient(ApiRecipient self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.address, serializer);
+    sse_encode_amount(self.amount, serializer);
+    sse_encode_u_32(self.nbOutputs, serializer);
+  }
+
+  @protected
+  void sse_encode_api_recorded_transaction(
+      ApiRecordedTransaction self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case ApiRecordedTransaction_Incoming(field0: final field0):
+        sse_encode_i_32(0, serializer);
+        sse_encode_box_autoadd_api_recorded_transaction_incoming(
+            field0, serializer);
+      case ApiRecordedTransaction_Outgoing(field0: final field0):
+        sse_encode_i_32(1, serializer);
+        sse_encode_box_autoadd_api_recorded_transaction_outgoing(
+            field0, serializer);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
+  void sse_encode_api_recorded_transaction_incoming(
+      ApiRecordedTransactionIncoming self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.txid, serializer);
+    sse_encode_amount(self.amount, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.confirmedAt, serializer);
+  }
+
+  @protected
+  void sse_encode_api_recorded_transaction_outgoing(
+      ApiRecordedTransactionOutgoing self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.txid, serializer);
+    sse_encode_list_String(self.spentOutpoints, serializer);
+    sse_encode_list_api_recipient(self.recipients, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.confirmedAt, serializer);
+    sse_encode_amount(self.change, serializer);
+  }
+
+  @protected
   void sse_encode_api_setup_result(
       ApiSetupResult self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -1758,6 +1846,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_api_wallet_status(
+      ApiWalletStatus self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.address, serializer);
+    sse_encode_String(self.network, serializer);
+    sse_encode_u_64(self.balance, serializer);
+    sse_encode_u_32(self.birthday, serializer);
+    sse_encode_u_32(self.lastScan, serializer);
+    sse_encode_Map_String_api_owned_output(self.outputs, serializer);
+    sse_encode_list_api_recorded_transaction(self.txHistory, serializer);
+  }
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self ? 1 : 0);
@@ -1770,24 +1871,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_api_recorded_transaction_incoming(
+      ApiRecordedTransactionIncoming self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_api_recorded_transaction_incoming(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_api_recorded_transaction_outgoing(
+      ApiRecordedTransactionOutgoing self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_api_recorded_transaction_outgoing(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_api_setup_wallet_args(
       ApiSetupWalletArgs self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_api_setup_wallet_args(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_recorded_transaction_incoming(
-      RecordedTransactionIncoming self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_recorded_transaction_incoming(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_recorded_transaction_outgoing(
-      RecordedTransactionOutgoing self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_recorded_transaction_outgoing(self, serializer);
   }
 
   @protected
@@ -1824,6 +1925,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_api_recipient(
+      List<ApiRecipient> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_api_recipient(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_api_recorded_transaction(
+      List<ApiRecordedTransaction> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_api_recorded_transaction(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
       Uint8List self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -1832,32 +1953,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_list_recipient(
-      List<Recipient> self, SseSerializer serializer) {
+  void sse_encode_list_record_string_api_owned_output(
+      List<(String, ApiOwnedOutput)> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
-      sse_encode_recipient(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_record_string_owned_output(
-      List<(String, OwnedOutput)> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_record_string_owned_output(item, serializer);
-    }
-  }
-
-  @protected
-  void sse_encode_list_recorded_transaction(
-      List<RecordedTransaction> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_recorded_transaction(item, serializer);
+      sse_encode_record_string_api_owned_output(item, serializer);
     }
   }
 
@@ -1908,40 +2009,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_output_spend_status(
-      OutputSpendStatus self, SseSerializer serializer) {
+  void sse_encode_record_string_api_owned_output(
+      (String, ApiOwnedOutput) self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case OutputSpendStatus_Unspent():
-        sse_encode_i_32(0, serializer);
-      case OutputSpendStatus_Spent(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_String(field0, serializer);
-      case OutputSpendStatus_Mined(field0: final field0):
-        sse_encode_i_32(2, serializer);
-        sse_encode_String(field0, serializer);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  void sse_encode_owned_output(OwnedOutput self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_32(self.blockheight, serializer);
-    sse_encode_u_8_array_32(self.tweak, serializer);
-    sse_encode_amount(self.amount, serializer);
-    sse_encode_String(self.script, serializer);
-    sse_encode_opt_String(self.label, serializer);
-    sse_encode_output_spend_status(self.spendStatus, serializer);
-  }
-
-  @protected
-  void sse_encode_recipient(Recipient self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.address, serializer);
-    sse_encode_amount(self.amount, serializer);
-    sse_encode_u_32(self.nbOutputs, serializer);
+    sse_encode_String(self.$1, serializer);
+    sse_encode_api_owned_output(self.$2, serializer);
   }
 
   @protected
@@ -1950,52 +2022,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.$1, serializer);
     sse_encode_opt_box_autoadd_usize(self.$2, serializer);
-  }
-
-  @protected
-  void sse_encode_record_string_owned_output(
-      (String, OwnedOutput) self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.$1, serializer);
-    sse_encode_owned_output(self.$2, serializer);
-  }
-
-  @protected
-  void sse_encode_recorded_transaction(
-      RecordedTransaction self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    switch (self) {
-      case RecordedTransaction_Incoming(field0: final field0):
-        sse_encode_i_32(0, serializer);
-        sse_encode_box_autoadd_recorded_transaction_incoming(
-            field0, serializer);
-      case RecordedTransaction_Outgoing(field0: final field0):
-        sse_encode_i_32(1, serializer);
-        sse_encode_box_autoadd_recorded_transaction_outgoing(
-            field0, serializer);
-      default:
-        throw UnimplementedError('');
-    }
-  }
-
-  @protected
-  void sse_encode_recorded_transaction_incoming(
-      RecordedTransactionIncoming self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.txid, serializer);
-    sse_encode_amount(self.amount, serializer);
-    sse_encode_opt_box_autoadd_u_32(self.confirmedAt, serializer);
-  }
-
-  @protected
-  void sse_encode_recorded_transaction_outgoing(
-      RecordedTransactionOutgoing self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.txid, serializer);
-    sse_encode_list_String(self.spentOutpoints, serializer);
-    sse_encode_list_recipient(self.recipients, serializer);
-    sse_encode_opt_box_autoadd_u_32(self.confirmedAt, serializer);
-    sse_encode_amount(self.change, serializer);
   }
 
   @protected
@@ -2045,17 +2071,5 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_usize(BigInt self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putBigUint64(self);
-  }
-
-  @protected
-  void sse_encode_wallet_status(WalletStatus self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.address, serializer);
-    sse_encode_String(self.network, serializer);
-    sse_encode_u_64(self.balance, serializer);
-    sse_encode_u_32(self.birthday, serializer);
-    sse_encode_u_32(self.lastScan, serializer);
-    sse_encode_Map_String_owned_output(self.outputs, serializer);
-    sse_encode_list_recorded_transaction(self.txHistory, serializer);
   }
 }

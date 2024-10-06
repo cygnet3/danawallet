@@ -1,36 +1,36 @@
 use std::{collections::HashMap, str::FromStr};
 
 use serde::{Deserialize, Serialize};
-use sp_client::bitcoin::{self, absolute::Height, OutPoint, ScriptBuf, Txid};
+use sp_client::{bitcoin::{self, absolute::Height, OutPoint, ScriptBuf, Txid}, OutputSpendStatus, OwnedOutput, Recipient};
 
-use crate::wallet;
+use crate::wallet::{self, recorded::{RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing}};
 
 type SpendingTxId = String;
 type MinedInBlock = String;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum OutputSpendStatus {
+pub enum ApiOutputSpendStatus {
     Unspent,
     Spent(SpendingTxId),
     Mined(MinedInBlock),
 }
 
-impl From<sp_client::OutputSpendStatus> for OutputSpendStatus {
-    fn from(value: sp_client::OutputSpendStatus) -> Self {
+impl From<OutputSpendStatus> for ApiOutputSpendStatus {
+    fn from(value: OutputSpendStatus) -> Self {
         match value {
-            sp_client::OutputSpendStatus::Unspent => OutputSpendStatus::Unspent,
-            sp_client::OutputSpendStatus::Spent(txid) => OutputSpendStatus::Spent(txid),
-            sp_client::OutputSpendStatus::Mined(block) => OutputSpendStatus::Mined(block),
+            OutputSpendStatus::Unspent => ApiOutputSpendStatus::Unspent,
+            OutputSpendStatus::Spent(txid) => ApiOutputSpendStatus::Spent(txid),
+            OutputSpendStatus::Mined(block) => ApiOutputSpendStatus::Mined(block),
         }
     }
 }
 
-impl From<OutputSpendStatus> for sp_client::OutputSpendStatus {
-    fn from(value: OutputSpendStatus) -> Self {
+impl From<ApiOutputSpendStatus> for OutputSpendStatus {
+    fn from(value: ApiOutputSpendStatus) -> Self {
         match value {
-            OutputSpendStatus::Unspent => sp_client::OutputSpendStatus::Unspent,
-            OutputSpendStatus::Spent(txid) => sp_client::OutputSpendStatus::Spent(txid),
-            OutputSpendStatus::Mined(block) => sp_client::OutputSpendStatus::Mined(block),
+            ApiOutputSpendStatus::Unspent => OutputSpendStatus::Unspent,
+            ApiOutputSpendStatus::Spent(txid) => OutputSpendStatus::Spent(txid),
+            ApiOutputSpendStatus::Mined(block) => OutputSpendStatus::Mined(block),
         }
     }
 }
@@ -58,18 +58,18 @@ impl Amount {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct OwnedOutput {
+pub struct ApiOwnedOutput {
     pub blockheight: u32,
     pub tweak: [u8; 32],
     pub amount: Amount,
     pub script: String,
     pub label: Option<String>,
-    pub spend_status: OutputSpendStatus,
+    pub spend_status: ApiOutputSpendStatus,
 }
 
-impl From<sp_client::OwnedOutput> for OwnedOutput {
-    fn from(value: sp_client::OwnedOutput) -> Self {
-        OwnedOutput {
+impl From<OwnedOutput> for ApiOwnedOutput {
+    fn from(value: OwnedOutput) -> Self {
+        ApiOwnedOutput {
             blockheight: value.blockheight.to_consensus_u32(),
             tweak: value.tweak,
             amount: value.amount.into(),
@@ -80,9 +80,9 @@ impl From<sp_client::OwnedOutput> for OwnedOutput {
     }
 }
 
-impl From<OwnedOutput> for sp_client::OwnedOutput {
-    fn from(value: OwnedOutput) -> Self {
-        sp_client::OwnedOutput {
+impl From<ApiOwnedOutput> for OwnedOutput {
+    fn from(value: ApiOwnedOutput) -> Self {
+        OwnedOutput {
             blockheight: Height::from_consensus(value.blockheight).unwrap(),
             tweak: value.tweak,
             amount: value.amount.into(),
@@ -94,14 +94,24 @@ impl From<OwnedOutput> for sp_client::OwnedOutput {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct Recipient {
+pub struct ApiRecipient {
     pub address: String, // either old school or silent payment
     pub amount: Amount,
     pub nb_outputs: u32, // if address is not SP, only 1 is valid
 }
 
-impl From<sp_client::Recipient> for Recipient {
-    fn from(value: sp_client::Recipient) -> Self {
+impl From<Recipient> for ApiRecipient {
+    fn from(value: Recipient) -> Self {
+        ApiRecipient {
+            address: value.address,
+            amount: value.amount.into(),
+            nb_outputs: value.nb_outputs,
+        }
+    }
+}
+
+impl From<ApiRecipient> for Recipient {
+    fn from(value: ApiRecipient) -> Self {
         Recipient {
             address: value.address,
             amount: value.amount.into(),
@@ -110,37 +120,27 @@ impl From<sp_client::Recipient> for Recipient {
     }
 }
 
-impl From<Recipient> for sp_client::Recipient {
-    fn from(value: Recipient) -> Self {
-        sp_client::Recipient {
-            address: value.address,
-            amount: value.amount.into(),
-            nb_outputs: value.nb_outputs,
-        }
-    }
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum ApiRecordedTransaction {
+    Incoming(ApiRecordedTransactionIncoming),
+    Outgoing(ApiRecordedTransactionOutgoing),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum RecordedTransaction {
-    Incoming(RecordedTransactionIncoming),
-    Outgoing(RecordedTransactionOutgoing),
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct RecordedTransactionIncoming {
+pub struct ApiRecordedTransactionIncoming {
     pub txid: String,
     pub amount: Amount,
     pub confirmed_at: Option<u32>,
 }
 
-impl RecordedTransactionIncoming {
+impl ApiRecordedTransactionIncoming {
     #[flutter_rust_bridge::frb(sync)]
     pub fn to_string(&self) -> String {
         format!("{:#?}", self)
     }
 }
 
-impl RecordedTransactionOutgoing {
+impl ApiRecordedTransactionOutgoing {
     #[flutter_rust_bridge::frb(sync)]
     pub fn to_string(&self) -> String {
         format!("{:#?}", self)
@@ -148,39 +148,39 @@ impl RecordedTransactionOutgoing {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct RecordedTransactionOutgoing {
+pub struct ApiRecordedTransactionOutgoing {
     pub txid: String,
     pub spent_outpoints: Vec<String>,
-    pub recipients: Vec<Recipient>,
+    pub recipients: Vec<ApiRecipient>,
     pub confirmed_at: Option<u32>,
     pub change: Amount,
 }
 
-impl From<wallet::recorded::RecordedTransaction> for RecordedTransaction {
-    fn from(value: wallet::recorded::RecordedTransaction) -> Self {
+impl From<RecordedTransaction> for ApiRecordedTransaction {
+    fn from(value: RecordedTransaction) -> Self {
         match value {
-            wallet::recorded::RecordedTransaction::Incoming(incoming) => {
+            RecordedTransaction::Incoming(incoming) => {
                 Self::Incoming(incoming.into())
             }
 
-            wallet::recorded::RecordedTransaction::Outgoing(outgoing) => {
+            RecordedTransaction::Outgoing(outgoing) => {
                 Self::Outgoing(outgoing.into())
             }
         }
     }
 }
 
-impl From<RecordedTransaction> for wallet::recorded::RecordedTransaction {
-    fn from(value: RecordedTransaction) -> Self {
+impl From<ApiRecordedTransaction> for RecordedTransaction {
+    fn from(value: ApiRecordedTransaction) -> Self {
         match value {
-            RecordedTransaction::Incoming(incoming) => Self::Incoming(incoming.into()),
-            RecordedTransaction::Outgoing(outgoing) => Self::Outgoing(outgoing.into()),
+            ApiRecordedTransaction::Incoming(incoming) => Self::Incoming(incoming.into()),
+            ApiRecordedTransaction::Outgoing(outgoing) => Self::Outgoing(outgoing.into()),
         }
     }
 }
 
-impl From<wallet::recorded::RecordedTransactionIncoming> for RecordedTransactionIncoming {
-    fn from(value: wallet::recorded::RecordedTransactionIncoming) -> Self {
+impl From<RecordedTransactionIncoming> for ApiRecordedTransactionIncoming {
+    fn from(value: RecordedTransactionIncoming) -> Self {
         let confirmed_at = value.confirmed_at.map(|height| height.to_consensus_u32());
 
         Self {
@@ -191,8 +191,8 @@ impl From<wallet::recorded::RecordedTransactionIncoming> for RecordedTransaction
     }
 }
 
-impl From<RecordedTransactionIncoming> for wallet::recorded::RecordedTransactionIncoming {
-    fn from(value: RecordedTransactionIncoming) -> Self {
+impl From<ApiRecordedTransactionIncoming> for RecordedTransactionIncoming {
+    fn from(value: ApiRecordedTransactionIncoming) -> Self {
         let confirmed_at = value
             .confirmed_at
             .map(|height| Height::from_consensus(height).unwrap());
@@ -205,8 +205,8 @@ impl From<RecordedTransactionIncoming> for wallet::recorded::RecordedTransaction
     }
 }
 
-impl From<wallet::recorded::RecordedTransactionOutgoing> for RecordedTransactionOutgoing {
-    fn from(value: wallet::recorded::RecordedTransactionOutgoing) -> Self {
+impl From<RecordedTransactionOutgoing> for ApiRecordedTransactionOutgoing {
+    fn from(value: RecordedTransactionOutgoing) -> Self {
         let confirmed_at = value.confirmed_at.map(|height| height.to_consensus_u32());
 
         Self {
@@ -223,8 +223,8 @@ impl From<wallet::recorded::RecordedTransactionOutgoing> for RecordedTransaction
     }
 }
 
-impl From<RecordedTransactionOutgoing> for wallet::recorded::RecordedTransactionOutgoing {
-    fn from(value: RecordedTransactionOutgoing) -> Self {
+impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
+    fn from(value: ApiRecordedTransactionOutgoing) -> Self {
         let confirmed_at = value
             .confirmed_at
             .map(|height| Height::from_consensus(height).unwrap());
@@ -243,14 +243,14 @@ impl From<RecordedTransactionOutgoing> for wallet::recorded::RecordedTransaction
     }
 }
 
-pub struct WalletStatus {
+pub struct ApiWalletStatus {
     pub address: String,
     pub network: String,
     pub balance: u64,
     pub birthday: u32,
     pub last_scan: u32,
-    pub outputs: HashMap<String, OwnedOutput>,
-    pub tx_history: Vec<RecordedTransaction>,
+    pub outputs: HashMap<String, ApiOwnedOutput>,
+    pub tx_history: Vec<ApiRecordedTransaction>,
 }
 
 pub struct ApiSetupWalletArgs {

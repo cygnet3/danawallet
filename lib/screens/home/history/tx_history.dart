@@ -19,7 +19,7 @@ class TxHistoryscreen extends StatelessWidget {
         itemCount: transactions.length,
         padding: EdgeInsets.all(screenWidth * 0.05),
         itemBuilder: (context, index) {
-          RecordedTransaction tx = transactions[index];
+          ApiRecordedTransaction tx = transactions[index];
           Color? color;
           BigInt amount;
           String title;
@@ -27,7 +27,7 @@ class TxHistoryscreen extends StatelessWidget {
           Image image;
 
           switch (tx) {
-            case RecordedTransaction_Incoming(:final field0):
+            case ApiRecordedTransaction_Incoming(:final field0):
               color = Bitcoin.green;
               amount = field0.amount.toInt();
               title = 'Incoming transaction';
@@ -36,7 +36,7 @@ class TxHistoryscreen extends StatelessWidget {
                   image: const AssetImage("icons/receive.png",
                       package: "bitcoin_ui"),
                   color: Bitcoin.neutral3Dark);
-            case RecordedTransaction_Outgoing(:final field0):
+            case ApiRecordedTransaction_Outgoing(:final field0):
               if (field0.confirmedAt == null) {
                 color = Bitcoin.neutral4;
               } else {

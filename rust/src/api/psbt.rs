@@ -9,14 +9,14 @@ use sp_client::SpClient;
 
 use crate::wallet::SpWallet;
 
-use super::structs::{Amount, OwnedOutput, Recipient};
+use super::structs::{Amount, ApiOwnedOutput, ApiRecipient};
 use anyhow::{anyhow, Error, Result};
 
 #[flutter_rust_bridge::frb(sync)]
 pub fn create_new_psbt(
     encoded_wallet: String,
-    inputs: HashMap<String, OwnedOutput>,
-    recipients: Vec<Recipient>,
+    inputs: HashMap<String, ApiOwnedOutput>,
+    recipients: Vec<ApiRecipient>,
 ) -> Result<(String, Option<usize>)> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 

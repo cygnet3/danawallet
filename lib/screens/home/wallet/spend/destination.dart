@@ -20,7 +20,7 @@ class DestinationScreen extends StatelessWidget {
           ListView.builder(
               itemCount: spendState.recipients.length,
               itemBuilder: (context, index) {
-                Recipient recipient = spendState.recipients[index];
+                ApiRecipient recipient = spendState.recipients[index];
                 return GestureDetector(
                     onTap: () {
                       spendState.rmRecipient(recipient.address);

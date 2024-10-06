@@ -14,8 +14,8 @@ class WalletState extends ChangeNotifier {
   int lastScan = 0;
   Network _network = Network.signet;
   String address = "";
-  Map<String, OwnedOutput> ownedOutputs = {};
-  List<RecordedTransaction> txHistory = List.empty(growable: true);
+  Map<String, ApiOwnedOutput> ownedOutputs = {};
+  List<ApiRecordedTransaction> txHistory = List.empty(growable: true);
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanResultSubscription;
@@ -124,7 +124,7 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> _updateWalletStatus(String wallet) async {
-    WalletStatus walletInfo;
+    ApiWalletStatus walletInfo;
     try {
       walletInfo = getWalletInfo(encodedWallet: wallet);
     } catch (e) {
@@ -133,9 +133,9 @@ class WalletState extends ChangeNotifier {
 
     BigInt totalAmount = walletInfo.balance;
 
-    for (RecordedTransaction tx in walletInfo.txHistory) {
+    for (ApiRecordedTransaction tx in walletInfo.txHistory) {
       switch (tx) {
-        case RecordedTransaction_Outgoing(:final field0):
+        case ApiRecordedTransaction_Outgoing(:final field0):
           if (field0.confirmedAt == null) {
             // while an outgoing transaction is not yet confirmed, we add the change outputs manually
             totalAmount += field0.change.field0;
@@ -153,9 +153,9 @@ class WalletState extends ChangeNotifier {
     network = Network.fromBitcoinNetwork(walletInfo.network);
   }
 
-  Map<String, OwnedOutput> getSpendableOutputs() {
+  Map<String, ApiOwnedOutput> getSpendableOutputs() {
     var spendable = ownedOutputs.entries.where((element) =>
-        element.value.spendStatus == const OutputSpendStatus.unspent());
+        element.value.spendStatus == const ApiOutputSpendStatus.unspent());
     return Map.fromEntries(spendable);
   }
 }
