@@ -5,6 +5,10 @@ class HomeState extends ChangeNotifier {
 
   int get selectedIndex => _currentIndex;
 
+  void reset() {
+    _currentIndex = 0;
+  }
+
   void showMainScreen() {
     _currentIndex = 0;
     notifyListeners();

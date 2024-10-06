@@ -21,6 +21,7 @@ class SettingsScreen extends StatelessWidget {
     SpendState spendSelectionState,
     ThemeNotifier themeNotifier,
     ScanProgressNotifier scanProgress,
+    HomeState homeState,
   ) async {
     try {
       await scanProgress.interruptScan();
@@ -29,14 +30,14 @@ class SettingsScreen extends StatelessWidget {
       await SettingsRepository().resetAll();
       spendSelectionState.reset();
       chainState.reset();
+      homeState.reset();
       themeNotifier.setTheme(null);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> _setBirthday(
-      BuildContext context, HomeState homeProvider) async {
+  Future<void> _setBirthday(BuildContext context, HomeState homeState) async {
     TextEditingController controller = TextEditingController();
     showInputAlertDialog(controller, TextInputType.number, 'Enter Birthday',
             'Enter wallet\'s birthday (numeric value)')
@@ -49,7 +50,7 @@ class SettingsScreen extends StatelessWidget {
               changeBirthday(encodedWallet: wallet, birthday: int.parse(value));
           await walletState.saveWalletToSecureStorage(updatedWallet);
           await walletState.updateWalletStatus();
-          homeProvider.showMainScreen();
+          homeState.showMainScreen();
         } catch (e) {
           rethrow;
         }
@@ -98,7 +99,7 @@ class SettingsScreen extends StatelessWidget {
     final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
-    final homeProvider = Provider.of<HomeState>(context, listen: false);
+    final homeState = Provider.of<HomeState>(context, listen: false);
 
     return Center(
       child: Column(
@@ -116,7 +117,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           BitcoinButtonOutlined(
               title: 'Set wallet birthday',
-              onPressed: () => _setBirthday(context, homeProvider)),
+              onPressed: () => _setBirthday(context, homeState)),
           BitcoinButtonOutlined(
             title: 'Set backend url',
             onPressed: () {
@@ -133,8 +134,7 @@ class SettingsScreen extends StatelessWidget {
               title: 'Wipe wallet',
               onPressed: () async {
                 await _removeWallet(walletState, chainState, spendState,
-                    themeNotifier, scanProgress);
-                homeProvider.showMainScreen();
+                    themeNotifier, scanProgress, homeState);
                 if (context.mounted) {
                   Navigator.pushReplacement(
                       context,
