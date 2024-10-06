@@ -4,9 +4,7 @@ import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/generated/rust/logger.dart';
-import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
-import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:flutter/material.dart';
 
 class WalletState extends ChangeNotifier {
@@ -159,30 +157,5 @@ class WalletState extends ChangeNotifier {
     var spendable = ownedOutputs.entries.where((element) =>
         element.value.spendStatus == const OutputSpendStatus.unspent());
     return Map.fromEntries(spendable);
-  }
-
-  Future<void> scan(ScanProgressNotifier scanProgress) async {
-    try {
-      final wallet = await getWalletFromSecureStorage();
-
-      final settings = SettingsRepository();
-      final blindbitUrl = await settings.getBlindbitUrl();
-      final dustLimit = await settings.getDustLimit();
-
-      scanProgress.activate(lastScan);
-      await scanToTip(
-          blindbitUrl: blindbitUrl!,
-          dustLimit: BigInt.from(dustLimit!),
-          encodedWallet: wallet);
-    } catch (e) {
-      scanProgress.deactivate();
-      rethrow;
-    }
-    scanProgress.deactivate();
-  }
-
-  Future<void> interruptScan(ScanProgressNotifier scanProgress) async {
-    interruptScanning();
-    scanProgress.deactivate();
   }
 }
