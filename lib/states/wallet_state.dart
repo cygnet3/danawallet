@@ -88,8 +88,6 @@ class WalletState extends ChangeNotifier {
     address = "";
     ownedOutputs = {};
     txHistory = List.empty(growable: true);
-
-    notifyListeners();
   }
 
   Future<void> saveWalletToSecureStorage(String wallet) async {
