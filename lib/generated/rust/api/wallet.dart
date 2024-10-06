@@ -33,7 +33,7 @@ Future<void> scanToTip(
 void interruptScanning() =>
     RustLib.instance.api.crateApiWalletInterruptScanning();
 
-WalletStatus getWalletInfo({required String encodedWallet}) =>
+ApiWalletStatus getWalletInfo({required String encodedWallet}) =>
     RustLib.instance.api
         .crateApiWalletGetWalletInfo(encodedWallet: encodedWallet);
 
@@ -48,7 +48,7 @@ String addOutgoingTxToHistory(
         {required String encodedWallet,
         required String txid,
         required List<String> spentOutpoints,
-        required List<Recipient> recipients,
+        required List<ApiRecipient> recipients,
         required Amount change}) =>
     RustLib.instance.api.crateApiWalletAddOutgoingTxToHistory(
         encodedWallet: encodedWallet,

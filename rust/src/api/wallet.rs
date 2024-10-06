@@ -12,7 +12,7 @@ use sp_client::{
 };
 
 use super::structs::{
-    Amount, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType, Recipient, WalletStatus,
+    Amount, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType, ApiRecipient, ApiWalletStatus,
 };
 
 const PASSPHRASE: &str = ""; // no passphrase for now
@@ -148,9 +148,9 @@ pub fn interrupt_scanning() {
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn get_wallet_info(encoded_wallet: String) -> Result<WalletStatus> {
+pub fn get_wallet_info(encoded_wallet: String) -> Result<ApiWalletStatus> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    Ok(WalletStatus {
+    Ok(ApiWalletStatus {
         address: wallet.client.get_receiving_address(),
         network: wallet.client.get_network().to_core_arg().to_owned(),
         balance: wallet.get_balance().to_sat(),
@@ -189,7 +189,7 @@ pub fn add_outgoing_tx_to_history(
     encoded_wallet: String,
     txid: String,
     spent_outpoints: Vec<String>,
-    recipients: Vec<Recipient>,
+    recipients: Vec<ApiRecipient>,
     change: Amount,
 ) -> Result<String> {
     let txid = Txid::from_str(&txid)?;

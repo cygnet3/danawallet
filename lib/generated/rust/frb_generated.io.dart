@@ -29,7 +29,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException dco_decode_AnyhowException(dynamic raw);
 
   @protected
-  Map<String, OwnedOutput> dco_decode_Map_String_owned_output(dynamic raw);
+  Map<String, ApiOwnedOutput> dco_decode_Map_String_api_owned_output(
+      dynamic raw);
 
   @protected
   RustStreamSink<LogEntry> dco_decode_StreamSink_log_entry_Sse(dynamic raw);
@@ -48,6 +49,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Amount dco_decode_amount(dynamic raw);
 
   @protected
+  ApiOutputSpendStatus dco_decode_api_output_spend_status(dynamic raw);
+
+  @protected
+  ApiOwnedOutput dco_decode_api_owned_output(dynamic raw);
+
+  @protected
+  ApiRecipient dco_decode_api_recipient(dynamic raw);
+
+  @protected
+  ApiRecordedTransaction dco_decode_api_recorded_transaction(dynamic raw);
+
+  @protected
+  ApiRecordedTransactionIncoming dco_decode_api_recorded_transaction_incoming(
+      dynamic raw);
+
+  @protected
+  ApiRecordedTransactionOutgoing dco_decode_api_recorded_transaction_outgoing(
+      dynamic raw);
+
+  @protected
   ApiSetupResult dco_decode_api_setup_result(dynamic raw);
 
   @protected
@@ -57,21 +78,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ApiSetupWalletType dco_decode_api_setup_wallet_type(dynamic raw);
 
   @protected
+  ApiWalletStatus dco_decode_api_wallet_status(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
 
   @protected
   Amount dco_decode_box_autoadd_amount(dynamic raw);
 
   @protected
+  ApiRecordedTransactionIncoming
+      dco_decode_box_autoadd_api_recorded_transaction_incoming(dynamic raw);
+
+  @protected
+  ApiRecordedTransactionOutgoing
+      dco_decode_box_autoadd_api_recorded_transaction_outgoing(dynamic raw);
+
+  @protected
   ApiSetupWalletArgs dco_decode_box_autoadd_api_setup_wallet_args(dynamic raw);
-
-  @protected
-  RecordedTransactionIncoming
-      dco_decode_box_autoadd_recorded_transaction_incoming(dynamic raw);
-
-  @protected
-  RecordedTransactionOutgoing
-      dco_decode_box_autoadd_recorded_transaction_outgoing(dynamic raw);
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
@@ -89,17 +113,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
-  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+  List<ApiRecipient> dco_decode_list_api_recipient(dynamic raw);
 
   @protected
-  List<Recipient> dco_decode_list_recipient(dynamic raw);
-
-  @protected
-  List<(String, OwnedOutput)> dco_decode_list_record_string_owned_output(
+  List<ApiRecordedTransaction> dco_decode_list_api_recorded_transaction(
       dynamic raw);
 
   @protected
-  List<RecordedTransaction> dco_decode_list_recorded_transaction(dynamic raw);
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<(String, ApiOwnedOutput)> dco_decode_list_record_string_api_owned_output(
+      dynamic raw);
 
   @protected
   LogEntry dco_decode_log_entry(dynamic raw);
@@ -117,30 +142,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? dco_decode_opt_box_autoadd_usize(dynamic raw);
 
   @protected
-  OutputSpendStatus dco_decode_output_spend_status(dynamic raw);
-
-  @protected
-  OwnedOutput dco_decode_owned_output(dynamic raw);
-
-  @protected
-  Recipient dco_decode_recipient(dynamic raw);
+  (String, ApiOwnedOutput) dco_decode_record_string_api_owned_output(
+      dynamic raw);
 
   @protected
   (String, BigInt?) dco_decode_record_string_opt_box_autoadd_usize(dynamic raw);
-
-  @protected
-  (String, OwnedOutput) dco_decode_record_string_owned_output(dynamic raw);
-
-  @protected
-  RecordedTransaction dco_decode_recorded_transaction(dynamic raw);
-
-  @protected
-  RecordedTransactionIncoming dco_decode_recorded_transaction_incoming(
-      dynamic raw);
-
-  @protected
-  RecordedTransactionOutgoing dco_decode_recorded_transaction_outgoing(
-      dynamic raw);
 
   @protected
   ScanProgress dco_decode_scan_progress(dynamic raw);
@@ -167,13 +173,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt dco_decode_usize(dynamic raw);
 
   @protected
-  WalletStatus dco_decode_wallet_status(dynamic raw);
-
-  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
-  Map<String, OwnedOutput> sse_decode_Map_String_owned_output(
+  Map<String, ApiOwnedOutput> sse_decode_Map_String_api_owned_output(
       SseDeserializer deserializer);
 
   @protected
@@ -195,6 +198,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Amount sse_decode_amount(SseDeserializer deserializer);
 
   @protected
+  ApiOutputSpendStatus sse_decode_api_output_spend_status(
+      SseDeserializer deserializer);
+
+  @protected
+  ApiOwnedOutput sse_decode_api_owned_output(SseDeserializer deserializer);
+
+  @protected
+  ApiRecipient sse_decode_api_recipient(SseDeserializer deserializer);
+
+  @protected
+  ApiRecordedTransaction sse_decode_api_recorded_transaction(
+      SseDeserializer deserializer);
+
+  @protected
+  ApiRecordedTransactionIncoming sse_decode_api_recorded_transaction_incoming(
+      SseDeserializer deserializer);
+
+  @protected
+  ApiRecordedTransactionOutgoing sse_decode_api_recorded_transaction_outgoing(
+      SseDeserializer deserializer);
+
+  @protected
   ApiSetupResult sse_decode_api_setup_result(SseDeserializer deserializer);
 
   @protected
@@ -206,24 +231,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  ApiWalletStatus sse_decode_api_wallet_status(SseDeserializer deserializer);
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
   Amount sse_decode_box_autoadd_amount(SseDeserializer deserializer);
 
   @protected
+  ApiRecordedTransactionIncoming
+      sse_decode_box_autoadd_api_recorded_transaction_incoming(
+          SseDeserializer deserializer);
+
+  @protected
+  ApiRecordedTransactionOutgoing
+      sse_decode_box_autoadd_api_recorded_transaction_outgoing(
+          SseDeserializer deserializer);
+
+  @protected
   ApiSetupWalletArgs sse_decode_box_autoadd_api_setup_wallet_args(
       SseDeserializer deserializer);
-
-  @protected
-  RecordedTransactionIncoming
-      sse_decode_box_autoadd_recorded_transaction_incoming(
-          SseDeserializer deserializer);
-
-  @protected
-  RecordedTransactionOutgoing
-      sse_decode_box_autoadd_recorded_transaction_outgoing(
-          SseDeserializer deserializer);
 
   @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
@@ -241,17 +269,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
-  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
-
-  @protected
-  List<Recipient> sse_decode_list_recipient(SseDeserializer deserializer);
-
-  @protected
-  List<(String, OwnedOutput)> sse_decode_list_record_string_owned_output(
+  List<ApiRecipient> sse_decode_list_api_recipient(
       SseDeserializer deserializer);
 
   @protected
-  List<RecordedTransaction> sse_decode_list_recorded_transaction(
+  List<ApiRecordedTransaction> sse_decode_list_api_recorded_transaction(
+      SseDeserializer deserializer);
+
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<(String, ApiOwnedOutput)> sse_decode_list_record_string_api_owned_output(
       SseDeserializer deserializer);
 
   @protected
@@ -270,33 +299,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? sse_decode_opt_box_autoadd_usize(SseDeserializer deserializer);
 
   @protected
-  OutputSpendStatus sse_decode_output_spend_status(
+  (String, ApiOwnedOutput) sse_decode_record_string_api_owned_output(
       SseDeserializer deserializer);
-
-  @protected
-  OwnedOutput sse_decode_owned_output(SseDeserializer deserializer);
-
-  @protected
-  Recipient sse_decode_recipient(SseDeserializer deserializer);
 
   @protected
   (String, BigInt?) sse_decode_record_string_opt_box_autoadd_usize(
-      SseDeserializer deserializer);
-
-  @protected
-  (String, OwnedOutput) sse_decode_record_string_owned_output(
-      SseDeserializer deserializer);
-
-  @protected
-  RecordedTransaction sse_decode_recorded_transaction(
-      SseDeserializer deserializer);
-
-  @protected
-  RecordedTransactionIncoming sse_decode_recorded_transaction_incoming(
-      SseDeserializer deserializer);
-
-  @protected
-  RecordedTransactionOutgoing sse_decode_recorded_transaction_outgoing(
       SseDeserializer deserializer);
 
   @protected
@@ -324,15 +331,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt sse_decode_usize(SseDeserializer deserializer);
 
   @protected
-  WalletStatus sse_decode_wallet_status(SseDeserializer deserializer);
-
-  @protected
   void sse_encode_AnyhowException(
       AnyhowException self, SseSerializer serializer);
 
   @protected
-  void sse_encode_Map_String_owned_output(
-      Map<String, OwnedOutput> self, SseSerializer serializer);
+  void sse_encode_Map_String_api_owned_output(
+      Map<String, ApiOwnedOutput> self, SseSerializer serializer);
 
   @protected
   void sse_encode_StreamSink_log_entry_Sse(
@@ -353,6 +357,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_amount(Amount self, SseSerializer serializer);
 
   @protected
+  void sse_encode_api_output_spend_status(
+      ApiOutputSpendStatus self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_owned_output(
+      ApiOwnedOutput self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_recipient(ApiRecipient self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_recorded_transaction(
+      ApiRecordedTransaction self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_recorded_transaction_incoming(
+      ApiRecordedTransactionIncoming self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_recorded_transaction_outgoing(
+      ApiRecordedTransactionOutgoing self, SseSerializer serializer);
+
+  @protected
   void sse_encode_api_setup_result(
       ApiSetupResult self, SseSerializer serializer);
 
@@ -365,22 +392,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ApiSetupWalletType self, SseSerializer serializer);
 
   @protected
+  void sse_encode_api_wallet_status(
+      ApiWalletStatus self, SseSerializer serializer);
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_amount(Amount self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_api_recorded_transaction_incoming(
+      ApiRecordedTransactionIncoming self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_api_recorded_transaction_outgoing(
+      ApiRecordedTransactionOutgoing self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_api_setup_wallet_args(
       ApiSetupWalletArgs self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_box_autoadd_recorded_transaction_incoming(
-      RecordedTransactionIncoming self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_box_autoadd_recorded_transaction_outgoing(
-      RecordedTransactionOutgoing self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
@@ -398,20 +429,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_api_recipient(
+      List<ApiRecipient> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_api_recorded_transaction(
+      List<ApiRecordedTransaction> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
       Uint8List self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_recipient(
-      List<Recipient> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_record_string_owned_output(
-      List<(String, OwnedOutput)> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_recorded_transaction(
-      List<RecordedTransaction> self, SseSerializer serializer);
+  void sse_encode_list_record_string_api_owned_output(
+      List<(String, ApiOwnedOutput)> self, SseSerializer serializer);
 
   @protected
   void sse_encode_log_entry(LogEntry self, SseSerializer serializer);
@@ -429,34 +460,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_usize(BigInt? self, SseSerializer serializer);
 
   @protected
-  void sse_encode_output_spend_status(
-      OutputSpendStatus self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_owned_output(OwnedOutput self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_recipient(Recipient self, SseSerializer serializer);
+  void sse_encode_record_string_api_owned_output(
+      (String, ApiOwnedOutput) self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_string_opt_box_autoadd_usize(
       (String, BigInt?) self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_record_string_owned_output(
-      (String, OwnedOutput) self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_recorded_transaction(
-      RecordedTransaction self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_recorded_transaction_incoming(
-      RecordedTransactionIncoming self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_recorded_transaction_outgoing(
-      RecordedTransactionOutgoing self, SseSerializer serializer);
 
   @protected
   void sse_encode_scan_progress(ScanProgress self, SseSerializer serializer);
@@ -481,9 +490,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_usize(BigInt self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_wallet_status(WalletStatus self, SseSerializer serializer);
 }
 
 // Section: wire_class

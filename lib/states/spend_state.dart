@@ -6,8 +6,8 @@ import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 
 class SpendState extends ChangeNotifier {
-  Map<String, OwnedOutput> selectedOutputs = {};
-  List<Recipient> recipients = List.empty(growable: true);
+  Map<String, ApiOwnedOutput> selectedOutputs = {};
+  List<ApiRecipient> recipients = List.empty(growable: true);
 
   SpendState();
 
@@ -18,7 +18,7 @@ class SpendState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleOutputSelection(String outpoint, OwnedOutput output) {
+  void toggleOutputSelection(String outpoint, ApiOwnedOutput output) {
     if (selectedOutputs.containsKey(outpoint)) {
       selectedOutputs.remove(outpoint);
     } else {
@@ -53,7 +53,7 @@ class SpendState extends ChangeNotifier {
     if (amount <= BigInt.from(546)) {
       throw Exception("Can't have amount less than 546 sats");
     }
-    recipients.add(Recipient(
+    recipients.add(ApiRecipient(
         address: address,
         amount: Amount(field0: amount),
         nbOutputs: nbOutputs));
@@ -96,8 +96,8 @@ class SpendState extends ChangeNotifier {
 
   (String, BigInt?) _newTransactionWithFees(
       String wallet,
-      Map<String, OwnedOutput> selectedOutputs,
-      List<Recipient> recipients,
+      Map<String, ApiOwnedOutput> selectedOutputs,
+      List<ApiRecipient> recipients,
       int feeRate) {
     try {
       final (psbt, changeIdx) = createNewPsbt(
@@ -144,7 +144,7 @@ class SpendState extends ChangeNotifier {
   String _markAsSpent(
     String wallet,
     String txid,
-    Map<String, OwnedOutput> selectedOutputs,
+    Map<String, ApiOwnedOutput> selectedOutputs,
   ) {
     try {
       final updatedWallet = markOutpointsSpent(
@@ -161,7 +161,7 @@ class SpendState extends ChangeNotifier {
       String wallet,
       String txid,
       List<String> selectedOutpoints,
-      List<Recipient> recipients,
+      List<ApiRecipient> recipients,
       BigInt? changeAmount) {
     final changeAmt = Amount(field0: changeAmount ?? BigInt.from(0));
     try {

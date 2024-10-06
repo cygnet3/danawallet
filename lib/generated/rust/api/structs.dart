@@ -33,6 +33,163 @@ class Amount {
           field0 == other.field0;
 }
 
+@freezed
+sealed class ApiOutputSpendStatus with _$ApiOutputSpendStatus {
+  const ApiOutputSpendStatus._();
+
+  const factory ApiOutputSpendStatus.unspent() = ApiOutputSpendStatus_Unspent;
+  const factory ApiOutputSpendStatus.spent(
+    String field0,
+  ) = ApiOutputSpendStatus_Spent;
+  const factory ApiOutputSpendStatus.mined(
+    String field0,
+  ) = ApiOutputSpendStatus_Mined;
+}
+
+class ApiOwnedOutput {
+  final int blockheight;
+  final U8Array32 tweak;
+  final Amount amount;
+  final String script;
+  final String? label;
+  final ApiOutputSpendStatus spendStatus;
+
+  const ApiOwnedOutput({
+    required this.blockheight,
+    required this.tweak,
+    required this.amount,
+    required this.script,
+    this.label,
+    required this.spendStatus,
+  });
+
+  @override
+  int get hashCode =>
+      blockheight.hashCode ^
+      tweak.hashCode ^
+      amount.hashCode ^
+      script.hashCode ^
+      label.hashCode ^
+      spendStatus.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiOwnedOutput &&
+          runtimeType == other.runtimeType &&
+          blockheight == other.blockheight &&
+          tweak == other.tweak &&
+          amount == other.amount &&
+          script == other.script &&
+          label == other.label &&
+          spendStatus == other.spendStatus;
+}
+
+class ApiRecipient {
+  final String address;
+  final Amount amount;
+  final int nbOutputs;
+
+  const ApiRecipient({
+    required this.address,
+    required this.amount,
+    required this.nbOutputs,
+  });
+
+  @override
+  int get hashCode => address.hashCode ^ amount.hashCode ^ nbOutputs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiRecipient &&
+          runtimeType == other.runtimeType &&
+          address == other.address &&
+          amount == other.amount &&
+          nbOutputs == other.nbOutputs;
+}
+
+@freezed
+sealed class ApiRecordedTransaction with _$ApiRecordedTransaction {
+  const ApiRecordedTransaction._();
+
+  const factory ApiRecordedTransaction.incoming(
+    ApiRecordedTransactionIncoming field0,
+  ) = ApiRecordedTransaction_Incoming;
+  const factory ApiRecordedTransaction.outgoing(
+    ApiRecordedTransactionOutgoing field0,
+  ) = ApiRecordedTransaction_Outgoing;
+}
+
+class ApiRecordedTransactionIncoming {
+  final String txid;
+  final Amount amount;
+  final int? confirmedAt;
+
+  const ApiRecordedTransactionIncoming({
+    required this.txid,
+    required this.amount,
+    this.confirmedAt,
+  });
+
+  String toString() => RustLib.instance.api
+          .crateApiStructsApiRecordedTransactionIncomingToString(
+        that: this,
+      );
+
+  @override
+  int get hashCode => txid.hashCode ^ amount.hashCode ^ confirmedAt.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiRecordedTransactionIncoming &&
+          runtimeType == other.runtimeType &&
+          txid == other.txid &&
+          amount == other.amount &&
+          confirmedAt == other.confirmedAt;
+}
+
+class ApiRecordedTransactionOutgoing {
+  final String txid;
+  final List<String> spentOutpoints;
+  final List<ApiRecipient> recipients;
+  final int? confirmedAt;
+  final Amount change;
+
+  const ApiRecordedTransactionOutgoing({
+    required this.txid,
+    required this.spentOutpoints,
+    required this.recipients,
+    this.confirmedAt,
+    required this.change,
+  });
+
+  String toString() => RustLib.instance.api
+          .crateApiStructsApiRecordedTransactionOutgoingToString(
+        that: this,
+      );
+
+  @override
+  int get hashCode =>
+      txid.hashCode ^
+      spentOutpoints.hashCode ^
+      recipients.hashCode ^
+      confirmedAt.hashCode ^
+      change.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiRecordedTransactionOutgoing &&
+          runtimeType == other.runtimeType &&
+          txid == other.txid &&
+          spentOutpoints == other.spentOutpoints &&
+          recipients == other.recipients &&
+          confirmedAt == other.confirmedAt &&
+          change == other.change;
+}
+
 class ApiSetupResult {
   final String walletBlob;
   final String? mnemonic;
@@ -96,173 +253,16 @@ sealed class ApiSetupWalletType with _$ApiSetupWalletType {
   ) = ApiSetupWalletType_WatchOnly;
 }
 
-@freezed
-sealed class OutputSpendStatus with _$OutputSpendStatus {
-  const OutputSpendStatus._();
-
-  const factory OutputSpendStatus.unspent() = OutputSpendStatus_Unspent;
-  const factory OutputSpendStatus.spent(
-    String field0,
-  ) = OutputSpendStatus_Spent;
-  const factory OutputSpendStatus.mined(
-    String field0,
-  ) = OutputSpendStatus_Mined;
-}
-
-class OwnedOutput {
-  final int blockheight;
-  final U8Array32 tweak;
-  final Amount amount;
-  final String script;
-  final String? label;
-  final OutputSpendStatus spendStatus;
-
-  const OwnedOutput({
-    required this.blockheight,
-    required this.tweak,
-    required this.amount,
-    required this.script,
-    this.label,
-    required this.spendStatus,
-  });
-
-  @override
-  int get hashCode =>
-      blockheight.hashCode ^
-      tweak.hashCode ^
-      amount.hashCode ^
-      script.hashCode ^
-      label.hashCode ^
-      spendStatus.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is OwnedOutput &&
-          runtimeType == other.runtimeType &&
-          blockheight == other.blockheight &&
-          tweak == other.tweak &&
-          amount == other.amount &&
-          script == other.script &&
-          label == other.label &&
-          spendStatus == other.spendStatus;
-}
-
-class Recipient {
-  final String address;
-  final Amount amount;
-  final int nbOutputs;
-
-  const Recipient({
-    required this.address,
-    required this.amount,
-    required this.nbOutputs,
-  });
-
-  @override
-  int get hashCode => address.hashCode ^ amount.hashCode ^ nbOutputs.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Recipient &&
-          runtimeType == other.runtimeType &&
-          address == other.address &&
-          amount == other.amount &&
-          nbOutputs == other.nbOutputs;
-}
-
-@freezed
-sealed class RecordedTransaction with _$RecordedTransaction {
-  const RecordedTransaction._();
-
-  const factory RecordedTransaction.incoming(
-    RecordedTransactionIncoming field0,
-  ) = RecordedTransaction_Incoming;
-  const factory RecordedTransaction.outgoing(
-    RecordedTransactionOutgoing field0,
-  ) = RecordedTransaction_Outgoing;
-}
-
-class RecordedTransactionIncoming {
-  final String txid;
-  final Amount amount;
-  final int? confirmedAt;
-
-  const RecordedTransactionIncoming({
-    required this.txid,
-    required this.amount,
-    this.confirmedAt,
-  });
-
-  String toString() =>
-      RustLib.instance.api.crateApiStructsRecordedTransactionIncomingToString(
-        that: this,
-      );
-
-  @override
-  int get hashCode => txid.hashCode ^ amount.hashCode ^ confirmedAt.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RecordedTransactionIncoming &&
-          runtimeType == other.runtimeType &&
-          txid == other.txid &&
-          amount == other.amount &&
-          confirmedAt == other.confirmedAt;
-}
-
-class RecordedTransactionOutgoing {
-  final String txid;
-  final List<String> spentOutpoints;
-  final List<Recipient> recipients;
-  final int? confirmedAt;
-  final Amount change;
-
-  const RecordedTransactionOutgoing({
-    required this.txid,
-    required this.spentOutpoints,
-    required this.recipients,
-    this.confirmedAt,
-    required this.change,
-  });
-
-  String toString() =>
-      RustLib.instance.api.crateApiStructsRecordedTransactionOutgoingToString(
-        that: this,
-      );
-
-  @override
-  int get hashCode =>
-      txid.hashCode ^
-      spentOutpoints.hashCode ^
-      recipients.hashCode ^
-      confirmedAt.hashCode ^
-      change.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RecordedTransactionOutgoing &&
-          runtimeType == other.runtimeType &&
-          txid == other.txid &&
-          spentOutpoints == other.spentOutpoints &&
-          recipients == other.recipients &&
-          confirmedAt == other.confirmedAt &&
-          change == other.change;
-}
-
-class WalletStatus {
+class ApiWalletStatus {
   final String address;
   final String network;
   final BigInt balance;
   final int birthday;
   final int lastScan;
-  final Map<String, OwnedOutput> outputs;
-  final List<RecordedTransaction> txHistory;
+  final Map<String, ApiOwnedOutput> outputs;
+  final List<ApiRecordedTransaction> txHistory;
 
-  const WalletStatus({
+  const ApiWalletStatus({
     required this.address,
     required this.network,
     required this.balance,
@@ -285,7 +285,7 @@ class WalletStatus {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is WalletStatus &&
+      other is ApiWalletStatus &&
           runtimeType == other.runtimeType &&
           address == other.address &&
           network == other.network &&

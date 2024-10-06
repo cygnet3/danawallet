@@ -10,8 +10,8 @@ import 'structs.dart';
 
 (String, BigInt?) createNewPsbt(
         {required String encodedWallet,
-        required Map<String, OwnedOutput> inputs,
-        required List<Recipient> recipients}) =>
+        required Map<String, ApiOwnedOutput> inputs,
+        required List<ApiRecipient> recipients}) =>
     RustLib.instance.api.crateApiPsbtCreateNewPsbt(
         encodedWallet: encodedWallet, inputs: inputs, recipients: recipients);
 

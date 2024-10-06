@@ -29,8 +29,8 @@ class OutputsScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     String outpoint =
                         walletState.getSpendableOutputs().keys.elementAt(index);
-                    OwnedOutput output = walletState
-                        .getSpendableOutputs()[outpoint] as OwnedOutput;
+                    ApiOwnedOutput output = walletState
+                        .getSpendableOutputs()[outpoint] as ApiOwnedOutput;
                     bool isSelected =
                         spendState.selectedOutputs.containsKey(outpoint);
                     return GestureDetector(
