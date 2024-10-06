@@ -6,6 +6,8 @@ import 'package:logger/logger.dart';
 class ChainState extends ChangeNotifier {
   int? _tip;
 
+  bool get initiated => _tip != null;
+
   ChainState();
 
   Future<void> initialize() async {
@@ -28,12 +30,8 @@ class ChainState extends ChangeNotifier {
     _tip = null;
   }
 
-  bool isInitialized() {
-    return _tip != null;
-  }
-
   int get tip {
-    if (isInitialized()) {
+    if (initiated) {
       return _tip!;
     } else {
       throw Exception('Attempted to get chain tip without initializing');

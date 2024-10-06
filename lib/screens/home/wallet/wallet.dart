@@ -79,7 +79,7 @@ class WalletScreenState extends State<WalletScreen> {
       ScanProgressNotifier scanProgress) {
     String text;
 
-    if (chainState.isInitialized()) {
+    if (chainState.initiated) {
       if (scanProgress.scanning) {
         final progressPercentage = scanProgress.progress * 100;
         text =
@@ -175,7 +175,7 @@ class WalletScreenState extends State<WalletScreen> {
                 BitcoinButtonFilled(
                   cornerRadius: 10,
                   title: scanProgress.scanning ? 'Stop scanning' : 'Scan',
-                  disabled: !chainState.isInitialized() ||
+                  disabled: !chainState.initiated ||
                       chainState.tip == walletState.lastScan,
                   onPressed: () async {
                     try {
