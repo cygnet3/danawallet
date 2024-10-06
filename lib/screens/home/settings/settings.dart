@@ -5,6 +5,7 @@ import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
+import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/theme_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -19,8 +20,10 @@ class SettingsScreen extends StatelessWidget {
     ChainState chainState,
     SpendState spendSelectionState,
     ThemeNotifier themeNotifier,
+    ScanProgressNotifier scanProgress,
   ) async {
     try {
+      await scanProgress.interruptScan();
       await walletState.reset();
 
       await SettingsRepository().resetAll();
@@ -93,6 +96,8 @@ class SettingsScreen extends StatelessWidget {
     final chainState = Provider.of<ChainState>(context, listen: false);
     final spendState = Provider.of<SpendState>(context, listen: false);
     final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+    final scanProgress =
+        Provider.of<ScanProgressNotifier>(context, listen: false);
     final homeProvider = Provider.of<HomeState>(context, listen: false);
 
     return Center(
@@ -127,8 +132,8 @@ class SettingsScreen extends StatelessWidget {
           BitcoinButtonOutlined(
               title: 'Wipe wallet',
               onPressed: () async {
-                await _removeWallet(
-                    walletState, chainState, spendState, themeNotifier);
+                await _removeWallet(walletState, chainState, spendState,
+                    themeNotifier, scanProgress);
                 homeProvider.showMainScreen();
                 if (context.mounted) {
                   Navigator.pushReplacement(
