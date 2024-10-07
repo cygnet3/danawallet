@@ -9,13 +9,13 @@ import 'package:flutter/material.dart';
 
 class WalletState extends ChangeNotifier {
   final walletRepository = WalletRepository();
-  BigInt amount = BigInt.from(0);
-  int birthday = 0;
-  int lastScan = 0;
-  Network _network = Network.signet;
-  String address = "";
-  Map<String, ApiOwnedOutput> ownedOutputs = {};
-  List<ApiRecordedTransaction> txHistory = List.empty(growable: true);
+  late BigInt amount;
+  late int birthday;
+  late int lastScan;
+  late Network _network;
+  late String address;
+  late Map<String, ApiOwnedOutput> ownedOutputs;
+  late List<ApiRecordedTransaction> txHistory;
 
   late StreamSubscription logStreamSubscription;
   late StreamSubscription scanResultSubscription;
@@ -80,14 +80,6 @@ class WalletState extends ChangeNotifier {
 
   Future<void> reset() async {
     await walletRepository.reset();
-
-    amount = BigInt.zero;
-    network = Network.signet;
-    birthday = 0;
-    lastScan = 0;
-    address = "";
-    ownedOutputs = {};
-    txHistory = List.empty(growable: true);
   }
 
   Future<void> saveWalletToSecureStorage(String wallet) async {
