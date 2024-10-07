@@ -15,9 +15,10 @@ class ScanProgressNotifier extends ChangeNotifier {
 
   bool get scanning => _completer != null && !_completer!.isCompleted;
 
-  ScanProgressNotifier();
+  // private constructor
+  ScanProgressNotifier._();
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     scanProgressSubscription = createScanProgressStream().listen(((event) {
       int start = event.start;
       current = event.current;
@@ -31,6 +32,12 @@ class ScanProgressNotifier extends ChangeNotifier {
         notifyListeners();
       }
     }));
+  }
+
+  static Future<ScanProgressNotifier> create() async {
+    final instance = ScanProgressNotifier._();
+    await instance._initialize();
+    return instance;
   }
 
   @override

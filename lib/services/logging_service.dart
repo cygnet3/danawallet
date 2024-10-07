@@ -6,14 +6,21 @@ import 'package:danawallet/generated/rust/logger.dart';
 class LoggingService {
   late StreamSubscription logStreamSubscription;
 
-  LoggingService();
+  // private constructor
+  LoggingService._();
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     logStreamSubscription =
         createLogStream(level: LogLevel.info, logDependencies: true)
             .listen((event) {
       // ignore: avoid_print
       print('${event.level} (${event.tag}): ${event.msg}');
     });
+  }
+
+  static Future<LoggingService> create() async {
+    final service = LoggingService._();
+    await service._initialize();
+    return service;
   }
 }

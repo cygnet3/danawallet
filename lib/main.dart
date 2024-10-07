@@ -16,13 +16,11 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
-  await LoggingService().initialize();
+  await LoggingService.create();
   final walletState = WalletState();
-  final scanNotifier = ScanProgressNotifier();
+  final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
   final themeNotifier = ThemeNotifier();
-
-  await scanNotifier.initialize();
 
   final bool walletLoaded;
   try {
