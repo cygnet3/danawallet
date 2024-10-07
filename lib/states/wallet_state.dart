@@ -3,7 +3,6 @@ import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
-import 'package:danawallet/generated/rust/logger.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +16,6 @@ class WalletState extends ChangeNotifier {
   late Map<String, ApiOwnedOutput> ownedOutputs;
   late List<ApiRecordedTransaction> txHistory;
 
-  late StreamSubscription logStreamSubscription;
   late StreamSubscription scanResultSubscription;
 
   WalletState();
@@ -29,7 +27,6 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<bool> initialize() async {
-    // todo: move logging stream to more sensible place
     await _initStreams();
 
     // we check if wallet str is present in database
@@ -54,12 +51,6 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> _initStreams() async {
-    logStreamSubscription =
-        createLogStream(level: LogLevel.info, logDependencies: true)
-            .listen((event) {
-      print('${event.level} (${event.tag}): ${event.msg}');
-      notifyListeners();
-    });
     scanResultSubscription = createScanResultStream().listen(((event) async {
       await saveWalletToSecureStorage(event.updatedWallet);
       try {
@@ -73,7 +64,6 @@ class WalletState extends ChangeNotifier {
 
   @override
   void dispose() {
-    logStreamSubscription.cancel();
     scanResultSubscription.cancel();
     super.dispose();
   }

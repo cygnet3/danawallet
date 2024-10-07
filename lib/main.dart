@@ -3,6 +3,7 @@ import 'package:danawallet/generated/rust/frb_generated.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/screens/home/home.dart';
+import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -15,6 +16,7 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
+  await LoggingService().initialize();
   final walletState = WalletState();
   final scanNotifier = ScanProgressNotifier();
   final chainState = ChainState();
