@@ -2,6 +2,16 @@
 
 Dana is a flutter app used for accepting bitcoin donations. It uses silent payments, a new static payments protocol, to receive donations while preserving on-chain privacy.
 
+## Building for linux (desktop)
+
+Building for linux should require no extra effort, simply execute
+
+```
+flutter run
+```
+
+This may also work on other platforms (macOS, Windows), but we have not tested this.
+
 ## Building for android
 
 Building for an android device requires some preparatory work, to generate binaries for this architecture.
