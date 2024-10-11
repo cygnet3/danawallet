@@ -1,10 +1,12 @@
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/outputs.dart';
-import 'package:danawallet/screens/home/wallet/spend/destination.dart';
 import 'package:danawallet/screens/home/wallet/spend/summary_widget.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class SpendScreen extends StatefulWidget {
@@ -16,25 +18,64 @@ class SpendScreen extends StatefulWidget {
 
 class SpendScreenState extends State<SpendScreen> {
   final TextEditingController feeRateController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
   bool _isSending = false;
-  String? _error;
+  String? _sendErrorText;
+  String? _addressErrorText;
+  String? _amountErrorText;
 
   Future<void> onSpendButtonPressed(
       WalletState walletState, SpendState spendState) async {
     {
       setState(() {
         _isSending = true;
-        _error = null;
+        _sendErrorText = null;
+        _amountErrorText = null;
+        _addressErrorText = null;
       });
+
+      spendState.recipients.clear();
+
+      String address = addressController.text;
+      BigInt amount;
+      try {
+        amount = BigInt.from(int.parse(amountController.text));
+      } on FormatException {
+        setState(() {
+          _isSending = false;
+          _amountErrorText = 'Invalid amount';
+        });
+        return;
+      }
 
       final int? fees = int.tryParse(feeRateController.text);
       if (fees == null) {
         setState(() {
           _isSending = false;
-          _error = "No fees input";
+          _sendErrorText = "No fees input";
         });
         return;
       }
+
+      if (address.contains('@')) {
+        // we interpret the address as a bip353 address
+        try {
+          final data = await Bip353.getAdressResolve(address);
+          if (data.silentpayment != null) {
+            address = data.silentpayment!;
+          }
+        } catch (e) {
+          setState(() {
+            _isSending = false;
+            _addressErrorText = 'Failed to look up address';
+          });
+          return;
+        }
+      }
+
+      spendState.addRecipients(address, amount, 1);
+
       try {
         final txid = await spendState.createSpendTx(walletState, fees);
 
@@ -47,7 +88,7 @@ class SpendScreenState extends State<SpendScreen> {
       } catch (e) {
         setState(() {
           _isSending = false;
-          _error = exceptionToString(e);
+          _sendErrorText = exceptionToString(e);
         });
       }
     }
@@ -59,10 +100,10 @@ class SpendScreenState extends State<SpendScreen> {
     final walletState = Provider.of<WalletState>(context, listen: false);
 
     final selectedOutputs = spendState.selectedOutputs;
-    final recipients = spendState.recipients;
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // removes back btn
         title: const Text('New Transaction'),
       ),
       body: Padding(
@@ -70,6 +111,47 @@ class SpendScreenState extends State<SpendScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Spacer(),
+            TextField(
+              controller: addressController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                labelText: 'Recipient',
+                hintText: 'satoshi@bitcoin.org, sp1q..., bc1q...',
+                errorText: _addressErrorText,
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.content_paste),
+                  onPressed: () async {
+                    ClipboardData? data =
+                        await Clipboard.getData(Clipboard.kTextPlain);
+                    if (data != null) {
+                      addressController.text = data.text ?? '';
+                    }
+                  },
+                ),
+              ),
+            ),
+            const Spacer(),
+            TextField(
+              controller: amountController,
+              decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: 'Amount',
+                  errorText: _amountErrorText,
+                  suffixText: 'sats'),
+              keyboardType: TextInputType.number,
+            ),
+            const Spacer(),
+            TextField(
+              controller: feeRateController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: false),
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Fee rate',
+                  suffixText: 'sat/vbyte'),
+            ),
             const Spacer(),
             SummaryWidget(
                 displayText: selectedOutputs.isEmpty
@@ -82,38 +164,19 @@ class SpendScreenState extends State<SpendScreen> {
                   );
                 }),
             const Spacer(),
-            SummaryWidget(
-                displayText: recipients.isEmpty
-                    ? "Tap here to add destinations"
-                    : "Sending to ${recipients.length} output(s) for a total of ${spendState.recipientTotalAmt()} sats",
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) => const DestinationScreen()),
-                  );
-                }),
-            const Spacer(),
-            const Text('Fee Rate (satoshis/vB)'),
-            TextField(
-              controller: feeRateController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: false),
-              decoration: const InputDecoration(
-                hintText: 'Enter fee rate',
-              ),
-            ),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: _isSending
-                  ? null
-                  : () => onSpendButtonPressed(walletState, spendState),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text('Spend'),
+            BitcoinButtonFilled(
+              cornerRadius: 10,
+              onPressed: () => onSpendButtonPressed(walletState, spendState),
+              title: 'Spend',
             ),
             const SizedBox(height: 10.0),
-            if (_error != null) Center(child: Text('Error: $_error')),
+            BitcoinButtonFilled(
+              cornerRadius: 10,
+              onPressed: Navigator.of(context).pop,
+              title: 'Cancel',
+            ),
+            if (_sendErrorText != null)
+              Center(child: Text('Error: $_sendErrorText')),
             if (_isSending) const Center(child: CircularProgressIndicator()),
             const Spacer()
           ],
