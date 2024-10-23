@@ -6,30 +6,19 @@ import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 
 class SpendState extends ChangeNotifier {
-  Map<String, ApiOwnedOutput> selectedOutputs = {};
   List<ApiRecipient> recipients = List.empty(growable: true);
 
   SpendState();
 
   void reset() {
-    selectedOutputs = {};
     recipients = List.empty(growable: true);
   }
 
-  void toggleOutputSelection(String outpoint, ApiOwnedOutput output) {
-    if (selectedOutputs.containsKey(outpoint)) {
-      selectedOutputs.remove(outpoint);
-    } else {
-      selectedOutputs[outpoint] = output;
-    }
-    notifyListeners();
-  }
-
-  BigInt outputSelectionTotalAmt() {
-    final total = selectedOutputs.values
-        .fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
-    return total;
-  }
+  // BigInt outputSelectionTotalAmt() {
+  //   final total = selectedOutputs.values
+  //       .fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
+  //   return total;
+  // }
 
   BigInt recipientTotalAmt() {
     final total = recipients.fold(
@@ -70,7 +59,21 @@ class SpendState extends ChangeNotifier {
   }
 
   Future<String> createSpendTx(WalletState walletState, int fees) async {
+    Map<String, ApiOwnedOutput> selectedOutputs = {};
     final wallet = await walletState.getWalletFromSecureStorage();
+
+    final totalOutputsAmt = recipientTotalAmt();
+    final spendableOutputs = walletState.getSpendableOutputs();
+    final target = totalOutputsAmt + BigInt.from(2500); // We just guess that fees won't exceed that, but that's horrible
+    var totalAmount = BigInt.zero;
+    spendableOutputs.forEach((outpoint, output) {
+      if (totalAmount >= target) {
+        return;
+      }
+      totalAmount += output.amount.field0;
+      selectedOutputs[outpoint] = output;
+    });
+
     final (unsignedPsbt, changeAmt) =
         _newTransactionWithFees(wallet, selectedOutputs, recipients, fees);
 
@@ -82,7 +85,6 @@ class SpendState extends ChangeNotifier {
         selectedOutputs.keys.toList(), recipients, changeAmt);
 
     // Clear selections
-    selectedOutputs.clear();
     recipients.clear();
 
     // save the updated wallet
