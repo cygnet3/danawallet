@@ -1,7 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/home/wallet/spend/outputs.dart';
-import 'package:danawallet/screens/home/wallet/spend/summary_widget.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:dart_bip353/dart_bip353.dart';
@@ -99,8 +97,6 @@ class SpendScreenState extends State<SpendScreen> {
     final spendState = Provider.of<SpendState>(context, listen: true);
     final walletState = Provider.of<WalletState>(context, listen: false);
 
-    final selectedOutputs = spendState.selectedOutputs;
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false, // removes back btn
@@ -152,17 +148,6 @@ class SpendScreenState extends State<SpendScreen> {
                   labelText: 'Fee rate',
                   suffixText: 'sat/vbyte'),
             ),
-            const Spacer(),
-            SummaryWidget(
-                displayText: selectedOutputs.isEmpty
-                    ? "Tap here to choose which coin to spend"
-                    : "Spending ${selectedOutputs.length} output(s) for a total of ${spendState.outputSelectionTotalAmt()} sats available",
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) => const OutputsScreen()),
-                  );
-                }),
             const Spacer(),
             BitcoinButtonFilled(
               cornerRadius: 10,
