@@ -12,10 +12,13 @@ use sp_client::{
 };
 
 use super::structs::{
-    Amount, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType, ApiRecipient, ApiWalletStatus,
+    Amount, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType, ApiWalletStatus,
 };
 
-const PASSPHRASE: &str = ""; // no passphrase for now
+/// we enable cutthrough by default, no need to let the user decide
+const ENABLE_CUTTHROUGH: bool = true;
+/// we don't add a passphrase to the bip39 mnemonic
+const PASSPHRASE: &str = "";
 
 #[flutter_rust_bridge::frb(sync)]
 pub fn setup_wallet(setup_args: ApiSetupWalletArgs) -> Result<ApiSetupResult> {
@@ -136,7 +139,7 @@ pub async fn scan_to_tip(
     KEEP_SCANNING.store(true, std::sync::atomic::Ordering::Relaxed);
 
     scanner
-        .scan_blocks(start, end, dust_limit, &KEEP_SCANNING)
+        .scan_blocks(start, end, dust_limit, ENABLE_CUTTHROUGH, &KEEP_SCANNING)
         .await?;
 
     Ok(())
