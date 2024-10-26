@@ -1,9 +1,14 @@
 use std::{collections::HashMap, str::FromStr};
 
 use serde::{Deserialize, Serialize};
-use sp_client::{bitcoin::{self, absolute::Height, OutPoint, ScriptBuf, Txid}, OutputSpendStatus, OwnedOutput, Recipient};
+use sp_client::{
+    bitcoin::{self, absolute::Height, OutPoint, ScriptBuf, Txid},
+    OutputSpendStatus, OwnedOutput, Recipient,
+};
 
-use crate::wallet::recorded::{RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing};
+use crate::wallet::recorded::{
+    RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
+};
 
 type SpendingTxId = String;
 type MinedInBlock = String;
@@ -159,13 +164,9 @@ pub struct ApiRecordedTransactionOutgoing {
 impl From<RecordedTransaction> for ApiRecordedTransaction {
     fn from(value: RecordedTransaction) -> Self {
         match value {
-            RecordedTransaction::Incoming(incoming) => {
-                Self::Incoming(incoming.into())
-            }
+            RecordedTransaction::Incoming(incoming) => Self::Incoming(incoming.into()),
 
-            RecordedTransaction::Outgoing(outgoing) => {
-                Self::Outgoing(outgoing.into())
-            }
+            RecordedTransaction::Outgoing(outgoing) => Self::Outgoing(outgoing.into()),
         }
     }
 }
