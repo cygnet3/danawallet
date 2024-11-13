@@ -127,19 +127,20 @@ pub async fn scan_to_tip(
     let owned_outpoints = wallet.outputs.keys().cloned().collect();
 
     let sp_client = wallet.client.clone();
-    let updater = WalletUpdater::new(wallet, start, end);
+    let updater = WalletUpdater::new(wallet);
+
+    KEEP_SCANNING.store(true, std::sync::atomic::Ordering::Relaxed);
 
     let mut scanner = SpScanner::new(
         sp_client,
         Box::new(updater),
         Box::new(backend),
         owned_outpoints,
+        &KEEP_SCANNING,
     );
 
-    KEEP_SCANNING.store(true, std::sync::atomic::Ordering::Relaxed);
-
     scanner
-        .scan_blocks(start, end, dust_limit, ENABLE_CUTTHROUGH, &KEEP_SCANNING)
+        .scan_blocks(start, end, dust_limit, ENABLE_CUTTHROUGH)
         .await?;
 
     Ok(())
