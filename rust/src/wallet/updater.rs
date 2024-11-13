@@ -17,17 +17,11 @@ use anyhow::{Error, Result};
 
 pub struct WalletUpdater {
     wallet: SpWallet,
-    scan_start: Height,
-    scan_end: Height,
 }
 
 impl WalletUpdater {
-    pub fn new(wallet: SpWallet, scan_start: Height, scan_end: Height) -> Self {
-        Self {
-            wallet,
-            scan_start,
-            scan_end,
-        }
+    pub fn new(wallet: SpWallet) -> Self {
+        Self { wallet }
     }
 
     fn confirm_recorded_outgoing_transaction(
@@ -62,59 +56,6 @@ impl WalletUpdater {
                 confirmed_at: Some(confirmed_at),
             }))
     }
-}
-
-impl Updater for WalletUpdater {
-    fn update_last_scan(&mut self, height: Height) {
-        self.wallet.last_scan = height;
-
-        let wallet_str = serde_json::to_string(&self.wallet).unwrap();
-        send_scan_result(ScanResult {
-            updated_wallet: wallet_str,
-        });
-    }
-
-    fn send_scan_progress(&self, current: Height) {
-        send_scan_progress(ScanProgress {
-            start: self.scan_start.to_consensus_u32(),
-            current: current.to_consensus_u32(),
-            end: self.scan_end.to_consensus_u32(),
-        });
-    }
-
-    fn record_block_outputs(
-        &mut self,
-        height: Height,
-        found_outputs: HashMap<OutPoint, OwnedOutput>,
-    ) {
-        // add outputs to history
-        let mut txs: HashMap<Txid, Amount> = HashMap::new();
-        for (outpoint, output) in found_outputs.iter() {
-            let entry = txs.entry(outpoint.txid).or_default();
-            *entry += output.amount;
-        }
-        for (txid, amount) in txs {
-            self.record_incoming_transaction(txid, amount, height);
-        }
-
-        // add outputs to known outputs
-        self.wallet.outputs.extend(found_outputs);
-    }
-
-    fn record_block_inputs(
-        &mut self,
-        blkheight: Height,
-        blkhash: BlockHash,
-        found_inputs: HashSet<OutPoint>,
-    ) -> Result<()> {
-        for outpoint in found_inputs {
-            // this may confirm the same tx multiple times, but this shouldn't be a problem
-            self.confirm_recorded_outgoing_transaction(outpoint, blkheight)?;
-            self.mark_mined(outpoint, blkhash)?;
-        }
-
-        Ok(())
-    }
 
     /// Mark the output as being spent in block `mined_in_block`
     /// We don't really need to check the previous status, if it's in a block there's nothing we can do
@@ -134,6 +75,7 @@ impl Updater for WalletUpdater {
     /// Revert the outpoint status to Unspent, regardless of the current status
     /// This could be useful on some rare occurrences, like a transaction falling out of mempool after a while
     /// Watch out we also reverse the mined state, use with caution
+    #[allow(unused)]
     fn revert_spent_status(&mut self, outpoint: OutPoint) -> Result<()> {
         let output = self
             .wallet
@@ -142,6 +84,66 @@ impl Updater for WalletUpdater {
             .ok_or(Error::msg("Outpoint not in list"))?;
 
         output.spend_status = OutputSpendStatus::Unspent;
+        Ok(())
+    }
+}
+
+impl Updater for WalletUpdater {
+    fn record_scan_progress(&mut self, start: Height, current: Height, end: Height) -> Result<()> {
+        self.wallet.last_scan = current;
+
+        send_scan_progress(ScanProgress {
+            start: start.to_consensus_u32(),
+            current: current.to_consensus_u32(),
+            end: end.to_consensus_u32(),
+        });
+
+        Ok(())
+    }
+
+    fn record_block_outputs(
+        &mut self,
+        height: Height,
+        _blkhash: BlockHash,
+        found_outputs: HashMap<OutPoint, OwnedOutput>,
+    ) -> Result<()> {
+        // add outputs to history
+        let mut txs: HashMap<Txid, Amount> = HashMap::new();
+        for (outpoint, output) in found_outputs.iter() {
+            let entry = txs.entry(outpoint.txid).or_default();
+            *entry += output.amount;
+        }
+        for (txid, amount) in txs {
+            self.record_incoming_transaction(txid, amount, height);
+        }
+
+        // add outputs to known outputs
+        self.wallet.outputs.extend(found_outputs);
+
+        Ok(())
+    }
+
+    fn record_block_inputs(
+        &mut self,
+        blkheight: Height,
+        blkhash: BlockHash,
+        found_inputs: HashSet<OutPoint>,
+    ) -> Result<()> {
+        for outpoint in found_inputs {
+            // this may confirm the same tx multiple times, but this shouldn't be a problem
+            self.confirm_recorded_outgoing_transaction(outpoint, blkheight)?;
+            self.mark_mined(outpoint, blkhash)?;
+        }
+
+        Ok(())
+    }
+
+    fn save_to_persistent_storage(&mut self) -> Result<()> {
+        let wallet_str = serde_json::to_string(&self.wallet)?;
+        send_scan_result(ScanResult {
+            updated_wallet: wallet_str,
+        });
+
         Ok(())
     }
 }
