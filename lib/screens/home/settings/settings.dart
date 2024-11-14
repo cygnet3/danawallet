@@ -88,14 +88,36 @@ class SettingsScreen extends StatelessWidget {
     });
   }
 
+  Future<void> _wipeWalletButtonPressed(BuildContext context) async {
+    final confirmed = await showConfirmationAlertDialog(
+        'Confirm deletion', """Are you sure you want to wipe your wallet?
+Make sure you have a backup of your seed phrase.
+Without a backup, your funds willl be lost!""");
+
+    if (confirmed && context.mounted) {
+      final walletState = Provider.of<WalletState>(context, listen: false);
+      final homeState = Provider.of<HomeState>(context, listen: false);
+
+      final chainState = Provider.of<ChainState>(context, listen: false);
+      final spendState = Provider.of<SpendState>(context, listen: false);
+      final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
+      final scanProgress =
+          Provider.of<ScanProgressNotifier>(context, listen: false);
+
+      await _removeWallet(walletState, chainState, spendState, themeNotifier,
+          scanProgress, homeState);
+      if (context.mounted) {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const CreateWalletScreen()));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context, listen: false);
-    final chainState = Provider.of<ChainState>(context, listen: false);
-    final spendState = Provider.of<SpendState>(context, listen: false);
-    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
-    final scanProgress =
-        Provider.of<ScanProgressNotifier>(context, listen: false);
     final homeState = Provider.of<HomeState>(context, listen: false);
 
     return Center(
@@ -128,17 +150,9 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           BitcoinButtonOutlined(
-              title: 'Wipe wallet',
-              onPressed: () async {
-                await _removeWallet(walletState, chainState, spendState,
-                    themeNotifier, scanProgress, homeState);
-                if (context.mounted) {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const CreateWalletScreen()));
-                }
-              }),
+            title: 'Wipe wallet',
+            onPressed: () => _wipeWalletButtonPressed(context),
+          )
         ],
       ),
     );

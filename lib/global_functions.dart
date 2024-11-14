@@ -1,3 +1,4 @@
+import 'package:danawallet/widgets/confirmation_widget.dart';
 import 'package:danawallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -49,6 +50,24 @@ Future<String?> showInputAlertDialog(TextEditingController controller,
         });
   } else {
     return Future.value(null);
+  }
+}
+
+Future<bool> showConfirmationAlertDialog(
+    String titleText, String labelText) async {
+  if (globalNavigatorKey.currentContext != null) {
+    final res = await showDialog<bool>(
+        context: globalNavigatorKey.currentContext!,
+        builder: (BuildContext dialogContext) {
+          return ConfirmationWidget(
+            titleText: titleText,
+            labelText: labelText,
+          );
+        });
+
+    return res ?? false;
+  } else {
+    return Future.value(false);
   }
 }
 
