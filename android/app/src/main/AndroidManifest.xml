@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.READ_CLIPBOARD"/>
     <uses-permission android:name="android.permission.WRITE_CLIPBOARD"/>
     <application
-        android:label="danawallet"
+        android:label="Dana"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
