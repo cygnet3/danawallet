@@ -157,6 +157,7 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<ApiWalletStatus> {
     Ok(ApiWalletStatus {
         address: wallet.client.get_receiving_address(),
         network: Some(wallet.client.get_network().to_core_arg().to_owned()),
+        change_address: wallet.client.sp_receiver.get_change_address(),
         balance: wallet.get_balance().to_sat(),
         birthday: wallet.birthday.to_consensus_u32(),
         last_scan: wallet.last_scan.to_consensus_u32(),
