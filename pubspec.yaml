@@ -52,6 +52,8 @@ dependencies:
     git:
       url: https://github.com/cygnet3/dart_bip353.git
       ref: add-sp
+  http: ^1.2.2
+
 
 
 dev_dependencies:
