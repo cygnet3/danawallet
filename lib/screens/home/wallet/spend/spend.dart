@@ -1,7 +1,9 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/mempool_api_fees_recommended_model.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/outputs.dart';
 import 'package:danawallet/screens/home/wallet/spend/summary_widget.dart';
+import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:dart_bip353/dart_bip353.dart';
@@ -17,13 +19,54 @@ class SpendScreen extends StatefulWidget {
 }
 
 class SpendScreenState extends State<SpendScreen> {
-  final TextEditingController feeRateController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  RecommendedFeeResponse recommendedFees = RecommendedFeeResponse.empty();
   bool _isSending = false;
   String? _sendErrorText;
   String? _addressErrorText;
   String? _amountErrorText;
+
+  int selectedFeeIndex = 2;
+
+  late final MempoolApiRepository mempoolApiRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentFeeRates();
+  }
+
+  Future<void> getCurrentFeeRates() async {
+    mempoolApiRepository = Provider.of<MempoolApiRepository>(context, listen: false);
+    try {
+      final response = await mempoolApiRepository.getCurrentFeeRate();
+      setState(() {
+        recommendedFees = response;
+      });
+    } catch (e) {
+      setState(() {
+        _sendErrorText = 'Failed to load fee rates';
+      });
+    }
+  }
+
+  int getSelectedFee() {
+    switch (selectedFeeIndex) {
+      case 0:
+        return recommendedFees.fastestFee;
+      case 1:
+        return recommendedFees.halfHourFee;
+      case 2:
+        return recommendedFees.hourFee;
+      case 3:
+        return recommendedFees.economyFee;
+      case 4:
+        return recommendedFees.minimumFee;
+      default:
+        return recommendedFees.hourFee;
+    }
+  }
 
   Future<void> onSpendButtonPressed(
       WalletState walletState, SpendState spendState) async {
@@ -49,11 +92,11 @@ class SpendScreenState extends State<SpendScreen> {
         return;
       }
 
-      final int? fees = int.tryParse(feeRateController.text);
-      if (fees == null) {
+      final int fees = getSelectedFee();
+      if (fees == 0) {
         setState(() {
           _isSending = false;
-          _sendErrorText = "No fees input";
+          _sendErrorText = "0 fees selected";
         });
         return;
       }
@@ -143,14 +186,27 @@ class SpendScreenState extends State<SpendScreen> {
               keyboardType: TextInputType.number,
             ),
             const Spacer(),
-            TextField(
-              controller: feeRateController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: false),
-              decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Fee rate',
-                  suffixText: 'sat/vbyte'),
+            Text(
+              'Fee Rate: ${getSelectedFee()} sat/vbyte',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            Slider(
+              value: selectedFeeIndex.toDouble(),
+              min: 0,
+              max: 4,
+              divisions: 4,
+              label: [
+                'Fastest',
+                'Half Hour',
+                'Hour',
+                'Economy',
+                'Minimum'
+              ][selectedFeeIndex],
+              onChanged: (value) {
+                setState(() {
+                  selectedFeeIndex = value.toInt();
+                });
+              },
             ),
             const Spacer(),
             SummaryWidget(
