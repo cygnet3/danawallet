@@ -69,6 +69,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
+  ApiSelectOutputsResult dco_decode_api_select_outputs_result(dynamic raw);
+
+  @protected
   ApiSetupResult dco_decode_api_setup_result(dynamic raw);
 
   @protected
@@ -217,6 +220,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ApiRecordedTransactionOutgoing sse_decode_api_recorded_transaction_outgoing(
+      SseDeserializer deserializer);
+
+  @protected
+  ApiSelectOutputsResult sse_decode_api_select_outputs_result(
       SseDeserializer deserializer);
 
   @protected
@@ -378,6 +385,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_api_recorded_transaction_outgoing(
       ApiRecordedTransactionOutgoing self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_select_outputs_result(
+      ApiSelectOutputsResult self, SseSerializer serializer);
 
   @protected
   void sse_encode_api_setup_result(
