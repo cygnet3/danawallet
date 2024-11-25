@@ -56,3 +56,10 @@ String addOutgoingTxToHistory(
         spentOutpoints: spentOutpoints,
         recipients: recipients,
         change: change);
+
+ApiSelectOutputsResult selectOutputs(
+        {required Map<String, ApiOwnedOutput> ownedOutputs,
+        required List<ApiRecipient> recipients,
+        required int feerate}) =>
+    RustLib.instance.api.crateApiWalletSelectOutputs(
+        ownedOutputs: ownedOutputs, recipients: recipients, feerate: feerate);
