@@ -246,6 +246,7 @@ impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
 
 pub struct ApiWalletStatus {
     pub address: String,
+    pub change_address: String,
     pub network: String,
     pub balance: u64,
     pub birthday: u32,
