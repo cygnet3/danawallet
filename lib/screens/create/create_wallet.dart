@@ -91,15 +91,21 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     await _setupWallet(setupWalletType, null);
   }
 
-  Future<void> _importFromSeed(String mnemonic, int birthday) async {
+  Future<void> _importFromSeed(String mnemonic) async {
     final setupWalletType = ApiSetupWalletType.mnemonic(mnemonic);
+
+    // When recovering, we select the default birthday for this selected network.
+    // This should be a 'safe' default, meaning most users will be able to scan
+    // starting from this birthday and find all of their funds.
+    // If users require a different birthday, they should edit it
+    // in the settings page.
+    final birthday = _selectedNetwork.defaultBirthday;
 
     await _setupWallet(setupWalletType, birthday);
   }
 
   Future<void> _showSeedInputDialog() async {
     TextEditingController seedController = TextEditingController();
-    TextEditingController birthdayController = TextEditingController();
 
     await showDialog(
       context: context,
@@ -125,24 +131,6 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10), // Spacing between text fields
-              TextField(
-                controller: birthdayController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: "Wallet birthday (in blocks)",
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.paste),
-                    onPressed: () async {
-                      ClipboardData? data =
-                          await Clipboard.getData(Clipboard.kTextPlain);
-                      if (data != null) {
-                        birthdayController.text = data.text ?? '';
-                      }
-                    },
-                  ),
-                ),
-              ),
             ],
           ),
           actions: <Widget>[
@@ -158,9 +146,8 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                 Navigator.of(dialogContext).pop(); // Close the dialog
                 // Process the input from the two text fields
                 final mnemonic = seedController.text;
-                final birthday = int.parse(birthdayController.text);
                 try {
-                  await _importFromSeed(mnemonic, birthday);
+                  await _importFromSeed(mnemonic);
                 } catch (e) {
                   rethrow;
                 }
