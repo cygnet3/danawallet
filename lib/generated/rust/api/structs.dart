@@ -190,6 +190,27 @@ class ApiRecordedTransactionOutgoing {
           change == other.change;
 }
 
+class ApiSelectOutputsResult {
+  final Map<String, ApiOwnedOutput> selectedOutputs;
+  final BigInt changeValue;
+
+  const ApiSelectOutputsResult({
+    required this.selectedOutputs,
+    required this.changeValue,
+  });
+
+  @override
+  int get hashCode => selectedOutputs.hashCode ^ changeValue.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiSelectOutputsResult &&
+          runtimeType == other.runtimeType &&
+          selectedOutputs == other.selectedOutputs &&
+          changeValue == other.changeValue;
+}
+
 class ApiSetupResult {
   final String walletBlob;
   final String? mnemonic;
@@ -255,6 +276,7 @@ sealed class ApiSetupWalletType with _$ApiSetupWalletType {
 
 class ApiWalletStatus {
   final String address;
+  final String changeAddress;
   final String network;
   final BigInt balance;
   final int birthday;
@@ -264,6 +286,7 @@ class ApiWalletStatus {
 
   const ApiWalletStatus({
     required this.address,
+    required this.changeAddress,
     required this.network,
     required this.balance,
     required this.birthday,
@@ -275,6 +298,7 @@ class ApiWalletStatus {
   @override
   int get hashCode =>
       address.hashCode ^
+      changeAddress.hashCode ^
       network.hashCode ^
       balance.hashCode ^
       birthday.hashCode ^
@@ -288,6 +312,7 @@ class ApiWalletStatus {
       other is ApiWalletStatus &&
           runtimeType == other.runtimeType &&
           address == other.address &&
+          changeAddress == other.changeAddress &&
           network == other.network &&
           balance == other.balance &&
           birthday == other.birthday &&

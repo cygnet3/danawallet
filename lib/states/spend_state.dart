@@ -6,30 +6,19 @@ import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 
 class SpendState extends ChangeNotifier {
-  Map<String, ApiOwnedOutput> selectedOutputs = {};
   List<ApiRecipient> recipients = List.empty(growable: true);
 
   SpendState();
 
   void reset() {
-    selectedOutputs = {};
     recipients = List.empty(growable: true);
   }
 
-  void toggleOutputSelection(String outpoint, ApiOwnedOutput output) {
-    if (selectedOutputs.containsKey(outpoint)) {
-      selectedOutputs.remove(outpoint);
-    } else {
-      selectedOutputs[outpoint] = output;
-    }
-    notifyListeners();
-  }
-
-  BigInt outputSelectionTotalAmt() {
-    final total = selectedOutputs.values
-        .fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
-    return total;
-  }
+  // BigInt outputSelectionTotalAmt() {
+  //   final total = selectedOutputs.values
+  //       .fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
+  //   return total;
+  // }
 
   BigInt recipientTotalAmt() {
     final total = recipients.fold(
@@ -71,18 +60,29 @@ class SpendState extends ChangeNotifier {
 
   Future<String> createSpendTx(WalletState walletState, int fees) async {
     final wallet = await walletState.getWalletFromSecureStorage();
-    final (unsignedPsbt, changeAmt) =
-        _newTransactionWithFees(wallet, selectedOutputs, recipients, fees);
+
+    final selectOutputsRes = selectOutputs(ownedOutputs: walletState.ownedOutputs, recipients: recipients, feerate: fees);
+
+    final selectedOutputs = selectOutputsRes.selectedOutputs;
+    final changeValue = selectOutputsRes.changeValue;
+
+    if (changeValue > BigInt.zero) {
+      // We need to add a change output
+      final changeAddress = getWalletInfo(encodedWallet: wallet).changeAddress;
+      recipients.add(ApiRecipient(address: changeAddress, amount: Amount(field0: changeValue), nbOutputs: 1));
+    }
+
+    final unsignedPsbt =
+        _newTransactionWithFees(wallet, selectedOutputs, recipients);
 
     final signedPsbt = _signPsbt(wallet, unsignedPsbt);
     final sentTxId =
         await _broadcastSignedPsbt(signedPsbt, walletState.network);
     final markedAsSpentWallet = _markAsSpent(wallet, sentTxId, selectedOutputs);
     final updatedWallet = _addTxToHistory(markedAsSpentWallet, sentTxId,
-        selectedOutputs.keys.toList(), recipients, changeAmt);
+        selectedOutputs.keys.toList(), recipients, changeValue);
 
     // Clear selections
-    selectedOutputs.clear();
     recipients.clear();
 
     // save the updated wallet
@@ -92,30 +92,19 @@ class SpendState extends ChangeNotifier {
     return sentTxId;
   }
 
-  (String, BigInt?) _newTransactionWithFees(
+  String _newTransactionWithFees(
       String wallet,
       Map<String, ApiOwnedOutput> selectedOutputs,
-      List<ApiRecipient> recipients,
-      int feeRate) {
+      List<ApiRecipient> recipients) {
     try {
       final (psbt, changeIdx) = createNewPsbt(
           encodedWallet: wallet,
           inputs: selectedOutputs,
           recipients: recipients);
 
-      // todo: use change address for fees instead of first address
-      final psbtWithFee = addFeeForFeeRate(
-          psbt: psbt, feeRate: feeRate, payer: recipients[0].address);
-
-      // get change amount after reducing fees
-      BigInt? changeAmt;
-      if (changeIdx != null) {
-        changeAmt = readAmtFromPsbtOutput(psbt: psbt, idx: changeIdx);
-      }
-
       final psbtWithSpOutputsFilled =
-          fillSpOutputs(encodedWallet: wallet, psbt: psbtWithFee);
-      return (psbtWithSpOutputsFilled, changeAmt);
+          fillSpOutputs(encodedWallet: wallet, psbt: psbt);
+      return psbtWithSpOutputsFilled;
     } catch (e) {
       rethrow;
     }
