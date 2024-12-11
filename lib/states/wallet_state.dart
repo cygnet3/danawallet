@@ -80,6 +80,10 @@ class WalletState extends ChangeNotifier {
     await walletRepository.saveSeedPhrase(seedphrase);
   }
 
+  Future<void> saveNetwork(Network network) async {
+    await walletRepository.saveNetwork(network);
+  }
+
   Future<String> getWalletFromSecureStorage() async {
     final wallet = await walletRepository.readWalletBlob();
     if (wallet != null) {
@@ -124,13 +128,22 @@ class WalletState extends ChangeNotifier {
       }
     }
 
+    // read network from wallet repository
+    // if network is not in storage, user may be using an old wallet where
+    // it was stored in the wallet blob, so  try reading from there instead
+    final network = await walletRepository.readNetwork();
+    if (network != null) {
+      this.network = network;
+    } else {
+      this.network = Network.fromBitcoinNetwork(walletInfo.network);
+    }
+
     address = walletInfo.address;
     amount = totalAmount;
     birthday = walletInfo.birthday;
     lastScan = walletInfo.lastScan;
     ownedOutputs = walletInfo.outputs;
     txHistory = walletInfo.txHistory;
-    network = Network.fromBitcoinNetwork(walletInfo.network);
   }
 
   Map<String, ApiOwnedOutput> getSpendableOutputs() {

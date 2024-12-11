@@ -72,6 +72,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
       final walletBlob = setupResult.walletBlob;
       final seedPhrase = setupResult.mnemonic;
       await walletState.saveWalletToSecureStorage(walletBlob);
+      await walletState.saveNetwork(_selectedNetwork);
       if (seedPhrase != null) {
         await walletState.saveSeedPhraseToSecureStorage(seedPhrase);
       }
