@@ -980,7 +980,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
     return ApiWalletStatus(
       address: dco_decode_String(arr[0]),
-      network: dco_decode_String(arr[1]),
+      network: dco_decode_opt_String(arr[1]),
       balance: dco_decode_u_64(arr[2]),
       birthday: dco_decode_u_32(arr[3]),
       lastScan: dco_decode_u_32(arr[4]),
@@ -1403,7 +1403,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ApiWalletStatus sse_decode_api_wallet_status(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_address = sse_decode_String(deserializer);
-    var var_network = sse_decode_String(deserializer);
+    var var_network = sse_decode_opt_String(deserializer);
     var var_balance = sse_decode_u_64(deserializer);
     var var_birthday = sse_decode_u_32(deserializer);
     var var_lastScan = sse_decode_u_32(deserializer);
@@ -1850,7 +1850,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ApiWalletStatus self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.address, serializer);
-    sse_encode_String(self.network, serializer);
+    sse_encode_opt_String(self.network, serializer);
     sse_encode_u_64(self.balance, serializer);
     sse_encode_u_32(self.birthday, serializer);
     sse_encode_u_32(self.lastScan, serializer);

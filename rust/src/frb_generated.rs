@@ -1066,7 +1066,7 @@ impl SseDecode for crate::api::structs::ApiWalletStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_address = <String>::sse_decode(deserializer);
-        let mut var_network = <String>::sse_decode(deserializer);
+        let mut var_network = <Option<String>>::sse_decode(deserializer);
         let mut var_balance = <u64>::sse_decode(deserializer);
         let mut var_birthday = <u32>::sse_decode(deserializer);
         let mut var_lastScan = <u32>::sse_decode(deserializer);
@@ -1914,7 +1914,7 @@ impl SseEncode for crate::api::structs::ApiWalletStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.address, serializer);
-        <String>::sse_encode(self.network, serializer);
+        <Option<String>>::sse_encode(self.network, serializer);
         <u64>::sse_encode(self.balance, serializer);
         <u32>::sse_encode(self.birthday, serializer);
         <u32>::sse_encode(self.last_scan, serializer);

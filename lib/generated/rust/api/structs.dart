@@ -255,7 +255,7 @@ sealed class ApiSetupWalletType with _$ApiSetupWalletType {
 
 class ApiWalletStatus {
   final String address;
-  final String network;
+  final String? network;
   final BigInt balance;
   final int birthday;
   final int lastScan;
@@ -264,7 +264,7 @@ class ApiWalletStatus {
 
   const ApiWalletStatus({
     required this.address,
-    required this.network,
+    this.network,
     required this.balance,
     required this.birthday,
     required this.lastScan,
