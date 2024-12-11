@@ -156,7 +156,7 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<ApiWalletStatus> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     Ok(ApiWalletStatus {
         address: wallet.client.get_receiving_address(),
-        network: wallet.client.get_network().to_core_arg().to_owned(),
+        network: Some(wallet.client.get_network().to_core_arg().to_owned()),
         balance: wallet.get_balance().to_sat(),
         birthday: wallet.birthday.to_consensus_u32(),
         last_scan: wallet.last_scan.to_consensus_u32(),

@@ -135,7 +135,7 @@ class WalletState extends ChangeNotifier {
     if (network != null) {
       this.network = network;
     } else {
-      this.network = Network.fromBitcoinNetwork(walletInfo.network);
+      this.network = Network.fromBitcoinNetwork(walletInfo.network!);
     }
 
     address = walletInfo.address;
