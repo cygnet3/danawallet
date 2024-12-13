@@ -1,7 +1,6 @@
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/services/logging_service.dart';
@@ -45,9 +44,6 @@ void main() async {
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: SpendState()),
         ChangeNotifierProvider.value(value: HomeState()),
-        ProxyProvider<WalletState, MempoolApiRepository>(
-          update: (_, walletState, __) => MempoolApiRepository(network: walletState.network),
-        ),
       ],
       child: SilentPaymentApp(walletLoaded: walletLoaded),
     ),

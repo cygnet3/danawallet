@@ -1,5 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:danawallet/data/models/mempool_api_fees_recommended_model.dart';
+import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/outputs.dart';
 import 'package:danawallet/screens/home/wallet/spend/summary_widget.dart';
@@ -38,7 +38,8 @@ class SpendScreenState extends State<SpendScreen> {
   }
 
   Future<void> getCurrentFeeRates() async {
-    mempoolApiRepository = Provider.of<MempoolApiRepository>(context, listen: false);
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    mempoolApiRepository = MempoolApiRepository(network: walletState.network);
     try {
       final response = await mempoolApiRepository.getCurrentFeeRate();
       setState(() {
@@ -54,15 +55,13 @@ class SpendScreenState extends State<SpendScreen> {
   int getSelectedFee() {
     switch (selectedFeeIndex) {
       case 0:
-        return recommendedFees.fastestFee;
+        return recommendedFees.nextBlockFee;
       case 1:
         return recommendedFees.halfHourFee;
       case 2:
         return recommendedFees.hourFee;
       case 3:
-        return recommendedFees.economyFee;
-      case 4:
-        return recommendedFees.minimumFee;
+        return recommendedFees.dayFee;
       default:
         return recommendedFees.hourFee;
     }
@@ -193,14 +192,13 @@ class SpendScreenState extends State<SpendScreen> {
             Slider(
               value: selectedFeeIndex.toDouble(),
               min: 0,
-              max: 4,
-              divisions: 4,
+              max: 3,
+              divisions: 3,
               label: [
-                'Fastest',
+                'Next block',
                 'Half Hour',
                 'Hour',
-                'Economy',
-                'Minimum'
+                'Day',
               ][selectedFeeIndex],
               onChanged: (value) {
                 setState(() {
