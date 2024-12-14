@@ -189,10 +189,19 @@ class SpendScreenState extends State<SpendScreen> {
             TextField(
               controller: amountController,
               decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: 'Amount',
-                  errorText: _amountErrorText,
-                  suffixText: 'sats'),
+                border: const OutlineInputBorder(),
+                labelText: 'Amount',
+                errorText: _amountErrorText,
+                suffixText: 'sats',
+                suffixIcon: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      amountController.text = availableBalance.toString();
+                    });
+                  },
+                  child: const Text('Max'),
+                ),
+              ),
               keyboardType: TextInputType.number,
             ),
             const Spacer(),
