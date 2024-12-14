@@ -142,6 +142,7 @@ class SpendScreenState extends State<SpendScreen> {
     final walletState = Provider.of<WalletState>(context, listen: false);
 
     final selectedOutputs = spendState.selectedOutputs;
+    final availableBalance = walletState.amount;
 
     return Scaffold(
       appBar: AppBar(
@@ -172,6 +173,16 @@ class SpendScreenState extends State<SpendScreen> {
                     }
                   },
                 ),
+              ),
+            ),
+            const Spacer(),
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                'Available Balance: $availableBalance',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ),
             const Spacer(),
