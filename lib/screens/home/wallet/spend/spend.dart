@@ -4,6 +4,7 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/outputs.dart';
 import 'package:danawallet/screens/home/wallet/spend/summary_widget.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:dart_bip353/dart_bip353.dart';
@@ -140,9 +141,11 @@ class SpendScreenState extends State<SpendScreen> {
   Widget build(BuildContext context) {
     final spendState = Provider.of<SpendState>(context, listen: true);
     final walletState = Provider.of<WalletState>(context, listen: false);
+    final chainState = Provider.of<ChainState>(context, listen: true);
 
     final selectedOutputs = spendState.selectedOutputs;
     final availableBalance = walletState.amount;
+    final blocksToScan = chainState.tip - walletState.lastScan;
 
     return Scaffold(
       appBar: AppBar(
@@ -178,11 +181,26 @@ class SpendScreenState extends State<SpendScreen> {
             const Spacer(),
             Align(
               alignment: Alignment.center,
-              child: Text(
-                'Available Balance: $availableBalance',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+              child: Column(
+                children: [
+                  Text(
+                    'Available Balance: $availableBalance',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  if (blocksToScan != 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Warning: $blocksToScan block(s) to scan, balance might be inaccurate.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: const Color.fromARGB(185, 251, 138, 0),
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
+                ],
               ),
             ),
             const Spacer(),
