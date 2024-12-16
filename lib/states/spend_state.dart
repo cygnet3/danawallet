@@ -25,6 +25,10 @@ class SpendState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void selectAllAvailableOutputs(Map<String, ApiOwnedOutput> spendableOutputs) {
+    selectedOutputs = spendableOutputs;
+  }
+
   BigInt outputSelectionTotalAmt() {
     final total = selectedOutputs.values
         .fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
