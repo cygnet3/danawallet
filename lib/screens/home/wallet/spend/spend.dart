@@ -215,6 +215,7 @@ class SpendScreenState extends State<SpendScreen> {
                   onPressed: () {
                     setState(() {
                       amountController.text = availableBalance.toString();
+                      spendState.selectAllAvailableOutputs(walletState.getSpendableOutputs());
                     });
                   },
                   child: const Text('Max'),
