@@ -247,6 +247,7 @@ impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
 pub struct ApiWalletStatus {
     pub address: String,
     pub network: Option<String>,
+    pub change_address: String,
     pub balance: u64,
     pub birthday: u32,
     pub last_scan: u32,
@@ -270,4 +271,9 @@ pub enum ApiSetupWalletType {
 pub struct ApiSetupResult {
     pub wallet_blob: String,
     pub mnemonic: Option<String>,
+}
+
+pub struct ApiSelectOutputsResult {
+    pub selected_outputs: HashMap<String, ApiOwnedOutput>,
+    pub change_value: u64,
 }
