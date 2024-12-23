@@ -35,10 +35,10 @@ void showAlertDialog(String title, String text) {
   }
 }
 
-Future<String?> showInputAlertDialog(TextEditingController controller,
+Future<dynamic> showInputAlertDialog(TextEditingController controller,
     TextInputType inputType, String titleText, String labelText) {
   if (globalNavigatorKey.currentContext != null) {
-    return showDialog<String>(
+    return showDialog<dynamic>(
         context: globalNavigatorKey.currentContext!,
         builder: (BuildContext dialogContext) {
           return InputAlertWidget(

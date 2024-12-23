@@ -26,13 +26,28 @@ class InputAlertWidget<T> extends StatelessWidget {
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Close the dialog without saving
+            Navigator.of(context).pop(true); // bool indicates we pressed reset
+          },
+          child: const Text('Reset to default'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(null); // Close the dialog without saving
           },
           child: const Text('Cancel'),
         ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(controller.text);
+            if (controller.text.isEmpty) {
+              // return null if no input
+              Navigator.of(context).pop(null);
+            }
+            // base return type on keyboard type
+            else if (inputType == TextInputType.number) {
+              Navigator.of(context).pop(int.tryParse(controller.text));
+            } else {
+              Navigator.of(context).pop(controller.text);
+            }
           },
           child: const Text('OK'),
         ),
