@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
@@ -44,32 +45,32 @@ class SettingsScreen extends StatelessWidget {
         TextInputType.number,
         'Enter Birthday',
         'Enter wallet\'s birthday (numeric value)');
-
-    if (birthday != null && int.tryParse(birthday) != null) {
-      try {
-        await walletState.updateWalletBirthday(int.parse(birthday));
-        homeState.showMainScreen();
-      } catch (e) {
-        rethrow;
-      }
+    if (birthday is int) {
+      await walletState.updateWalletBirthday(birthday);
+      homeState.showMainScreen();
+    } else if (birthday is bool && birthday) {
+      final defaultBirthday = walletState.network.defaultBirthday;
+      await walletState.updateWalletBirthday(defaultBirthday);
+      homeState.showMainScreen();
     }
   }
 
-  Future<void> _setBlindbitUrl(BuildContext context) async {
+  Future<void> _setBlindbitUrl(BuildContext context, Network network) async {
     SettingsRepository settings = SettingsRepository();
     final controller = TextEditingController();
     controller.text = await settings.getBlindbitUrl() ?? '';
 
-    showInputAlertDialog(controller, TextInputType.url, 'Set blindbit url',
-            'Only blindbit is currently supported')
-        .then((value) async {
-      if (value != null) {
-        await settings.setBlindbitUrl(value);
-      }
-    });
+    final value = await showInputAlertDialog(controller, TextInputType.url,
+        'Set blindbit url', 'Only blindbit is currently supported');
+    if (value is bool && value) {
+      final defaultBlindbitUrl = network.getDefaultBlindbitUrl();
+      await settings.setBlindbitUrl(defaultBlindbitUrl);
+    } else if (value is String) {
+      await settings.setBlindbitUrl(value);
+    }
   }
 
-  Future<void> _changeDustLimit(BuildContext context) async {
+  Future<void> _setDustLimit(BuildContext context) async {
     SettingsRepository settings = SettingsRepository();
     final controller = TextEditingController();
     final dustLimit = await settings.getDustLimit();
@@ -79,13 +80,14 @@ class SettingsScreen extends StatelessWidget {
       controller.text = '';
     }
 
-    showInputAlertDialog(controller, TextInputType.number, 'Set dust limit',
-            'Payments below this value are ignored')
-        .then((value) async {
-      if (value != null && int.tryParse(value) != null) {
-        await settings.setDustLimit(int.parse(value));
-      }
-    });
+    final value = await showInputAlertDialog(controller, TextInputType.number,
+        'Set dust limit', 'Payments below this value are ignored');
+
+    if (value is int) {
+      await settings.setDustLimit(value);
+    } else if (value is bool && value) {
+      await settings.setDustLimit(defaultDustLimit);
+    }
   }
 
   Future<void> _wipeWalletButtonPressed(BuildContext context) async {
@@ -140,13 +142,13 @@ Without a backup, your funds willl be lost!""");
           BitcoinButtonOutlined(
             title: 'Set backend url',
             onPressed: () {
-              _setBlindbitUrl(context);
+              _setBlindbitUrl(context, walletState.network);
             },
           ),
           BitcoinButtonOutlined(
             title: 'Set dust threshold',
             onPressed: () {
-              _changeDustLimit(context);
+              _setDustLimit(context);
             },
           ),
           BitcoinButtonOutlined(
