@@ -57,9 +57,29 @@ String addOutgoingTxToHistory(
         recipients: recipients,
         change: change);
 
-ApiSelectOutputsResult selectOutputs(
-        {required Map<String, ApiOwnedOutput> ownedOutputs,
-        required List<ApiRecipient> recipients,
-        required int feerate}) =>
-    RustLib.instance.api.crateApiWalletSelectOutputs(
-        ownedOutputs: ownedOutputs, recipients: recipients, feerate: feerate);
+ApiSilentPaymentUnsignedTransaction createNewTransaction(
+        {required String encodedWallet,
+        required Map<String, ApiOwnedOutput> apiOutputs,
+        required List<ApiRecipient> apiRecipients,
+        required int feerate,
+        required String network}) =>
+    RustLib.instance.api.crateApiWalletCreateNewTransaction(
+        encodedWallet: encodedWallet,
+        apiOutputs: apiOutputs,
+        apiRecipients: apiRecipients,
+        feerate: feerate,
+        network: network);
+
+ApiSilentPaymentUnsignedTransaction finalizeTransaction(
+        {required ApiSilentPaymentUnsignedTransaction unsignedTransaction}) =>
+    RustLib.instance.api.crateApiWalletFinalizeTransaction(
+        unsignedTransaction: unsignedTransaction);
+
+String signTransaction(
+        {required String encodedWallet,
+        required ApiSilentPaymentUnsignedTransaction unsignedTransaction}) =>
+    RustLib.instance.api.crateApiWalletSignTransaction(
+        encodedWallet: encodedWallet, unsignedTransaction: unsignedTransaction);
+
+Future<String> broadcastTx({required String tx, required String network}) =>
+    RustLib.instance.api.crateApiWalletBroadcastTx(tx: tx, network: network);
