@@ -307,7 +307,34 @@ pub struct ApiSetupResult {
     pub mnemonic: Option<String>,
 }
 
-pub struct ApiSelectOutputsResult {
-    pub selected_outputs: HashMap<String, ApiOwnedOutput>,
-    pub change_value: u64,
+pub struct ApiSilentPaymentUnsignedTransaction {
+    pub selected_utxos: Vec<(String, ApiOwnedOutput)>,
+    pub recipients: Vec<ApiRecipient>,
+    pub partial_secret: [u8; 32],
+    pub unsigned_tx: Option<String>,
+    pub network: String,
+}
+
+impl From<SilentPaymentUnsignedTransaction> for ApiSilentPaymentUnsignedTransaction {
+    fn from(value: SilentPaymentUnsignedTransaction) -> Self {
+        Self {
+            selected_utxos: value.selected_utxos.into_iter().map(|(outpoint, output)| (outpoint.to_string(), output.into())).collect(),
+            recipients: value.recipients.into_iter().map(|r| r.into()).collect(),
+            partial_secret: value.partial_secret.secret_bytes(),
+            unsigned_tx: value.unsigned_tx.map(|tx| serialize(&tx).to_lower_hex_string()),
+            network: value.network.to_string(),
+        }
+    }
+}
+
+impl From<ApiSilentPaymentUnsignedTransaction> for SilentPaymentUnsignedTransaction {
+    fn from(value: ApiSilentPaymentUnsignedTransaction) -> Self {
+        Self {
+            selected_utxos: value.selected_utxos.into_iter().map(|(outpoint, output)| (OutPoint::from_str(&outpoint).unwrap(), output.into())).collect(),
+            recipients: value.recipients.into_iter().map(|r| r.try_into().unwrap()).collect(),
+            partial_secret: SecretKey::from_slice(&value.partial_secret).unwrap(),
+            unsigned_tx: value.unsigned_tx.map(|tx| deserialize(&Vec::from_hex(&tx).unwrap()).unwrap()),
+            network: Network::from_core_arg(&value.network).unwrap(),
+        }
+    }
 }
