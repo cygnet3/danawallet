@@ -2,8 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use serde::{Deserialize, Serialize};
 use sp_client::{
-    bitcoin::{self, absolute::Height, OutPoint, ScriptBuf, Txid},
-    OutputSpendStatus, OwnedOutput, Recipient,
+    bitcoin::{self, absolute::Height, consensus::{deserialize, serialize}, hex::{DisplayHex, FromHex}, secp256k1::SecretKey, Address, Network, OutPoint, ScriptBuf, Txid}, OutputSpendStatus, OwnedOutput, Recipient, RecipientAddress, SilentPaymentUnsignedTransaction  
 };
 
 use crate::wallet::recorded::{
@@ -271,7 +270,7 @@ impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
                 .into_iter()
                 .map(|x| OutPoint::from_str(&x).unwrap())
                 .collect(),
-            recipients: value.recipients.into_iter().map(Into::into).collect(),
+            recipients: value.recipients.into_iter().map(|r| r.try_into().unwrap()).collect(),
             confirmed_at,
             change: value.change.into(),
         }
