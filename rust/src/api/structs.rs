@@ -136,7 +136,7 @@ pub struct ApiRecipient {
 impl From<Recipient> for ApiRecipient {
     fn from(value: Recipient) -> Self {
         ApiRecipient {
-            address: value.address,
+            address: value.address.into(),
             amount: value.amount.into(),
             nb_outputs: value.nb_outputs,
             outputs: value.outputs.iter().map(|txout| serialize(txout).to_lower_hex_string()).collect(),
@@ -144,13 +144,18 @@ impl From<Recipient> for ApiRecipient {
     }
 }
 
-impl From<ApiRecipient> for Recipient {
-    fn from(value: ApiRecipient) -> Self {
-        Recipient {
-            address: value.address,
+impl TryFrom<ApiRecipient> for Recipient {
+    type Error = anyhow::Error;
+    fn try_from(value: ApiRecipient) -> Result<Self, Self::Error> { 
+        let address = value.address.try_into()?;
+        let res = Recipient {
+            address,
             amount: value.amount.into(),
             nb_outputs: value.nb_outputs,
-        }
+            outputs: value.outputs.iter().map(|txout| deserialize(&Vec::from_hex(txout).unwrap()).unwrap()).collect(),
+        };
+
+        Ok(res)
     }
 }
 
