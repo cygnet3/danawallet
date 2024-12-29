@@ -130,6 +130,7 @@ pub struct ApiRecipient {
     pub address: String, // either old school or silent payment
     pub amount: Amount,
     pub nb_outputs: u32, // if address is not SP, only 1 is valid
+    pub outputs: Vec<String>,
 }
 
 impl From<Recipient> for ApiRecipient {
@@ -138,6 +139,7 @@ impl From<Recipient> for ApiRecipient {
             address: value.address,
             amount: value.amount.into(),
             nb_outputs: value.nb_outputs,
+            outputs: value.outputs.iter().map(|txout| serialize(txout).to_lower_hex_string()).collect(),
         }
     }
 }
