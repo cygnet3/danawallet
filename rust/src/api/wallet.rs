@@ -2,22 +2,21 @@ use std::{collections::HashMap, str::FromStr};
 
 use crate::wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater, KEEP_SCANNING};
 use anyhow::Result;
-use bdk_coin_select::{Candidate, ChangePolicy, CoinSelector, DrainWeights, FeeRate, Target, TargetFee, TargetOutputs, TR_DUST_RELAY_MIN_VALUE, TR_KEYSPEND_TXIN_WEIGHT};
+use bip39::rand::{thread_rng, RngCore};
 use sp_client::{
     bitcoin::{
-        absolute::Height, secp256k1::{PublicKey, SecretKey}, Address, Network, OutPoint, TxOut, Txid,  
-    }, silentpayments::utils::SilentPaymentAddress, BlindbitBackend, ChainBackend, SpClient, SpScanner, SpendKey
+        absolute::Height, consensus::serialize, hex::DisplayHex, secp256k1::{PublicKey, SecretKey}, Network, OutPoint, Txid  
+    }, BlindbitBackend, ChainBackend, OwnedOutput, Recipient, SpClient, SpScanner, SpendKey
 };
 
 use super::structs::{
-    Amount, ApiOutputSpendStatus, ApiOwnedOutput, ApiRecipient, ApiSelectOutputsResult, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType, ApiWalletStatus
+    Amount, ApiOwnedOutput, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType, ApiSilentPaymentUnsignedTransaction, ApiWalletStatus
 };
 
 /// we enable cutthrough by default, no need to let the user decide
 const ENABLE_CUTTHROUGH: bool = true;
 /// we don't add a passphrase to the bip39 mnemonic
 const PASSPHRASE: &str = "";
-const DUMMYADDRESS: &str = "bc1p2wsldez5mud2yam29q22wgfh9439spgduvct83k3pm50fcxa5dps59h4z5"; // we use that as a dummy tr address when selecting outputs
 
 #[flutter_rust_bridge::frb(sync)]
 pub fn setup_wallet(setup_args: ApiSetupWalletArgs) -> Result<ApiSetupResult> {
@@ -204,7 +203,7 @@ pub fn add_outgoing_tx_to_history(
 
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
-    let recipients = recipients.into_iter().map(Into::into).collect();
+    let recipients = recipients.into_iter().map(|r| r.try_into().unwrap()).collect();
 
     wallet.record_outgoing_transaction(txid, spent_outpoints, recipients, change.into());
 
@@ -212,64 +211,86 @@ pub fn add_outgoing_tx_to_history(
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn select_outputs(
-    owned_outputs: HashMap<String, ApiOwnedOutput>,
-    recipients: Vec<ApiRecipient>,
+pub fn create_new_transaction(
+    encoded_wallet: String,
+    api_outputs: HashMap<String, ApiOwnedOutput>,
+    api_recipients: Vec<ApiRecipient>,
     feerate: u32,
-) -> Result<ApiSelectOutputsResult> {
-    let change_policy = ChangePolicy::min_value(DrainWeights::default(), TR_DUST_RELAY_MIN_VALUE);
-
-    let outputs_vec: Vec<(String, ApiOwnedOutput)> = owned_outputs.into_iter()
-        .filter(|(_, o)| o.spend_status == ApiOutputSpendStatus::Unspent)
-        .collect(); 
-
-    let candidates: Vec<Candidate> = outputs_vec.iter()
-        .map(|(_, o)| Candidate::new(o.amount.0, TR_KEYSPEND_TXIN_WEIGHT, true))
-        .collect();
-
-    let mut coin_selector = CoinSelector::new(&candidates);
-
-    let outputs: Result<Vec<TxOut>> = recipients.into_iter()
-        .map(|r| {
-            let address = Address::from_str(&r.address).or_else(|_| {
-                // We just check that this is a valid sp address
-                // We will check networks at a later stage
-                let _ = SilentPaymentAddress::try_from(r.address).or_else(|_| {
-                    Err(anyhow::Error::msg("Invalid sp address"))
-                });
-                // We just use some placeholder for fee calculation 
-                Address::from_str(DUMMYADDRESS)
-            })?;
-            Ok(TxOut {
-                value: r.amount.into(),
-                script_pubkey: address.assume_checked().script_pubkey()
-            })
+    network: String,
+) -> Result<ApiSilentPaymentUnsignedTransaction> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    let client = wallet.client;
+    let available_utxos: Vec<(String, OwnedOutput)> = api_outputs.into_iter().map(|(outpoint, output)| (outpoint, output.into())).collect();
+    let recipients: Vec<Recipient> = api_recipients.into_iter().map(|r| { 
+            r.try_into().unwrap()
         })
         .collect();
+    let core_network = Network::from_core_arg(&network)?;
+    let res = client.create_new_transaction(available_utxos, recipients, feerate, core_network)?;
 
-    let outputs = outputs?;
+    Ok(res.into())
+}
 
-    let fee_rate = FeeRate::from_sat_per_vb(feerate as f32);
+#[flutter_rust_bridge::frb(sync)]
+pub fn finalize_transaction(unsigned_transaction: ApiSilentPaymentUnsignedTransaction) -> Result<ApiSilentPaymentUnsignedTransaction> {
+    let res = SpClient::finalize_transaction(unsigned_transaction.into())?;
+    Ok(res.into())
+}
 
-    let target = Target {
-        fee: TargetFee::from_feerate(fee_rate),
-        outputs: TargetOutputs::fund_outputs(outputs.iter().map(|o| (o.weight().to_wu(), o.value.to_sat())))
+#[flutter_rust_bridge::frb(sync)]
+pub fn sign_transaction(encoded_wallet: String, unsigned_transaction: ApiSilentPaymentUnsignedTransaction) -> Result<String> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    let client = wallet.client;
+    let mut aux_rand = [0u8; 32];
+
+    let mut rng = thread_rng();
+    rng.fill_bytes(&mut aux_rand);
+
+    let tx = client.sign_transaction(unsigned_transaction.into(), &aux_rand)?;
+    Ok(serialize(&tx).to_lower_hex_string())
+}
+
+pub async fn broadcast_tx(tx: String, network: String) -> Result<String> {
+    let tx: pushtx::Transaction = tx.parse().unwrap();
+
+    let txid = tx.txid();
+
+    let network = Network::from_core_arg(&network)?;
+
+    let network = match network {
+        Network::Bitcoin => pushtx::Network::Mainnet,
+        Network::Testnet => pushtx::Network::Testnet,
+        Network::Signet => pushtx::Network::Signet,
+        Network::Regtest => pushtx::Network::Regtest,
+        _ => unreachable!()
     };
 
-    coin_selector.select_until_target_met(target)?;
+    let opts = pushtx::Opts {
+        network,
+        ..Default::default()
+    };
 
-    let selected_indices = coin_selector.selected_indices();
-    let mut selection: HashMap<String, ApiOwnedOutput> = HashMap::with_capacity(selected_indices.len()); 
-    for i in selected_indices {
-        let (outpoint, output) = outputs_vec.get(*i).unwrap();
-        selection.insert(outpoint.to_string(), output.clone().into());
-    }
-    let change = coin_selector.drain(target, change_policy);
+    tokio::task::spawn_blocking(move || {
+        let receiver = pushtx::broadcast(vec![tx], opts);
 
-    let change_value = if change.is_some() { change.value } else { 0 };
-
-    Ok(ApiSelectOutputsResult { 
-        selected_outputs: selection, 
-        change_value 
+        loop {
+            match receiver.recv().unwrap() {
+                pushtx::Info::Done(Ok(report)) => {
+                    if report.success.len() > 0 {
+                        log::info!("broadcasted {} transactions", report.success.len());
+                        break;
+                    } else {
+                         return Err(anyhow::Error::msg("Failed to broadcast transaction, probably unable to connect to Tor peers"));
+                    }
+                }
+                pushtx::Info::Done(Err(err)) => return Err(anyhow::Error::msg(err.to_string())),
+                _ => {}
+            }
+        }
+        Ok(())
     })
+    .await??;
+
+    Ok(txid.to_string())
 }
+
