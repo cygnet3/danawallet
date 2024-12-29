@@ -1,5 +1,3 @@
-import 'package:danawallet/constants.dart';
-import 'package:danawallet/generated/rust/api/psbt.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -12,18 +10,6 @@ class SpendState extends ChangeNotifier {
 
   void reset() {
     recipients = List.empty(growable: true);
-  }
-
-  // BigInt outputSelectionTotalAmt() {
-  //   final total = selectedOutputs.values
-  //       .fold(BigInt.zero, (sum, element) => sum + element.amount.field0);
-  //   return total;
-  // }
-
-  BigInt recipientTotalAmt() {
-    final total = recipients.fold(
-        BigInt.zero, (sum, element) => sum + element.amount.field0);
-    return total;
   }
 
   Future<void> addRecipients(
@@ -43,7 +29,8 @@ class SpendState extends ChangeNotifier {
     recipients.add(ApiRecipient(
         address: address,
         amount: Amount(field0: amount),
-        nbOutputs: nbOutputs));
+        nbOutputs: nbOutputs,
+        outputs: List.empty(growable: true)));
 
     notifyListeners();
   }
@@ -61,32 +48,46 @@ class SpendState extends ChangeNotifier {
   Future<String> createSpendTx(WalletState walletState, int fees) async {
     final wallet = await walletState.getWalletFromSecureStorage();
 
-    final selectOutputsRes = selectOutputs(
-        ownedOutputs: walletState.ownedOutputs,
-        recipients: recipients,
-        feerate: fees);
+    final ownedOutputs = walletState.ownedOutputs;
+    final network = walletState.network.toBitcoinNetwork;
+    final walletInfo = getWalletInfo(encodedWallet: wallet);
 
-    final selectedOutputs = selectOutputsRes.selectedOutputs;
-    final changeValue = selectOutputsRes.changeValue;
+    String txid = "";
+    List<(String, ApiOwnedOutput)> selectedOutputs;
+    BigInt changeValue = BigInt.zero;
+    try {
+      final unsignedTx = createNewTransaction(
+          encodedWallet: wallet,
+          apiOutputs: ownedOutputs,
+          apiRecipients: recipients,
+          feerate: fees,
+          network: network);
 
-    if (changeValue > BigInt.zero) {
-      // We need to add a change output
-      final changeAddress = getWalletInfo(encodedWallet: wallet).changeAddress;
-      recipients.add(ApiRecipient(
-          address: changeAddress,
-          amount: Amount(field0: changeValue),
-          nbOutputs: 1));
+      selectedOutputs = unsignedTx.selectedUtxos;
+
+      for (final recipient in unsignedTx.recipients) {
+        if (recipient.address == walletInfo.changeAddress) {
+          changeValue += recipient.amount.field0;
+          break;
+        }
+      }
+
+      final finalizedTx = finalizeTransaction(unsignedTransaction: unsignedTx);
+
+      final signedTx = signTransaction(
+          encodedWallet: wallet, unsignedTransaction: finalizedTx);
+      txid = await broadcastTx(tx: signedTx, network: network);
+    } catch (e) {
+      rethrow;
     }
 
-    final unsignedPsbt =
-        _newTransactionWithFees(wallet, selectedOutputs, recipients);
-
-    final signedPsbt = _signPsbt(wallet, unsignedPsbt);
-    final sentTxId =
-        await _broadcastSignedPsbt(signedPsbt, walletState.network);
-    final markedAsSpentWallet = _markAsSpent(wallet, sentTxId, selectedOutputs);
-    final updatedWallet = _addTxToHistory(markedAsSpentWallet, sentTxId,
-        selectedOutputs.keys.toList(), recipients, changeValue);
+    final markedAsSpentWallet = _markAsSpent(wallet, txid, selectedOutputs);
+    final updatedWallet = _addTxToHistory(
+        markedAsSpentWallet,
+        txid,
+        selectedOutputs.map((tuple) => tuple.$1).toList(),
+        recipients,
+        changeValue);
 
     // Clear selections
     recipients.clear();
@@ -95,55 +96,19 @@ class SpendState extends ChangeNotifier {
     walletState.saveWalletToSecureStorage(updatedWallet);
     await walletState.updateWalletStatus();
 
-    return sentTxId;
-  }
-
-  String _newTransactionWithFees(
-      String wallet,
-      Map<String, ApiOwnedOutput> selectedOutputs,
-      List<ApiRecipient> recipients) {
-    try {
-      final (psbt, changeIdx) = createNewPsbt(
-          encodedWallet: wallet,
-          inputs: selectedOutputs,
-          recipients: recipients);
-
-      final psbtWithSpOutputsFilled =
-          fillSpOutputs(encodedWallet: wallet, psbt: psbt);
-      return psbtWithSpOutputsFilled;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  String _signPsbt(
-    String wallet,
-    String unsignedPsbt,
-  ) {
-    return signPsbt(encodedWallet: wallet, psbt: unsignedPsbt, finalize: true);
-  }
-
-  Future<String> _broadcastSignedPsbt(
-      String signedPsbt, Network network) async {
-    try {
-      final tx = extractTxFromPsbt(psbt: signedPsbt);
-      final txid = await broadcastTx(tx: tx, network: network.toBitcoinNetwork);
-      return txid;
-    } catch (e) {
-      rethrow;
-    }
+    return txid;
   }
 
   String _markAsSpent(
     String wallet,
     String txid,
-    Map<String, ApiOwnedOutput> selectedOutputs,
+    List<(String, ApiOwnedOutput)> selectedOutputs,
   ) {
+    List<String> selectedOutpoints =
+        selectedOutputs.map((tuple) => tuple.$1).toList();
     try {
       final updatedWallet = markOutpointsSpent(
-          encodedWallet: wallet,
-          spentBy: txid,
-          spent: selectedOutputs.keys.toList());
+          encodedWallet: wallet, spentBy: txid, spent: selectedOutpoints);
       return updatedWallet;
     } catch (e) {
       rethrow;
