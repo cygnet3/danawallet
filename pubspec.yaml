@@ -53,6 +53,7 @@ dependencies:
       url: https://github.com/cygnet3/dart_bip353.git
       ref: add-sp
   http: ^1.2.2
+  mobile_scanner: ^6.0.2
 
 
 
