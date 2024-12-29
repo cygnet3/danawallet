@@ -99,6 +99,33 @@ impl From<ApiOwnedOutput> for OwnedOutput {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum ApiRecipientAddress {
+    LegacyAddress(String),
+    SpAddress(String),
+    Data(String),
+}
+
+impl From<ApiRecipientAddress> for RecipientAddress {
+    fn from(value: ApiRecipientAddress) -> Self {
+        match value {
+            ApiRecipientAddress::LegacyAddress(str) => Self::LegacyAddress(Address::from_str(&str).unwrap()),
+            ApiRecipientAddress::SpAddress(str) => Self::SpAddress(str.try_into().unwrap()),
+            ApiRecipientAddress::Data(str) => Self::Data(Vec::from_hex(&str).unwrap()),
+        }
+    }
+}
+
+impl From<RecipientAddress> for ApiRecipientAddress {
+    fn from(value: RecipientAddress) -> Self {
+        match value {
+            RecipientAddress::LegacyAddress(addr) => Self::LegacyAddress(addr.assume_checked().to_string()),
+            RecipientAddress::SpAddress(sp_address) => Self::SpAddress(sp_address.into()),
+            RecipientAddress::Data(vec) => Self::Data(vec.to_lower_hex_string()),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ApiRecipient {
     pub address: String, // either old school or silent payment
     pub amount: Amount,
