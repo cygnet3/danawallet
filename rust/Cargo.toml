@@ -8,7 +8,7 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.3.0"
-sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "master", features = ["blindbit-backend"]}
+sp_client = { git = "https://github.com/Sosthene00/sp-client", branch = "expand-recipient-address", features = ["blindbit-backend"]}
 lazy_static = "1.4"
 anyhow = "1.0"
 serde = { version = "1.0.188", features = ["derive"] }
@@ -22,4 +22,3 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 pushtx = { git = "https://github.com/cygnet3/pushtx", branch = "master" }
 futures = "0.3"
 async-trait = "0.1"
-bdk_coin_select ={ git = "https://github.com/bitcoindevkit/coin-select.git", rev = "c22b30b7dcc8d20d861033580abd0bcbd1e07f91" }
