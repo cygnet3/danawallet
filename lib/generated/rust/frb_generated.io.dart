@@ -4,7 +4,6 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/chain.dart';
-import 'api/psbt.dart';
 import 'api/stream.dart';
 import 'api/structs.dart';
 import 'api/wallet.dart';
@@ -69,9 +68,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
-  ApiSelectOutputsResult dco_decode_api_select_outputs_result(dynamic raw);
-
-  @protected
   ApiSetupResult dco_decode_api_setup_result(dynamic raw);
 
   @protected
@@ -79,6 +75,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ApiSetupWalletType dco_decode_api_setup_wallet_type(dynamic raw);
+
+  @protected
+  ApiSilentPaymentUnsignedTransaction
+      dco_decode_api_silent_payment_unsigned_transaction(dynamic raw);
 
   @protected
   ApiWalletStatus dco_decode_api_wallet_status(dynamic raw);
@@ -101,10 +101,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ApiSetupWalletArgs dco_decode_box_autoadd_api_setup_wallet_args(dynamic raw);
 
   @protected
-  int dco_decode_box_autoadd_u_32(dynamic raw);
+  ApiSilentPaymentUnsignedTransaction
+      dco_decode_box_autoadd_api_silent_payment_unsigned_transaction(
+          dynamic raw);
 
   @protected
-  BigInt dco_decode_box_autoadd_usize(dynamic raw);
+  int dco_decode_box_autoadd_u_32(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -142,14 +144,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
 
   @protected
-  BigInt? dco_decode_opt_box_autoadd_usize(dynamic raw);
-
-  @protected
   (String, ApiOwnedOutput) dco_decode_record_string_api_owned_output(
       dynamic raw);
-
-  @protected
-  (String, BigInt?) dco_decode_record_string_opt_box_autoadd_usize(dynamic raw);
 
   @protected
   ScanProgress dco_decode_scan_progress(dynamic raw);
@@ -171,9 +167,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void dco_decode_unit(dynamic raw);
-
-  @protected
-  BigInt dco_decode_usize(dynamic raw);
 
   @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
@@ -223,10 +216,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
-  ApiSelectOutputsResult sse_decode_api_select_outputs_result(
-      SseDeserializer deserializer);
-
-  @protected
   ApiSetupResult sse_decode_api_setup_result(SseDeserializer deserializer);
 
   @protected
@@ -236,6 +225,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ApiSetupWalletType sse_decode_api_setup_wallet_type(
       SseDeserializer deserializer);
+
+  @protected
+  ApiSilentPaymentUnsignedTransaction
+      sse_decode_api_silent_payment_unsigned_transaction(
+          SseDeserializer deserializer);
 
   @protected
   ApiWalletStatus sse_decode_api_wallet_status(SseDeserializer deserializer);
@@ -261,10 +255,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
-  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+  ApiSilentPaymentUnsignedTransaction
+      sse_decode_box_autoadd_api_silent_payment_unsigned_transaction(
+          SseDeserializer deserializer);
 
   @protected
-  BigInt sse_decode_box_autoadd_usize(SseDeserializer deserializer);
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -303,14 +299,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
-  BigInt? sse_decode_opt_box_autoadd_usize(SseDeserializer deserializer);
-
-  @protected
   (String, ApiOwnedOutput) sse_decode_record_string_api_owned_output(
-      SseDeserializer deserializer);
-
-  @protected
-  (String, BigInt?) sse_decode_record_string_opt_box_autoadd_usize(
       SseDeserializer deserializer);
 
   @protected
@@ -333,9 +322,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
-
-  @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer);
 
   @protected
   void sse_encode_AnyhowException(
@@ -387,10 +373,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ApiRecordedTransactionOutgoing self, SseSerializer serializer);
 
   @protected
-  void sse_encode_api_select_outputs_result(
-      ApiSelectOutputsResult self, SseSerializer serializer);
-
-  @protected
   void sse_encode_api_setup_result(
       ApiSetupResult self, SseSerializer serializer);
 
@@ -401,6 +383,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_api_setup_wallet_type(
       ApiSetupWalletType self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_api_silent_payment_unsigned_transaction(
+      ApiSilentPaymentUnsignedTransaction self, SseSerializer serializer);
 
   @protected
   void sse_encode_api_wallet_status(
@@ -425,10 +411,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ApiSetupWalletArgs self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+  void sse_encode_box_autoadd_api_silent_payment_unsigned_transaction(
+      ApiSilentPaymentUnsignedTransaction self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_usize(BigInt self, SseSerializer serializer);
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
@@ -468,15 +455,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
 
   @protected
-  void sse_encode_opt_box_autoadd_usize(BigInt? self, SseSerializer serializer);
-
-  @protected
   void sse_encode_record_string_api_owned_output(
       (String, ApiOwnedOutput) self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_record_string_opt_box_autoadd_usize(
-      (String, BigInt?) self, SseSerializer serializer);
 
   @protected
   void sse_encode_scan_progress(ScanProgress self, SseSerializer serializer);
@@ -498,9 +478,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer);
 }
 
 // Section: wire_class

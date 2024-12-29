@@ -9,7 +9,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'structs.freezed.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These types are ignored because they are not used by any `pub` functions: `ApiRecipientAddress`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
 
 class Amount {
   final BigInt field0;
@@ -89,15 +90,21 @@ class ApiRecipient {
   final String address;
   final Amount amount;
   final int nbOutputs;
+  final List<String> outputs;
 
   const ApiRecipient({
     required this.address,
     required this.amount,
     required this.nbOutputs,
+    required this.outputs,
   });
 
   @override
-  int get hashCode => address.hashCode ^ amount.hashCode ^ nbOutputs.hashCode;
+  int get hashCode =>
+      address.hashCode ^
+      amount.hashCode ^
+      nbOutputs.hashCode ^
+      outputs.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -106,7 +113,8 @@ class ApiRecipient {
           runtimeType == other.runtimeType &&
           address == other.address &&
           amount == other.amount &&
-          nbOutputs == other.nbOutputs;
+          nbOutputs == other.nbOutputs &&
+          outputs == other.outputs;
 }
 
 @freezed
@@ -190,27 +198,6 @@ class ApiRecordedTransactionOutgoing {
           change == other.change;
 }
 
-class ApiSelectOutputsResult {
-  final Map<String, ApiOwnedOutput> selectedOutputs;
-  final BigInt changeValue;
-
-  const ApiSelectOutputsResult({
-    required this.selectedOutputs,
-    required this.changeValue,
-  });
-
-  @override
-  int get hashCode => selectedOutputs.hashCode ^ changeValue.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ApiSelectOutputsResult &&
-          runtimeType == other.runtimeType &&
-          selectedOutputs == other.selectedOutputs &&
-          changeValue == other.changeValue;
-}
-
 class ApiSetupResult {
   final String walletBlob;
   final String? mnemonic;
@@ -274,6 +261,41 @@ sealed class ApiSetupWalletType with _$ApiSetupWalletType {
   ) = ApiSetupWalletType_WatchOnly;
 }
 
+class ApiSilentPaymentUnsignedTransaction {
+  final List<(String, ApiOwnedOutput)> selectedUtxos;
+  final List<ApiRecipient> recipients;
+  final U8Array32 partialSecret;
+  final String? unsignedTx;
+  final String network;
+
+  const ApiSilentPaymentUnsignedTransaction({
+    required this.selectedUtxos,
+    required this.recipients,
+    required this.partialSecret,
+    this.unsignedTx,
+    required this.network,
+  });
+
+  @override
+  int get hashCode =>
+      selectedUtxos.hashCode ^
+      recipients.hashCode ^
+      partialSecret.hashCode ^
+      unsignedTx.hashCode ^
+      network.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiSilentPaymentUnsignedTransaction &&
+          runtimeType == other.runtimeType &&
+          selectedUtxos == other.selectedUtxos &&
+          recipients == other.recipients &&
+          partialSecret == other.partialSecret &&
+          unsignedTx == other.unsignedTx &&
+          network == other.network;
+}
+
 class ApiWalletStatus {
   final String address;
   final String? network;
@@ -298,8 +320,8 @@ class ApiWalletStatus {
   @override
   int get hashCode =>
       address.hashCode ^
-      changeAddress.hashCode ^
       network.hashCode ^
+      changeAddress.hashCode ^
       balance.hashCode ^
       birthday.hashCode ^
       lastScan.hashCode ^
@@ -312,8 +334,8 @@ class ApiWalletStatus {
       other is ApiWalletStatus &&
           runtimeType == other.runtimeType &&
           address == other.address &&
-          changeAddress == other.changeAddress &&
           network == other.network &&
+          changeAddress == other.changeAddress &&
           balance == other.balance &&
           birthday == other.birthday &&
           lastScan == other.lastScan &&
