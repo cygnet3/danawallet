@@ -11,6 +11,7 @@ import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 
 class SpendScreen extends StatefulWidget {
   const SpendScreen({super.key});
@@ -36,6 +37,26 @@ class SpendScreenState extends State<SpendScreen> {
   void initState() {
     super.initState();
     getCurrentFeeRates();
+  }
+
+  void _scanQRCode() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QRCodeScannerWidget(
+          onQRCodeScanned: (scannedValue) {
+            setState(() {
+              addressController.text = scannedValue;
+              _addressErrorText = null; // Clear any previous error
+            });
+            Navigator.pop(context); // Close the scanner
+          },
+          onCancel: () {
+            Navigator.pop(context); // Close the scanner
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> getCurrentFeeRates() async {
@@ -166,16 +187,22 @@ class SpendScreenState extends State<SpendScreen> {
                 labelText: 'Recipient',
                 hintText: 'satoshi@bitcoin.org, sp1q..., bc1q...',
                 errorText: _addressErrorText,
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.content_paste),
-                  onPressed: () async {
-                    ClipboardData? data =
-                        await Clipboard.getData(Clipboard.kTextPlain);
-                    if (data != null) {
-                      addressController.text = data.text ?? '';
-                    }
-                  },
-                ),
+                suffixIcon: Row(mainAxisSize: MainAxisSize.min, children: [
+                  IconButton(
+                    icon: const Icon(Icons.content_paste),
+                    onPressed: () async {
+                      ClipboardData? data =
+                          await Clipboard.getData(Clipboard.kTextPlain);
+                      if (data != null) {
+                        addressController.text = data.text ?? '';
+                      }
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: _scanQRCode,
+                  ),
+                ]),
               ),
             ),
             const Spacer(),
