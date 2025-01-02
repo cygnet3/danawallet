@@ -39,24 +39,19 @@ class SpendScreenState extends State<SpendScreen> {
     getCurrentFeeRates();
   }
 
-  void _scanQRCode() {
-    Navigator.push(
+  Future<void> _scanQRCode() async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QRCodeScannerWidget(
-          onQRCodeScanned: (scannedValue) {
-            setState(() {
-              addressController.text = scannedValue;
-              _addressErrorText = null; // Clear any previous error
-            });
-            Navigator.pop(context); // Close the scanner
-          },
-          onCancel: () {
-            Navigator.pop(context); // Close the scanner
-          },
-        ),
+        builder: (context) => const QRCodeScannerWidget(),
       ),
     );
+    if (result is String && result != "") {
+      setState(() {
+        addressController.text = result;
+        _addressErrorText = null; // Clear any previous error
+      });
+    }
   }
 
   Future<void> getCurrentFeeRates() async {
@@ -242,7 +237,8 @@ class SpendScreenState extends State<SpendScreen> {
                   onPressed: () {
                     setState(() {
                       amountController.text = availableBalance.toString();
-                      spendState.selectAllAvailableOutputs(walletState.getSpendableOutputs());
+                      spendState.selectAllAvailableOutputs(
+                          walletState.getSpendableOutputs());
                     });
                   },
                   child: const Text('Max'),

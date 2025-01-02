@@ -3,15 +3,39 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-class QRCodeScannerWidget extends StatelessWidget {
-  final Function(String) onQRCodeScanned; // Callback to pass scanned QR code
-  final VoidCallback onCancel; // Callback for cancel/close action
-
+class QRCodeScannerWidget extends StatefulWidget {
   const QRCodeScannerWidget({
-    Key? key,
-    required this.onQRCodeScanned,
-    required this.onCancel,
-  }) : super(key: key);
+    super.key,
+  });
+
+  @override
+  QrCodeScannerWidgetState createState() => QrCodeScannerWidgetState();
+}
+
+class QrCodeScannerWidgetState extends State<QRCodeScannerWidget> {
+  bool found = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _handleBarcode(BarcodeCapture barcodes) {
+    // 'handleBarcode' may be called multiple times, so we check if we
+    // have already found a result
+    if (found) {
+      return;
+    }
+
+    for (final barcode in barcodes.barcodes) {
+      if (!found && barcode.rawValue != null) {
+        found = true;
+        // return result using context.pop
+        Navigator.of(context).pop(barcode.rawValue!);
+        return;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +46,7 @@ class QRCodeScannerWidget extends StatelessWidget {
           title: const Text('QR Code Scanner'),
           leading: IconButton(
             icon: const Icon(Icons.close),
-            onPressed: onCancel,
+            onPressed: Navigator.of(context).pop,
           ),
         ),
         body: const Center(
@@ -39,22 +63,12 @@ class QRCodeScannerWidget extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan QR Code'),
-        actions: [
-          IconButton(
+        leading: IconButton(
             icon: const Icon(Icons.close),
-            onPressed: onCancel,
-          ),
-        ],
+            onPressed: Navigator.of(context).pop),
       ),
       body: MobileScanner(
-        onDetect: (capture) {
-          for (final barcode in capture.barcodes) {
-            if (barcode.rawValue != null) {
-              onQRCodeScanned(barcode.rawValue!);
-              break; // Exit after detecting the first valid QR code
-            }
-          }
-        },
+        onDetect: _handleBarcode,
       ),
     );
   }
