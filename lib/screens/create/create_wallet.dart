@@ -193,6 +193,22 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                         value: network, child: Text(network.toString()));
                   }).toList(),
                 ),
+                Visibility(
+                  visible: _selectedNetwork == Network.mainnet,
+                  maintainSize: true,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Text(
+                      'When using mainnet: please be aware that Dana is still in an experimental state. We do not take responsibility for lost funds.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.red,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
                 const Spacer(),
                 Expanded(
                   child: _buildButton(
