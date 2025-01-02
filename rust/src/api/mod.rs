@@ -3,7 +3,6 @@
 //
 
 pub mod chain;
-pub mod psbt;
 pub mod simple;
 pub mod stream;
 pub mod structs;
