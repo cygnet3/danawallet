@@ -13,14 +13,10 @@ class SpendState extends ChangeNotifier {
   }
 
   Future<void> addRecipients(
-      String address, BigInt amount, int nbOutputs) async {
+      String address, BigInt amount) async {
     final alreadyInList = recipients.where((r) => r.address == address);
     if (alreadyInList.isNotEmpty) {
       throw Exception("Address already in list");
-    }
-
-    if (nbOutputs < 1) {
-      nbOutputs = 1;
     }
 
     if (amount <= BigInt.from(546)) {
@@ -29,8 +25,7 @@ class SpendState extends ChangeNotifier {
     recipients.add(ApiRecipient(
         address: address,
         amount: Amount(field0: amount),
-        nbOutputs: nbOutputs,
-        outputs: List.empty(growable: true)));
+    ));
 
     notifyListeners();
   }
@@ -46,22 +41,43 @@ class SpendState extends ChangeNotifier {
   }
 
   Future<String> createSpendTx(WalletState walletState, int fees) async {
+    if (recipients.isEmpty) {
+      throw Exception('Empty recipients list');
+    }
+
     final wallet = await walletState.getWalletFromSecureStorage();
 
-    final ownedOutputs = walletState.ownedOutputs;
+    final ownedOutputs = Map.fromEntries(
+      walletState.ownedOutputs.entries.where((entry) => entry.value.spendStatus == const ApiOutputSpendStatus.unspent()),
+    );
     final network = walletState.network.toBitcoinNetwork;
     final walletInfo = getWalletInfo(encodedWallet: wallet);
+
+    final totalAmt = recipients.fold(BigInt.zero, (previousValue, element) => previousValue + element.amount.field0);
 
     String txid = "";
     List<(String, ApiOwnedOutput)> selectedOutputs;
     BigInt changeValue = BigInt.zero;
+
     try {
-      final unsignedTx = createNewTransaction(
-          encodedWallet: wallet,
-          apiOutputs: ownedOutputs,
-          apiRecipients: recipients,
-          feerate: fees,
-          network: network);
+      ApiSilentPaymentUnsignedTransaction unsignedTx;
+      if (totalAmt < walletState.amount) {
+        unsignedTx = createNewTransaction(
+            encodedWallet: wallet,
+            apiOutputs: ownedOutputs,
+            apiRecipients: recipients,
+            feerate: fees.toDouble(),
+            network: network);
+      } else {
+        final wipeAddress = recipients[0].address;
+        unsignedTx = createDrainTransaction(
+          encodedWallet: wallet, 
+          apiOutputs: ownedOutputs, 
+          wipeAddress: wipeAddress, 
+          feerate: fees.toDouble(), 
+          network: network
+        );
+      }
 
       selectedOutputs = unsignedTx.selectedUtxos;
 

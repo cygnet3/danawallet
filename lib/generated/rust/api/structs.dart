@@ -89,22 +89,14 @@ class ApiOwnedOutput {
 class ApiRecipient {
   final String address;
   final Amount amount;
-  final int nbOutputs;
-  final List<String> outputs;
 
   const ApiRecipient({
     required this.address,
     required this.amount,
-    required this.nbOutputs,
-    required this.outputs,
   });
 
   @override
-  int get hashCode =>
-      address.hashCode ^
-      amount.hashCode ^
-      nbOutputs.hashCode ^
-      outputs.hashCode;
+  int get hashCode => address.hashCode ^ amount.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -112,9 +104,7 @@ class ApiRecipient {
       other is ApiRecipient &&
           runtimeType == other.runtimeType &&
           address == other.address &&
-          amount == other.amount &&
-          nbOutputs == other.nbOutputs &&
-          outputs == other.outputs;
+          amount == other.amount;
 }
 
 @freezed

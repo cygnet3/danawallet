@@ -131,7 +131,7 @@ class SpendScreenState extends State<SpendScreen> {
         }
       }
 
-      spendState.addRecipients(address, amount, 1);
+      spendState.addRecipients(address, amount);
 
       try {
         final txid = await spendState.createSpendTx(walletState, fees);

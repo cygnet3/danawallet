@@ -61,12 +61,25 @@ ApiSilentPaymentUnsignedTransaction createNewTransaction(
         {required String encodedWallet,
         required Map<String, ApiOwnedOutput> apiOutputs,
         required List<ApiRecipient> apiRecipients,
-        required int feerate,
+        required double feerate,
         required String network}) =>
     RustLib.instance.api.crateApiWalletCreateNewTransaction(
         encodedWallet: encodedWallet,
         apiOutputs: apiOutputs,
         apiRecipients: apiRecipients,
+        feerate: feerate,
+        network: network);
+
+ApiSilentPaymentUnsignedTransaction createDrainTransaction(
+        {required String encodedWallet,
+        required Map<String, ApiOwnedOutput> apiOutputs,
+        required String wipeAddress,
+        required double feerate,
+        required String network}) =>
+    RustLib.instance.api.crateApiWalletCreateDrainTransaction(
+        encodedWallet: encodedWallet,
+        apiOutputs: apiOutputs,
+        wipeAddress: wipeAddress,
         feerate: feerate,
         network: network);
 
