@@ -74,7 +74,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.3.0';
 
   @override
-  int get rustContentHash => 1883607498;
+  int get rustContentHash => -1369664394;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -117,11 +117,18 @@ abstract class RustLibApi extends BaseApi {
   String crateApiWalletChangeBirthday(
       {required String encodedWallet, required int birthday});
 
+  ApiSilentPaymentUnsignedTransaction crateApiWalletCreateDrainTransaction(
+      {required String encodedWallet,
+      required Map<String, ApiOwnedOutput> apiOutputs,
+      required String wipeAddress,
+      required double feerate,
+      required String network});
+
   ApiSilentPaymentUnsignedTransaction crateApiWalletCreateNewTransaction(
       {required String encodedWallet,
       required Map<String, ApiOwnedOutput> apiOutputs,
       required List<ApiRecipient> apiRecipients,
-      required int feerate,
+      required double feerate,
       required String network});
 
   ApiSilentPaymentUnsignedTransaction crateApiWalletFinalizeTransaction(
@@ -459,11 +466,50 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  ApiSilentPaymentUnsignedTransaction crateApiWalletCreateDrainTransaction(
+      {required String encodedWallet,
+      required Map<String, ApiOwnedOutput> apiOutputs,
+      required String wipeAddress,
+      required double feerate,
+      required String network}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(encodedWallet, serializer);
+        sse_encode_Map_String_api_owned_output(apiOutputs, serializer);
+        sse_encode_String(wipeAddress, serializer);
+        sse_encode_f_32(feerate, serializer);
+        sse_encode_String(network, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_api_silent_payment_unsigned_transaction,
+        decodeErrorData: sse_decode_AnyhowException,
+      ),
+      constMeta: kCrateApiWalletCreateDrainTransactionConstMeta,
+      argValues: [encodedWallet, apiOutputs, wipeAddress, feerate, network],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiWalletCreateDrainTransactionConstMeta =>
+      const TaskConstMeta(
+        debugName: "create_drain_transaction",
+        argNames: [
+          "encodedWallet",
+          "apiOutputs",
+          "wipeAddress",
+          "feerate",
+          "network"
+        ],
+      );
+
+  @override
   ApiSilentPaymentUnsignedTransaction crateApiWalletCreateNewTransaction(
       {required String encodedWallet,
       required Map<String, ApiOwnedOutput> apiOutputs,
       required List<ApiRecipient> apiRecipients,
-      required int feerate,
+      required double feerate,
       required String network}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
@@ -471,9 +517,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(encodedWallet, serializer);
         sse_encode_Map_String_api_owned_output(apiOutputs, serializer);
         sse_encode_list_api_recipient(apiRecipients, serializer);
-        sse_encode_u_32(feerate, serializer);
+        sse_encode_f_32(feerate, serializer);
         sse_encode_String(network, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_api_silent_payment_unsigned_transaction,
@@ -505,7 +551,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_api_silent_payment_unsigned_transaction(
             unsignedTransaction, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_api_silent_payment_unsigned_transaction,
@@ -529,7 +575,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_api_wallet_status,
@@ -552,7 +598,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -581,7 +627,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(encodedWallet, serializer);
         sse_encode_String(spentBy, serializer);
         sse_encode_list_String(spent, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -605,7 +651,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(encodedWallet, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -634,7 +680,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_u_64(dustLimit, serializer);
         sse_encode_String(encodedWallet, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 18, port: port_);
+            funcId: 19, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -658,7 +704,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_box_autoadd_api_setup_wallet_args(setupArgs, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_api_setup_result,
@@ -685,7 +731,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_String(encodedWallet, serializer);
         sse_encode_box_autoadd_api_silent_payment_unsigned_transaction(
             unsignedTransaction, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
@@ -793,13 +839,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ApiRecipient dco_decode_api_recipient(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
     return ApiRecipient(
       address: dco_decode_String(arr[0]),
       amount: dco_decode_amount(arr[1]),
-      nbOutputs: dco_decode_u_32(arr[2]),
-      outputs: dco_decode_list_String(arr[3]),
     );
   }
 
@@ -978,6 +1022,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int dco_decode_box_autoadd_u_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
+  }
+
+  @protected
+  double dco_decode_f_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
   }
 
   @protected
@@ -1221,13 +1271,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_address = sse_decode_String(deserializer);
     var var_amount = sse_decode_amount(deserializer);
-    var var_nbOutputs = sse_decode_u_32(deserializer);
-    var var_outputs = sse_decode_list_String(deserializer);
-    return ApiRecipient(
-        address: var_address,
-        amount: var_amount,
-        nbOutputs: var_nbOutputs,
-        outputs: var_outputs);
+    return ApiRecipient(address: var_address, amount: var_amount);
   }
 
   @protected
@@ -1412,6 +1456,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_u_32(deserializer));
+  }
+
+  @protected
+  double sse_decode_f_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getFloat32();
   }
 
   @protected
@@ -1683,8 +1733,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.address, serializer);
     sse_encode_amount(self.amount, serializer);
-    sse_encode_u_32(self.nbOutputs, serializer);
-    sse_encode_list_String(self.outputs, serializer);
   }
 
   @protected
@@ -1838,6 +1886,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_32(self, serializer);
+  }
+
+  @protected
+  void sse_encode_f_32(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putFloat32(self);
   }
 
   @protected
