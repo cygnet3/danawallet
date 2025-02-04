@@ -1,16 +1,23 @@
 use std::{collections::HashMap, str::FromStr};
 
 use crate::wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater, KEEP_SCANNING};
-use anyhow::{Error, Result};
+use anyhow::Result;
 use bip39::rand::{thread_rng, RngCore};
 use sp_client::{
     bitcoin::{
-        absolute::Height, consensus::serialize, hex::DisplayHex, secp256k1::{PublicKey, SecretKey}, Network, OutPoint, Txid  
-    }, BlindbitBackend, ChainBackend, OwnedOutput, Recipient, RecipientAddress, SpClient, SpScanner, SpendKey
+        absolute::Height,
+        consensus::serialize,
+        hex::DisplayHex,
+        secp256k1::{PublicKey, SecretKey},
+        Network, OutPoint, Txid,
+    },
+    BlindbitBackend, ChainBackend, OwnedOutput, Recipient, RecipientAddress, SpClient, SpScanner,
+    SpendKey,
 };
 
 use super::structs::{
-    Amount, ApiOwnedOutput, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType, ApiSilentPaymentUnsignedTransaction, ApiWalletStatus
+    Amount, ApiOwnedOutput, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType,
+    ApiSilentPaymentUnsignedTransaction, ApiWalletStatus,
 };
 
 /// we enable cutthrough by default, no need to let the user decide
@@ -153,9 +160,9 @@ pub fn interrupt_scanning() {
 pub fn get_wallet_info(encoded_wallet: String) -> Result<ApiWalletStatus> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     Ok(ApiWalletStatus {
-        address: wallet.client.get_receiving_address(),
+        address: wallet.client.get_receiving_address().to_string(),
         network: Some(wallet.client.get_network().to_core_arg().to_owned()),
-        change_address: wallet.client.sp_receiver.get_change_address(),
+        change_address: wallet.client.sp_receiver.get_change_address().to_string(),
         balance: wallet.get_balance().to_sat(),
         birthday: wallet.birthday.to_consensus_u32(),
         last_scan: wallet.last_scan.to_consensus_u32(),
@@ -203,7 +210,10 @@ pub fn add_outgoing_tx_to_history(
 
     let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
-    let recipients = recipients.into_iter().map(|r| r.try_into().unwrap()).collect();
+    let recipients = recipients
+        .into_iter()
+        .map(|r| r.try_into().unwrap())
+        .collect();
 
     wallet.record_outgoing_transaction(txid, spent_outpoints, recipients, change.into());
 
@@ -220,14 +230,16 @@ pub fn create_new_transaction(
 ) -> Result<ApiSilentPaymentUnsignedTransaction> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let client = wallet.client;
-    let available_utxos: Result<Vec<(OutPoint, OwnedOutput)>> = api_outputs.into_iter().map(|(string, output)| {
+    let available_utxos: Result<Vec<(OutPoint, OwnedOutput)>> = api_outputs
+        .into_iter()
+        .map(|(string, output)| {
             let outpoint = OutPoint::from_str(&string)?;
             Ok((outpoint, output.into()))
         })
         .collect();
-    let recipients: Vec<Recipient> = api_recipients.into_iter().map(|r| { 
-            r.try_into().unwrap()
-        })
+    let recipients: Vec<Recipient> = api_recipients
+        .into_iter()
+        .map(|r| r.try_into().unwrap())
         .collect();
     let core_network = Network::from_core_arg(&network)?;
     let res = client.create_new_transaction(available_utxos?, recipients, feerate, core_network)?;
@@ -245,7 +257,9 @@ pub fn create_drain_transaction(
 ) -> Result<ApiSilentPaymentUnsignedTransaction> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let client = wallet.client;
-    let available_utxos: Result<Vec<(OutPoint, OwnedOutput)>> = api_outputs.into_iter().map(|(string, output)| {
+    let available_utxos: Result<Vec<(OutPoint, OwnedOutput)>> = api_outputs
+        .into_iter()
+        .map(|(string, output)| {
             let outpoint = OutPoint::from_str(&string)?;
             Ok((outpoint, output.into()))
         })
@@ -253,19 +267,29 @@ pub fn create_drain_transaction(
 
     let recipient_address: RecipientAddress = RecipientAddress::try_from(wipe_address)?;
     let core_network = Network::from_core_arg(&network)?;
-    let res = client.create_drain_transaction(available_utxos?, recipient_address, feerate, core_network)?;
+    let res = client.create_drain_transaction(
+        available_utxos?,
+        recipient_address,
+        feerate,
+        core_network,
+    )?;
 
     Ok(res.into())
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn finalize_transaction(unsigned_transaction: ApiSilentPaymentUnsignedTransaction) -> Result<ApiSilentPaymentUnsignedTransaction> {
+pub fn finalize_transaction(
+    unsigned_transaction: ApiSilentPaymentUnsignedTransaction,
+) -> Result<ApiSilentPaymentUnsignedTransaction> {
     let res = SpClient::finalize_transaction(unsigned_transaction.into())?;
     Ok(res.into())
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn sign_transaction(encoded_wallet: String, unsigned_transaction: ApiSilentPaymentUnsignedTransaction) -> Result<String> {
+pub fn sign_transaction(
+    encoded_wallet: String,
+    unsigned_transaction: ApiSilentPaymentUnsignedTransaction,
+) -> Result<String> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
     let client = wallet.client;
     let mut aux_rand = [0u8; 32];
@@ -289,7 +313,7 @@ pub async fn broadcast_tx(tx: String, network: String) -> Result<String> {
         Network::Testnet => pushtx::Network::Testnet,
         Network::Signet => pushtx::Network::Signet,
         Network::Regtest => pushtx::Network::Regtest,
-        _ => unreachable!()
+        _ => unreachable!(),
     };
 
     let opts = pushtx::Opts {
@@ -320,4 +344,3 @@ pub async fn broadcast_tx(tx: String, network: String) -> Result<String> {
 
     Ok(txid.to_string())
 }
-

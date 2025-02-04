@@ -129,7 +129,8 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 [[package]]
 name = "bdk_coin_select"
 version = "0.4.0"
-source = "git+https://github.com/bitcoindevkit/coin-select.git?rev=dda8638f4460786b21f06e88f00ef84479289a2f#dda8638f4460786b21f06e88f00ef84479289a2f"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2e57e4db8b917d554a0eb142be5267bbc88d787c3346c8dc0590fbe76be68bd"
 
 [[package]]
 name = "bech32"
@@ -1627,9 +1628,9 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "silentpayments"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "644515d8cddae2d1a1f49e7f88d51b6b7decf93c955028994e6010ea46a93c9f"
+checksum = "0931dfd631f4c096fec95716f96b9d74f42c3027ff9f179b1d1881e5abc6551a"
 dependencies = [
  "bech32 0.9.1",
  "bimap",
@@ -1690,7 +1691,7 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-client?branch=coin_select#4ea2089b71f455c1fba036e43de65464a6ed2d12"
+source = "git+https://github.com/cygnet3/sp-client?branch=master#0ecbc6fb974abc228a6bb80f09d74a62b9370c55"
 dependencies = [
  "anyhow",
  "async-trait",
