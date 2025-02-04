@@ -2,7 +2,15 @@ use std::{collections::HashMap, str::FromStr};
 
 use serde::{Deserialize, Serialize};
 use sp_client::{
-    bitcoin::{self, absolute::Height, consensus::{deserialize, serialize}, hex::{DisplayHex, FromHex}, secp256k1::SecretKey, Address, Network, OutPoint, ScriptBuf, Txid}, OutputSpendStatus, OwnedOutput, Recipient, RecipientAddress, SilentPaymentUnsignedTransaction  
+    bitcoin::{
+        self,
+        absolute::Height,
+        consensus::{deserialize, serialize},
+        hex::{DisplayHex, FromHex},
+        secp256k1::SecretKey,
+        Network, OutPoint, ScriptBuf, Txid,
+    },
+    OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
 };
 
 use crate::wallet::recorded::{
@@ -98,33 +106,6 @@ impl From<ApiOwnedOutput> for OwnedOutput {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum ApiRecipientAddress {
-    LegacyAddress(String),
-    SpAddress(String),
-    Data(String),
-}
-
-impl From<ApiRecipientAddress> for RecipientAddress {
-    fn from(value: ApiRecipientAddress) -> Self {
-        match value {
-            ApiRecipientAddress::LegacyAddress(str) => Self::LegacyAddress(Address::from_str(&str).unwrap()),
-            ApiRecipientAddress::SpAddress(str) => Self::SpAddress(str.try_into().unwrap()),
-            ApiRecipientAddress::Data(str) => Self::Data(Vec::from_hex(&str).unwrap()),
-        }
-    }
-}
-
-impl From<RecipientAddress> for ApiRecipientAddress {
-    fn from(value: RecipientAddress) -> Self {
-        match value {
-            RecipientAddress::LegacyAddress(addr) => Self::LegacyAddress(addr.assume_checked().to_string()),
-            RecipientAddress::SpAddress(sp_address) => Self::SpAddress(sp_address.into()),
-            RecipientAddress::Data(vec) => Self::Data(vec.to_lower_hex_string()),
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ApiRecipient {
     pub address: String, // either old school or silent payment
     pub amount: Amount,
@@ -141,7 +122,7 @@ impl From<Recipient> for ApiRecipient {
 
 impl TryFrom<ApiRecipient> for Recipient {
     type Error = anyhow::Error;
-    fn try_from(value: ApiRecipient) -> Result<Self, Self::Error> { 
+    fn try_from(value: ApiRecipient) -> Result<Self, Self::Error> {
         let address = value.address.try_into()?;
         let res = Recipient {
             address,
@@ -264,7 +245,11 @@ impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
                 .into_iter()
                 .map(|x| OutPoint::from_str(&x).unwrap())
                 .collect(),
-            recipients: value.recipients.into_iter().map(|r| r.try_into().unwrap()).collect(),
+            recipients: value
+                .recipients
+                .into_iter()
+                .map(|r| r.try_into().unwrap())
+                .collect(),
             confirmed_at,
             change: value.change.into(),
         }
@@ -311,10 +296,16 @@ pub struct ApiSilentPaymentUnsignedTransaction {
 impl From<SilentPaymentUnsignedTransaction> for ApiSilentPaymentUnsignedTransaction {
     fn from(value: SilentPaymentUnsignedTransaction) -> Self {
         Self {
-            selected_utxos: value.selected_utxos.into_iter().map(|(outpoint, output)| (outpoint.to_string(), output.into())).collect(),
+            selected_utxos: value
+                .selected_utxos
+                .into_iter()
+                .map(|(outpoint, output)| (outpoint.to_string(), output.into()))
+                .collect(),
             recipients: value.recipients.into_iter().map(|r| r.into()).collect(),
             partial_secret: value.partial_secret.secret_bytes(),
-            unsigned_tx: value.unsigned_tx.map(|tx| serialize(&tx).to_lower_hex_string()),
+            unsigned_tx: value
+                .unsigned_tx
+                .map(|tx| serialize(&tx).to_lower_hex_string()),
             network: value.network.to_string(),
         }
     }
@@ -323,10 +314,20 @@ impl From<SilentPaymentUnsignedTransaction> for ApiSilentPaymentUnsignedTransact
 impl From<ApiSilentPaymentUnsignedTransaction> for SilentPaymentUnsignedTransaction {
     fn from(value: ApiSilentPaymentUnsignedTransaction) -> Self {
         Self {
-            selected_utxos: value.selected_utxos.into_iter().map(|(outpoint, output)| (OutPoint::from_str(&outpoint).unwrap(), output.into())).collect(),
-            recipients: value.recipients.into_iter().map(|r| r.try_into().unwrap()).collect(),
+            selected_utxos: value
+                .selected_utxos
+                .into_iter()
+                .map(|(outpoint, output)| (OutPoint::from_str(&outpoint).unwrap(), output.into()))
+                .collect(),
+            recipients: value
+                .recipients
+                .into_iter()
+                .map(|r| r.try_into().unwrap())
+                .collect(),
             partial_secret: SecretKey::from_slice(&value.partial_secret).unwrap(),
-            unsigned_tx: value.unsigned_tx.map(|tx| deserialize(&Vec::from_hex(&tx).unwrap()).unwrap()),
+            unsigned_tx: value
+                .unsigned_tx
+                .map(|tx| deserialize(&Vec::from_hex(&tx).unwrap()).unwrap()),
             network: Network::from_core_arg(&value.network).unwrap(),
         }
     }
