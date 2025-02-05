@@ -186,7 +186,6 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                   },
                   items: [
                     Network.mainnet,
-                    Network.testnet,
                     Network.signet,
                   ].map((Network network) {
                     return DropdownMenuItem<Network>(
