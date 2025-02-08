@@ -1,3 +1,4 @@
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
@@ -57,12 +58,14 @@ class SilentPaymentApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: true);
-
     return MaterialApp(
       title: 'Dana wallet',
       navigatorKey: globalNavigatorKey,
-      theme: themeNotifier.themeData,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.blue),
+        useMaterial3: true,
+        fontFamily: 'Space Grotesk',
+      ),
       home: walletLoaded ? const HomeScreen() : const CreateWalletScreen(),
     );
   }

@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/services/synchronization_service.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -128,7 +128,8 @@ class WalletScreenState extends State<WalletScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SpendScreen()));
+                            builder: (context) =>
+                                const ChooseRecipientScreen()));
                   }
                 });
               },
