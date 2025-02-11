@@ -24,10 +24,13 @@ class SpendSkeleton extends StatelessWidget {
         body: Padding(
             padding: const EdgeInsets.all(25.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (title != null)
-                  Text(title!, style: BitcoinTextStyle.title4(Bitcoin.black)),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(title!,
+                        style: BitcoinTextStyle.title4(Bitcoin.black)),
+                  ),
                 Expanded(child: body),
                 if (footer != null) footer!,
               ],

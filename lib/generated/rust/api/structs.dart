@@ -11,14 +11,24 @@ part 'structs.freezed.dart';
 
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
 
-class Amount {
+class ApiAmount {
   final BigInt field0;
 
-  const Amount({
+  const ApiAmount({
     required this.field0,
   });
 
-  BigInt toInt() => RustLib.instance.api.crateApiStructsAmountToInt(
+  String displayBtc() =>
+      RustLib.instance.api.crateApiStructsApiAmountDisplayBtc(
+        that: this,
+      );
+
+  String displaySats() =>
+      RustLib.instance.api.crateApiStructsApiAmountDisplaySats(
+        that: this,
+      );
+
+  BigInt toInt() => RustLib.instance.api.crateApiStructsApiAmountToInt(
         that: this,
       );
 
@@ -28,7 +38,7 @@ class Amount {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Amount &&
+      other is ApiAmount &&
           runtimeType == other.runtimeType &&
           field0 == other.field0;
 }
@@ -49,7 +59,7 @@ sealed class ApiOutputSpendStatus with _$ApiOutputSpendStatus {
 class ApiOwnedOutput {
   final int blockheight;
   final U8Array32 tweak;
-  final Amount amount;
+  final ApiAmount amount;
   final String script;
   final String? label;
   final ApiOutputSpendStatus spendStatus;
@@ -87,7 +97,7 @@ class ApiOwnedOutput {
 
 class ApiRecipient {
   final String address;
-  final Amount amount;
+  final ApiAmount amount;
 
   const ApiRecipient({
     required this.address,
@@ -120,7 +130,7 @@ sealed class ApiRecordedTransaction with _$ApiRecordedTransaction {
 
 class ApiRecordedTransactionIncoming {
   final String txid;
-  final Amount amount;
+  final ApiAmount amount;
   final int? confirmedAt;
 
   const ApiRecordedTransactionIncoming({
@@ -152,7 +162,7 @@ class ApiRecordedTransactionOutgoing {
   final List<String> spentOutpoints;
   final List<ApiRecipient> recipients;
   final int? confirmedAt;
-  final Amount change;
+  final ApiAmount change;
 
   const ApiRecordedTransactionOutgoing({
     required this.txid,
@@ -264,6 +274,26 @@ class ApiSilentPaymentUnsignedTransaction {
     this.unsignedTx,
     required this.network,
   });
+
+  ApiAmount getChangeAmount({required String changeAddress}) => RustLib
+      .instance.api
+      .crateApiStructsApiSilentPaymentUnsignedTransactionGetChangeAmount(
+          that: this, changeAddress: changeAddress);
+
+  ApiAmount getFeeAmount() => RustLib.instance.api
+          .crateApiStructsApiSilentPaymentUnsignedTransactionGetFeeAmount(
+        that: this,
+      );
+
+  List<ApiRecipient> getRecipients({required String changeAddress}) =>
+      RustLib.instance.api
+          .crateApiStructsApiSilentPaymentUnsignedTransactionGetRecipients(
+              that: this, changeAddress: changeAddress);
+
+  ApiAmount getSendAmount({required String changeAddress}) =>
+      RustLib.instance.api
+          .crateApiStructsApiSilentPaymentUnsignedTransactionGetSendAmount(
+              that: this, changeAddress: changeAddress);
 
   @override
   int get hashCode =>

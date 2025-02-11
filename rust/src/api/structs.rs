@@ -48,24 +48,35 @@ impl From<ApiOutputSpendStatus> for OutputSpendStatus {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct Amount(pub u64);
+pub struct ApiAmount(pub u64);
 
-impl From<bitcoin::Amount> for Amount {
+impl From<bitcoin::Amount> for ApiAmount {
     fn from(value: bitcoin::Amount) -> Self {
-        Amount(value.to_sat())
+        ApiAmount(value.to_sat())
     }
 }
 
-impl From<Amount> for bitcoin::Amount {
-    fn from(value: Amount) -> bitcoin::Amount {
+impl From<ApiAmount> for bitcoin::Amount {
+    fn from(value: ApiAmount) -> bitcoin::Amount {
         bitcoin::Amount::from_sat(value.0)
     }
 }
 
-impl Amount {
+impl ApiAmount {
     #[flutter_rust_bridge::frb(sync)]
     pub fn to_int(&self) -> u64 {
         self.0
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn display_btc(&self) -> String {
+        let amount_btc = self.0 as f32 / 100_000_000 as f32;
+        format!("₿{:.8}", amount_btc)
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn display_sats(&self) -> String {
+        format!("{} sats", self.0)
     }
 }
 
@@ -73,7 +84,7 @@ impl Amount {
 pub struct ApiOwnedOutput {
     pub blockheight: u32,
     pub tweak: [u8; 32],
-    pub amount: Amount,
+    pub amount: ApiAmount,
     pub script: String,
     pub label: Option<String>,
     pub spend_status: ApiOutputSpendStatus,
@@ -108,7 +119,7 @@ impl From<ApiOwnedOutput> for OwnedOutput {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ApiRecipient {
     pub address: String, // either old school or silent payment
-    pub amount: Amount,
+    pub amount: ApiAmount,
 }
 
 impl From<Recipient> for ApiRecipient {
@@ -142,7 +153,7 @@ pub enum ApiRecordedTransaction {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ApiRecordedTransactionIncoming {
     pub txid: String,
-    pub amount: Amount,
+    pub amount: ApiAmount,
     pub confirmed_at: Option<u32>,
 }
 
@@ -166,7 +177,7 @@ pub struct ApiRecordedTransactionOutgoing {
     pub spent_outpoints: Vec<String>,
     pub recipients: Vec<ApiRecipient>,
     pub confirmed_at: Option<u32>,
-    pub change: Amount,
+    pub change: ApiAmount,
 }
 
 impl From<RecordedTransaction> for ApiRecordedTransaction {
@@ -330,5 +341,62 @@ impl From<ApiSilentPaymentUnsignedTransaction> for SilentPaymentUnsignedTransact
                 .map(|tx| deserialize(&Vec::from_hex(&tx).unwrap()).unwrap()),
             network: Network::from_core_arg(&value.network).unwrap(),
         }
+    }
+}
+
+impl ApiSilentPaymentUnsignedTransaction {
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn get_send_amount(&self, change_address: String) -> ApiAmount {
+        let amount = self
+            .recipients
+            .iter()
+            .filter_map(|r| {
+                if r.address != change_address {
+                    Some(r.amount.0)
+                } else {
+                    None
+                }
+            })
+            .sum();
+
+        ApiAmount(amount)
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn get_change_amount(&self, change_address: String) -> ApiAmount {
+        let amount = self
+            .recipients
+            .iter()
+            .filter_map(|r| {
+                if r.address == change_address {
+                    Some(r.amount.0)
+                } else {
+                    None
+                }
+            })
+            .sum();
+        ApiAmount(amount)
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn get_fee_amount(&self) -> ApiAmount {
+        let input_sum: u64 = self
+            .selected_utxos
+            .iter()
+            .map(|(_, o)| o.amount.to_int())
+            .sum();
+
+        let output_sum: u64 = self.recipients.iter().map(|r| r.amount.to_int()).sum();
+
+        ApiAmount(input_sum - output_sum)
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn get_recipients(&self, change_address: String) -> Vec<ApiRecipient> {
+        self.recipients
+            .iter()
+            .filter(|r| r.address != change_address)
+            .cloned()
+            .collect()
     }
 }

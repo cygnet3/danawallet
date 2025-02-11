@@ -16,7 +16,7 @@ use sp_client::{
 };
 
 use super::structs::{
-    Amount, ApiOwnedOutput, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType,
+    ApiAmount, ApiOwnedOutput, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType,
     ApiSilentPaymentUnsignedTransaction, ApiWalletStatus,
 };
 
@@ -200,7 +200,7 @@ pub fn add_outgoing_tx_to_history(
     txid: String,
     spent_outpoints: Vec<String>,
     recipients: Vec<ApiRecipient>,
-    change: Amount,
+    change: ApiAmount,
 ) -> Result<String> {
     let txid = Txid::from_str(&txid)?;
     let spent_outpoints = spent_outpoints
