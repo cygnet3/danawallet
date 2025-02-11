@@ -1,7 +1,11 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/recipient_form.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/screens/home/wallet/spend/transaction_sent.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ReadyToSendScreen extends StatefulWidget {
   const ReadyToSendScreen({super.key});
@@ -12,9 +16,55 @@ class ReadyToSendScreen extends StatefulWidget {
 
 class ReadyToSendScreenState extends State<ReadyToSendScreen> {
   bool _isSending = false;
+  String? _sendErrorText;
+
+  Future<void> onPressSend() async {
+    setState(() {
+      _isSending = true;
+      _sendErrorText = null;
+    });
+
+    try {
+      final walletState = Provider.of<WalletState>(context, listen: false);
+      final unsignedTx = RecipientForm().unsignedTx!;
+
+      await walletState.signAndBroadcastUnsignedTx(unsignedTx);
+
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const TransactionSentScreen()),
+            (Route<dynamic> route) => false);
+      }
+    } catch (e) {
+      setState(() {
+        _isSending = false;
+        _sendErrorText = exceptionToString(e);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    RecipientForm recipient = RecipientForm();
+
+    String displayRecipient;
+    TextStyle displayRecipientStyle = BitcoinTextStyle.title5(Bitcoin.neutral8);
+    if (recipient.recipientBip353 != null) {
+      displayRecipient = recipient.recipientBip353!;
+    } else {
+      displayRecipient = displayAddress(
+          context, recipient.recipientAddress!, displayRecipientStyle, 0.85);
+    }
+
+    String displayAmount = recipient.amount!.displayBtc();
+
+    String displayArrivalTime = recipient.fee!.toEstimatedTime;
+
+    String displayEstimatedFee =
+        recipient.unsignedTx!.getFeeAmount().displayBtc();
+
     return SpendSkeleton(
         showBackButton: true,
         title: 'Ready to send?',
@@ -32,7 +82,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  'sp1q kjh5 j340 234n rr92 b35c',
+                  displayRecipient,
                   style: BitcoinTextStyle.title5(Bitcoin.neutral8),
                 )
               ],
@@ -46,7 +96,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  '₿0.35651816',
+                  displayAmount,
                   style: BitcoinTextStyle.title5(Bitcoin.neutral8),
                 )
               ],
@@ -60,7 +110,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  '30-60 minutes',
+                  displayArrivalTime,
                   style: BitcoinTextStyle.title5(Bitcoin.neutral8),
                 )
               ],
@@ -74,7 +124,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  '₿0.00007987',
+                  displayEstimatedFee,
                   style: BitcoinTextStyle.title5(Bitcoin.neutral8),
                 )
               ],
@@ -83,6 +133,10 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
         ),
         footer: Column(
           children: [
+            if (_sendErrorText != null) Text(_sendErrorText!),
+            const SizedBox(
+              height: 10.0,
+            ),
             BitcoinButtonOutlined(
               textStyle: BitcoinTextStyle.title4(Bitcoin.black),
               title: 'See details',
@@ -96,19 +150,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
               textStyle: BitcoinTextStyle.body2(Bitcoin.neutral1),
               title: 'Send',
               isLoading: _isSending,
-              onPressed: () async {
-                setState(() {
-                  _isSending = true;
-                });
-                await Future.delayed(const Duration(seconds: 2));
-                if (context.mounted) {
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const TransactionSentScreen()),
-                      (Route<dynamic> route) => false);
-                }
-              },
+              onPressed: onPressSend,
               cornerRadius: 5.0,
             )
           ],

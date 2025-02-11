@@ -49,7 +49,7 @@ String addOutgoingTxToHistory(
         required String txid,
         required List<String> spentOutpoints,
         required List<ApiRecipient> recipients,
-        required Amount change}) =>
+        required ApiAmount change}) =>
     RustLib.instance.api.crateApiWalletAddOutgoingTxToHistory(
         encodedWallet: encodedWallet,
         txid: txid,

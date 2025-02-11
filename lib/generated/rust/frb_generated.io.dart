@@ -45,7 +45,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
-  Amount dco_decode_amount(dynamic raw);
+  ApiAmount dco_decode_api_amount(dynamic raw);
 
   @protected
   ApiOutputSpendStatus dco_decode_api_output_spend_status(dynamic raw);
@@ -87,7 +87,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
-  Amount dco_decode_box_autoadd_amount(dynamic raw);
+  ApiAmount dco_decode_box_autoadd_api_amount(dynamic raw);
 
   @protected
   ApiRecordedTransactionIncoming
@@ -194,7 +194,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
-  Amount sse_decode_amount(SseDeserializer deserializer);
+  ApiAmount sse_decode_api_amount(SseDeserializer deserializer);
 
   @protected
   ApiOutputSpendStatus sse_decode_api_output_spend_status(
@@ -241,7 +241,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
-  Amount sse_decode_box_autoadd_amount(SseDeserializer deserializer);
+  ApiAmount sse_decode_box_autoadd_api_amount(SseDeserializer deserializer);
 
   @protected
   ApiRecordedTransactionIncoming
@@ -353,7 +353,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
-  void sse_encode_amount(Amount self, SseSerializer serializer);
+  void sse_encode_api_amount(ApiAmount self, SseSerializer serializer);
 
   @protected
   void sse_encode_api_output_spend_status(
@@ -402,7 +402,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_amount(Amount self, SseSerializer serializer);
+  void sse_encode_box_autoadd_api_amount(
+      ApiAmount self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_api_recorded_transaction_incoming(

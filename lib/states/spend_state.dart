@@ -24,7 +24,7 @@ class SpendState extends ChangeNotifier {
     }
     recipients.add(ApiRecipient(
         address: address,
-        amount: Amount(field0: amount),
+        amount: ApiAmount(field0: amount),
     ));
 
     notifyListeners();
@@ -137,7 +137,7 @@ class SpendState extends ChangeNotifier {
       List<String> selectedOutpoints,
       List<ApiRecipient> recipients,
       BigInt? changeAmount) {
-    final changeAmt = Amount(field0: changeAmount ?? BigInt.from(0));
+    final changeAmt = ApiAmount(field0: changeAmount ?? BigInt.from(0));
     try {
       final updatedWallet = addOutgoingTxToHistory(
           encodedWallet: wallet,

@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/models/recipient_form_filled.dart';
+import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -158,5 +161,90 @@ class WalletState extends ChangeNotifier {
         changeBirthday(encodedWallet: wallet, birthday: birthday);
     await saveWalletToSecureStorage(updatedWallet);
     await updateWalletStatus();
+  }
+
+  Future<String> getChangeAddress() async {
+    final wallet = await getWalletFromSecureStorage();
+
+    final walletInfo = getWalletInfo(encodedWallet: wallet);
+
+    return walletInfo.changeAddress;
+  }
+
+  Future<RecommendedFeeResponse> getCurrentFeeRates() async {
+    final mempoolApiRepository = MempoolApiRepository(network: network);
+    final response = await mempoolApiRepository.getCurrentFeeRate();
+    return response;
+  }
+
+  Future<ApiSilentPaymentUnsignedTransaction> createUnsignedTxToThisRecipient(
+      RecipientFormFilled recipient) async {
+    final wallet = await getWalletFromSecureStorage();
+
+    final unspentOutputs = Map.fromEntries(
+      ownedOutputs.entries.where((entry) =>
+          entry.value.spendStatus == const ApiOutputSpendStatus.unspent()),
+    );
+    final bitcoinNetwork = network.toBitcoinNetwork;
+
+    if (recipient.amount.field0 < amount - BigInt.from(546)) {
+      return createNewTransaction(
+          encodedWallet: wallet,
+          apiOutputs: unspentOutputs,
+          apiRecipients: [
+            ApiRecipient(
+                address: recipient.recipientAddress, amount: recipient.amount)
+          ],
+          feerate: recipient.feerate.toDouble(),
+          network: bitcoinNetwork);
+    } else {
+      return createDrainTransaction(
+          encodedWallet: wallet,
+          apiOutputs: unspentOutputs,
+          wipeAddress: recipient.recipientAddress,
+          feerate: recipient.feerate.toDouble(),
+          network: bitcoinNetwork);
+    }
+  }
+
+  Future<void> signAndBroadcastUnsignedTx(
+      ApiSilentPaymentUnsignedTransaction unsignedTx) async {
+    final wallet = await getWalletFromSecureStorage();
+
+    final walletInfo = getWalletInfo(encodedWallet: wallet);
+
+    final selectedOutputs = unsignedTx.selectedUtxos;
+
+    final changeValue =
+        unsignedTx.getChangeAmount(changeAddress: walletInfo.changeAddress);
+
+    final recipients =
+        unsignedTx.getRecipients(changeAddress: walletInfo.changeAddress);
+
+    final finalizedTx = finalizeTransaction(unsignedTransaction: unsignedTx);
+
+    final signedTx = signTransaction(
+        encodedWallet: wallet, unsignedTransaction: finalizedTx);
+    final txid =
+        await broadcastTx(tx: signedTx, network: network.toBitcoinNetwork);
+
+    List<String> selectedOutpoints =
+        selectedOutputs.map((tuple) => tuple.$1).toList();
+
+    final markedAsSpentWallet = markOutpointsSpent(
+        encodedWallet: wallet, spentBy: txid, spent: selectedOutpoints);
+
+    final updatedWallet = addOutgoingTxToHistory(
+        encodedWallet: markedAsSpentWallet,
+        txid: txid,
+        spentOutpoints: selectedOutpoints,
+        recipients: recipients,
+        change: changeValue);
+
+    // save the updated wallet
+    saveWalletToSecureStorage(updatedWallet);
+    await updateWalletStatus();
+
+    return;
   }
 }
