@@ -8,7 +8,6 @@ import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
-import 'package:danawallet/states/spend_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/states/theme_notifier.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +42,6 @@ void main() async {
         ChangeNotifierProvider.value(value: scanNotifier),
         ChangeNotifierProvider.value(value: themeNotifier),
         ChangeNotifierProvider.value(value: chainState),
-        ChangeNotifierProvider.value(value: SpendState()),
         ChangeNotifierProvider.value(value: HomeState()),
       ],
       child: SilentPaymentApp(walletLoaded: walletLoaded),
