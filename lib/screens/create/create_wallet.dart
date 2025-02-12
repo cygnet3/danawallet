@@ -6,7 +6,6 @@ import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/states/chain_state.dart';
-import 'package:danawallet/states/theme_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,13 +41,11 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
       ApiSetupWalletType setupWalletType, int? birthday) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
-    final themeNotifier = Provider.of<ThemeNotifier>(context, listen: false);
 
     // todo settings has to be initialized before chainstate, make this independent
     await SettingsRepository().defaultSettings(_selectedNetwork);
 
     await chainState.initialize();
-    themeNotifier.setTheme(_selectedNetwork);
 
     // todo check this only happens when creating new wallet
     if (birthday == null) {

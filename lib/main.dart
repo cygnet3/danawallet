@@ -9,7 +9,6 @@ import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
-import 'package:danawallet/states/theme_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +19,6 @@ void main() async {
   final walletState = WalletState();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
-  final themeNotifier = ThemeNotifier();
 
   final bool walletLoaded;
   try {
@@ -32,7 +30,6 @@ void main() async {
 
   if (walletLoaded) {
     await chainState.initialize();
-    themeNotifier.setTheme(walletState.network);
   }
 
   runApp(
@@ -40,7 +37,6 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: walletState),
         ChangeNotifierProvider.value(value: scanNotifier),
-        ChangeNotifierProvider.value(value: themeNotifier),
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
       ],
