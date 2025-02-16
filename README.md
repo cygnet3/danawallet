@@ -10,8 +10,8 @@ We are looking into releasing Dana wallet on the popular app stores once the app
 
 In the meantime, there are two ways to try out Dana wallet:
 
-- Download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.silentpayments.dev/fdroid/repov)
 - Download the latest Dana wallet APK from the [releases page](https://github.com/cygnet3/danawallet/releases)
+- Download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.silentpayments.dev/fdroid/repo)
 
 ### Download using F-Droid
 
@@ -21,7 +21,7 @@ We recommend the F-Droid option, since this has support for automatic updates, a
 - Go to 'Settings'
 - In the 'My Apps' section, click on 'Repositories'
 - Add a new repository by clicking the '+' icon
-- Scan the QR code found on this page: https://fdroid.silentpayments.dev/fdroid/repo (alternatively, copy-paste this URL manually)
+- Scan the QR code found on this page: https://fdroid.silentpayments.dev/fdroid/repo
 
 You now have added our self-hosted repository. To download the app, search for 'Dana Wallet' in the F-Droid app store section (you may need to refresh the app list first, by swiping down on the F-Droid store screen).
 
