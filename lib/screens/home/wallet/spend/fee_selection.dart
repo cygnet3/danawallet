@@ -2,6 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/selected_fee.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -114,8 +115,8 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
         const Divider(),
         toListTile(SelectedFee.slow),
         const Divider(),
-        toListTile(SelectedFee.custom),
-        const Divider(),
+        if (isDevEnv()) toListTile(SelectedFee.custom),
+        if (isDevEnv()) const Divider(),
       ]),
       footer: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -137,12 +137,13 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
             const SizedBox(
               height: 10.0,
             ),
-            BitcoinButtonOutlined(
-              textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-              title: 'See details',
-              onPressed: () => (),
-              cornerRadius: 5.0,
-            ),
+            if (isDevEnv())
+              BitcoinButtonOutlined(
+                textStyle: BitcoinTextStyle.title4(Bitcoin.black),
+                title: 'See details',
+                onPressed: () => (),
+                cornerRadius: 5.0,
+              ),
             const SizedBox(
               height: 10.0,
             ),
