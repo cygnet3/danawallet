@@ -44,6 +44,7 @@ app.*.map.json
 /android/app/release
 /android/app/src/main/jniLibs
 /android/local.properties
+/android/app/.cxx/
 
 .env
 
