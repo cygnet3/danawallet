@@ -1,9 +1,7 @@
-import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
-import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/create/create_wallet.dart';
-import 'package:danawallet/screens/home/home.dart';
+import 'package:danawallet/main.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
@@ -32,6 +30,12 @@ void main() async {
     await chainState.initialize();
   }
 
+  // if a blindbit url is given, override the saved url
+  const blindbitUrl = String.fromEnvironment("BLINDBIT_URL");
+  if (blindbitUrl != '') {
+    await SettingsRepository().setBlindbitUrl(blindbitUrl);
+  }
+
   runApp(
     MultiProvider(
       providers: [
@@ -43,25 +47,4 @@ void main() async {
       child: SilentPaymentApp(walletLoaded: walletLoaded),
     ),
   );
-}
-
-class SilentPaymentApp extends StatelessWidget {
-  final bool walletLoaded;
-
-  const SilentPaymentApp({super.key, required this.walletLoaded});
-
-  @override
-  Widget build(BuildContext context) {
-    
-    return MaterialApp(
-      title: 'Dana wallet development',
-      navigatorKey: globalNavigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.blue),
-        useMaterial3: true,
-        fontFamily: 'Space Grotesk',
-      ),
-      home: walletLoaded ? const HomeScreen() : const CreateWalletScreen(),
-    );
-  }
 }
