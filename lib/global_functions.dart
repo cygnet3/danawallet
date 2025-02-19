@@ -148,3 +148,7 @@ int _getChunkFittingWidth(List<String> chunks, TextStyle style, double width) {
 
   return best;
 }
+
+bool isDevEnv() {
+  return const String.fromEnvironment('FLUTTER_APP_FLAVOR') == 'dev';
+}
