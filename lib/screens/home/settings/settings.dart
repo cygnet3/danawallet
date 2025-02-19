@@ -127,21 +127,24 @@ Without a backup, your funds willl be lost!""");
               showAlertDialog(title, text);
             },
           ),
-          BitcoinButtonOutlined(
-              title: 'Set wallet birthday',
-              onPressed: () => _setBirthday(context, walletState, homeState)),
-          BitcoinButtonOutlined(
-            title: 'Set backend url',
-            onPressed: () {
-              _setBlindbitUrl(context, walletState.network);
-            },
-          ),
-          BitcoinButtonOutlined(
-            title: 'Set dust threshold',
-            onPressed: () {
-              _setDustLimit(context);
-            },
-          ),
+          if (isDevEnv())
+            BitcoinButtonOutlined(
+                title: 'Set wallet birthday',
+                onPressed: () => _setBirthday(context, walletState, homeState)),
+          if (isDevEnv())
+            BitcoinButtonOutlined(
+              title: 'Set backend url',
+              onPressed: () {
+                _setBlindbitUrl(context, walletState.network);
+              },
+            ),
+          if (isDevEnv())
+            BitcoinButtonOutlined(
+              title: 'Set dust threshold',
+              onPressed: () {
+                _setDustLimit(context);
+              },
+            ),
           BitcoinButtonOutlined(
             title: 'Wipe wallet',
             onPressed: () => _wipeWalletButtonPressed(context),
