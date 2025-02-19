@@ -47,6 +47,9 @@ android {
             versionNameSuffix '.dev'
             resValue "string", "app_name", "Dana Development"
         }
+        live {
+            dimension 'default'
+        }
     }
 }
 
