@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:flutter/material.dart';
@@ -50,12 +51,13 @@ class TransactionSentScreen extends StatelessWidget {
           ]),
       footer: Column(
         children: [
-          BitcoinButtonOutlined(
-            textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-            title: 'View transaction',
-            onPressed: () => (),
-            cornerRadius: 5.0,
-          ),
+          if (isDevEnv())
+            BitcoinButtonOutlined(
+              textStyle: BitcoinTextStyle.title4(Bitcoin.black),
+              title: 'View transaction',
+              onPressed: () => (),
+              cornerRadius: 5.0,
+            ),
           const SizedBox(
             height: 10.0,
           ),

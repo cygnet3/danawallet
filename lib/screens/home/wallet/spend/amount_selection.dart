@@ -140,13 +140,14 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
       footer: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          BitcoinButtonOutlined(
-            tintColor: Bitcoin.neutral5,
-            textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-            title: 'Select coins manually',
-            onPressed: () => (),
-            cornerRadius: 5.0,
-          ),
+          if (isDevEnv())
+            BitcoinButtonOutlined(
+              tintColor: Bitcoin.neutral5,
+              textStyle: BitcoinTextStyle.title4(Bitcoin.black),
+              title: 'Select coins manually',
+              onPressed: () => (),
+              cornerRadius: 5.0,
+            ),
           const SizedBox(
             height: 10.0,
           ),

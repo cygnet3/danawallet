@@ -125,13 +125,14 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   const SizedBox(
                     height: 10.0,
                   ),
-                  BitcoinButtonOutlined(
-                      disabledTintColor: Bitcoin.neutral5,
-                      textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-                      title: 'Choose from Contacts',
-                      onPressed: () => (),
-                      cornerRadius: 5.0,
-                      disabled: true),
+                  if (isDevEnv())
+                    BitcoinButtonOutlined(
+                        disabledTintColor: Bitcoin.neutral5,
+                        textStyle: BitcoinTextStyle.title4(Bitcoin.black),
+                        title: 'Choose from Contacts',
+                        onPressed: () => (),
+                        cornerRadius: 5.0,
+                        disabled: true),
                   const SizedBox(
                     height: 10.0,
                   ),
