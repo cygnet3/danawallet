@@ -1,3 +1,5 @@
+import 'package:danawallet/global_functions.dart';
+
 enum Network {
   mainnet,
   testnet,
@@ -18,11 +20,23 @@ enum Network {
   String getDefaultBlindbitUrl() {
     switch (this) {
       case Network.mainnet:
-        return defaultMainnet;
+        if (isDevEnv() && const String.fromEnvironment("MAINNET_URL") != "") {
+          return const String.fromEnvironment("MAINNET_URL");
+        } else {
+          return defaultMainnet;
+        }
       case Network.testnet:
-        return defaultTestnet;
+        if (isDevEnv() && const String.fromEnvironment("TESTNET_URL") != "") {
+          return const String.fromEnvironment("TESTNET_URL");
+        } else {
+          return defaultTestnet;
+        }
       case Network.signet:
-        return defaultSignet;
+        if (isDevEnv() && const String.fromEnvironment("SIGNET_URL") != "") {
+          return const String.fromEnvironment("SIGNET_URL");
+        } else {
+          return defaultSignet;
+        }
     }
   }
 
