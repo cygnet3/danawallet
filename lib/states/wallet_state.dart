@@ -21,7 +21,26 @@ class WalletState extends ChangeNotifier {
 
   late StreamSubscription scanResultSubscription;
 
-  WalletState();
+  // private constructor
+  WalletState._();
+
+  static Future<WalletState> create() async {
+    final instance = WalletState._();
+    await instance._initStreams();
+    return instance;
+  }
+
+  Future<void> _initStreams() async {
+    scanResultSubscription = createScanResultStream().listen(((event) async {
+      await saveWalletToSecureStorage(event.updatedWallet);
+      try {
+        await _updateWalletStatus(event.updatedWallet);
+      } catch (e) {
+        rethrow;
+      }
+      notifyListeners();
+    }));
+  }
 
   Network get network => _network;
   set network(Network value) {
@@ -30,8 +49,6 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<bool> initialize() async {
-    await _initStreams();
-
     // we check if wallet str is present in database
     final walletStr = await walletRepository.readWalletBlob();
 
@@ -51,18 +68,6 @@ class WalletState extends ChangeNotifier {
     } catch (e) {
       rethrow;
     }
-  }
-
-  Future<void> _initStreams() async {
-    scanResultSubscription = createScanResultStream().listen(((event) async {
-      await saveWalletToSecureStorage(event.updatedWallet);
-      try {
-        await _updateWalletStatus(event.updatedWallet);
-      } catch (e) {
-        rethrow;
-      }
-      notifyListeners();
-    }));
   }
 
   @override
