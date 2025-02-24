@@ -13,7 +13,7 @@ use sp_client::{
     OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
 };
 
-use crate::wallet::recorded::{
+use crate::history::recorded::{
     RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
 };
 
@@ -275,7 +275,6 @@ pub struct ApiWalletStatus {
     pub birthday: u32,
     pub last_scan: u32,
     pub outputs: HashMap<String, ApiOwnedOutput>,
-    pub tx_history: Vec<ApiRecordedTransaction>,
 }
 
 pub struct ApiSetupWalletArgs {

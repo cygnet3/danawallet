@@ -9,6 +9,7 @@ const String _keySeedPhrase = "seedphrase";
 // non secure storage
 // this will likely replaced by an sql database in the future
 const String _keyNetwork = "network";
+const String _keyTxHistory = "txhistory";
 
 class WalletRepository {
   final secureStorage = const FlutterSecureStorage();
@@ -21,7 +22,7 @@ class WalletRepository {
     await secureStorage.deleteAll();
 
     // delete non secure storage
-    await nonSecureStorage.clear(allowList: {_keyNetwork});
+    await nonSecureStorage.clear(allowList: {_keyNetwork, _keyTxHistory});
   }
 
   Future<String?> readWalletBlob() async {
@@ -48,5 +49,13 @@ class WalletRepository {
 
   Future<void> saveNetwork(Network network) async {
     await nonSecureStorage.setString(_keyNetwork, network.name);
+  }
+
+  Future<void> saveHistory(String history) async {
+    return await nonSecureStorage.setString(_keyTxHistory, history);
+  }
+
+  Future<String?> readHistory() async {
+    return await nonSecureStorage.getString(_keyTxHistory);
   }
 }

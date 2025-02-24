@@ -3,6 +3,7 @@
 //
 
 pub mod chain;
+pub mod history;
 pub mod simple;
 pub mod stream;
 pub mod structs;

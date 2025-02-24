@@ -1,6 +1,10 @@
 use std::{collections::HashMap, str::FromStr};
 
-use crate::wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater, KEEP_SCANNING};
+use crate::{
+    history::TxHistory,
+    updater::WalletUpdater,
+    wallet::{utils::derive_keys_from_seed, SpWallet, KEEP_SCANNING},
+};
 use anyhow::Result;
 use bip39::rand::{thread_rng, RngCore};
 use sp_client::{
@@ -16,8 +20,8 @@ use sp_client::{
 };
 
 use super::structs::{
-    ApiAmount, ApiOwnedOutput, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType,
-    ApiSilentPaymentUnsignedTransaction, ApiWalletStatus,
+    ApiOwnedOutput, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs,
+    ApiSetupWalletType, ApiSilentPaymentUnsignedTransaction, ApiWalletStatus,
 };
 
 /// we enable cutthrough by default, no need to let the user decide
@@ -119,8 +123,10 @@ pub async fn scan_to_tip(
     blindbit_url: String,
     dust_limit: u64,
     encoded_wallet: String,
+    encoded_history: String,
 ) -> Result<()> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    let tx_history: TxHistory = serde_json::from_str(&encoded_history)?;
 
     let backend = BlindbitBackend::new(blindbit_url)?;
 
@@ -132,7 +138,7 @@ pub async fn scan_to_tip(
     let owned_outpoints = wallet.outputs.keys().cloned().collect();
 
     let sp_client = wallet.client.clone();
-    let updater = WalletUpdater::new(wallet);
+    let updater = WalletUpdater::new(wallet, tx_history);
 
     KEEP_SCANNING.store(true, std::sync::atomic::Ordering::Relaxed);
 
@@ -166,7 +172,6 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<ApiWalletStatus> {
         balance: wallet.get_balance().to_sat(),
         birthday: wallet.birthday.to_consensus_u32(),
         last_scan: wallet.last_scan.to_consensus_u32(),
-        tx_history: wallet.tx_history.into_iter().map(Into::into).collect(),
         outputs: wallet
             .outputs
             .into_iter()
@@ -190,32 +195,6 @@ pub fn mark_outpoints_spent(
             true,
         )?;
     }
-
-    Ok(serde_json::to_string(&wallet)?)
-}
-
-#[flutter_rust_bridge::frb(sync)]
-pub fn add_outgoing_tx_to_history(
-    encoded_wallet: String,
-    txid: String,
-    spent_outpoints: Vec<String>,
-    recipients: Vec<ApiRecipient>,
-    change: ApiAmount,
-) -> Result<String> {
-    let txid = Txid::from_str(&txid)?;
-    let spent_outpoints = spent_outpoints
-        .into_iter()
-        .map(|x| OutPoint::from_str(&x).unwrap())
-        .collect();
-
-    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-
-    let recipients = recipients
-        .into_iter()
-        .map(|r| r.try_into().unwrap())
-        .collect();
-
-    wallet.record_outgoing_transaction(txid, spent_outpoints, recipients, change.into());
 
     Ok(serde_json::to_string(&wallet)?)
 }

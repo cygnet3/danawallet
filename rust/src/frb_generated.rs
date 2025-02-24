@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.3.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1448369323;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -838693364;
 
 // Section: executor
 
@@ -79,6 +79,81 @@ fn wire__crate__api__chain__get_chain_height_impl(
                     .await,
                 )
             }
+        },
+    )
+}
+fn wire__crate__api__history__add_outgoing_tx_to_history_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "add_outgoing_tx_to_history",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_encoded_history = <String>::sse_decode(&mut deserializer);
+            let api_txid = <String>::sse_decode(&mut deserializer);
+            let api_spent_outpoints = <Vec<String>>::sse_decode(&mut deserializer);
+            let api_recipients =
+                <Vec<crate::api::structs::ApiRecipient>>::sse_decode(&mut deserializer);
+            let api_change = <crate::api::structs::ApiAmount>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::history::add_outgoing_tx_to_history(
+                        api_encoded_history,
+                        api_txid,
+                        api_spent_outpoints,
+                        api_recipients,
+                        api_change,
+                    )?;
+                    Ok(output_ok)
+                })(),
+            )
+        },
+    )
+}
+fn wire__crate__api__history__read_tx_history_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "read_tx_history",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_encoded_history = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::history::read_tx_history(api_encoded_history)?;
+                    Ok(output_ok)
+                })(),
+            )
         },
     )
 }
@@ -534,49 +609,6 @@ fn wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_send_a
         },
     )
 }
-fn wire__crate__api__wallet__add_outgoing_tx_to_history_impl(
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "add_outgoing_tx_to_history",
-            port: None,
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
-            let api_txid = <String>::sse_decode(&mut deserializer);
-            let api_spent_outpoints = <Vec<String>>::sse_decode(&mut deserializer);
-            let api_recipients =
-                <Vec<crate::api::structs::ApiRecipient>>::sse_decode(&mut deserializer);
-            let api_change = <crate::api::structs::ApiAmount>::sse_decode(&mut deserializer);
-            deserializer.end();
-            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
-                (move || {
-                    let output_ok = crate::api::wallet::add_outgoing_tx_to_history(
-                        api_encoded_wallet,
-                        api_txid,
-                        api_spent_outpoints,
-                        api_recipients,
-                        api_change,
-                    )?;
-                    Ok(output_ok)
-                })(),
-            )
-        },
-    )
-}
 fn wire__crate__api__wallet__broadcast_tx_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -934,6 +966,7 @@ fn wire__crate__api__wallet__scan_to_tip_impl(
             let api_blindbit_url = <String>::sse_decode(&mut deserializer);
             let api_dust_limit = <u64>::sse_decode(&mut deserializer);
             let api_encoded_wallet = <String>::sse_decode(&mut deserializer);
+            let api_encoded_history = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -942,6 +975,7 @@ fn wire__crate__api__wallet__scan_to_tip_impl(
                             api_blindbit_url,
                             api_dust_limit,
                             api_encoded_wallet,
+                            api_encoded_history,
                         )
                         .await?;
                         Ok(output_ok)
@@ -1287,8 +1321,6 @@ impl SseDecode for crate::api::structs::ApiWalletStatus {
             String,
             crate::api::structs::ApiOwnedOutput,
         >>::sse_decode(deserializer);
-        let mut var_txHistory =
-            <Vec<crate::api::structs::ApiRecordedTransaction>>::sse_decode(deserializer);
         return crate::api::structs::ApiWalletStatus {
             address: var_address,
             network: var_network,
@@ -1297,7 +1329,6 @@ impl SseDecode for crate::api::structs::ApiWalletStatus {
             birthday: var_birthday,
             last_scan: var_lastScan,
             outputs: var_outputs,
-            tx_history: var_txHistory,
         };
     }
 }
@@ -1476,8 +1507,10 @@ impl SseDecode for crate::stream::ScanResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_updatedWallet = <String>::sse_decode(deserializer);
+        let mut var_updatedTxHistory = <String>::sse_decode(deserializer);
         return crate::stream::ScanResult {
             updated_wallet: var_updatedWallet,
+            updated_tx_history: var_updatedTxHistory,
         };
     }
 }
@@ -1526,9 +1559,9 @@ fn pde_ffi_dispatcher_primary_impl(
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
         1 => wire__crate__api__chain__get_chain_height_impl(port, ptr, rust_vec_len, data_len),
-        2 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__wallet__broadcast_tx_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__wallet__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
+        4 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__wallet__broadcast_tx_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__wallet__scan_to_tip_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1541,29 +1574,30 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-                        3 => wire__crate__api__stream__create_log_stream_impl(ptr, rust_vec_len, data_len),
-4 => wire__crate__api__stream__create_scan_progress_stream_impl(ptr, rust_vec_len, data_len),
-5 => wire__crate__api__stream__create_scan_result_stream_impl(ptr, rust_vec_len, data_len),
-6 => wire__crate__api__structs__api_amount_display_btc_impl(ptr, rust_vec_len, data_len),
-7 => wire__crate__api__structs__api_amount_display_sats_impl(ptr, rust_vec_len, data_len),
-8 => wire__crate__api__structs__api_amount_to_int_impl(ptr, rust_vec_len, data_len),
-9 => wire__crate__api__structs__api_recorded_transaction_incoming_to_string_impl(ptr, rust_vec_len, data_len),
-10 => wire__crate__api__structs__api_recorded_transaction_outgoing_to_string_impl(ptr, rust_vec_len, data_len),
-11 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_change_amount_impl(ptr, rust_vec_len, data_len),
-12 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_fee_amount_impl(ptr, rust_vec_len, data_len),
-13 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_recipients_impl(ptr, rust_vec_len, data_len),
-14 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_send_amount_impl(ptr, rust_vec_len, data_len),
-15 => wire__crate__api__wallet__add_outgoing_tx_to_history_impl(ptr, rust_vec_len, data_len),
-17 => wire__crate__api__wallet__change_birthday_impl(ptr, rust_vec_len, data_len),
-18 => wire__crate__api__wallet__create_drain_transaction_impl(ptr, rust_vec_len, data_len),
-19 => wire__crate__api__wallet__create_new_transaction_impl(ptr, rust_vec_len, data_len),
-20 => wire__crate__api__wallet__finalize_transaction_impl(ptr, rust_vec_len, data_len),
-21 => wire__crate__api__wallet__get_wallet_info_impl(ptr, rust_vec_len, data_len),
-22 => wire__crate__api__wallet__interrupt_scanning_impl(ptr, rust_vec_len, data_len),
-23 => wire__crate__api__wallet__mark_outpoints_spent_impl(ptr, rust_vec_len, data_len),
-24 => wire__crate__api__wallet__reset_wallet_impl(ptr, rust_vec_len, data_len),
-26 => wire__crate__api__wallet__setup_wallet_impl(ptr, rust_vec_len, data_len),
-27 => wire__crate__api__wallet__sign_transaction_impl(ptr, rust_vec_len, data_len),
+                        2 => wire__crate__api__history__add_outgoing_tx_to_history_impl(ptr, rust_vec_len, data_len),
+3 => wire__crate__api__history__read_tx_history_impl(ptr, rust_vec_len, data_len),
+5 => wire__crate__api__stream__create_log_stream_impl(ptr, rust_vec_len, data_len),
+6 => wire__crate__api__stream__create_scan_progress_stream_impl(ptr, rust_vec_len, data_len),
+7 => wire__crate__api__stream__create_scan_result_stream_impl(ptr, rust_vec_len, data_len),
+8 => wire__crate__api__structs__api_amount_display_btc_impl(ptr, rust_vec_len, data_len),
+9 => wire__crate__api__structs__api_amount_display_sats_impl(ptr, rust_vec_len, data_len),
+10 => wire__crate__api__structs__api_amount_to_int_impl(ptr, rust_vec_len, data_len),
+11 => wire__crate__api__structs__api_recorded_transaction_incoming_to_string_impl(ptr, rust_vec_len, data_len),
+12 => wire__crate__api__structs__api_recorded_transaction_outgoing_to_string_impl(ptr, rust_vec_len, data_len),
+13 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_change_amount_impl(ptr, rust_vec_len, data_len),
+14 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_fee_amount_impl(ptr, rust_vec_len, data_len),
+15 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_recipients_impl(ptr, rust_vec_len, data_len),
+16 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_send_amount_impl(ptr, rust_vec_len, data_len),
+18 => wire__crate__api__wallet__change_birthday_impl(ptr, rust_vec_len, data_len),
+19 => wire__crate__api__wallet__create_drain_transaction_impl(ptr, rust_vec_len, data_len),
+20 => wire__crate__api__wallet__create_new_transaction_impl(ptr, rust_vec_len, data_len),
+21 => wire__crate__api__wallet__finalize_transaction_impl(ptr, rust_vec_len, data_len),
+22 => wire__crate__api__wallet__get_wallet_info_impl(ptr, rust_vec_len, data_len),
+23 => wire__crate__api__wallet__interrupt_scanning_impl(ptr, rust_vec_len, data_len),
+24 => wire__crate__api__wallet__mark_outpoints_spent_impl(ptr, rust_vec_len, data_len),
+25 => wire__crate__api__wallet__reset_wallet_impl(ptr, rust_vec_len, data_len),
+27 => wire__crate__api__wallet__setup_wallet_impl(ptr, rust_vec_len, data_len),
+28 => wire__crate__api__wallet__sign_transaction_impl(ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
@@ -1849,7 +1883,6 @@ impl flutter_rust_bridge::IntoDart for crate::api::structs::ApiWalletStatus {
             self.birthday.into_into_dart().into_dart(),
             self.last_scan.into_into_dart().into_dart(),
             self.outputs.into_into_dart().into_dart(),
-            self.tx_history.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -1924,7 +1957,11 @@ impl flutter_rust_bridge::IntoIntoDart<crate::stream::ScanProgress>
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::stream::ScanResult {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [self.updated_wallet.into_into_dart().into_dart()].into_dart()
+        [
+            self.updated_wallet.into_into_dart().into_dart(),
+            self.updated_tx_history.into_into_dart().into_dart(),
+        ]
+        .into_dart()
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::stream::ScanResult {}
@@ -2149,7 +2186,6 @@ impl SseEncode for crate::api::structs::ApiWalletStatus {
             self.outputs,
             serializer,
         );
-        <Vec<crate::api::structs::ApiRecordedTransaction>>::sse_encode(self.tx_history, serializer);
     }
 }
 
@@ -2301,6 +2337,7 @@ impl SseEncode for crate::stream::ScanResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.updated_wallet, serializer);
+        <String>::sse_encode(self.updated_tx_history, serializer);
     }
 }
 

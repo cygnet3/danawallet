@@ -6,55 +6,21 @@ use sp_client::{
 };
 
 use crate::{
+    history::TxHistory,
     stream::{send_scan_progress, send_scan_result, ScanProgress, ScanResult},
-    wallet::{
-        recorded::{RecordedTransaction, RecordedTransactionIncoming},
-        SpWallet,
-    },
+    wallet::SpWallet,
 };
 
 use anyhow::{Error, Result};
 
 pub struct WalletUpdater {
     wallet: SpWallet,
+    tx_history: TxHistory,
 }
 
 impl WalletUpdater {
-    pub fn new(wallet: SpWallet) -> Self {
-        Self { wallet }
-    }
-
-    fn confirm_recorded_outgoing_transaction(
-        &mut self,
-        outpoint: OutPoint,
-        blkheight: Height,
-    ) -> Result<()> {
-        for recorded_tx in self.wallet.tx_history.iter_mut() {
-            match recorded_tx {
-                RecordedTransaction::Outgoing(outgoing)
-                    if (outgoing.spent_outpoints.contains(&outpoint)) =>
-                {
-                    outgoing.confirmed_at = Some(blkheight);
-                    return Ok(());
-                }
-                _ => (),
-            }
-        }
-
-        Err(Error::msg(format!(
-            "No outgoing tx found for input: {}",
-            outpoint
-        )))
-    }
-
-    fn record_incoming_transaction(&mut self, txid: Txid, amount: Amount, confirmed_at: Height) {
-        self.wallet
-            .tx_history
-            .push(RecordedTransaction::Incoming(RecordedTransactionIncoming {
-                txid,
-                amount,
-                confirmed_at: Some(confirmed_at),
-            }))
+    pub fn new(wallet: SpWallet, tx_history: TxHistory) -> Self {
+        Self { wallet, tx_history }
     }
 
     /// Mark the output as being spent in block `mined_in_block`
@@ -114,7 +80,8 @@ impl Updater for WalletUpdater {
             *entry += output.amount;
         }
         for (txid, amount) in txs {
-            self.record_incoming_transaction(txid, amount, height);
+            self.tx_history
+                .record_incoming_transaction(txid, amount, height);
         }
 
         // add outputs to known outputs
@@ -131,7 +98,8 @@ impl Updater for WalletUpdater {
     ) -> Result<()> {
         for outpoint in found_inputs {
             // this may confirm the same tx multiple times, but this shouldn't be a problem
-            self.confirm_recorded_outgoing_transaction(outpoint, blkheight)?;
+            self.tx_history
+                .confirm_recorded_outgoing_transaction(outpoint, blkheight)?;
             self.mark_mined(outpoint, blkhash)?;
         }
 
@@ -140,8 +108,10 @@ impl Updater for WalletUpdater {
 
     fn save_to_persistent_storage(&mut self) -> Result<()> {
         let wallet_str = serde_json::to_string(&self.wallet)?;
+        let tx_history_str = serde_json::to_string(&self.tx_history)?;
         send_scan_result(ScanResult {
             updated_wallet: wallet_str,
+            updated_tx_history: tx_history_str,
         });
 
         Ok(())

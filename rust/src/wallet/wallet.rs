@@ -8,9 +8,7 @@ use sp_client::bitcoin::{Amount, Txid};
 
 use anyhow::{Error, Result};
 
-use sp_client::{OutputSpendStatus, OwnedOutput, Recipient, SpClient};
-
-use super::recorded::{RecordedTransaction, RecordedTransactionOutgoing};
+use sp_client::{OutputSpendStatus, OwnedOutput, SpClient};
 
 type WalletFingerprint = [u8; 8];
 
@@ -24,7 +22,6 @@ lazy_static! {
 pub struct SpWallet {
     pub client: SpClient,
     pub wallet_fingerprint: WalletFingerprint,
-    pub tx_history: Vec<RecordedTransaction>,
     pub birthday: Height,
     pub last_scan: Height,
     pub outputs: HashMap<OutPoint, OwnedOutput>,
@@ -35,7 +32,6 @@ impl SpWallet {
         let wallet_fingerprint = client.get_client_fingerprint()?;
         let birthday = Height::from_consensus(birthday)?;
         let last_scan = birthday;
-        let tx_history = vec![];
         let outputs = HashMap::new();
 
         Ok(Self {
@@ -43,7 +39,6 @@ impl SpWallet {
             birthday,
             wallet_fingerprint,
             last_scan,
-            tx_history,
             outputs,
         })
     }
@@ -58,16 +53,6 @@ impl SpWallet {
     fn reset_to_height(&mut self, blkheight: Height) {
         // reset known outputs to height
         self.outputs.retain(|_, o| o.blockheight < blkheight);
-
-        // reset tx history to height
-        self.tx_history.retain(|tx| match tx {
-            RecordedTransaction::Incoming(incoming) => {
-                incoming.confirmed_at.is_some_and(|x| x < blkheight)
-            }
-            RecordedTransaction::Outgoing(outgoing) => {
-                outgoing.confirmed_at.is_some_and(|x| x < blkheight)
-            }
-        });
     }
 
     pub fn reset_to_birthday(&mut self) {
@@ -112,22 +97,5 @@ impl SpWallet {
                 block
             ))),
         }
-    }
-
-    pub fn record_outgoing_transaction(
-        &mut self,
-        txid: Txid,
-        spent_outpoints: Vec<OutPoint>,
-        recipients: Vec<Recipient>,
-        change: Amount,
-    ) {
-        self.tx_history
-            .push(RecordedTransaction::Outgoing(RecordedTransactionOutgoing {
-                txid,
-                spent_outpoints,
-                recipients,
-                confirmed_at: None,
-                change,
-            }))
     }
 }

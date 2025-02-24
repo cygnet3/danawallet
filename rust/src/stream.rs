@@ -17,6 +17,7 @@ pub struct ScanProgress {
 
 pub struct ScanResult {
     pub updated_wallet: String,
+    pub updated_tx_history: String,
 }
 
 pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {

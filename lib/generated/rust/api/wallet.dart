@@ -24,11 +24,13 @@ String resetWallet({required String encodedWallet}) => RustLib.instance.api
 Future<void> scanToTip(
         {required String blindbitUrl,
         required BigInt dustLimit,
-        required String encodedWallet}) =>
+        required String encodedWallet,
+        required String encodedHistory}) =>
     RustLib.instance.api.crateApiWalletScanToTip(
         blindbitUrl: blindbitUrl,
         dustLimit: dustLimit,
-        encodedWallet: encodedWallet);
+        encodedWallet: encodedWallet,
+        encodedHistory: encodedHistory);
 
 void interruptScanning() =>
     RustLib.instance.api.crateApiWalletInterruptScanning();
@@ -43,19 +45,6 @@ String markOutpointsSpent(
         required List<String> spent}) =>
     RustLib.instance.api.crateApiWalletMarkOutpointsSpent(
         encodedWallet: encodedWallet, spentBy: spentBy, spent: spent);
-
-String addOutgoingTxToHistory(
-        {required String encodedWallet,
-        required String txid,
-        required List<String> spentOutpoints,
-        required List<ApiRecipient> recipients,
-        required ApiAmount change}) =>
-    RustLib.instance.api.crateApiWalletAddOutgoingTxToHistory(
-        encodedWallet: encodedWallet,
-        txid: txid,
-        spentOutpoints: spentOutpoints,
-        recipients: recipients,
-        change: change);
 
 ApiSilentPaymentUnsignedTransaction createNewTransaction(
         {required String encodedWallet,

@@ -62,6 +62,7 @@ class ScanProgressNotifier extends ChangeNotifier {
   Future<void> scan(WalletState walletState) async {
     try {
       final wallet = await walletState.getWalletFromSecureStorage();
+      final txHistory = await walletState.getTxHistory() ?? '[]';
       final settings = SettingsRepository();
       final blindbitUrl = await settings.getBlindbitUrl();
       final dustLimit = await settings.getDustLimit();
@@ -70,7 +71,8 @@ class ScanProgressNotifier extends ChangeNotifier {
       await scanToTip(
           blindbitUrl: blindbitUrl!,
           dustLimit: BigInt.from(dustLimit!),
-          encodedWallet: wallet);
+          encodedWallet: wallet,
+          encodedHistory: txHistory);
     } catch (e) {
       deactivate();
       rethrow;

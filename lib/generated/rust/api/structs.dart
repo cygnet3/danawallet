@@ -323,7 +323,6 @@ class ApiWalletStatus {
   final int birthday;
   final int lastScan;
   final Map<String, ApiOwnedOutput> outputs;
-  final List<ApiRecordedTransaction> txHistory;
 
   const ApiWalletStatus({
     required this.address,
@@ -333,7 +332,6 @@ class ApiWalletStatus {
     required this.birthday,
     required this.lastScan,
     required this.outputs,
-    required this.txHistory,
   });
 
   @override
@@ -344,8 +342,7 @@ class ApiWalletStatus {
       balance.hashCode ^
       birthday.hashCode ^
       lastScan.hashCode ^
-      outputs.hashCode ^
-      txHistory.hashCode;
+      outputs.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -358,6 +355,5 @@ class ApiWalletStatus {
           balance == other.balance &&
           birthday == other.birthday &&
           lastScan == other.lastScan &&
-          outputs == other.outputs &&
-          txHistory == other.txHistory;
+          outputs == other.outputs;
 }
