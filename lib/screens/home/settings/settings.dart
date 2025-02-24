@@ -31,20 +31,21 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _setBirthday(BuildContext context, WalletState walletState,
+  Future<void> _setLastScan(BuildContext context, WalletState walletState,
       HomeState homeState) async {
     TextEditingController controller = TextEditingController();
-    final birthday = await showInputAlertDialog(
+    final scanHeight = await showInputAlertDialog(
         controller,
         TextInputType.number,
-        'Enter Birthday',
-        'Enter wallet\'s birthday (numeric value)');
-    if (birthday is int) {
-      await walletState.updateWalletBirthday(birthday);
+        'Enter scan height',
+        'Enter current scan height (numeric value)');
+    if (scanHeight is int) {
+      await walletState.resetToScanHeight(scanHeight);
       homeState.showMainScreen();
-    } else if (birthday is bool && birthday) {
-      final defaultBirthday = walletState.network.defaultBirthday;
-      await walletState.updateWalletBirthday(defaultBirthday);
+    } else if (scanHeight is bool && scanHeight) {
+      // we reset the scan height to the wallet birthday
+      final birthday = walletState.birthday;
+      await walletState.resetToScanHeight(birthday);
       homeState.showMainScreen();
     }
   }
@@ -129,8 +130,8 @@ Without a backup, your funds willl be lost!""");
           ),
           if (isDevEnv())
             BitcoinButtonOutlined(
-                title: 'Set wallet birthday',
-                onPressed: () => _setBirthday(context, walletState, homeState)),
+                title: 'Set scan height birthday',
+                onPressed: () => _setLastScan(context, walletState, homeState)),
           if (isDevEnv())
             BitcoinButtonOutlined(
               title: 'Set backend url',

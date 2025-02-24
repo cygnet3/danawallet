@@ -1,6 +1,9 @@
 use std::{collections::HashMap, str::FromStr};
 
-use crate::wallet::{utils::derive_keys_from_seed, SpWallet, WalletUpdater, KEEP_SCANNING};
+use crate::{
+    state::{OwnedOutputs, StateUpdater, TxHistory},
+    wallet::{utils::derive_keys_from_seed, SpWallet, KEEP_SCANNING},
+};
 use anyhow::Result;
 use bip39::rand::{thread_rng, RngCore};
 use sp_client::{
@@ -9,15 +12,15 @@ use sp_client::{
         consensus::serialize,
         hex::DisplayHex,
         secp256k1::{PublicKey, SecretKey},
-        Network, OutPoint, Txid,
+        Network, OutPoint,
     },
     BlindbitBackend, ChainBackend, OwnedOutput, Recipient, RecipientAddress, SpClient, SpScanner,
     SpendKey,
 };
 
 use super::structs::{
-    ApiAmount, ApiOwnedOutput, ApiRecipient, ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType,
-    ApiSilentPaymentUnsignedTransaction, ApiWalletStatus,
+    ApiOwnedOutput, ApiRecipient, ApiRecordedTransaction, ApiSetupResult, ApiSetupWalletArgs,
+    ApiSetupWalletType, ApiSilentPaymentUnsignedTransaction, ApiWalletStatus,
 };
 
 /// we enable cutthrough by default, no need to let the user decide
@@ -97,42 +100,33 @@ pub fn setup_wallet(setup_args: ApiSetupWalletArgs) -> Result<ApiSetupResult> {
     }
 }
 
-/// Change wallet birthday
-/// Reset the output list and last_scan
-#[flutter_rust_bridge::frb(sync)]
-pub fn change_birthday(encoded_wallet: String, birthday: u32) -> Result<String> {
-    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    wallet.birthday = Height::from_consensus(birthday)?;
-    wallet.reset_to_birthday();
-    Ok(serde_json::to_string(&wallet).unwrap())
-}
-
-/// Reset the last_scan of the wallet to its birthday, removing all outpoints
-#[flutter_rust_bridge::frb(sync)]
-pub fn reset_wallet(encoded_wallet: String) -> Result<String> {
-    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
-    wallet.reset_to_birthday();
-    Ok(serde_json::to_string(&wallet).unwrap())
-}
-
 pub async fn scan_to_tip(
     blindbit_url: String,
+    last_scan: u32,
     dust_limit: u64,
     encoded_wallet: String,
+    encoded_history: String,
+    encoded_owned_outputs: String,
 ) -> Result<()> {
     let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    let tx_history: TxHistory = serde_json::from_str(&encoded_history)?;
+    let owned_outputs: OwnedOutputs = serde_json::from_str(&encoded_owned_outputs)?;
 
     let backend = BlindbitBackend::new(blindbit_url)?;
 
     let dust_limit = sp_client::bitcoin::Amount::from_sat(dust_limit);
 
-    let start = Height::from_consensus(wallet.last_scan.to_consensus_u32() + 1)?;
+    let start = Height::from_consensus(last_scan + 1)?;
     let end = backend.block_height().await?;
 
-    let owned_outpoints = wallet.outputs.keys().cloned().collect();
+    let owned_outpoints = owned_outputs.get_owned_outpoints();
 
     let sp_client = wallet.client.clone();
-    let updater = WalletUpdater::new(wallet);
+    let updater = StateUpdater::new(
+        tx_history,
+        owned_outputs,
+        Height::from_consensus(last_scan)?,
+    );
 
     KEEP_SCANNING.store(true, std::sync::atomic::Ordering::Relaxed);
 
@@ -163,61 +157,46 @@ pub fn get_wallet_info(encoded_wallet: String) -> Result<ApiWalletStatus> {
         address: wallet.client.get_receiving_address().to_string(),
         network: Some(wallet.client.get_network().to_core_arg().to_owned()),
         change_address: wallet.client.sp_receiver.get_change_address().to_string(),
-        balance: wallet.get_balance().to_sat(),
         birthday: wallet.birthday.to_consensus_u32(),
-        last_scan: wallet.last_scan.to_consensus_u32(),
-        tx_history: wallet.tx_history.into_iter().map(Into::into).collect(),
-        outputs: wallet
-            .outputs
-            .into_iter()
-            .map(|(outpoint, output)| (outpoint.to_string(), output.into()))
-            .collect(),
     })
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn mark_outpoints_spent(
-    encoded_wallet: String,
-    spent_by: String,
-    spent: Vec<String>,
-) -> Result<String> {
-    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+/// Only call this when we expect this value to be present
+pub fn get_wallet_last_scan(encoded_wallet: String) -> Result<u32> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
 
-    for outpoint in spent {
-        wallet.mark_spent(
-            OutPoint::from_str(&outpoint)?,
-            Txid::from_str(&spent_by)?,
-            true,
-        )?;
-    }
-
-    Ok(serde_json::to_string(&wallet)?)
+    Ok(wallet.last_scan.unwrap().to_consensus_u32())
 }
 
 #[flutter_rust_bridge::frb(sync)]
-pub fn add_outgoing_tx_to_history(
-    encoded_wallet: String,
-    txid: String,
-    spent_outpoints: Vec<String>,
-    recipients: Vec<ApiRecipient>,
-    change: ApiAmount,
-) -> Result<String> {
-    let txid = Txid::from_str(&txid)?;
-    let spent_outpoints = spent_outpoints
+/// Only call this when we expect this value to be present
+pub fn get_wallet_tx_history(encoded_wallet: String) -> Result<String> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+
+    let history: Vec<ApiRecordedTransaction> = wallet
+        .tx_history
+        .unwrap()
         .into_iter()
-        .map(|x| OutPoint::from_str(&x).unwrap())
+        .map(Into::into)
         .collect();
 
-    let mut wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+    Ok(serde_json::to_string(&history)?)
+}
 
-    let recipients = recipients
+#[flutter_rust_bridge::frb(sync)]
+/// Only call this when we expect this value to be present
+pub fn get_wallet_owned_outputs(encoded_wallet: String) -> Result<String> {
+    let wallet: SpWallet = serde_json::from_str(&encoded_wallet)?;
+
+    let owned_outputs: HashMap<String, ApiOwnedOutput> = wallet
+        .outputs
+        .unwrap()
         .into_iter()
-        .map(|r| r.try_into().unwrap())
+        .map(|(outpoint, output)| (outpoint.to_string(), output.into()))
         .collect();
 
-    wallet.record_outgoing_transaction(txid, spent_outpoints, recipients, change.into());
-
-    Ok(serde_json::to_string(&wallet)?)
+    Ok(serde_json::to_string(&owned_outputs)?)
 }
 
 #[flutter_rust_bridge::frb(sync)]

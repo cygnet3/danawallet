@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
+import 'package:danawallet/generated/rust/api/state.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
@@ -11,14 +12,21 @@ import 'package:flutter/material.dart';
 
 class WalletState extends ChangeNotifier {
   final walletRepository = WalletRepository();
-  late BigInt amount;
-  late int birthday;
-  late int lastScan;
-  late Network _network;
+
+  // variables that never change (unless wallet is reset)
+  late Network network;
   late String address;
+  late String changeAddress;
+  late int birthday;
+
+  // variables that change
+  late BigInt amount;
+  late BigInt unconfirmedChange;
+  late int lastScan;
   late Map<String, ApiOwnedOutput> ownedOutputs;
   late List<ApiRecordedTransaction> txHistory;
 
+  // stream to receive updates while scanning
   late StreamSubscription scanResultSubscription;
 
   // private constructor
@@ -32,20 +40,16 @@ class WalletState extends ChangeNotifier {
 
   Future<void> _initStreams() async {
     scanResultSubscription = createScanResultStream().listen(((event) async {
-      await saveWalletToSecureStorage(event.updatedWallet);
+      await walletRepository.saveHistory(event.updatedTxHistory);
+      await walletRepository.saveLastScan(event.updatedLastScan);
+      await walletRepository.saveOwnedOutputs(event.updatedOwnedOutputs);
       try {
-        await _updateWalletStatus(event.updatedWallet);
+        await _updateWalletState();
       } catch (e) {
         rethrow;
       }
       notifyListeners();
     }));
-  }
-
-  Network get network => _network;
-  set network(Network value) {
-    _network = value;
-    notifyListeners();
   }
 
   Future<bool> initialize() async {
@@ -57,13 +61,21 @@ class WalletState extends ChangeNotifier {
       return false;
     }
 
+    network = await walletRepository.readNetwork();
+
     // We try to load the wallet data blob.
     // This may fail if we make a change to the wallet data struct.
     // This case should crash the app, rather than continue.
     // If we continue, we risk the user accidentally
     // deleting their seed phrase.
     try {
-      await _updateWalletStatus(walletStr);
+      final walletInfo = getWalletInfo(encodedWallet: walletStr);
+      address = walletInfo.address;
+      changeAddress = walletInfo.changeAddress;
+      birthday = walletInfo.birthday;
+
+      await _updateWalletState();
+
       return true;
     } catch (e) {
       rethrow;
@@ -80,16 +92,26 @@ class WalletState extends ChangeNotifier {
     await walletRepository.reset();
   }
 
-  Future<void> saveWalletToSecureStorage(String wallet) async {
-    await walletRepository.saveWalletBlob(wallet);
-  }
+  Future<void> createNewWallet(
+      String encodedWallet, String? seedphrase, Network network) async {
+    final walletInfo = getWalletInfo(encodedWallet: encodedWallet);
 
-  Future<void> saveSeedPhraseToSecureStorage(String seedphrase) async {
-    await walletRepository.saveSeedPhrase(seedphrase);
-  }
-
-  Future<void> saveNetwork(Network network) async {
+    // save variables in storage
+    await walletRepository.saveWalletBlob(encodedWallet);
     await walletRepository.saveNetwork(network);
+    await walletRepository.trySaveSeedPhrase(seedphrase);
+
+    // set default values for new wallet
+    await walletRepository.saveLastScan(walletInfo.birthday);
+    await walletRepository.saveHistory('[]');
+    await walletRepository.saveOwnedOutputs('{}');
+
+    // fill current state variables
+    address = walletInfo.address;
+    changeAddress = walletInfo.changeAddress;
+    birthday = walletInfo.birthday;
+    this.network = network;
+    await _updateWalletState();
   }
 
   Future<String> getWalletFromSecureStorage() async {
@@ -101,79 +123,63 @@ class WalletState extends ChangeNotifier {
     }
   }
 
+  Future<String> getEncodedHistory() async {
+    return await walletRepository.readHistoryEncoded();
+  }
+
+  Future<String> getEncodedOutputs() async {
+    return await walletRepository.readOwnedOutputsEncoded();
+  }
+
   Future<String?> getSeedPhrase() async {
     return await walletRepository.readSeedPhrase();
   }
 
+  Future<void> resetToScanHeight(int height) async {
+    lastScan = height;
+
+    final encodedOutputs = await walletRepository.readOwnedOutputsEncoded();
+    final encodedHistory = await walletRepository.readHistoryEncoded();
+
+    // this uses the stream to update the wallet state
+    resetToHeight(
+        height: height,
+        encodedOwnedOutputs: encodedOutputs,
+        encodedTxHistory: encodedHistory);
+  }
+
   Future<void> updateWalletStatus() async {
     try {
-      final wallet = await getWalletFromSecureStorage();
-      _updateWalletStatus(wallet);
+      _updateWalletState();
     } catch (e) {
       rethrow;
     }
     notifyListeners();
   }
 
-  Future<void> _updateWalletStatus(String wallet) async {
-    ApiWalletStatus walletInfo;
-    try {
-      walletInfo = getWalletInfo(encodedWallet: wallet);
-    } catch (e) {
-      rethrow;
+  Future<void> _updateWalletState() async {
+    txHistory = await walletRepository.readHistory();
+    ownedOutputs = await walletRepository.readOwnedOutputs();
+    lastScan = await walletRepository.readLastScan();
+
+    amount = BigInt.from(0);
+    unconfirmedChange = BigInt.from(0);
+    for (ApiOwnedOutput output in ownedOutputs.values) {
+      if (output.spendStatus is ApiOutputSpendStatus_Unspent) {
+        amount += output.amount.field0;
+      }
     }
 
-    BigInt totalAmount = walletInfo.balance;
-
-    for (ApiRecordedTransaction tx in walletInfo.txHistory) {
+    for (ApiRecordedTransaction tx in txHistory) {
       switch (tx) {
         case ApiRecordedTransaction_Outgoing(:final field0):
           if (field0.confirmedAt == null) {
             // while an outgoing transaction is not yet confirmed, we add the change outputs manually
-            totalAmount += field0.change.field0;
+            unconfirmedChange += field0.change.field0;
           }
         default:
       }
     }
-
-    // read network from wallet repository
-    // if network is not in storage, user may be using an old wallet where
-    // it was stored in the wallet blob, so  try reading from there instead
-    final network = await walletRepository.readNetwork();
-    if (network != null) {
-      this.network = network;
-    } else {
-      this.network = Network.fromBitcoinNetwork(walletInfo.network!);
-    }
-
-    address = walletInfo.address;
-    amount = totalAmount;
-    birthday = walletInfo.birthday;
-    lastScan = walletInfo.lastScan;
-    ownedOutputs = walletInfo.outputs;
-    txHistory = walletInfo.txHistory;
-  }
-
-  Map<String, ApiOwnedOutput> getSpendableOutputs() {
-    var spendable = ownedOutputs.entries.where((element) =>
-        element.value.spendStatus == const ApiOutputSpendStatus.unspent());
-    return Map.fromEntries(spendable);
-  }
-
-  Future<void> updateWalletBirthday(int birthday) async {
-    final wallet = await getWalletFromSecureStorage();
-    final updatedWallet =
-        changeBirthday(encodedWallet: wallet, birthday: birthday);
-    await saveWalletToSecureStorage(updatedWallet);
-    await updateWalletStatus();
-  }
-
-  Future<String> getChangeAddress() async {
-    final wallet = await getWalletFromSecureStorage();
-
-    final walletInfo = getWalletInfo(encodedWallet: wallet);
-
-    return walletInfo.changeAddress;
   }
 
   Future<RecommendedFeeResponse> getCurrentFeeRates() async {
@@ -214,40 +220,44 @@ class WalletState extends ChangeNotifier {
 
   Future<void> signAndBroadcastUnsignedTx(
       ApiSilentPaymentUnsignedTransaction unsignedTx) async {
-    final wallet = await getWalletFromSecureStorage();
-
-    final walletInfo = getWalletInfo(encodedWallet: wallet);
-
     final selectedOutputs = unsignedTx.selectedUtxos;
 
-    final changeValue =
-        unsignedTx.getChangeAmount(changeAddress: walletInfo.changeAddress);
+    List<String> selectedOutpoints =
+        selectedOutputs.map((tuple) => tuple.$1).toList();
 
-    final recipients =
-        unsignedTx.getRecipients(changeAddress: walletInfo.changeAddress);
+    final changeValue =
+        unsignedTx.getChangeAmount(changeAddress: changeAddress);
+
+    final recipients = unsignedTx.getRecipients(changeAddress: changeAddress);
 
     final finalizedTx = finalizeTransaction(unsignedTransaction: unsignedTx);
+
+    final wallet = await getWalletFromSecureStorage();
 
     final signedTx = signTransaction(
         encodedWallet: wallet, unsignedTransaction: finalizedTx);
     final txid =
         await broadcastTx(tx: signedTx, network: network.toBitcoinNetwork);
 
-    List<String> selectedOutpoints =
-        selectedOutputs.map((tuple) => tuple.$1).toList();
+    // we still have to do this since we 'save' using the encoded format
+    final encodedOutputs = await walletRepository.readOwnedOutputsEncoded();
+    final encodedHistory = await walletRepository.readHistoryEncoded();
 
-    final markedAsSpentWallet = markOutpointsSpent(
-        encodedWallet: wallet, spentBy: txid, spent: selectedOutpoints);
+    final updatedOwnedOutputs = markOutpointsSpent(
+        encodedOutputs: encodedOutputs,
+        spentBy: txid,
+        spent: selectedOutpoints);
 
-    final updatedWallet = addOutgoingTxToHistory(
-        encodedWallet: markedAsSpentWallet,
+    final updatedTxHistory = addOutgoingTxToHistory(
+        encodedHistory: encodedHistory,
         txid: txid,
         spentOutpoints: selectedOutpoints,
         recipients: recipients,
         change: changeValue);
 
     // save the updated wallet
-    saveWalletToSecureStorage(updatedWallet);
+    await walletRepository.saveOwnedOutputs(updatedOwnedOutputs);
+    walletRepository.saveHistory(updatedTxHistory);
     await updateWalletStatus();
 
     return;

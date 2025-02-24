@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 use sp_client::{
@@ -13,7 +13,7 @@ use sp_client::{
     OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
 };
 
-use crate::wallet::recorded::{
+use crate::state::constants::{
     RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
 };
 
@@ -271,11 +271,7 @@ pub struct ApiWalletStatus {
     pub address: String,
     pub network: Option<String>,
     pub change_address: String,
-    pub balance: u64,
     pub birthday: u32,
-    pub last_scan: u32,
-    pub outputs: HashMap<String, ApiOwnedOutput>,
-    pub tx_history: Vec<ApiRecordedTransaction>,
 }
 
 pub struct ApiSetupWalletArgs {

@@ -9,7 +9,6 @@ import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class CreateWalletScreen extends StatefulWidget {
@@ -52,9 +51,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
       try {
         birthday = chainState.tip;
       } catch (e) {
-        Logger().w(
-            'Unable to get block height, using default network birthday instead');
-        birthday = _selectedNetwork.defaultBirthday;
+        rethrow;
       }
     }
 
@@ -65,15 +62,8 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
 
     try {
       final setupResult = setupWallet(setupArgs: args);
-
-      final walletBlob = setupResult.walletBlob;
-      final seedPhrase = setupResult.mnemonic;
-      await walletState.saveWalletToSecureStorage(walletBlob);
-      await walletState.saveNetwork(_selectedNetwork);
-      if (seedPhrase != null) {
-        await walletState.saveSeedPhraseToSecureStorage(seedPhrase);
-      }
-      await walletState.updateWalletStatus();
+      await walletState.createNewWallet(
+          setupResult.walletBlob, setupResult.mnemonic, _selectedNetwork);
       if (mounted) {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const HomeScreen()));
