@@ -11,24 +11,20 @@ import 'structs.dart';
 ApiSetupResult setupWallet({required ApiSetupWalletArgs setupArgs}) =>
     RustLib.instance.api.crateApiWalletSetupWallet(setupArgs: setupArgs);
 
-/// Change wallet birthday
-/// Reset the output list and last_scan
-String changeBirthday({required String encodedWallet, required int birthday}) =>
-    RustLib.instance.api.crateApiWalletChangeBirthday(
-        encodedWallet: encodedWallet, birthday: birthday);
-
-/// Reset the last_scan of the wallet to its birthday, removing all outpoints
-String resetWallet({required String encodedWallet}) => RustLib.instance.api
-    .crateApiWalletResetWallet(encodedWallet: encodedWallet);
-
 Future<void> scanToTip(
         {required String blindbitUrl,
+        required int lastScan,
         required BigInt dustLimit,
-        required String encodedWallet}) =>
+        required String encodedWallet,
+        required String encodedHistory,
+        required String encodedOwnedOutputs}) =>
     RustLib.instance.api.crateApiWalletScanToTip(
         blindbitUrl: blindbitUrl,
+        lastScan: lastScan,
         dustLimit: dustLimit,
-        encodedWallet: encodedWallet);
+        encodedWallet: encodedWallet,
+        encodedHistory: encodedHistory,
+        encodedOwnedOutputs: encodedOwnedOutputs);
 
 void interruptScanning() =>
     RustLib.instance.api.crateApiWalletInterruptScanning();
@@ -37,25 +33,19 @@ ApiWalletStatus getWalletInfo({required String encodedWallet}) =>
     RustLib.instance.api
         .crateApiWalletGetWalletInfo(encodedWallet: encodedWallet);
 
-String markOutpointsSpent(
-        {required String encodedWallet,
-        required String spentBy,
-        required List<String> spent}) =>
-    RustLib.instance.api.crateApiWalletMarkOutpointsSpent(
-        encodedWallet: encodedWallet, spentBy: spentBy, spent: spent);
+/// Only call this when we expect this value to be present
+int getWalletLastScan({required String encodedWallet}) => RustLib.instance.api
+    .crateApiWalletGetWalletLastScan(encodedWallet: encodedWallet);
 
-String addOutgoingTxToHistory(
-        {required String encodedWallet,
-        required String txid,
-        required List<String> spentOutpoints,
-        required List<ApiRecipient> recipients,
-        required ApiAmount change}) =>
-    RustLib.instance.api.crateApiWalletAddOutgoingTxToHistory(
-        encodedWallet: encodedWallet,
-        txid: txid,
-        spentOutpoints: spentOutpoints,
-        recipients: recipients,
-        change: change);
+/// Only call this when we expect this value to be present
+String getWalletTxHistory({required String encodedWallet}) =>
+    RustLib.instance.api
+        .crateApiWalletGetWalletTxHistory(encodedWallet: encodedWallet);
+
+/// Only call this when we expect this value to be present
+String getWalletOwnedOutputs({required String encodedWallet}) =>
+    RustLib.instance.api
+        .crateApiWalletGetWalletOwnedOutputs(encodedWallet: encodedWallet);
 
 ApiSilentPaymentUnsignedTransaction createNewTransaction(
         {required String encodedWallet,

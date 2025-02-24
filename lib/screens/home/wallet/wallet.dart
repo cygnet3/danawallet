@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
@@ -32,18 +30,6 @@ class WalletScreenState extends State<WalletScreen> {
   void dispose() {
     _synchronizationService.stopSyncTimer();
     super.dispose();
-  }
-
-  Future<void> _updateOwnedOutputs(
-      WalletState walletState, Function(Exception? e) callback) async {
-    try {
-      await walletState.updateWalletStatus();
-      callback(null);
-    } on Exception catch (e) {
-      callback(e);
-    } catch (e) {
-      rethrow;
-    }
   }
 
   void _showReceiveDialog(BuildContext context, String address) {
@@ -119,20 +105,10 @@ class WalletScreenState extends State<WalletScreen> {
             child: BitcoinButtonFilled(
               title: 'Send',
               cornerRadius: 10,
-              onPressed: () async {
-                // Logic for send button
-                await _updateOwnedOutputs(walletState, (Exception? e) async {
-                  if (e != null) {
-                    throw e;
-                  } else {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const ChooseRecipientScreen()));
-                  }
-                });
-              },
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ChooseRecipientScreen())),
             ),
           ),
         ],
@@ -156,7 +132,7 @@ class WalletScreenState extends State<WalletScreen> {
               children: [
                 const SizedBox(height: 10.0),
                 Text(
-                  '${walletState.amount} sats',
+                  '${walletState.amount + walletState.unconfirmedChange} sats',
                   style: Theme.of(context).textTheme.displayMedium,
                 ),
                 const Spacer(),

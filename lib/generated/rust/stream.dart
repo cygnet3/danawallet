@@ -31,19 +31,28 @@ class ScanProgress {
 }
 
 class ScanResult {
-  final String updatedWallet;
+  final int updatedLastScan;
+  final String updatedTxHistory;
+  final String updatedOwnedOutputs;
 
   const ScanResult({
-    required this.updatedWallet,
+    required this.updatedLastScan,
+    required this.updatedTxHistory,
+    required this.updatedOwnedOutputs,
   });
 
   @override
-  int get hashCode => updatedWallet.hashCode;
+  int get hashCode =>
+      updatedLastScan.hashCode ^
+      updatedTxHistory.hashCode ^
+      updatedOwnedOutputs.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ScanResult &&
           runtimeType == other.runtimeType &&
-          updatedWallet == other.updatedWallet;
+          updatedLastScan == other.updatedLastScan &&
+          updatedTxHistory == other.updatedTxHistory &&
+          updatedOwnedOutputs == other.updatedOwnedOutputs;
 }
