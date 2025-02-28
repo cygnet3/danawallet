@@ -122,7 +122,7 @@ Without a backup, your funds willl be lost!""");
             title: 'Show seed phrase',
             onPressed: () async {
               const title = 'Backup seed phrase';
-              final text = await walletState.getSeedPhrase() ??
+              final text = await walletState.getSeedPhraseFromSecureStorage() ??
                   'Seed phrase unknown! Did you import from keys?';
 
               showAlertDialog(title, text);
@@ -130,7 +130,7 @@ Without a backup, your funds willl be lost!""");
           ),
           if (isDevEnv())
             BitcoinButtonOutlined(
-                title: 'Set scan height birthday',
+                title: 'Set scan height',
                 onPressed: () => _setLastScan(context, walletState, homeState)),
           if (isDevEnv())
             BitcoinButtonOutlined(

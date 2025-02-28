@@ -3,8 +3,9 @@
 //
 
 pub mod chain;
+pub mod history;
+pub mod outputs;
 pub mod simple;
-pub mod state;
 pub mod stream;
 pub mod structs;
 pub mod wallet;

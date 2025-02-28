@@ -1,6 +1,9 @@
 use std::sync::Mutex;
 
-use crate::frb_generated::StreamSink;
+use crate::{
+    api::{history::TxHistory, outputs::OwnedOutputs},
+    frb_generated::{RustAutoOpaque, StreamSink},
+};
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -17,8 +20,8 @@ pub struct ScanProgress {
 
 pub struct ScanResult {
     pub updated_last_scan: u32,
-    pub updated_tx_history: String,
-    pub updated_owned_outputs: String,
+    pub updated_tx_history: RustAutoOpaque<TxHistory>,
+    pub updated_owned_outputs: RustAutoOpaque<OwnedOutputs>,
 }
 
 pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {

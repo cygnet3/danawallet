@@ -6,6 +6,8 @@
 import '../frb_generated.dart';
 import '../logger.dart';
 import '../stream.dart';
+import 'history.dart';
+import 'outputs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 Stream<LogEntry> createLogStream(

@@ -1,6 +1,6 @@
 import 'package:danawallet/constants.dart';
-import 'package:danawallet/generated/rust/api/state.dart';
-import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:danawallet/generated/rust/api/history.dart';
+import 'package:danawallet/generated/rust/api/outputs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,15 +27,26 @@ class WalletRepository {
     await secureStorage.deleteAll();
 
     // delete non secure storage
-    await nonSecureStorage.clear(allowList: {_keyNetwork, _keyTxHistory});
+    await nonSecureStorage.clear(allowList: {
+      _keyNetwork,
+      _keyTxHistory,
+      _keyLastScan,
+      _keyOwnedOutputs
+    });
   }
 
-  Future<String?> readWalletBlob() async {
-    return await secureStorage.read(key: _keyWalletBlob);
+  Future<SpWallet?> readWallet() async {
+    final walletBlob = await secureStorage.read(key: _keyWalletBlob);
+    if (walletBlob != null) {
+      return SpWallet.decode(encodedWallet: walletBlob);
+    } else {
+      return null;
+    }
   }
 
-  Future<void> saveWalletBlob(String wallet) async {
-    await secureStorage.write(key: _keyWalletBlob, value: wallet);
+  Future<void> saveWallet(SpWallet wallet) async {
+    final walletBlob = wallet.encode();
+    await secureStorage.write(key: _keyWalletBlob, value: walletBlob);
   }
 
   Future<String?> readSeedPhrase() async {
@@ -57,9 +68,8 @@ class WalletRepository {
     if (networkStr != null) {
       return Network.values.byName(networkStr);
     } else {
-      final walletBlob = await readWalletBlob();
-      final walletInfo = getWalletInfo(encodedWallet: walletBlob!);
-      return Network.fromBitcoinNetwork(walletInfo.network!);
+      final wallet = await readWallet();
+      return Network.fromBitcoinNetwork(wallet!.getNetwork());
     }
   }
 
@@ -67,28 +77,24 @@ class WalletRepository {
     await nonSecureStorage.setString(_keyNetwork, network.name);
   }
 
-  Future<void> saveHistory(String history) async {
-    return await nonSecureStorage.setString(_keyTxHistory, history);
+  Future<void> saveHistory(TxHistory history) async {
+    return await nonSecureStorage.setString(_keyTxHistory, history.encode());
   }
 
-  Future<List<ApiRecordedTransaction>> readHistory() async {
-    return parseEncodedTxHistory(encodedHistory: await readHistoryEncoded());
-  }
-
-  Future<String> readHistoryEncoded() async {
+  Future<TxHistory> readHistory() async {
     final encodedHistory = await nonSecureStorage.getString(_keyTxHistory);
 
     if (encodedHistory != null) {
-      return encodedHistory;
+      return TxHistory.decode(encodedHistory: encodedHistory);
     } else {
       // if it's not present in storage, it must be in the wallet blob
-      final walletBlob = await readWalletBlob();
-      final encodedHistory = getWalletTxHistory(encodedWallet: walletBlob!);
+      final wallet = await readWallet();
+      final history = wallet!.getWalletTxHistory()!;
 
       // save history to storage
-      await saveHistory(encodedHistory);
+      await nonSecureStorage.setString(_keyTxHistory, history.encode());
 
-      return encodedHistory;
+      return history;
     }
   }
 
@@ -103,38 +109,34 @@ class WalletRepository {
       return lastScan;
     } else {
       // if it's not present in storage, it must be in the wallet blob
-      final walletBlob = await readWalletBlob();
-      final lastScan = getWalletLastScan(encodedWallet: walletBlob!);
+      final wallet = await readWallet();
+      final lastScan = wallet!.getWalletLastScan()!;
 
       // save history to storage
-      await saveLastScan(lastScan);
+      await nonSecureStorage.setInt(_keyLastScan, lastScan);
 
       return lastScan;
     }
   }
 
-  Future<void> saveOwnedOutputs(String ownedOutputs) async {
-    await nonSecureStorage.setString(_keyOwnedOutputs, ownedOutputs);
+  Future<void> saveOwnedOutputs(OwnedOutputs ownedOutputs) async {
+    await nonSecureStorage.setString(_keyOwnedOutputs, ownedOutputs.encode());
   }
 
-  Future<Map<String, ApiOwnedOutput>> readOwnedOutputs() async {
-    return parseEncodedOwnedOutputs(
-        encodedOutputs: await readOwnedOutputsEncoded());
-  }
-
-  Future<String> readOwnedOutputsEncoded() async {
+  Future<OwnedOutputs> readOwnedOutputs() async {
     final encodedOutputs = await nonSecureStorage.getString(_keyOwnedOutputs);
+
     if (encodedOutputs != null) {
-      return encodedOutputs;
+      return OwnedOutputs.decode(encodedOutputs: encodedOutputs);
     } else {
       // if it's not present in storage, it must be in the wallet blob
-      final walletBlob = await readWalletBlob();
-      final encodedOutputs = getWalletOwnedOutputs(encodedWallet: walletBlob!);
+      final wallet = await readWallet();
+      final outputs = wallet!.getWalletOwnedOutputs()!;
 
       // save history to storage
-      await saveOwnedOutputs(encodedOutputs);
+      await nonSecureStorage.setString(_keyOwnedOutputs, outputs.encode());
 
-      return encodedOutputs;
+      return outputs;
     }
   }
 }

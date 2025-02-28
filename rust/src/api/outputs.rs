@@ -1,22 +1,88 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
+use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use sp_client::{
-    bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
+    bitcoin::{absolute::Height, BlockHash, OutPoint, Txid},
     OutputSpendStatus, OwnedOutput,
 };
 
 use anyhow::{Error, Result};
 
-use crate::api::structs::ApiOwnedOutput;
+use super::structs::ApiOwnedOutput;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(opaque)]
 pub struct OwnedOutputs(HashMap<OutPoint, OwnedOutput>);
 
 impl OwnedOutputs {
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn empty() -> Self {
+        Self(HashMap::new())
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn decode(encoded_outputs: String) -> Self {
+        serde_json::from_str(&encoded_outputs).unwrap()
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn encode(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn mark_outpoints_spent(&mut self, spent_by: String, spent: Vec<String>) -> Result<()> {
+        for outpoint in spent {
+            self.mark_spent(
+                OutPoint::from_str(&outpoint)?,
+                Txid::from_str(&spent_by)?,
+                true,
+            )?;
+        }
+
+        Ok(())
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn reset_to_height(&mut self, height: u32) -> Result<()> {
+        let blkheight = Height::from_consensus(height)?;
+        // reset known outputs to height
+        self.0.retain(|_, o| o.blockheight <= blkheight);
+
+        Ok(())
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn get_unspent_amount(&self) -> u64 {
+        self.0
+            .values()
+            .filter(|x| x.spend_status == OutputSpendStatus::Unspent)
+            .fold(0, |acc, x| acc + x.amount.to_sat())
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn get_unspent_outputs(&self) -> HashMap<String, ApiOwnedOutput> {
+        let mut res = HashMap::new();
+        for (outpoint, output) in self.0.iter() {
+            if output.spend_status == OutputSpendStatus::Unspent {
+                res.insert(outpoint.to_string(), output.clone().into());
+            }
+        }
+
+        res
+    }
+
     /// Mark the output as being spent in block `mined_in_block`
     /// We don't really need to check the previous status, if it's in a block there's nothing we can do
-    pub fn mark_mined(&mut self, outpoint: OutPoint, mined_in_block: BlockHash) -> Result<()> {
+    pub(crate) fn mark_mined(
+        &mut self,
+        outpoint: OutPoint,
+        mined_in_block: BlockHash,
+    ) -> Result<()> {
         let output = self
             .0
             .get_mut(&outpoint)
@@ -41,20 +107,15 @@ impl OwnedOutputs {
         Ok(())
     }
 
-    pub fn extend(&mut self, found_outputs: HashMap<OutPoint, OwnedOutput>) {
+    pub(crate) fn extend(&mut self, found_outputs: HashMap<OutPoint, OwnedOutput>) {
         self.0.extend(found_outputs);
     }
 
-    pub fn get_owned_outpoints(&self) -> HashSet<OutPoint> {
+    pub(crate) fn get_owned_outpoints(&self) -> HashSet<OutPoint> {
         self.0.keys().cloned().collect()
     }
 
-    pub fn reset_to_height(&mut self, blkheight: Height) {
-        // reset known outputs to height
-        self.0.retain(|_, o| o.blockheight <= blkheight);
-    }
-
-    pub fn mark_spent(
+    fn mark_spent(
         &mut self,
         outpoint: OutPoint,
         spending_tx: Txid,
@@ -91,12 +152,5 @@ impl OwnedOutputs {
                 block
             ))),
         }
-    }
-
-    pub fn to_api_owned_outputs(self) -> HashMap<String, ApiOwnedOutput> {
-        self.0
-            .into_iter()
-            .map(|(outpoint, output)| (outpoint.to_string(), output.into()))
-            .collect()
     }
 }

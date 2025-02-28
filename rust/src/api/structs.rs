@@ -13,9 +13,11 @@ use sp_client::{
     OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
 };
 
-use crate::state::constants::{
+use crate::{frb_generated::RustAutoOpaque, state::constants::{
     RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
-};
+}};
+
+use super::wallet::SpWallet;
 
 type SpendingTxId = String;
 type MinedInBlock = String;
@@ -288,7 +290,7 @@ pub enum ApiSetupWalletType {
 }
 
 pub struct ApiSetupResult {
-    pub wallet_blob: String,
+    pub wallet: RustAutoOpaque<SpWallet>,
     pub mnemonic: Option<String>,
 }
 

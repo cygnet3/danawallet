@@ -5,84 +5,75 @@
 
 import '../frb_generated.dart';
 import '../lib.dart';
+import 'history.dart';
+import 'outputs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
-ApiSetupResult setupWallet({required ApiSetupWalletArgs setupArgs}) =>
-    RustLib.instance.api.crateApiWalletSetupWallet(setupArgs: setupArgs);
+// These functions are ignored because they are not marked as `pub`: `new`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
 
-Future<void> scanToTip(
-        {required String blindbitUrl,
-        required int lastScan,
-        required BigInt dustLimit,
-        required String encodedWallet,
-        required String encodedHistory,
-        required String encodedOwnedOutputs}) =>
-    RustLib.instance.api.crateApiWalletScanToTip(
-        blindbitUrl: blindbitUrl,
-        lastScan: lastScan,
-        dustLimit: dustLimit,
-        encodedWallet: encodedWallet,
-        encodedHistory: encodedHistory,
-        encodedOwnedOutputs: encodedOwnedOutputs);
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SpWallet>>
+abstract class SpWallet implements RustOpaqueInterface {
+  static Future<String> broadcastTx(
+          {required String tx, required String network}) =>
+      RustLib.instance.api
+          .crateApiWalletSpWalletBroadcastTx(tx: tx, network: network);
 
-void interruptScanning() =>
-    RustLib.instance.api.crateApiWalletInterruptScanning();
+  ApiSilentPaymentUnsignedTransaction createDrainTransaction(
+      {required Map<String, ApiOwnedOutput> apiOutputs,
+      required String wipeAddress,
+      required double feerate,
+      required String network});
 
-ApiWalletStatus getWalletInfo({required String encodedWallet}) =>
-    RustLib.instance.api
-        .crateApiWalletGetWalletInfo(encodedWallet: encodedWallet);
+  ApiSilentPaymentUnsignedTransaction createNewTransaction(
+      {required Map<String, ApiOwnedOutput> apiOutputs,
+      required List<ApiRecipient> apiRecipients,
+      required double feerate,
+      required String network});
 
-/// Only call this when we expect this value to be present
-int getWalletLastScan({required String encodedWallet}) => RustLib.instance.api
-    .crateApiWalletGetWalletLastScan(encodedWallet: encodedWallet);
+  static SpWallet decode({required String encodedWallet}) =>
+      RustLib.instance.api
+          .crateApiWalletSpWalletDecode(encodedWallet: encodedWallet);
 
-/// Only call this when we expect this value to be present
-String getWalletTxHistory({required String encodedWallet}) =>
-    RustLib.instance.api
-        .crateApiWalletGetWalletTxHistory(encodedWallet: encodedWallet);
+  String encode();
 
-/// Only call this when we expect this value to be present
-String getWalletOwnedOutputs({required String encodedWallet}) =>
-    RustLib.instance.api
-        .crateApiWalletGetWalletOwnedOutputs(encodedWallet: encodedWallet);
+  static ApiSilentPaymentUnsignedTransaction finalizeTransaction(
+          {required ApiSilentPaymentUnsignedTransaction unsignedTransaction}) =>
+      RustLib.instance.api.crateApiWalletSpWalletFinalizeTransaction(
+          unsignedTransaction: unsignedTransaction);
 
-ApiSilentPaymentUnsignedTransaction createNewTransaction(
-        {required String encodedWallet,
-        required Map<String, ApiOwnedOutput> apiOutputs,
-        required List<ApiRecipient> apiRecipients,
-        required double feerate,
-        required String network}) =>
-    RustLib.instance.api.crateApiWalletCreateNewTransaction(
-        encodedWallet: encodedWallet,
-        apiOutputs: apiOutputs,
-        apiRecipients: apiRecipients,
-        feerate: feerate,
-        network: network);
+  int getBirthday();
 
-ApiSilentPaymentUnsignedTransaction createDrainTransaction(
-        {required String encodedWallet,
-        required Map<String, ApiOwnedOutput> apiOutputs,
-        required String wipeAddress,
-        required double feerate,
-        required String network}) =>
-    RustLib.instance.api.crateApiWalletCreateDrainTransaction(
-        encodedWallet: encodedWallet,
-        apiOutputs: apiOutputs,
-        wipeAddress: wipeAddress,
-        feerate: feerate,
-        network: network);
+  String getChangeAddress();
 
-ApiSilentPaymentUnsignedTransaction finalizeTransaction(
-        {required ApiSilentPaymentUnsignedTransaction unsignedTransaction}) =>
-    RustLib.instance.api.crateApiWalletFinalizeTransaction(
-        unsignedTransaction: unsignedTransaction);
+  String getNetwork();
 
-String signTransaction(
-        {required String encodedWallet,
-        required ApiSilentPaymentUnsignedTransaction unsignedTransaction}) =>
-    RustLib.instance.api.crateApiWalletSignTransaction(
-        encodedWallet: encodedWallet, unsignedTransaction: unsignedTransaction);
+  String getReceivingAddress();
 
-Future<String> broadcastTx({required String tx, required String network}) =>
-    RustLib.instance.api.crateApiWalletBroadcastTx(tx: tx, network: network);
+  /// Only call this when we expect this value to be present
+  int? getWalletLastScan();
+
+  /// Only call this when we expect this value to be present
+  OwnedOutputs? getWalletOwnedOutputs();
+
+  /// Only call this when we expect this value to be present
+  TxHistory? getWalletTxHistory();
+
+  static void interruptScanning() =>
+      RustLib.instance.api.crateApiWalletSpWalletInterruptScanning();
+
+  Future<void> scanToTip(
+      {required String blindbitUrl,
+      required int lastScan,
+      required BigInt dustLimit,
+      required TxHistory txHistory,
+      required OwnedOutputs ownedOutputs});
+
+  static ApiSetupResult setupWallet({required ApiSetupWalletArgs setupArgs}) =>
+      RustLib.instance.api
+          .crateApiWalletSpWalletSetupWallet(setupArgs: setupArgs);
+
+  String signTransaction(
+      {required ApiSilentPaymentUnsignedTransaction unsignedTransaction});
+}

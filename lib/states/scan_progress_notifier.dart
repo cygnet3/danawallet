@@ -66,18 +66,20 @@ class ScanProgressNotifier extends ChangeNotifier {
       final blindbitUrl = await settings.getBlindbitUrl();
       final dustLimit = await settings.getDustLimit();
 
-      // we have to do this (for now)
-      final encodedHistory = await walletState.getEncodedHistory();
-      final encodedOutputs = await walletState.getEncodedOutputs();
       final lastScan = walletState.lastScan;
 
+      // we have to pass these to the scan function too, since we're
+      // returning the entire history/outputs when sending an update
+      // if we instead parse the updates here, we can remove this.
+      final txHistory = walletState.txHistory;
+      final ownedOutputs = walletState.ownedOutputs;
+
       activate(walletState.lastScan);
-      await scanToTip(
+      await wallet.scanToTip(
           blindbitUrl: blindbitUrl!,
           dustLimit: BigInt.from(dustLimit!),
-          encodedWallet: wallet,
-          encodedHistory: encodedHistory,
-          encodedOwnedOutputs: encodedOutputs,
+          txHistory: txHistory,
+          ownedOutputs: ownedOutputs,
           lastScan: lastScan);
     } catch (e) {
       deactivate();
@@ -88,7 +90,7 @@ class ScanProgressNotifier extends ChangeNotifier {
 
   Future<void> interruptScan() async {
     if (scanning) {
-      interruptScanning();
+      SpWallet.interruptScanning();
 
       // this makes sure the scan function has been terminated
       await _completer?.future;

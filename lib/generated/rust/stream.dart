@@ -3,6 +3,8 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import 'api/history.dart';
+import 'api/outputs.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
@@ -32,8 +34,8 @@ class ScanProgress {
 
 class ScanResult {
   final int updatedLastScan;
-  final String updatedTxHistory;
-  final String updatedOwnedOutputs;
+  final TxHistory updatedTxHistory;
+  final OwnedOutputs updatedOwnedOutputs;
 
   const ScanResult({
     required this.updatedLastScan,
