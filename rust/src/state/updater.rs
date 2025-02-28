@@ -6,8 +6,8 @@ use sp_client::{
 };
 
 use crate::{
-    state::OwnedOutputs,
-    state::TxHistory,
+    api::{history::TxHistory, outputs::OwnedOutputs},
+    frb_generated::RustAutoOpaque,
     stream::{send_scan_progress, send_scan_result, ScanProgress, ScanResult},
 };
 
@@ -86,12 +86,13 @@ impl Updater for StateUpdater {
     }
 
     fn save_to_persistent_storage(&mut self) -> Result<()> {
-        let tx_history_str = serde_json::to_string(&self.tx_history)?;
-        let owned_outputs_str = serde_json::to_string(&self.outputs)?;
+        let updated_tx_history = RustAutoOpaque::new(self.tx_history.clone());
+        let updated_owned_outputs = RustAutoOpaque::new(self.outputs.clone());
+
         send_scan_result(ScanResult {
             updated_last_scan: self.last_scan.to_consensus_u32(),
-            updated_tx_history: tx_history_str,
-            updated_owned_outputs: owned_outputs_str,
+            updated_tx_history,
+            updated_owned_outputs,
         });
 
         Ok(())

@@ -51,6 +51,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
       try {
         birthday = chainState.tip;
       } catch (e) {
+        // at first we used a default birthday, but i'd rather we fail
         rethrow;
       }
     }
@@ -61,9 +62,9 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
         network: _selectedNetwork.toBitcoinNetwork);
 
     try {
-      final setupResult = setupWallet(setupArgs: args);
+      final setupResult = SpWallet.setupWallet(setupArgs: args);
       await walletState.createNewWallet(
-          setupResult.walletBlob, setupResult.mnemonic, _selectedNetwork);
+          setupResult.wallet, setupResult.mnemonic, _selectedNetwork);
       if (mounted) {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const HomeScreen()));

@@ -7,8 +7,10 @@ import '../frb_generated.dart';
 import '../lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'wallet.dart';
 part 'structs.freezed.dart';
 
+// These types are ignored because they are not used by any `pub` functions: `ApiWalletStatus`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
 
 class ApiAmount {
@@ -198,23 +200,23 @@ class ApiRecordedTransactionOutgoing {
 }
 
 class ApiSetupResult {
-  final String walletBlob;
+  final SpWallet wallet;
   final String? mnemonic;
 
   const ApiSetupResult({
-    required this.walletBlob,
+    required this.wallet,
     this.mnemonic,
   });
 
   @override
-  int get hashCode => walletBlob.hashCode ^ mnemonic.hashCode;
+  int get hashCode => wallet.hashCode ^ mnemonic.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ApiSetupResult &&
           runtimeType == other.runtimeType &&
-          walletBlob == other.walletBlob &&
+          wallet == other.wallet &&
           mnemonic == other.mnemonic;
 }
 
@@ -313,35 +315,4 @@ class ApiSilentPaymentUnsignedTransaction {
           partialSecret == other.partialSecret &&
           unsignedTx == other.unsignedTx &&
           network == other.network;
-}
-
-class ApiWalletStatus {
-  final String address;
-  final String? network;
-  final String changeAddress;
-  final int birthday;
-
-  const ApiWalletStatus({
-    required this.address,
-    this.network,
-    required this.changeAddress,
-    required this.birthday,
-  });
-
-  @override
-  int get hashCode =>
-      address.hashCode ^
-      network.hashCode ^
-      changeAddress.hashCode ^
-      birthday.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ApiWalletStatus &&
-          runtimeType == other.runtimeType &&
-          address == other.address &&
-          network == other.network &&
-          changeAddress == other.changeAddress &&
-          birthday == other.birthday;
 }

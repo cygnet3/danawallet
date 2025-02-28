@@ -12,7 +12,7 @@ class TxHistoryscreen extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     final walletState = Provider.of<WalletState>(context);
-    final transactions = walletState.txHistory;
+    final transactions = walletState.txHistory.toApiTransactions();
 
     return ListView.builder(
         reverse: false,

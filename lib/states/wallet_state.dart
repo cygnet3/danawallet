@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
-import 'package:danawallet/generated/rust/api/state.dart';
+import 'package:danawallet/generated/rust/api/history.dart';
+import 'package:danawallet/generated/rust/api/outputs.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
@@ -23,8 +24,8 @@ class WalletState extends ChangeNotifier {
   late BigInt amount;
   late BigInt unconfirmedChange;
   late int lastScan;
-  late Map<String, ApiOwnedOutput> ownedOutputs;
-  late List<ApiRecordedTransaction> txHistory;
+  late TxHistory txHistory;
+  late OwnedOutputs ownedOutputs;
 
   // stream to receive updates while scanning
   late StreamSubscription scanResultSubscription;
@@ -54,10 +55,10 @@ class WalletState extends ChangeNotifier {
 
   Future<bool> initialize() async {
     // we check if wallet str is present in database
-    final walletStr = await walletRepository.readWalletBlob();
+    final wallet = await walletRepository.readWallet();
 
     // if not present, we have no wallet and return false
-    if (walletStr == null) {
+    if (wallet == null) {
       return false;
     }
 
@@ -69,10 +70,9 @@ class WalletState extends ChangeNotifier {
     // If we continue, we risk the user accidentally
     // deleting their seed phrase.
     try {
-      final walletInfo = getWalletInfo(encodedWallet: walletStr);
-      address = walletInfo.address;
-      changeAddress = walletInfo.changeAddress;
-      birthday = walletInfo.birthday;
+      address = wallet.getReceivingAddress();
+      changeAddress = wallet.getChangeAddress();
+      birthday = wallet.getBirthday();
 
       await _updateWalletState();
 
@@ -93,29 +93,27 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> createNewWallet(
-      String encodedWallet, String? seedphrase, Network network) async {
-    final walletInfo = getWalletInfo(encodedWallet: encodedWallet);
-
+      SpWallet wallet, String? seedphrase, Network network) async {
     // save variables in storage
-    await walletRepository.saveWalletBlob(encodedWallet);
+    await walletRepository.saveWallet(wallet);
     await walletRepository.saveNetwork(network);
     await walletRepository.trySaveSeedPhrase(seedphrase);
 
     // set default values for new wallet
-    await walletRepository.saveLastScan(walletInfo.birthday);
-    await walletRepository.saveHistory('[]');
-    await walletRepository.saveOwnedOutputs('{}');
+    await walletRepository.saveLastScan(wallet.getBirthday());
+    await walletRepository.saveHistory(TxHistory.empty());
+    await walletRepository.saveOwnedOutputs(OwnedOutputs.empty());
 
     // fill current state variables
-    address = walletInfo.address;
-    changeAddress = walletInfo.changeAddress;
-    birthday = walletInfo.birthday;
+    address = wallet.getReceivingAddress();
+    changeAddress = wallet.getChangeAddress();
+    birthday = wallet.getBirthday();
     this.network = network;
     await _updateWalletState();
   }
 
-  Future<String> getWalletFromSecureStorage() async {
-    final wallet = await walletRepository.readWalletBlob();
+  Future<SpWallet> getWalletFromSecureStorage() async {
+    final wallet = await walletRepository.readWallet();
     if (wallet != null) {
       return wallet;
     } else {
@@ -123,37 +121,21 @@ class WalletState extends ChangeNotifier {
     }
   }
 
-  Future<String> getEncodedHistory() async {
-    return await walletRepository.readHistoryEncoded();
-  }
-
-  Future<String> getEncodedOutputs() async {
-    return await walletRepository.readOwnedOutputsEncoded();
-  }
-
-  Future<String?> getSeedPhrase() async {
+  Future<String?> getSeedPhraseFromSecureStorage() async {
     return await walletRepository.readSeedPhrase();
   }
 
   Future<void> resetToScanHeight(int height) async {
     lastScan = height;
 
-    final encodedOutputs = await walletRepository.readOwnedOutputsEncoded();
-    final encodedHistory = await walletRepository.readHistoryEncoded();
+    ownedOutputs.resetToHeight(height: height);
+    txHistory.resetToHeight(height: height);
 
-    // this uses the stream to update the wallet state
-    resetToHeight(
-        height: height,
-        encodedOwnedOutputs: encodedOutputs,
-        encodedTxHistory: encodedHistory);
-  }
+    await walletRepository.saveLastScan(height);
+    await walletRepository.saveHistory(txHistory);
+    await walletRepository.saveOwnedOutputs(ownedOutputs);
 
-  Future<void> updateWalletStatus() async {
-    try {
-      _updateWalletState();
-    } catch (e) {
-      rethrow;
-    }
+    await _updateWalletState();
     notifyListeners();
   }
 
@@ -162,24 +144,8 @@ class WalletState extends ChangeNotifier {
     ownedOutputs = await walletRepository.readOwnedOutputs();
     lastScan = await walletRepository.readLastScan();
 
-    amount = BigInt.from(0);
-    unconfirmedChange = BigInt.from(0);
-    for (ApiOwnedOutput output in ownedOutputs.values) {
-      if (output.spendStatus is ApiOutputSpendStatus_Unspent) {
-        amount += output.amount.field0;
-      }
-    }
-
-    for (ApiRecordedTransaction tx in txHistory) {
-      switch (tx) {
-        case ApiRecordedTransaction_Outgoing(:final field0):
-          if (field0.confirmedAt == null) {
-            // while an outgoing transaction is not yet confirmed, we add the change outputs manually
-            unconfirmedChange += field0.change.field0;
-          }
-        default:
-      }
-    }
+    amount = ownedOutputs.getUnspentAmount();
+    unconfirmedChange = txHistory.getUnconfirmedChange();
   }
 
   Future<RecommendedFeeResponse> getCurrentFeeRates() async {
@@ -192,15 +158,11 @@ class WalletState extends ChangeNotifier {
       RecipientFormFilled recipient) async {
     final wallet = await getWalletFromSecureStorage();
 
-    final unspentOutputs = Map.fromEntries(
-      ownedOutputs.entries.where((entry) =>
-          entry.value.spendStatus == const ApiOutputSpendStatus.unspent()),
-    );
+    final unspentOutputs = ownedOutputs.getUnspentOutputs();
     final bitcoinNetwork = network.toBitcoinNetwork;
 
     if (recipient.amount.field0 < amount - BigInt.from(546)) {
-      return createNewTransaction(
-          encodedWallet: wallet,
+      return wallet.createNewTransaction(
           apiOutputs: unspentOutputs,
           apiRecipients: [
             ApiRecipient(
@@ -209,8 +171,7 @@ class WalletState extends ChangeNotifier {
           feerate: recipient.feerate.toDouble(),
           network: bitcoinNetwork);
     } else {
-      return createDrainTransaction(
-          encodedWallet: wallet,
+      return wallet.createDrainTransaction(
           apiOutputs: unspentOutputs,
           wipeAddress: recipient.recipientAddress,
           feerate: recipient.feerate.toDouble(),
@@ -230,35 +191,30 @@ class WalletState extends ChangeNotifier {
 
     final recipients = unsignedTx.getRecipients(changeAddress: changeAddress);
 
-    final finalizedTx = finalizeTransaction(unsignedTransaction: unsignedTx);
+    final finalizedTx =
+        SpWallet.finalizeTransaction(unsignedTransaction: unsignedTx);
 
     final wallet = await getWalletFromSecureStorage();
 
-    final signedTx = signTransaction(
-        encodedWallet: wallet, unsignedTransaction: finalizedTx);
-    final txid =
-        await broadcastTx(tx: signedTx, network: network.toBitcoinNetwork);
+    final signedTx = wallet.signTransaction(unsignedTransaction: finalizedTx);
+    final txid = await SpWallet.broadcastTx(
+        tx: signedTx, network: network.toBitcoinNetwork);
 
-    // we still have to do this since we 'save' using the encoded format
-    final encodedOutputs = await walletRepository.readOwnedOutputsEncoded();
-    final encodedHistory = await walletRepository.readHistoryEncoded();
+    ownedOutputs.markOutpointsSpent(spentBy: txid, spent: selectedOutpoints);
 
-    final updatedOwnedOutputs = markOutpointsSpent(
-        encodedOutputs: encodedOutputs,
-        spentBy: txid,
-        spent: selectedOutpoints);
-
-    final updatedTxHistory = addOutgoingTxToHistory(
-        encodedHistory: encodedHistory,
+    txHistory.addOutgoingTxToHistory(
         txid: txid,
         spentOutpoints: selectedOutpoints,
         recipients: recipients,
         change: changeValue);
 
     // save the updated wallet
-    await walletRepository.saveOwnedOutputs(updatedOwnedOutputs);
-    walletRepository.saveHistory(updatedTxHistory);
-    await updateWalletStatus();
+    await walletRepository.saveOwnedOutputs(ownedOutputs);
+    await walletRepository.saveHistory(txHistory);
+
+    // refresh variables and notify listeners
+    await _updateWalletState();
+    notifyListeners();
 
     return;
   }
