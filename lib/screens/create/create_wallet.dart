@@ -47,14 +47,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     await chainState.initialize();
 
     // todo check this only happens when creating new wallet
-    if (birthday == null) {
-      try {
-        birthday = chainState.tip;
-      } catch (e) {
-        // at first we used a default birthday, but i'd rather we fail
-        rethrow;
-      }
-    }
+    birthday ??= chainState.tip;
 
     final args = ApiSetupWalletArgs(
         setupType: setupWalletType,

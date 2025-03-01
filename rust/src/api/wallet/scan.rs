@@ -1,8 +1,4 @@
-use crate::{
-    api::{history::TxHistory, outputs::OwnedOutputs},
-    state::StateUpdater,
-    wallet::KEEP_SCANNING,
-};
+use crate::{api::outputs::OwnedOutPoints, state::StateUpdater, wallet::KEEP_SCANNING};
 use anyhow::Result;
 use sp_client::{bitcoin::absolute::Height, BlindbitBackend, ChainBackend, SpScanner};
 
@@ -22,8 +18,7 @@ impl SpWallet {
         blindbit_url: String,
         last_scan: u32,
         dust_limit: u64,
-        tx_history: TxHistory,
-        owned_outputs: OwnedOutputs,
+        owned_outpoints: OwnedOutPoints,
     ) -> Result<()> {
         let backend = BlindbitBackend::new(blindbit_url)?;
 
@@ -32,14 +27,8 @@ impl SpWallet {
         let start = Height::from_consensus(last_scan + 1)?;
         let end = backend.block_height().await?;
 
-        let owned_outpoints = owned_outputs.get_owned_outpoints();
-
         let sp_client = self.client.clone();
-        let updater = StateUpdater::new(
-            tx_history,
-            owned_outputs,
-            Height::from_consensus(last_scan)?,
-        );
+        let updater = StateUpdater::new();
 
         KEEP_SCANNING.store(true, std::sync::atomic::Ordering::Relaxed);
 
@@ -47,7 +36,7 @@ impl SpWallet {
             sp_client,
             Box::new(updater),
             Box::new(backend),
-            owned_outpoints,
+            owned_outpoints.to_inner(),
             &KEEP_SCANNING,
         );
 

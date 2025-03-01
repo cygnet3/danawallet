@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
@@ -7,8 +7,11 @@ use sp_client::{
     Recipient,
 };
 
-use crate::state::constants::{
-    RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
+use crate::{
+    state::constants::{
+        RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
+    },
+    stream::StateUpdate,
 };
 
 use super::structs::{ApiAmount, ApiRecipient, ApiRecordedTransaction};
@@ -37,6 +40,36 @@ impl TxHistory {
     #[flutter_rust_bridge::frb(sync)]
     pub fn to_api_transactions(&self) -> Vec<ApiRecordedTransaction> {
         self.0.iter().map(|x| x.clone().into()).collect()
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn process_state_update(&mut self, update: &StateUpdate) -> Result<()> {
+        match update {
+            StateUpdate::Update {
+                blkheight,
+                blkhash: _,
+                found_outputs,
+                found_inputs,
+            } => {
+                for outpoint in found_inputs {
+                    // this may confirm the same tx multiple times, but this shouldn't be a problem
+                    self.confirm_recorded_outgoing_transaction(*outpoint, *blkheight)?;
+                }
+
+                // add new incoming transactions
+                let mut txs: HashMap<Txid, Amount> = HashMap::new();
+                for (outpoint, output) in found_outputs {
+                    let entry = txs.entry(outpoint.txid).or_default();
+                    *entry += output.amount;
+                }
+                for (txid, amount) in txs {
+                    self.record_incoming_transaction(txid, amount, *blkheight);
+                }
+            }
+            StateUpdate::NoUpdate { .. } => (),
+        }
+
+        Ok(())
     }
 
     #[flutter_rust_bridge::frb(sync)]
@@ -91,7 +124,7 @@ impl TxHistory {
             .sum()
     }
 
-    pub(crate) fn record_outgoing_transaction(
+    fn record_outgoing_transaction(
         &mut self,
         txid: Txid,
         spent_outpoints: Vec<OutPoint>,
@@ -108,7 +141,7 @@ impl TxHistory {
             }))
     }
 
-    pub(crate) fn confirm_recorded_outgoing_transaction(
+    fn confirm_recorded_outgoing_transaction(
         &mut self,
         outpoint: OutPoint,
         blkheight: Height,
@@ -131,12 +164,7 @@ impl TxHistory {
         )))
     }
 
-    pub(crate) fn record_incoming_transaction(
-        &mut self,
-        txid: Txid,
-        amount: Amount,
-        confirmed_at: Height,
-    ) {
+    fn record_incoming_transaction(&mut self, txid: Txid, amount: Amount, confirmed_at: Height) {
         self.0
             .push(RecordedTransaction::Incoming(RecordedTransactionIncoming {
                 txid,

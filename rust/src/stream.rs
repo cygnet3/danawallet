@@ -1,15 +1,32 @@
-use std::sync::Mutex;
-
-use crate::{
-    api::{history::TxHistory, outputs::OwnedOutputs},
-    frb_generated::{RustAutoOpaque, StreamSink},
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Mutex,
 };
+
+use crate::frb_generated::StreamSink;
 use lazy_static::lazy_static;
+use sp_client::{
+    bitcoin::{absolute::Height, BlockHash, OutPoint},
+    OwnedOutput,
+};
 
 lazy_static! {
     static ref SCAN_PROGRESS_STREAM_SINK: Mutex<Option<StreamSink<ScanProgress>>> =
         Mutex::new(None);
-    static ref SCAN_RESULT_STREAM_SINK: Mutex<Option<StreamSink<ScanResult>>> = Mutex::new(None);
+    static ref STATE_UPDATE_STREAM_SINK: Mutex<Option<StreamSink<StateUpdate>>> = Mutex::new(None);
+}
+
+#[derive(Debug)]
+pub enum StateUpdate {
+    NoUpdate {
+        blkheight: Height,
+    },
+    Update {
+        blkheight: Height,
+        blkhash: BlockHash,
+        found_outputs: HashMap<OutPoint, OwnedOutput>,
+        found_inputs: HashSet<OutPoint>,
+    },
 }
 
 pub struct ScanProgress {
@@ -18,19 +35,13 @@ pub struct ScanProgress {
     pub end: u32,
 }
 
-pub struct ScanResult {
-    pub updated_last_scan: u32,
-    pub updated_tx_history: RustAutoOpaque<TxHistory>,
-    pub updated_owned_outputs: RustAutoOpaque<OwnedOutputs>,
-}
-
 pub fn create_scan_progress_stream(s: StreamSink<ScanProgress>) {
     let mut stream_sink = SCAN_PROGRESS_STREAM_SINK.lock().unwrap();
     *stream_sink = Some(s);
 }
 
-pub fn create_scan_result_stream(s: StreamSink<ScanResult>) {
-    let mut stream_sink = SCAN_RESULT_STREAM_SINK.lock().unwrap();
+pub fn create_scan_update_stream(s: StreamSink<StateUpdate>) {
+    let mut stream_sink = STATE_UPDATE_STREAM_SINK.lock().unwrap();
     *stream_sink = Some(s);
 }
 
@@ -41,9 +52,9 @@ pub(crate) fn send_scan_progress(scan_progress: ScanProgress) {
     }
 }
 
-pub(crate) fn send_scan_result(scan_result: ScanResult) {
-    let stream_sink = SCAN_RESULT_STREAM_SINK.lock().unwrap();
+pub(crate) fn send_state_update(update: StateUpdate) {
+    let stream_sink = STATE_UPDATE_STREAM_SINK.lock().unwrap();
     if let Some(stream_sink) = stream_sink.as_ref() {
-        stream_sink.add(scan_result).unwrap();
+        stream_sink.add(update).unwrap();
     }
 }

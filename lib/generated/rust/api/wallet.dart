@@ -67,8 +67,7 @@ abstract class SpWallet implements RustOpaqueInterface {
       {required String blindbitUrl,
       required int lastScan,
       required BigInt dustLimit,
-      required TxHistory txHistory,
-      required OwnedOutputs ownedOutputs});
+      required OwnedOutPoints ownedOutpoints});
 
   static ApiSetupResult setupWallet({required ApiSetupWalletArgs setupArgs}) =>
       RustLib.instance.api

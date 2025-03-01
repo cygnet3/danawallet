@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../stream.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
@@ -28,6 +29,8 @@ abstract class TxHistory implements RustOpaqueInterface {
   String encode();
 
   BigInt getUnconfirmedChange();
+
+  void processStateUpdate({required StateUpdate update});
 
   void resetToHeight({required int height});
 

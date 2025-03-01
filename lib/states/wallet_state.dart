@@ -41,14 +41,18 @@ class WalletState extends ChangeNotifier {
 
   Future<void> _initStreams() async {
     scanResultSubscription = createScanResultStream().listen(((event) async {
-      await walletRepository.saveHistory(event.updatedTxHistory);
-      await walletRepository.saveLastScan(event.updatedLastScan);
-      await walletRepository.saveOwnedOutputs(event.updatedOwnedOutputs);
-      try {
-        await _updateWalletState();
-      } catch (e) {
-        rethrow;
-      }
+      // process update
+      lastScan = event.getHeight();
+      txHistory.processStateUpdate(update: event);
+      ownedOutputs.processStateUpdate(update: event);
+
+      // save updates to storage
+      await walletRepository.saveHistory(txHistory);
+      await walletRepository.saveOwnedOutputs(ownedOutputs);
+      await walletRepository.saveLastScan(lastScan);
+
+      // update UI
+      await _updateWalletState();
       notifyListeners();
     }));
   }
