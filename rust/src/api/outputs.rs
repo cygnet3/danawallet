@@ -12,7 +12,18 @@ use sp_client::{
 
 use anyhow::{Error, Result};
 
+use crate::stream::StateUpdate;
+
 use super::structs::ApiOwnedOutput;
+
+#[frb(opaque)]
+pub struct OwnedOutPoints(HashSet<OutPoint>);
+
+impl OwnedOutPoints {
+    pub(crate) fn to_inner(self) -> HashSet<OutPoint> {
+        self.0
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
@@ -32,6 +43,30 @@ impl OwnedOutputs {
     #[flutter_rust_bridge::frb(sync)]
     pub fn encode(&self) -> String {
         serde_json::to_string(&self).unwrap()
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn process_state_update(&mut self, update: &StateUpdate) -> Result<()> {
+        match update {
+            StateUpdate::Update {
+                blkheight: _,
+                blkhash,
+                found_outputs,
+                found_inputs,
+            } => {
+                // mark inputs as mined
+                for outpoint in found_inputs {
+                    // this may confirm the same tx multiple times, but this shouldn't be a problem
+                    self.mark_mined(*outpoint, *blkhash)?;
+                }
+
+                // record the outputs
+                self.0.extend(found_outputs.clone());
+            }
+            StateUpdate::NoUpdate { .. } => (),
+        }
+
+        Ok(())
     }
 
     #[flutter_rust_bridge::frb(sync)]
@@ -76,13 +111,21 @@ impl OwnedOutputs {
         res
     }
 
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn get_unconfirmed_spent_outpoints(&self) -> OwnedOutPoints {
+        let mut res = HashSet::new();
+        for (outpoint, output) in self.0.iter() {
+            if matches!(output.spend_status, OutputSpendStatus::Spent(_)) {
+                res.insert(*outpoint);
+            }
+        }
+
+        OwnedOutPoints(res)
+    }
+
     /// Mark the output as being spent in block `mined_in_block`
     /// We don't really need to check the previous status, if it's in a block there's nothing we can do
-    pub(crate) fn mark_mined(
-        &mut self,
-        outpoint: OutPoint,
-        mined_in_block: BlockHash,
-    ) -> Result<()> {
+    fn mark_mined(&mut self, outpoint: OutPoint, mined_in_block: BlockHash) -> Result<()> {
         let output = self
             .0
             .get_mut(&outpoint)
@@ -105,14 +148,6 @@ impl OwnedOutputs {
 
         output.spend_status = OutputSpendStatus::Unspent;
         Ok(())
-    }
-
-    pub(crate) fn extend(&mut self, found_outputs: HashMap<OutPoint, OwnedOutput>) {
-        self.0.extend(found_outputs);
-    }
-
-    pub(crate) fn get_owned_outpoints(&self) -> HashSet<OutPoint> {
-        self.0.keys().cloned().collect()
     }
 
     fn mark_spent(

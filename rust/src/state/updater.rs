@@ -1,41 +1,68 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    mem,
+};
 
 use sp_client::{
-    bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
+    bitcoin::{absolute::Height, BlockHash, OutPoint},
     OwnedOutput, Updater,
 };
 
-use crate::{
-    api::{history::TxHistory, outputs::OwnedOutputs},
-    frb_generated::RustAutoOpaque,
-    stream::{send_scan_progress, send_scan_result, ScanProgress, ScanResult},
-};
+use crate::stream::{send_scan_progress, send_state_update, ScanProgress, StateUpdate};
 
 use anyhow::Result;
 
-/// Currently, state updater keeps track of *all* outputs and txes, not just the new ones.
-///
-/// Todo: replace with new_outputs and new_txes, and flush them
-/// after calling save_to_persistent_storage.
 pub struct StateUpdater {
-    tx_history: TxHistory,
-    outputs: OwnedOutputs,
-    last_scan: Height,
+    update: bool,
+    blkhash: Option<BlockHash>,
+    blkheight: Option<Height>,
+    found_outputs: HashMap<OutPoint, OwnedOutput>,
+    found_inputs: HashSet<OutPoint>,
 }
 
 impl StateUpdater {
-    pub fn new(tx_history: TxHistory, outputs: OwnedOutputs, last_scan: Height) -> Self {
+    pub fn new() -> Self {
         Self {
-            tx_history,
-            outputs,
-            last_scan,
+            update: false,
+            blkheight: None,
+            blkhash: None,
+            found_outputs: HashMap::new(),
+            found_inputs: HashSet::new(),
+        }
+    }
+
+    pub fn to_update(&mut self) -> Result<StateUpdate> {
+        let blkheight = self
+            .blkheight
+            .ok_or(anyhow::Error::msg("blkheight not filled"))?;
+
+        if self.update {
+            self.update = false;
+
+            let blkhash = self.blkhash.ok_or(anyhow::Error::msg("blkhash not set"))?;
+
+            self.blkheight = None;
+            self.blkhash = None;
+
+            // take results, and insert new empty values
+            let found_inputs = mem::take(&mut self.found_inputs);
+            let found_outputs = mem::take(&mut self.found_outputs);
+
+            Ok(StateUpdate::Update {
+                blkheight,
+                blkhash,
+                found_outputs,
+                found_inputs,
+            })
+        } else {
+            Ok(StateUpdate::NoUpdate { blkheight })
         }
     }
 }
 
 impl Updater for StateUpdater {
     fn record_scan_progress(&mut self, start: Height, current: Height, end: Height) -> Result<()> {
-        self.last_scan = current;
+        self.blkheight = Some(current);
 
         send_scan_progress(ScanProgress {
             start: start.to_consensus_u32(),
@@ -49,22 +76,14 @@ impl Updater for StateUpdater {
     fn record_block_outputs(
         &mut self,
         height: Height,
-        _blkhash: BlockHash,
+        blkhash: BlockHash,
         found_outputs: HashMap<OutPoint, OwnedOutput>,
     ) -> Result<()> {
-        // add outputs to history
-        let mut txs: HashMap<Txid, Amount> = HashMap::new();
-        for (outpoint, output) in found_outputs.iter() {
-            let entry = txs.entry(outpoint.txid).or_default();
-            *entry += output.amount;
-        }
-        for (txid, amount) in txs {
-            self.tx_history
-                .record_incoming_transaction(txid, amount, height);
-        }
-
-        // add outputs to known outputs
-        self.outputs.extend(found_outputs);
+        // may have already been written by record_block_inputs
+        self.update = true;
+        self.found_outputs = found_outputs;
+        self.blkhash = Some(blkhash);
+        self.blkheight = Some(height);
 
         Ok(())
     }
@@ -75,26 +94,16 @@ impl Updater for StateUpdater {
         blkhash: BlockHash,
         found_inputs: HashSet<OutPoint>,
     ) -> Result<()> {
-        for outpoint in found_inputs {
-            // this may confirm the same tx multiple times, but this shouldn't be a problem
-            self.tx_history
-                .confirm_recorded_outgoing_transaction(outpoint, blkheight)?;
-            self.outputs.mark_mined(outpoint, blkhash)?;
-        }
+        self.update = true;
+        self.blkheight = Some(blkheight);
+        self.blkhash = Some(blkhash);
+        self.found_inputs = found_inputs;
 
         Ok(())
     }
 
     fn save_to_persistent_storage(&mut self) -> Result<()> {
-        let updated_tx_history = RustAutoOpaque::new(self.tx_history.clone());
-        let updated_owned_outputs = RustAutoOpaque::new(self.outputs.clone());
-
-        send_scan_result(ScanResult {
-            updated_last_scan: self.last_scan.to_consensus_u32(),
-            updated_tx_history,
-            updated_owned_outputs,
-        });
-
+        send_state_update(self.to_update()?);
         Ok(())
     }
 }

@@ -68,18 +68,14 @@ class ScanProgressNotifier extends ChangeNotifier {
 
       final lastScan = walletState.lastScan;
 
-      // we have to pass these to the scan function too, since we're
-      // returning the entire history/outputs when sending an update
-      // if we instead parse the updates here, we can remove this.
-      final txHistory = walletState.txHistory;
-      final ownedOutputs = walletState.ownedOutputs;
+      final ownedOutPoints =
+          walletState.ownedOutputs.getUnconfirmedSpentOutpoints();
 
       activate(walletState.lastScan);
       await wallet.scanToTip(
           blindbitUrl: blindbitUrl!,
           dustLimit: BigInt.from(dustLimit!),
-          txHistory: txHistory,
-          ownedOutputs: ownedOutputs,
+          ownedOutpoints: ownedOutPoints,
           lastScan: lastScan);
     } catch (e) {
       deactivate();

@@ -3,10 +3,13 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
-import 'api/history.dart';
-import 'api/outputs.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StateUpdate>>
+abstract class StateUpdate implements RustOpaqueInterface {
+  int getHeight();
+}
 
 class ScanProgress {
   final int start;
@@ -30,31 +33,4 @@ class ScanProgress {
           start == other.start &&
           current == other.current &&
           end == other.end;
-}
-
-class ScanResult {
-  final int updatedLastScan;
-  final TxHistory updatedTxHistory;
-  final OwnedOutputs updatedOwnedOutputs;
-
-  const ScanResult({
-    required this.updatedLastScan,
-    required this.updatedTxHistory,
-    required this.updatedOwnedOutputs,
-  });
-
-  @override
-  int get hashCode =>
-      updatedLastScan.hashCode ^
-      updatedTxHistory.hashCode ^
-      updatedOwnedOutputs.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ScanResult &&
-          runtimeType == other.runtimeType &&
-          updatedLastScan == other.updatedLastScan &&
-          updatedTxHistory == other.updatedTxHistory &&
-          updatedOwnedOutputs == other.updatedOwnedOutputs;
 }
