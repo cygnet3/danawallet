@@ -3,6 +3,7 @@ import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/create/create_wallet.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -23,7 +24,7 @@ class SettingsScreen extends StatelessWidget {
       await scanProgress.interruptScan();
       await walletState.reset();
 
-      await SettingsRepository().resetAll();
+      await SettingsRepository.instance.resetAll();
       chainState.reset();
       homeState.reset();
     } catch (e) {
@@ -51,7 +52,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _setBlindbitUrl(BuildContext context, Network network) async {
-    SettingsRepository settings = SettingsRepository();
+    SettingsRepository settings = SettingsRepository.instance;
     final controller = TextEditingController();
     controller.text = await settings.getBlindbitUrl() ?? '';
 
@@ -66,7 +67,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _setDustLimit(BuildContext context) async {
-    SettingsRepository settings = SettingsRepository();
+    SettingsRepository settings = SettingsRepository.instance;
     final controller = TextEditingController();
     final dustLimit = await settings.getDustLimit();
     if (dustLimit != null) {
@@ -146,6 +147,12 @@ Without a backup, your funds willl be lost!""");
                 _setDustLimit(context);
               },
             ),
+          BitcoinButtonOutlined(
+            title: 'Backup wallet',
+            onPressed: () async {
+              await BackupService.backupToFile();
+            },
+          ),
           BitcoinButtonOutlined(
             title: 'Wipe wallet',
             onPressed: () => _wipeWalletButtonPressed(context),

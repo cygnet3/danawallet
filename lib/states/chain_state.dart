@@ -11,7 +11,7 @@ class ChainState extends ChangeNotifier {
   ChainState();
 
   Future<void> initialize() async {
-    final url = await SettingsRepository().getBlindbitUrl();
+    final url = await SettingsRepository.instance.getBlindbitUrl();
 
     if (url != null) {
       try {
@@ -40,7 +40,7 @@ class ChainState extends ChangeNotifier {
 
   Future<void> updateChainTip() async {
     try {
-      final url = await SettingsRepository().getBlindbitUrl();
+      final url = await SettingsRepository.instance.getBlindbitUrl();
       _tip = await getChainHeight(blindbitUrl: url!);
       Logger().i('updating tip: $_tip');
 

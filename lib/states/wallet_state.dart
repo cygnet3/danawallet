@@ -13,7 +13,7 @@ import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:flutter/material.dart';
 
 class WalletState extends ChangeNotifier {
-  final walletRepository = WalletRepository();
+  final walletRepository = WalletRepository.instance;
 
   // variables that never change (unless wallet is reset)
   late Network network;
