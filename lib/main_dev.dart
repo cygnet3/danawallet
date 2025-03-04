@@ -33,7 +33,7 @@ void main() async {
   // if a blindbit url is given, override the saved url
   const blindbitUrl = String.fromEnvironment("BLINDBIT_URL");
   if (blindbitUrl != '') {
-    await SettingsRepository().setBlindbitUrl(blindbitUrl);
+    await SettingsRepository.instance.setBlindbitUrl(blindbitUrl);
   }
 
   runApp(

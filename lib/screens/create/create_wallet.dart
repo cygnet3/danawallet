@@ -5,6 +5,7 @@ import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     final chainState = Provider.of<ChainState>(context, listen: false);
 
     // todo settings has to be initialized before chainstate, make this independent
-    await SettingsRepository().defaultSettings(_selectedNetwork);
+    await SettingsRepository.instance.defaultSettings(_selectedNetwork);
 
     await chainState.initialize();
 
@@ -82,6 +83,20 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     final birthday = _selectedNetwork.defaultBirthday;
 
     await _setupWallet(setupWalletType, birthday);
+  }
+
+  Future<void> _importFromFile() async {
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final chainState = Provider.of<ChainState>(context, listen: false);
+
+    if (await BackupService.restoreFromFile()) {
+      await walletState.initialize();
+      await chainState.initialize();
+      if (mounted) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
+      }
+    }
   }
 
   Future<void> _showSeedInputDialog() async {
@@ -207,6 +222,15 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                     'Restore from seed',
                     () {
                       _showSeedInputDialog();
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: _buildButton(
+                    context,
+                    'Restore from backup',
+                    () {
+                      _importFromFile();
                     },
                   ),
                 ),
