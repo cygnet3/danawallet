@@ -1,4 +1,5 @@
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/generated/rust/api/backup.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
@@ -20,7 +21,11 @@ class WalletRepository {
   final secureStorage = const FlutterSecureStorage();
   final nonSecureStorage = SharedPreferencesAsync();
 
-  WalletRepository();
+  // private constructor
+  WalletRepository._();
+
+  // singleton class
+  static final instance = WalletRepository._();
 
   Future<void> reset() async {
     // delete secure storage
@@ -138,5 +143,31 @@ class WalletRepository {
 
       return outputs;
     }
+  }
+
+  Future<WalletBackup> createWalletBackup() async {
+    final wallet = await readWallet();
+    final history = await readHistory();
+    final outputs = await readOwnedOutputs();
+    final seedPhrase = await readSeedPhrase();
+    final lastScan = await readLastScan();
+
+    return WalletBackup(
+        wallet: wallet!,
+        lastScan: lastScan,
+        txHistory: history,
+        ownedOutputs: outputs,
+        seedPhrase: seedPhrase);
+  }
+
+  Future<void> restoreWalletBackup(WalletBackup backup) async {
+    await reset();
+
+    await saveWallet(backup.wallet);
+    await saveHistory(backup.txHistory);
+    await saveOwnedOutputs(backup.ownedOutputs);
+    await trySaveSeedPhrase(backup.seedPhrase);
+    await saveLastScan(backup.lastScan);
+    await saveNetwork(Network.fromBitcoinNetwork(backup.wallet.getNetwork()));
   }
 }
