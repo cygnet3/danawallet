@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/generated/rust/api/wallet/setup.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/services/backup_service.dart';
@@ -85,17 +86,36 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     await _setupWallet(setupWalletType, birthday);
   }
 
-  Future<void> _importFromFile(String password) async {
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final chainState = Provider.of<ChainState>(context, listen: false);
+  Future<void> _restoreButtonPressed() async {
+    try {
+      final walletState = Provider.of<WalletState>(context, listen: false);
+      final chainState = Provider.of<ChainState>(context, listen: false);
+      final encryptedBackup = await BackupService.getEncryptedBackupFromFile();
 
-    if (await BackupService.restoreFromFile(password)) {
-      await walletState.initialize();
-      await chainState.initialize();
-      if (mounted) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
+      if (encryptedBackup != null) {
+        final controller = TextEditingController();
+
+        final password = await showInputAlertDialog(
+            controller,
+            TextInputType.text,
+            'Backup password',
+            'provide password for backup',
+            showReset: false);
+
+        if (password is String) {
+          await BackupService.restoreFromEncryptedBackup(
+              encryptedBackup, password);
+
+          await walletState.initialize();
+          await chainState.initialize();
+          if (mounted) {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()));
+          }
+        }
       }
+    } catch (e) {
+      displayNotification("restore failed, wrong password?");
     }
   }
 
@@ -229,9 +249,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                   child: _buildButton(
                     context,
                     'Restore from backup',
-                    () {
-                      _importFromFile("password");
-                    },
+                    _restoreButtonPressed,
                   ),
                 ),
                 const Spacer(),
