@@ -9,7 +9,7 @@ import 'outputs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'wallet.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<DanaBackup>>
 abstract class DanaBackup implements RustOpaqueInterface {
@@ -26,6 +26,8 @@ abstract class DanaBackup implements RustOpaqueInterface {
           .crateApiBackupDanaBackupDecode(encodedBackup: encodedBackup);
 
   String encode();
+
+  EncryptedDanaBackup encrypt({required String password});
 
   factory DanaBackup(
           {required WalletBackup wallet, required SettingsBackup settings}) =>
@@ -81,6 +83,44 @@ abstract class WalletBackup implements RustOpaqueInterface {
           ownedOutputs: ownedOutputs,
           seedPhrase: seedPhrase,
           lastScan: lastScan);
+}
+
+class EncryptedDanaBackup {
+  final String ivBase64;
+  final String contentBase64;
+
+  const EncryptedDanaBackup.raw({
+    required this.ivBase64,
+    required this.contentBase64,
+  });
+
+  static EncryptedDanaBackup decode({required String encoded}) =>
+      RustLib.instance.api
+          .crateApiBackupEncryptedDanaBackupDecode(encoded: encoded);
+
+  DanaBackup decrypt({required String password}) => RustLib.instance.api
+      .crateApiBackupEncryptedDanaBackupDecrypt(that: this, password: password);
+
+  String encode() =>
+      RustLib.instance.api.crateApiBackupEncryptedDanaBackupEncode(
+        that: this,
+      );
+
+  factory EncryptedDanaBackup(
+          {required String ivBase64, required String contentBase64}) =>
+      RustLib.instance.api.crateApiBackupEncryptedDanaBackupNew(
+          ivBase64: ivBase64, contentBase64: contentBase64);
+
+  @override
+  int get hashCode => ivBase64.hashCode ^ contentBase64.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EncryptedDanaBackup &&
+          runtimeType == other.runtimeType &&
+          ivBase64 == other.ivBase64 &&
+          contentBase64 == other.contentBase64;
 }
 
 class SettingsBackup {

@@ -85,11 +85,11 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     await _setupWallet(setupWalletType, birthday);
   }
 
-  Future<void> _importFromFile() async {
+  Future<void> _importFromFile(String password) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
 
-    if (await BackupService.restoreFromFile()) {
+    if (await BackupService.restoreFromFile(password)) {
       await walletState.initialize();
       await chainState.initialize();
       if (mounted) {
@@ -230,7 +230,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                     context,
                     'Restore from backup',
                     () {
-                      _importFromFile();
+                      _importFromFile("password");
                     },
                   ),
                 ),

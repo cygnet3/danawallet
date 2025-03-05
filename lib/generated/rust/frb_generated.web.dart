@@ -315,6 +315,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
+  EncryptedDanaBackup dco_decode_box_autoadd_encrypted_dana_backup(dynamic raw);
+
+  @protected
   SettingsBackup dco_decode_box_autoadd_settings_backup(dynamic raw);
 
   @protected
@@ -322,6 +325,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   WalletSetupArgs dco_decode_box_autoadd_wallet_setup_args(dynamic raw);
+
+  @protected
+  EncryptedDanaBackup dco_decode_encrypted_dana_backup(dynamic raw);
 
   @protected
   double dco_decode_f_32(dynamic raw);
@@ -660,6 +666,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
+  EncryptedDanaBackup sse_decode_box_autoadd_encrypted_dana_backup(
+      SseDeserializer deserializer);
+
+  @protected
   SettingsBackup sse_decode_box_autoadd_settings_backup(
       SseDeserializer deserializer);
 
@@ -668,6 +678,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   WalletSetupArgs sse_decode_box_autoadd_wallet_setup_args(
+      SseDeserializer deserializer);
+
+  @protected
+  EncryptedDanaBackup sse_decode_encrypted_dana_backup(
       SseDeserializer deserializer);
 
   @protected
@@ -1007,6 +1021,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ApiSilentPaymentUnsignedTransaction self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_encrypted_dana_backup(
+      EncryptedDanaBackup self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_settings_backup(
       SettingsBackup self, SseSerializer serializer);
 
@@ -1016,6 +1034,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_wallet_setup_args(
       WalletSetupArgs self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_encrypted_dana_backup(
+      EncryptedDanaBackup self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_32(double self, SseSerializer serializer);
