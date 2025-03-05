@@ -86,6 +86,23 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _backupWalletButtonPressed() async {
+    final controller = TextEditingController();
+
+    final password = await showInputAlertDialog(controller, TextInputType.text,
+        'Set backup password', 'set password for backup file',
+        showReset: false);
+
+    // todo: validate the password is secure
+    if (password is String) {
+      try {
+        await BackupService.backupToFile(password);
+      } catch (e) {
+        displayNotification("backup failed");
+      }
+    }
+  }
+
   Future<void> _wipeWalletButtonPressed(BuildContext context) async {
     final confirmed = await showConfirmationAlertDialog(
         'Confirm deletion', """Are you sure you want to wipe your wallet?
@@ -149,8 +166,8 @@ Without a backup, your funds willl be lost!""");
             ),
           BitcoinButtonOutlined(
             title: 'Backup wallet',
-            onPressed: () async {
-              await BackupService.backupToFile("password");
+            onPressed: () {
+              _backupWalletButtonPressed();
             },
           ),
           BitcoinButtonOutlined(

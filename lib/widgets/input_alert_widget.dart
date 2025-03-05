@@ -5,13 +5,15 @@ class InputAlertWidget<T> extends StatelessWidget {
   final TextInputType inputType;
   final String titleText;
   final String labelText;
+  final bool showReset;
 
   const InputAlertWidget(
       {super.key,
       required this.controller,
       required this.inputType,
       required this.titleText,
-      required this.labelText});
+      required this.labelText,
+      required this.showReset});
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +26,14 @@ class InputAlertWidget<T> extends StatelessWidget {
         decoration: InputDecoration(labelText: labelText),
       ),
       actions: <Widget>[
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(true); // bool indicates we pressed reset
-          },
-          child: const Text('Reset to default'),
-        ),
+        if (showReset)
+          TextButton(
+            onPressed: () {
+              Navigator.of(context)
+                  .pop(true); // bool indicates we pressed reset
+            },
+            child: const Text('Reset to default'),
+          ),
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(null); // Close the dialog without saving
@@ -40,7 +44,7 @@ class InputAlertWidget<T> extends StatelessWidget {
           onPressed: () {
             if (controller.text.isEmpty) {
               // return null if no input
-              Navigator.of(context).pop(null);
+              Navigator.of(context).pop("");
             }
             // base return type on keyboard type
             else if (inputType == TextInputType.number) {

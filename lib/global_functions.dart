@@ -38,7 +38,8 @@ void showAlertDialog(String title, String text) {
 }
 
 Future<dynamic> showInputAlertDialog(TextEditingController controller,
-    TextInputType inputType, String titleText, String labelText) {
+    TextInputType inputType, String titleText, String labelText,
+    {bool showReset = true}) {
   if (globalNavigatorKey.currentContext != null) {
     return showDialog<dynamic>(
         context: globalNavigatorKey.currentContext!,
@@ -48,6 +49,7 @@ Future<dynamic> showInputAlertDialog(TextEditingController controller,
             inputType: inputType,
             titleText: titleText,
             labelText: labelText,
+            showReset: showReset,
           );
         });
   } else {
