@@ -150,7 +150,7 @@ Without a backup, your funds willl be lost!""");
           BitcoinButtonOutlined(
             title: 'Backup wallet',
             onPressed: () async {
-              await BackupService.backupToFile();
+              await BackupService.backupToFile("password");
             },
           ),
           BitcoinButtonOutlined(

@@ -8,7 +8,20 @@ import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:file_picker/file_picker.dart';
 
 class BackupService {
-  static Future<bool> backupToFile() async {
+  // Since we're just using a password to derive a 32-bit key,
+  // we don't really have the randomness of a proper 32-bit random
+  // number. So, unless we can guarantee that the source is decently random,
+  // this encryption step is little more than symbolic.
+  //
+  // I think for 'real' backups, we don't let the user pick a password.
+  // Instead, we randomly generate a passphrase, like what password managers do.
+  // E.g.: "clutter-growl-devalue"
+  //
+  // Although, if we do that, we have to tell the user that they have to
+  // store this backup file ALONG WITH the passphrase.
+  //
+  // That might be too big of a hurdle to make UX wise.
+  static Future<bool> backupToFile(String password) async {
     WalletRepository walletRepository = WalletRepository.instance;
     SettingsRepository settingsRepository = SettingsRepository.instance;
 
@@ -16,29 +29,24 @@ class BackupService {
       final walletBackup = await walletRepository.createWalletBackup();
       final settingsBackup = await settingsRepository.createSettingsBackup();
 
-      final danaBackup = DanaBackup(
-          wallet: walletBackup, settings: settingsBackup);
+      final danaBackup =
+          DanaBackup(wallet: walletBackup, settings: settingsBackup);
 
-      if (Platform.isAndroid || Platform.isIOS) {
-        await FilePicker.platform.saveFile(
-            dialogTitle: 'Please select an output file:',
-            fileName: 'dana.json',
-            bytes: utf8.encode(danaBackup.encode()));
+      final encrypted = danaBackup.encrypt(password: password);
+      final bytes = utf8.encode(encrypted.encode());
 
-        return true;
-      } else if (Platform.isLinux) {
-        // on linux, we have to manually write to the file using the filename
-        String? outputFilePath = await FilePicker.platform.saveFile(
+      final outputFilePath = await FilePicker.platform.saveFile(
           dialogTitle: 'Please select an output file:',
-          fileName: 'dana.json',
-        );
-        if (outputFilePath != null) {
-          final file = File(outputFilePath);
-          await file.writeAsBytes(utf8.encode(danaBackup.encode()));
+          fileName: 'danawallet',
+          bytes: bytes);
 
-          return true;
-        }
+      if (Platform.isLinux && outputFilePath != null) {
+        final file = File(outputFilePath);
+        await file.writeAsBytes(bytes);
+        return true;
       }
+
+      return outputFilePath != null;
     } catch (e) {
       displayNotification(exceptionToString(e));
     }
@@ -46,22 +54,29 @@ class BackupService {
     return false;
   }
 
-  static Future<bool> restoreFromFile() async {
+  static Future<bool> restoreFromFile(String password) async {
     WalletRepository walletRepository = WalletRepository.instance;
     SettingsRepository settingsRepository = SettingsRepository.instance;
 
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
 
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      final backup = DanaBackup.decode(
-          encodedBackup: utf8.decode(await file.readAsBytes()));
+      if (result != null) {
+        File file = File(result.files.single.path!);
+        String encodedBackup = utf8.decode(await file.readAsBytes());
+        final encryptedBackup =
+            EncryptedDanaBackup.decode(encoded: encodedBackup);
 
-      await walletRepository.restoreWalletBackup(backup.wallet);
-      await settingsRepository.restoreSettingsBackup(backup.settings);
-      return true;
-    } else {
-      return false;
+        final backup = encryptedBackup.decrypt(password: password);
+
+        await walletRepository.restoreWalletBackup(backup.wallet);
+        await settingsRepository.restoreSettingsBackup(backup.settings);
+        return true;
+      }
+    } catch (e) {
+      displayNotification(exceptionToString(e));
     }
+
+    return false;
   }
 }
