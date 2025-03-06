@@ -13,11 +13,11 @@ use sp_client::{
     OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
 };
 
-use crate::{frb_generated::RustAutoOpaque, state::constants::{
+use crate::state::constants::{
     RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
-}};
+};
 
-use super::wallet::SpWallet;
+use super::wallet::{ApiScanKey, ApiSpendKey};
 
 type SpendingTxId = String;
 type MinedInBlock = String;
@@ -271,7 +271,6 @@ impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
 
 pub struct ApiSetupWalletArgs {
     pub setup_type: ApiSetupWalletType,
-    pub birthday: u32,
     pub network: String,
 }
 
@@ -283,8 +282,9 @@ pub enum ApiSetupWalletType {
 }
 
 pub struct ApiSetupResult {
-    pub wallet: RustAutoOpaque<SpWallet>,
     pub mnemonic: Option<String>,
+    pub scan_key: ApiScanKey,
+    pub spend_key: ApiSpendKey,
 }
 
 pub struct ApiSilentPaymentUnsignedTransaction {

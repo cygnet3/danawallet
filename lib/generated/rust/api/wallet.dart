@@ -10,8 +10,23 @@ import 'outputs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
-// These functions are ignored because they are not marked as `pub`: `new`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `from`, `from`
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiScanKey>>
+abstract class ApiScanKey implements RustOpaqueInterface {
+  static ApiScanKey decode({required String encoded}) =>
+      RustLib.instance.api.crateApiWalletApiScanKeyDecode(encoded: encoded);
+
+  String encode();
+}
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiSpendKey>>
+abstract class ApiSpendKey implements RustOpaqueInterface {
+  static ApiSpendKey decode({required String encoded}) =>
+      RustLib.instance.api.crateApiWalletApiSpendKeyDecode(encoded: encoded);
+
+  String encode();
+}
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SpWallet>>
 abstract class SpWallet implements RustOpaqueInterface {
@@ -51,6 +66,10 @@ abstract class SpWallet implements RustOpaqueInterface {
 
   String getReceivingAddress();
 
+  ApiScanKey getScanKey();
+
+  ApiSpendKey getSpendKey();
+
   /// Only call this when we expect this value to be present
   int? getWalletLastScan();
 
@@ -62,6 +81,17 @@ abstract class SpWallet implements RustOpaqueInterface {
 
   static void interruptScanning() =>
       RustLib.instance.api.crateApiWalletSpWalletInterruptScanning();
+
+  factory SpWallet(
+          {required ApiScanKey scanKey,
+          required ApiSpendKey spendKey,
+          required String network,
+          required int birthday}) =>
+      RustLib.instance.api.crateApiWalletSpWalletNew(
+          scanKey: scanKey,
+          spendKey: spendKey,
+          network: network,
+          birthday: birthday);
 
   Future<void> scanToTip(
       {required String blindbitUrl,

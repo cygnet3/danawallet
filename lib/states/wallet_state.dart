@@ -97,21 +97,14 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> createNewWallet(
-      SpWallet wallet, String? seedphrase, Network network) async {
-    // save variables in storage
-    await walletRepository.saveWallet(wallet);
-    await walletRepository.saveNetwork(network);
-    await walletRepository.trySaveSeedPhrase(seedphrase);
-
-    // set default values for new wallet
-    await walletRepository.saveLastScan(wallet.getBirthday());
-    await walletRepository.saveHistory(TxHistory.empty());
-    await walletRepository.saveOwnedOutputs(OwnedOutputs.empty());
+      ApiSetupResult setupResult, Network network, int birthday) async {
+    final wallet =
+        await walletRepository.setupWallet(setupResult, network, birthday);
 
     // fill current state variables
     address = wallet.getReceivingAddress();
     changeAddress = wallet.getChangeAddress();
-    birthday = wallet.getBirthday();
+    this.birthday = wallet.getBirthday();
     this.network = network;
     await _updateWalletState();
   }
