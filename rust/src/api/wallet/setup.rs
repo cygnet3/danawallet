@@ -8,10 +8,7 @@ use sp_client::{
     SpendKey,
 };
 
-use crate::{
-    api::structs::{ApiSetupResult, ApiSetupWalletArgs, ApiSetupWalletType},
-    wallet::derive_keys_from_seed,
-};
+use crate::wallet::derive_keys_from_seed;
 
 use super::{ApiScanKey, ApiSpendKey, SpWallet};
 use anyhow::Result;
@@ -19,10 +16,28 @@ use anyhow::Result;
 /// we don't add a passphrase to the bip39 mnemonic
 const PASSPHRASE: &str = "";
 
+pub struct WalletSetupArgs {
+    pub setup_type: WalletSetupType,
+    pub network: String,
+}
+
+pub enum WalletSetupType {
+    NewWallet,
+    Mnemonic(String),
+    Full(String, String),
+    WatchOnly(String, String),
+}
+
+pub struct WalletSetupResult {
+    pub mnemonic: Option<String>,
+    pub scan_key: ApiScanKey,
+    pub spend_key: ApiSpendKey,
+}
+
 impl SpWallet {
     #[flutter_rust_bridge::frb(sync)]
-    pub fn setup_wallet(setup_args: ApiSetupWalletArgs) -> Result<ApiSetupResult> {
-        let ApiSetupWalletArgs {
+    pub fn setup_wallet(setup_args: WalletSetupArgs) -> Result<WalletSetupResult> {
+        let WalletSetupArgs {
             setup_type,
             network,
         } = setup_args;
@@ -30,7 +45,7 @@ impl SpWallet {
         let network = Network::from_core_arg(&network)?;
 
         match setup_type {
-            ApiSetupWalletType::NewWallet => {
+            WalletSetupType::NewWallet => {
                 // We create a new wallet and return the new mnemonic
                 let m = bip39::Mnemonic::generate(12)?;
                 let seed = m.to_seed(PASSPHRASE);
@@ -39,13 +54,13 @@ impl SpWallet {
                 let scan_key = ApiScanKey(scan_sk);
                 let spend_key = ApiSpendKey(SpendKey::Secret(spend_sk));
 
-                Ok(ApiSetupResult {
+                Ok(WalletSetupResult {
                     mnemonic: Some(m.to_string()),
                     scan_key,
                     spend_key,
                 })
             }
-            ApiSetupWalletType::Mnemonic(mnemonic) => {
+            WalletSetupType::Mnemonic(mnemonic) => {
                 // We restore from seed
                 let m = bip39::Mnemonic::from_str(&mnemonic)?;
                 let seed = m.to_seed(PASSPHRASE);
@@ -54,33 +69,33 @@ impl SpWallet {
                 let scan_key = ApiScanKey(scan_sk);
                 let spend_key = ApiSpendKey(SpendKey::Secret(spend_sk));
 
-                Ok(ApiSetupResult {
+                Ok(WalletSetupResult {
                     mnemonic: Some(mnemonic),
                     scan_key,
                     spend_key,
                 })
             }
-            ApiSetupWalletType::Full(scan_sk_hex, spend_sk_hex) => {
+            WalletSetupType::Full(scan_sk_hex, spend_sk_hex) => {
                 let scan_sk = SecretKey::from_str(&scan_sk_hex)?;
                 let spend_sk = SecretKey::from_str(&spend_sk_hex)?;
 
                 let scan_key = ApiScanKey(scan_sk);
                 let spend_key = ApiSpendKey(SpendKey::Secret(spend_sk));
 
-                Ok(ApiSetupResult {
+                Ok(WalletSetupResult {
                     mnemonic: None,
                     scan_key,
                     spend_key,
                 })
             }
-            ApiSetupWalletType::WatchOnly(scan_sk_hex, spend_pk_hex) => {
+            WalletSetupType::WatchOnly(scan_sk_hex, spend_pk_hex) => {
                 let scan_sk = SecretKey::from_str(&scan_sk_hex)?;
                 let spend_pk = PublicKey::from_str(&spend_pk_hex)?;
 
                 let scan_key = ApiScanKey(scan_sk);
                 let spend_key = ApiSpendKey(SpendKey::Public(spend_pk));
 
-                Ok(ApiSetupResult {
+                Ok(WalletSetupResult {
                     mnemonic: None,
                     scan_key,
                     spend_key,

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:danawallet/constants.dart';
-import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -37,7 +37,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
   }
 
   Future<void> _setupWallet(
-      ApiSetupWalletType setupWalletType, int? birthday) async {
+      WalletSetupType setupWalletType, int? birthday) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
 
@@ -49,12 +49,13 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     // todo check this only happens when creating new wallet
     birthday ??= chainState.tip;
 
-    final args = ApiSetupWalletArgs(
+    final args = WalletSetupArgs(
         setupType: setupWalletType, network: _selectedNetwork.toBitcoinNetwork);
 
     try {
       final setupResult = SpWallet.setupWallet(setupArgs: args);
-      await walletState.createNewWallet(setupResult, _selectedNetwork, birthday);
+      await walletState.createNewWallet(
+          setupResult, _selectedNetwork, birthday);
       if (mounted) {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const HomeScreen()));
@@ -65,13 +66,13 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
   }
 
   Future<void> _createNewWallet() async {
-    const setupWalletType = ApiSetupWalletType.newWallet();
+    const setupWalletType = WalletSetupType.newWallet();
 
     await _setupWallet(setupWalletType, null);
   }
 
   Future<void> _importFromSeed(String mnemonic) async {
-    final setupWalletType = ApiSetupWalletType.mnemonic(mnemonic);
+    final setupWalletType = WalletSetupType.mnemonic(mnemonic);
 
     // When recovering, we select the default birthday for this selected network.
     // This should be a 'safe' default, meaning most users will be able to scan

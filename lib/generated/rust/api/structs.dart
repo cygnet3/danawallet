@@ -7,25 +7,9 @@ import '../frb_generated.dart';
 import '../lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
-import 'wallet.dart';
 part 'structs.freezed.dart';
 
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiSetupResult>>
-abstract class ApiSetupResult implements RustOpaqueInterface {
-  String? get mnemonic;
-
-  ApiScanKey get scanKey;
-
-  ApiSpendKey get spendKey;
-
-  set mnemonic(String? mnemonic);
-
-  set scanKey(ApiScanKey scanKey);
-
-  set spendKey(ApiSpendKey spendKey);
-}
 
 class ApiAmount {
   final BigInt field0;
@@ -211,45 +195,6 @@ class ApiRecordedTransactionOutgoing {
           recipients == other.recipients &&
           confirmedAt == other.confirmedAt &&
           change == other.change;
-}
-
-class ApiSetupWalletArgs {
-  final ApiSetupWalletType setupType;
-  final String network;
-
-  const ApiSetupWalletArgs({
-    required this.setupType,
-    required this.network,
-  });
-
-  @override
-  int get hashCode => setupType.hashCode ^ network.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ApiSetupWalletArgs &&
-          runtimeType == other.runtimeType &&
-          setupType == other.setupType &&
-          network == other.network;
-}
-
-@freezed
-sealed class ApiSetupWalletType with _$ApiSetupWalletType {
-  const ApiSetupWalletType._();
-
-  const factory ApiSetupWalletType.newWallet() = ApiSetupWalletType_NewWallet;
-  const factory ApiSetupWalletType.mnemonic(
-    String field0,
-  ) = ApiSetupWalletType_Mnemonic;
-  const factory ApiSetupWalletType.full(
-    String field0,
-    String field1,
-  ) = ApiSetupWalletType_Full;
-  const factory ApiSetupWalletType.watchOnly(
-    String field0,
-    String field1,
-  ) = ApiSetupWalletType_WatchOnly;
 }
 
 class ApiSilentPaymentUnsignedTransaction {

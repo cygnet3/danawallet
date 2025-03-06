@@ -9,6 +9,7 @@ import 'history.dart';
 import 'outputs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
+import 'wallet/setup.dart';
 
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `from`, `from`
 
@@ -99,7 +100,7 @@ abstract class SpWallet implements RustOpaqueInterface {
       required BigInt dustLimit,
       required OwnedOutPoints ownedOutpoints});
 
-  static ApiSetupResult setupWallet({required ApiSetupWalletArgs setupArgs}) =>
+  static WalletSetupResult setupWallet({required WalletSetupArgs setupArgs}) =>
       RustLib.instance.api
           .crateApiWalletSpWalletSetupWallet(setupArgs: setupArgs);
 
