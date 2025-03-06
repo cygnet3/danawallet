@@ -50,14 +50,11 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     birthday ??= chainState.tip;
 
     final args = ApiSetupWalletArgs(
-        setupType: setupWalletType,
-        birthday: birthday,
-        network: _selectedNetwork.toBitcoinNetwork);
+        setupType: setupWalletType, network: _selectedNetwork.toBitcoinNetwork);
 
     try {
       final setupResult = SpWallet.setupWallet(setupArgs: args);
-      await walletState.createNewWallet(
-          setupResult.wallet, setupResult.mnemonic, _selectedNetwork);
+      await walletState.createNewWallet(setupResult, _selectedNetwork, birthday);
       if (mounted) {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const HomeScreen()));

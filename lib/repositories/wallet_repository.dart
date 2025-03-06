@@ -1,16 +1,20 @@
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // secure storage
-const String _keyWalletBlob = "wallet";
+const String _keyWalletBlob = "wallet"; // deprecated; remove this later
+const String _keyScanSk = "scansk";
+const String _keySpendKey = "spendkey";
 const String _keySeedPhrase = "seedphrase";
 
 // non secure storage
 // this will likely replaced by an sql database in the future
+const String _keyBirthday = "birthday";
 const String _keyNetwork = "network";
 const String _keyTxHistory = "txhistory";
 const String _keyOwnedOutputs = "ownedoutputs";
@@ -31,32 +35,104 @@ class WalletRepository {
       _keyNetwork,
       _keyTxHistory,
       _keyLastScan,
-      _keyOwnedOutputs
+      _keyOwnedOutputs,
+      _keyBirthday
     });
   }
 
+  Future<SpWallet> setupWallet(
+      ApiSetupResult walletSetup, Network network, int birthday) async {
+    if ((await secureStorage.readAll()).isNotEmpty) {
+      throw Exception('Previous wallet not properly deleted');
+    }
+
+    // save variables in storage
+    final scanKey = walletSetup.scanKey;
+    final spendKey = walletSetup.spendKey;
+    final seedPhrase = walletSetup.mnemonic;
+
+    // insert new values
+    await secureStorage.write(key: _keyScanSk, value: scanKey.encode());
+    await secureStorage.write(key: _keySpendKey, value: spendKey.encode());
+    await nonSecureStorage.setInt(_keyBirthday, birthday);
+    await nonSecureStorage.setString(_keyNetwork, network.name);
+
+    if (seedPhrase != null) {
+      await secureStorage.write(key: _keySeedPhrase, value: seedPhrase);
+    }
+
+    // set default values for new wallet
+    await saveLastScan(birthday);
+    await saveHistory(TxHistory.empty());
+    await saveOwnedOutputs(OwnedOutputs.empty());
+
+    // check if creation was successful by reading wallet
+    final wallet = await readWallet();
+    return wallet!;
+  }
+
   Future<SpWallet?> readWallet() async {
-    final walletBlob = await secureStorage.read(key: _keyWalletBlob);
-    if (walletBlob != null) {
-      return SpWallet.decode(encodedWallet: walletBlob);
+    // read scan and spend key. if these are present, the entire wallet should be present
+    final scanKey = await readScanKey();
+    final spendKey = await readSpendKey();
+
+    if (scanKey != null && spendKey != null) {
+      final birthday = await nonSecureStorage.getInt(_keyBirthday);
+      final network = await readNetwork();
+
+      return SpWallet(
+          scanKey: scanKey,
+          spendKey: spendKey,
+          birthday: birthday!,
+          network: network.toBitcoinNetwork);
+    } else {
+      // this case is for backwards compatibility, to convert the wallet blob into separate
+      // values.
+      // todo: remove this
+      final walletBlob = await secureStorage.read(key: _keyWalletBlob);
+      if (walletBlob != null) {
+        final wallet = SpWallet.decode(encodedWallet: walletBlob);
+        final scanKey = wallet.getScanKey();
+        final spendKey = wallet.getSpendKey();
+        final birthday = wallet.getBirthday();
+
+        // insert new values
+        await secureStorage.write(key: _keyScanSk, value: scanKey.encode());
+        await secureStorage.write(key: _keySpendKey, value: spendKey.encode());
+        await nonSecureStorage.setInt(_keyBirthday, birthday);
+
+        // remove old (deprecated) value
+        await secureStorage.delete(key: _keyWalletBlob);
+
+        return wallet;
+      } else {
+        return null;
+      }
+    }
+  }
+
+  Future<ApiScanKey?> readScanKey() async {
+    final encoded = await secureStorage.read(key: _keyScanSk);
+
+    if (encoded != null) {
+      return ApiScanKey.decode(encoded: encoded);
     } else {
       return null;
     }
   }
 
-  Future<void> saveWallet(SpWallet wallet) async {
-    final walletBlob = wallet.encode();
-    await secureStorage.write(key: _keyWalletBlob, value: walletBlob);
+  Future<ApiSpendKey?> readSpendKey() async {
+    final encoded = await secureStorage.read(key: _keySpendKey);
+
+    if (encoded != null) {
+      return ApiSpendKey.decode(encoded: encoded);
+    } else {
+      return null;
+    }
   }
 
   Future<String?> readSeedPhrase() async {
     return await secureStorage.read(key: _keySeedPhrase);
-  }
-
-  Future<void> trySaveSeedPhrase(String? seedPhrase) async {
-    if (seedPhrase != null) {
-      await secureStorage.write(key: _keySeedPhrase, value: seedPhrase);
-    }
   }
 
   Future<Network> readNetwork() async {
@@ -71,10 +147,6 @@ class WalletRepository {
       final wallet = await readWallet();
       return Network.fromBitcoinNetwork(wallet!.getNetwork());
     }
-  }
-
-  Future<void> saveNetwork(Network network) async {
-    await nonSecureStorage.setString(_keyNetwork, network.name);
   }
 
   Future<void> saveHistory(TxHistory history) async {
