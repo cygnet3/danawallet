@@ -1,6 +1,6 @@
 mod info;
 mod scan;
-mod setup;
+pub mod setup;
 mod transaction;
 
 use crate::wallet::WalletFingerprint;

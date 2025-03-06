@@ -1,8 +1,8 @@
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
-import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,7 +41,7 @@ class WalletRepository {
   }
 
   Future<SpWallet> setupWallet(
-      ApiSetupResult walletSetup, Network network, int birthday) async {
+      WalletSetupResult walletSetup, Network network, int birthday) async {
     if ((await secureStorage.readAll()).isNotEmpty) {
       throw Exception('Previous wallet not properly deleted');
     }
