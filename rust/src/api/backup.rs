@@ -86,7 +86,9 @@ impl EncryptedDanaBackup {
 pub struct DanaBackup {
     // version number to mark backwards incompatible versions
     version: u32,
+    #[serde(flatten)]
     pub wallet: WalletBackup,
+    #[serde(flatten)]
     pub settings: SettingsBackup,
 }
 

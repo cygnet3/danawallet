@@ -21,10 +21,13 @@ pub struct SpWallet {
     wallet_fingerprint: WalletFingerprint,
     birthday: Height,
     /// old variable, to be removed
+    #[serde(skip_serializing)]
     tx_history: Option<TxHistory>,
     /// old variable, to be removed
+    #[serde(skip_serializing)]
     last_scan: Option<Height>,
     /// old variable, to be removed
+    #[serde(skip_serializing)]
     outputs: Option<OwnedOutputs>,
 }
 
