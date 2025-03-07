@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/generated/rust/api/wallet/setup.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +44,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     final chainState = Provider.of<ChainState>(context, listen: false);
 
     // todo settings has to be initialized before chainstate, make this independent
-    await SettingsRepository().defaultSettings(_selectedNetwork);
+    await SettingsRepository.instance.defaultSettings(_selectedNetwork);
 
     await chainState.initialize();
 
@@ -82,6 +84,39 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
     final birthday = _selectedNetwork.defaultBirthday;
 
     await _setupWallet(setupWalletType, birthday);
+  }
+
+  Future<void> _restoreButtonPressed() async {
+    try {
+      final walletState = Provider.of<WalletState>(context, listen: false);
+      final chainState = Provider.of<ChainState>(context, listen: false);
+      final encryptedBackup = await BackupService.getEncryptedBackupFromFile();
+
+      if (encryptedBackup != null) {
+        final controller = TextEditingController();
+
+        final password = await showInputAlertDialog(
+            controller,
+            TextInputType.text,
+            'Backup password',
+            'provide password for backup',
+            showReset: false);
+
+        if (password is String) {
+          await BackupService.restoreFromEncryptedBackup(
+              encryptedBackup, password);
+
+          await walletState.initialize();
+          await chainState.initialize();
+          if (mounted) {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()));
+          }
+        }
+      }
+    } catch (e) {
+      displayNotification("restore failed, wrong password?");
+    }
   }
 
   Future<void> _showSeedInputDialog() async {
@@ -208,6 +243,13 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                     () {
                       _showSeedInputDialog();
                     },
+                  ),
+                ),
+                Expanded(
+                  child: _buildButton(
+                    context,
+                    'Restore from backup',
+                    _restoreButtonPressed,
                   ),
                 ),
                 const Spacer(),

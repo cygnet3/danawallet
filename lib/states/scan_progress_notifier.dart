@@ -62,7 +62,7 @@ class ScanProgressNotifier extends ChangeNotifier {
   Future<void> scan(WalletState walletState) async {
     try {
       final wallet = await walletState.getWalletFromSecureStorage();
-      final settings = SettingsRepository();
+      final settings = SettingsRepository.instance;
       final blindbitUrl = await settings.getBlindbitUrl();
       final dustLimit = await settings.getDustLimit();
 

@@ -1,4 +1,5 @@
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/generated/rust/api/backup.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
@@ -24,7 +25,11 @@ class WalletRepository {
   final secureStorage = const FlutterSecureStorage();
   final nonSecureStorage = SharedPreferencesAsync();
 
-  WalletRepository();
+  // private constructor
+  WalletRepository._();
+
+  // singleton class
+  static final instance = WalletRepository._();
 
   Future<void> reset() async {
     // delete secure storage
@@ -210,5 +215,41 @@ class WalletRepository {
 
       return outputs;
     }
+  }
+
+  Future<WalletBackup> createWalletBackup() async {
+    final wallet = await readWallet();
+    final history = await readHistory();
+    final outputs = await readOwnedOutputs();
+    final seedPhrase = await readSeedPhrase();
+    final lastScan = await readLastScan();
+    final network = await readNetwork();
+
+    return WalletBackup(
+        wallet: wallet!,
+        lastScan: lastScan,
+        txHistory: history,
+        ownedOutputs: outputs,
+        seedPhrase: seedPhrase,
+        network: network.name);
+  }
+
+  Future<void> restoreWalletBackup(WalletBackup backup) async {
+    await reset();
+
+    // insert new values
+    await secureStorage.write(key: _keyScanSk, value: backup.scanKey.encode());
+    await secureStorage.write(
+        key: _keySpendKey, value: backup.spendKey.encode());
+    await nonSecureStorage.setInt(_keyBirthday, backup.birthday);
+    await nonSecureStorage.setString(_keyNetwork, backup.network);
+
+    if (backup.seedPhrase != null) {
+      await secureStorage.write(key: _keySeedPhrase, value: backup.seedPhrase);
+    }
+
+    await saveHistory(backup.txHistory);
+    await saveOwnedOutputs(backup.ownedOutputs);
+    await saveLastScan(backup.lastScan);
   }
 }
