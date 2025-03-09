@@ -177,6 +177,11 @@ class ApiRecordedTransactionOutgoing {
         that: this,
       );
 
+  ApiAmount totalOutgoing() => RustLib.instance.api
+          .crateApiStructsApiRecordedTransactionOutgoingTotalOutgoing(
+        that: this,
+      );
+
   @override
   int get hashCode =>
       txid.hashCode ^

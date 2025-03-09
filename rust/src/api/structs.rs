@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use sp_client::{
     bitcoin::{
@@ -63,18 +64,25 @@ impl From<ApiAmount> for bitcoin::Amount {
 }
 
 impl ApiAmount {
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn to_int(&self) -> u64 {
         self.0
     }
 
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn display_btc(&self) -> String {
         let amount_btc = self.0 as f32 / 100_000_000 as f32;
-        format!("₿{:.8}", amount_btc)
+        let decimals = format!("{:.8}", amount_btc);
+        let len = decimals.len();
+        format!(
+            "₿ {} {} {}",
+            &decimals[..len - 6],
+            &decimals[len - 6..len - 3],
+            &decimals[len - 3..]
+        )
     }
 
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn display_sats(&self) -> String {
         format!("{} sats", self.0)
     }
@@ -158,16 +166,23 @@ pub struct ApiRecordedTransactionIncoming {
 }
 
 impl ApiRecordedTransactionIncoming {
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn to_string(&self) -> String {
-        format!("{:#?}", self)
+        serde_json::to_string_pretty(&self).unwrap()
     }
 }
 
 impl ApiRecordedTransactionOutgoing {
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn to_string(&self) -> String {
-        format!("{:#?}", self)
+        serde_json::to_string_pretty(&self).unwrap()
+    }
+
+    #[frb(sync)]
+    pub fn total_outgoing(&self) -> ApiAmount {
+        let sum: u64 = self.recipients.iter().map(|r| r.amount.0).sum();
+
+        ApiAmount(sum)
     }
 }
 
@@ -316,7 +331,7 @@ impl From<ApiSilentPaymentUnsignedTransaction> for SilentPaymentUnsignedTransact
 }
 
 impl ApiSilentPaymentUnsignedTransaction {
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn get_send_amount(&self, change_address: String) -> ApiAmount {
         let amount = self
             .recipients
@@ -333,7 +348,7 @@ impl ApiSilentPaymentUnsignedTransaction {
         ApiAmount(amount)
     }
 
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn get_change_amount(&self, change_address: String) -> ApiAmount {
         let amount = self
             .recipients
@@ -349,7 +364,7 @@ impl ApiSilentPaymentUnsignedTransaction {
         ApiAmount(amount)
     }
 
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn get_fee_amount(&self) -> ApiAmount {
         let input_sum: u64 = self
             .selected_utxos
@@ -362,7 +377,7 @@ impl ApiSilentPaymentUnsignedTransaction {
         ApiAmount(input_sum - output_sum)
     }
 
-    #[flutter_rust_bridge::frb(sync)]
+    #[frb(sync)]
     pub fn get_recipients(&self, change_address: String) -> Vec<ApiRecipient> {
         self.recipients
             .iter()

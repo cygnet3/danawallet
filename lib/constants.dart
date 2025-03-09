@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
 
 enum Network {
@@ -48,6 +51,17 @@ enum Network {
         return 'test';
       case Network.signet:
         return 'signet';
+    }
+  }
+
+  Color get toColor {
+    switch (this) {
+      case Network.mainnet:
+        return Bitcoin.orange;
+      case Network.testnet:
+        return Bitcoin.green;
+      case Network.signet:
+        return Bitcoin.purple;
     }
   }
 
