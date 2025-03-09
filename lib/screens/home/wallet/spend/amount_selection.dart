@@ -152,8 +152,10 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
             height: 10.0,
           ),
           BitcoinButtonFilled(
-            textStyle: BitcoinTextStyle.body2(Bitcoin.neutral1),
-            title: 'Proceed to fee selection',
+            body: Text(
+              'Proceed to fee selection',
+              style: BitcoinTextStyle.body2(Bitcoin.neutral1),
+            ),
             onPressed: onContinue,
             cornerRadius: 5.0,
           )

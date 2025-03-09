@@ -1,6 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/states/home_state.dart';
-import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/screens/home/history/tx_history.dart';
 import 'package:danawallet/screens/home/wallet/wallet.dart';
 import 'package:danawallet/screens/home/settings/settings.dart';
@@ -18,20 +17,9 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final walletState = Provider.of<WalletState>(context, listen: false);
     final homeState = Provider.of<HomeState>(context, listen: true);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Silent Payments'),
-            const Spacer(),
-            Text(walletState.network.toString()),
-          ],
-        ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
       body: IndexedStack(
         index: homeState.selectedIndex,
         children: _widgetOptions,
@@ -40,28 +28,41 @@ class HomeScreen extends StatelessWidget {
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Image(
-                image:
-                    const AssetImage("icons/wallet.png", package: "bitcoin_ui"),
-                color: Bitcoin.neutral3Dark),
-            label: 'Wallet',
+                image: const AssetImage("icons/flip_vertical.png",
+                    package: "bitcoin_ui"),
+                color: Bitcoin.neutral7),
+            activeIcon: Image(
+                image: const AssetImage("icons/flip_vertical.png",
+                    package: "bitcoin_ui"),
+                color: Bitcoin.blue),
+            label: 'Transact',
           ),
           BottomNavigationBarItem(
             icon: Image(
-                image: const AssetImage("icons/transactions.png",
+              image:
+                  const AssetImage("icons/contacts.png", package: "bitcoin_ui"),
+              color: Bitcoin.neutral7,
+            ),
+            activeIcon: Image(
+                image: const AssetImage("icons/contacts.png",
                     package: "bitcoin_ui"),
-                color: Bitcoin.neutral3Dark),
-            label: 'History',
+                color: Bitcoin.blue),
+            label: 'Contacts',
           ),
           BottomNavigationBarItem(
             icon: Image(
                 image:
                     const AssetImage("icons/gear.png", package: "bitcoin_ui"),
-                color: Bitcoin.neutral3Dark),
+                color: Bitcoin.neutral7),
+            activeIcon: Image(
+                image:
+                    const AssetImage("icons/gear.png", package: "bitcoin_ui"),
+                color: Bitcoin.blue),
             label: 'Settings',
           ),
         ],
         currentIndex: homeState.selectedIndex,
-        selectedItemColor: Colors.green,
+        selectedItemColor: Bitcoin.blue,
         onTap: homeState.setIndex,
       ),
     );

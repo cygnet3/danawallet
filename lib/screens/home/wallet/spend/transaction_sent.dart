@@ -62,8 +62,7 @@ class TransactionSentScreen extends StatelessWidget {
             height: 10.0,
           ),
           BitcoinButtonFilled(
-            textStyle: BitcoinTextStyle.body2(Bitcoin.neutral1),
-            title: 'Done',
+            body: Text('Done', style: BitcoinTextStyle.body2(Bitcoin.neutral1)),
             onPressed: () {
               Navigator.pushAndRemoveUntil(
                   context,

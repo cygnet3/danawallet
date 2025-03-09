@@ -17,7 +17,10 @@ dependencies:
   provider: ^6.1.1
   barcode: ^2.2.5
   barcode_widget: ^2.0.4
-  bitcoin_ui: ^2.0.0
+  bitcoin_ui:
+    git:
+      url: https://github.com/cygnet3/bitcoinui-flutter
+      ref: widget-body
   logger: ^2.4.0
   shared_preferences: ^2.3.2
   freezed_annotation: ^2.4.1
@@ -30,6 +33,10 @@ dependencies:
   http: ^1.2.2
   mobile_scanner: ^6.0.2
   file_picker: ^9.0.2
+  flutter_svg: ^2.0.17
+  flutter_spinkit: ^5.2.1
+
+
 
 dev_dependencies:
   flutter_test:
@@ -41,6 +48,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/icons/refresh.svg
+
   fonts:
     - family: Space grotesk
       fonts:
