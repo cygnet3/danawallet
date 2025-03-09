@@ -151,8 +151,8 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
               const SizedBox(),
             ]),
         footer: BitcoinButtonFilled(
-          textStyle: BitcoinTextStyle.body2(Bitcoin.neutral1),
-          title: 'Continue',
+          body:
+              Text('Continue', style: BitcoinTextStyle.body2(Bitcoin.neutral1)),
           onPressed: onContinue,
           cornerRadius: 5.0,
         ));
