@@ -42,7 +42,10 @@ dependencies:
   provider: ^6.1.1
   barcode: ^2.2.5
   barcode_widget: ^2.0.4
-  bitcoin_ui: ^2.0.0
+  bitcoin_ui:
+    git:
+      url: https://github.com/cygnet3/bitcoinui-flutter
+      ref: widget-body
   logger: ^2.4.0
   shared_preferences: ^2.3.2
   freezed_annotation: ^2.4.1

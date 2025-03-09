@@ -71,7 +71,8 @@ impl ApiAmount {
     #[flutter_rust_bridge::frb(sync)]
     pub fn display_btc(&self) -> String {
         let amount_btc = self.0 as f32 / 100_000_000 as f32;
-        format!("₿{:.8}", amount_btc)
+        let decimals = format!("{:.8}", amount_btc);
+        format!("₿ {} {} {}", &decimals[..4], &decimals[4..7], &decimals[7..])
     }
 
     #[flutter_rust_bridge::frb(sync)]

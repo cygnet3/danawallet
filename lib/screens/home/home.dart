@@ -25,12 +25,27 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text('Silent Payments'),
             const Spacer(),
-            Text(walletState.network.toString()),
+            SizedBox(
+                height: 30.0,
+                width: 30.0,
+                child: Image(
+                  fit: BoxFit.contain,
+                  image: const AssetImage("icons/2.0x/gear.png",
+                      package: "bitcoin_ui"),
+                  color: Bitcoin.neutral7,
+                )),
+            SizedBox(
+                height: 30.0,
+                width: 30.0,
+                child: Image(
+                  fit: BoxFit.contain,
+                  image: const AssetImage("icons/3.0x/bitcoin_circle.png",
+                      package: "bitcoin_ui"),
+                  color: walletState.network.toColor,
+                )),
           ],
         ),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: IndexedStack(
         index: homeState.selectedIndex,

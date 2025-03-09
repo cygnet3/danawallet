@@ -57,10 +57,11 @@ packages:
   bitcoin_ui:
     dependency: "direct main"
     description:
-      name: bitcoin_ui
-      sha256: "96e1da9a577b7fd9968593bbdd5844295a4fde1e4de31424fd292491e648b6a8"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: widget-body
+      resolved-ref: a536c4f647d5929ed1f319453fe3ec82681da358
+      url: "https://github.com/cygnet3/bitcoinui-flutter"
+    source: git
     version: "2.0.0"
   boolean_selector:
     dependency: transitive

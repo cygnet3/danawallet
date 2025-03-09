@@ -1,10 +1,12 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/services/synchronization_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:barcode_widget/barcode_widget.dart';
@@ -61,30 +63,6 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget showWalletStateText(WalletState walletState, ChainState chainState,
-      ScanProgressNotifier scanProgress) {
-    String text;
-
-    if (chainState.initiated) {
-      if (scanProgress.scanning) {
-        final progressPercentage = scanProgress.progress * 100;
-        text =
-            '${scanProgress.current} (${progressPercentage.toStringAsFixed(0)}%)';
-      } else if (chainState.tip == walletState.lastScan) {
-        text = 'Up to date!';
-      } else {
-        text = '${chainState.tip - walletState.lastScan} new blocks';
-      }
-    } else {
-      text = 'Unable to get block height';
-    }
-
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.bodyLarge,
-    );
-  }
-
   Widget buildBottomButtons(WalletState walletState) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
@@ -93,24 +71,30 @@ class WalletScreenState extends State<WalletScreen> {
         children: [
           Expanded(
             child: BitcoinButtonFilled(
-              title: 'Receive',
-              cornerRadius: 10,
-              onPressed: () {
-                _showReceiveDialog(context, walletState.address);
-              },
-            ),
-          ),
-          const SizedBox(width: 10), // Spacing between the buttons
-          Expanded(
-            child: BitcoinButtonFilled(
-              title: 'Send',
-              cornerRadius: 10,
+              body: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(
+                  'Pay  ',
+                  style: BitcoinTextStyle.body3(Bitcoin.white),
+                ),
+                Image(
+                  image:
+                      const AssetImage("icons/send.png", package: "bitcoin_ui"),
+                  color: Bitcoin.white,
+                )
+              ]),
+              cornerRadius: 6,
               onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const ChooseRecipientScreen())),
             ),
           ),
+          const SizedBox(width: 10),
+          ReceiveWidget(
+            onPressed: () {
+              _showReceiveDialog(context, walletState.address);
+            },
+          )
         ],
       ),
     );
@@ -122,36 +106,57 @@ class WalletScreenState extends State<WalletScreen> {
     final chainState = Provider.of<ChainState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
 
+    ApiAmount amount =
+        ApiAmount(field0: walletState.amount + walletState.unconfirmedChange);
+
     return Column(
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
+            padding: const EdgeInsets.symmetric(horizontal: 30.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 10.0),
-                Text(
-                  '${walletState.amount + walletState.unconfirmedChange} sats',
-                  style: Theme.of(context).textTheme.displayMedium,
-                ),
-                const Spacer(),
-                showWalletStateText(walletState, chainState, scanProgress),
                 Visibility(
                   visible: scanProgress.scanning,
                   maintainAnimation: true,
                   maintainSize: true,
                   maintainState: true,
-                  child: LinearProgressIndicator(
-                    backgroundColor: Colors.grey[300],
-                    value: scanProgress.progress,
-                    minHeight: 10.0,
+                  child: Row(
+                    children: [
+                      Text(
+                          'Scanning: ${(scanProgress.progress * 100.0).toStringAsFixed(0)} %  ',
+                          style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
+                      Expanded(
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation(Bitcoin.blue),
+                              backgroundColor: Bitcoin.neutral4,
+                              value: scanProgress.progress,
+                              minHeight: 6.0,
+                            )),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 10.0),
+                Text(
+                  amount.displayBtc(),
+                  style: BitcoinTextStyle.body1(Bitcoin.neutral8).apply(
+                      fontSizeDelta: 3,
+                      fontFeatures: [const FontFeature.slashedZero()]),
+                ),
+                Text(
+                  '\$ 0.00',
+                  style: BitcoinTextStyle.body3(Bitcoin.neutral6)
+                      .apply(fontFeatures: [const FontFeature.slashedZero()]),
+                ),
+                const Spacer(),
                 const SizedBox(height: 2),
                 BitcoinButtonFilled(
                   cornerRadius: 10,
-                  title: scanProgress.scanning ? 'Stop scanning' : 'Scan',
+                  body: Text(scanProgress.scanning ? 'Stop scanning' : 'Scan'),
                   disabled: !chainState.initiated ||
                       chainState.tip == walletState.lastScan,
                   onPressed: () async {
