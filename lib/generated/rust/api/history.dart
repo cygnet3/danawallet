@@ -8,7 +8,7 @@ import '../stream.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
-// These functions are ignored because they are not marked as `pub`: `confirm_recorded_outgoing_transaction`, `record_incoming_transaction`, `record_outgoing_transaction`
+// These functions are ignored because they are not marked as `pub`: `check_is_self_send`, `confirm_recorded_outgoing_transaction`, `record_incoming_transaction`, `record_outgoing_transaction`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TxHistory>>

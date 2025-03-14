@@ -63,12 +63,22 @@ impl TxHistory {
                     // since we don't deduct change outputs from the sending side,
                     // we shouldn't add the funds on the receiving side either.
                     //
+                    // however, in case the user is recovering using a seed phrase,
+                    // we should NOT exclude the change output, since we don't have the sending
+                    // equivalent.
+                    //
                     // this is a lazy way of detecting whether this is a change output,
                     // since we don't have any other labels yet.
-                    if output.label.is_none() {
-                        let entry = txs.entry(outpoint.txid).or_default();
-                        *entry += output.amount;
+                    if output.label.is_some() {
+                        if self.check_is_self_send(outpoint.txid) {
+                            // if this is both a change output, as well as a tx we sent ourselves,
+                            // skip this output
+                            continue;
+                        }
                     }
+
+                    let entry = txs.entry(outpoint.txid).or_default();
+                    *entry += output.amount;
                 }
                 for (txid, amount) in txs {
                     self.record_incoming_transaction(txid, amount, *blkheight);
@@ -179,5 +189,20 @@ impl TxHistory {
                 amount,
                 confirmed_at: Some(confirmed_at),
             }))
+    }
+
+    // check if this is a transaction we have sent ourselves
+    fn check_is_self_send(&self, txid: Txid) -> bool {
+        for history in self.0.iter() {
+            match history {
+                RecordedTransaction::Outgoing(outgoing) => {
+                    if outgoing.txid == txid {
+                        return true;
+                    }
+                }
+                _ => (),
+            }
+        }
+        false
     }
 }
