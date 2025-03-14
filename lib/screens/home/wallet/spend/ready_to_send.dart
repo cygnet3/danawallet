@@ -148,8 +148,8 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
               height: 10.0,
             ),
             BitcoinButtonFilled(
-              textStyle: BitcoinTextStyle.body2(Bitcoin.neutral1),
-              title: 'Send',
+              body:
+                  Text('Send', style: BitcoinTextStyle.body2(Bitcoin.neutral1)),
               isLoading: _isSending,
               onPressed: onPressSend,
               cornerRadius: 5.0,
