@@ -154,7 +154,7 @@ class WalletScreenState extends State<WalletScreen> {
 
     switch (tx) {
       case ApiRecordedTransaction_Incoming(:final field0):
-        recipient = 'nostr';
+        recipient = 'Incoming';
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         color = Bitcoin.green;
         amount = field0.amount.displayBtc();
