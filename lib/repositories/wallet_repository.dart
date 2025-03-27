@@ -106,6 +106,20 @@ class WalletRepository {
         await secureStorage.write(key: _keySpendKey, value: spendKey.encode());
         await nonSecureStorage.setInt(_keyBirthday, birthday);
 
+        // these values may be present in the wallet blob (for older versions)
+        // we have to save these too
+        if ((await nonSecureStorage.getString(_keyTxHistory)) == null) {
+          await saveHistory(wallet.getWalletTxHistory()!);
+        }
+
+        if ((await nonSecureStorage.getString(_keyOwnedOutputs)) == null) {
+          await saveOwnedOutputs(wallet.getWalletOwnedOutputs()!);
+        }
+
+        if ((await nonSecureStorage.getInt(_keyLastScan)) == null) {
+          await saveLastScan(wallet.getWalletLastScan()!);
+        }
+
         // remove old (deprecated) value
         await secureStorage.delete(key: _keyWalletBlob);
 
@@ -160,19 +174,7 @@ class WalletRepository {
 
   Future<TxHistory> readHistory() async {
     final encodedHistory = await nonSecureStorage.getString(_keyTxHistory);
-
-    if (encodedHistory != null) {
-      return TxHistory.decode(encodedHistory: encodedHistory);
-    } else {
-      // if it's not present in storage, it must be in the wallet blob
-      final wallet = await readWallet();
-      final history = wallet!.getWalletTxHistory()!;
-
-      // save history to storage
-      await nonSecureStorage.setString(_keyTxHistory, history.encode());
-
-      return history;
-    }
+    return TxHistory.decode(encodedHistory: encodedHistory!);
   }
 
   Future<void> saveLastScan(int lastScan) async {
@@ -181,19 +183,7 @@ class WalletRepository {
 
   Future<int> readLastScan() async {
     final lastScan = await nonSecureStorage.getInt(_keyLastScan);
-
-    if (lastScan != null) {
-      return lastScan;
-    } else {
-      // if it's not present in storage, it must be in the wallet blob
-      final wallet = await readWallet();
-      final lastScan = wallet!.getWalletLastScan()!;
-
-      // save history to storage
-      await nonSecureStorage.setInt(_keyLastScan, lastScan);
-
-      return lastScan;
-    }
+    return lastScan!;
   }
 
   Future<void> saveOwnedOutputs(OwnedOutputs ownedOutputs) async {
@@ -202,19 +192,7 @@ class WalletRepository {
 
   Future<OwnedOutputs> readOwnedOutputs() async {
     final encodedOutputs = await nonSecureStorage.getString(_keyOwnedOutputs);
-
-    if (encodedOutputs != null) {
-      return OwnedOutputs.decode(encodedOutputs: encodedOutputs);
-    } else {
-      // if it's not present in storage, it must be in the wallet blob
-      final wallet = await readWallet();
-      final outputs = wallet!.getWalletOwnedOutputs()!;
-
-      // save history to storage
-      await nonSecureStorage.setString(_keyOwnedOutputs, outputs.encode());
-
-      return outputs;
-    }
+    return OwnedOutputs.decode(encodedOutputs: encodedOutputs!);
   }
 
   Future<WalletBackup> createWalletBackup() async {
