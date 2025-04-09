@@ -303,7 +303,7 @@ impl From<SilentPaymentUnsignedTransaction> for ApiSilentPaymentUnsignedTransact
             unsigned_tx: value
                 .unsigned_tx
                 .map(|tx| serialize(&tx).to_lower_hex_string()),
-            network: value.network.to_string(),
+            network: value.network.to_core_arg().to_string(),
         }
     }
 }
