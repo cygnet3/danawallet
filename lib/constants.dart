@@ -6,7 +6,8 @@ import 'package:danawallet/global_functions.dart';
 enum Network {
   mainnet,
   testnet,
-  signet;
+  signet,
+  regtest;
 
   @override
   String toString() {
@@ -17,6 +18,8 @@ enum Network {
         return 'Testnet';
       case Network.signet:
         return 'Signet';
+      case Network.regtest:
+        return 'Regtest';
     }
   }
 
@@ -40,6 +43,12 @@ enum Network {
         } else {
           return defaultSignet;
         }
+      case Network.regtest:
+        if (isDevEnv() && const String.fromEnvironment("REGTEST_URL") != "") {
+          return const String.fromEnvironment("REGTEST_URL");
+        } else {
+          return defaultRegtest;
+        }
     }
   }
 
@@ -51,6 +60,8 @@ enum Network {
         return 'test';
       case Network.signet:
         return 'signet';
+      case Network.regtest:
+        return 'regtest';
     }
   }
 
@@ -62,6 +73,8 @@ enum Network {
         return Bitcoin.green;
       case Network.signet:
         return Bitcoin.purple;
+      case Network.regtest:
+        return Bitcoin.blue;
     }
   }
 
@@ -73,6 +86,8 @@ enum Network {
         return defaultTestnetBirthday;
       case Network.signet:
         return defaultSignetBirthday;
+      case Network.regtest:
+        return defaultRegtestBirthday;
     }
   }
 
@@ -84,6 +99,8 @@ enum Network {
         return Network.testnet;
       case 'signet':
         return Network.signet;
+      case 'regtest':
+        return Network.regtest;
       default:
         throw Exception('unknown network');
     }
@@ -94,12 +111,14 @@ enum Network {
 const String defaultMainnet = "https://silentpayments.dev/blindbit/mainnet";
 const String defaultTestnet = "https://silentpayments.dev/blindbit/testnet";
 const String defaultSignet = "https://silentpayments.dev/blindbit/signet";
+const String defaultRegtest = "https://silentpayments.dev/blindbit/regtest";
 
 // Default birthdays used in case we can't get the block height from blindbit
 // These values are pretty arbitrary, they can be updated for newer heights later
 const int defaultMainnetBirthday = 850000;
 const int defaultTestnetBirthday = 2900000;
 const int defaultSignetBirthday = 200000;
+const int defaultRegtestBirthday = 0;
 
 // dust limit used in scanning. outputs < dust limit will not be scanned
 const int defaultDustLimit = 1000;

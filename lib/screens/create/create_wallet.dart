@@ -201,6 +201,7 @@ class CreateWalletScreenState extends State<CreateWalletScreen> {
                   items: [
                     Network.mainnet,
                     Network.signet,
+                    Network.regtest,
                   ].map((Network network) {
                     return DropdownMenuItem<Network>(
                         value: network, child: Text(network.toString()));

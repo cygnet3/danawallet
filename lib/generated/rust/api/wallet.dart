@@ -36,6 +36,11 @@ abstract class SpWallet implements RustOpaqueInterface {
       RustLib.instance.api
           .crateApiWalletSpWalletBroadcastTx(tx: tx, network: network);
 
+  static Future<String> broadcastUsingBlindbit(
+          {required String blindbitUrl, required String tx}) =>
+      RustLib.instance.api.crateApiWalletSpWalletBroadcastUsingBlindbit(
+          blindbitUrl: blindbitUrl, tx: tx);
+
   ApiSilentPaymentUnsignedTransaction createDrainTransaction(
       {required Map<String, ApiOwnedOutput> apiOutputs,
       required String wipeAddress,
