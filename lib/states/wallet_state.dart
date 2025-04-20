@@ -9,6 +9,7 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -147,9 +148,15 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<RecommendedFeeResponse> getCurrentFeeRates() async {
-    final mempoolApiRepository = MempoolApiRepository(network: network);
-    final response = await mempoolApiRepository.getCurrentFeeRate();
-    return response;
+    if (network == Network.regtest) {
+      // for regtest, we always return 1 sat/vb
+      return RecommendedFeeResponse(
+          nextBlockFee: 1, halfHourFee: 1, hourFee: 1, dayFee: 1);
+    } else {
+      final mempoolApiRepository = MempoolApiRepository(network: network);
+      final response = await mempoolApiRepository.getCurrentFeeRate();
+      return response;
+    }
   }
 
   Future<ApiSilentPaymentUnsignedTransaction> createUnsignedTxToThisRecipient(
@@ -195,8 +202,18 @@ class WalletState extends ChangeNotifier {
     final wallet = await getWalletFromSecureStorage();
 
     final signedTx = wallet.signTransaction(unsignedTransaction: finalizedTx);
-    final txid = await SpWallet.broadcastTx(
-        tx: signedTx, network: network.toBitcoinNetwork);
+
+    String txid;
+    if (unsignedTx.network == Network.regtest.toBitcoinNetwork) {
+      // if we are currently on regtest, it's not possible to use our normal broadcasting flow
+      // instead, we will forward the transaction to blindbit
+      final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
+      txid = await SpWallet.broadcastUsingBlindbit(
+          blindbitUrl: blindbitUrl!, tx: signedTx);
+    } else {
+      txid = await SpWallet.broadcastTx(
+          tx: signedTx, network: network.toBitcoinNetwork);
+    }
 
     ownedOutputs.markOutpointsSpent(spentBy: txid, spent: selectedOutpoints);
 

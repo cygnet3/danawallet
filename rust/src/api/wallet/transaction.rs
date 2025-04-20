@@ -5,6 +5,7 @@ use crate::api::structs::ApiRecipient;
 use crate::api::structs::ApiSilentPaymentUnsignedTransaction;
 use anyhow::Result;
 use bip39::rand::{thread_rng, RngCore};
+use sp_client::BlindbitClient;
 use sp_client::{
     bitcoin::{consensus::serialize, hex::DisplayHex, Network, OutPoint},
     OwnedOutput, Recipient, RecipientAddress, SpClient,
@@ -90,6 +91,15 @@ impl SpWallet {
     ) -> Result<ApiSilentPaymentUnsignedTransaction> {
         let res = SpClient::finalize_transaction(unsigned_transaction.into())?;
         Ok(res.into())
+    }
+
+    // note: should only be used when using regtest, else there is privacy loss!
+    pub async fn broadcast_using_blindbit(blindbit_url: String, tx: String) -> Result<String> {
+        let blindbit_client = BlindbitClient::new(blindbit_url)?;
+
+        let res = blindbit_client.forward_tx(tx).await?;
+
+        Ok(res.to_string())
     }
 
     pub async fn broadcast_tx(tx: String, network: String) -> Result<String> {
