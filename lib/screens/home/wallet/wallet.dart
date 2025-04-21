@@ -72,7 +72,13 @@ class WalletScreenState extends State<WalletScreen> {
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
 
-    if (!chainState.initiated || chainState.tip == walletState.lastScan) {
+    if (!chainState.initiated) {
+      return;
+    }
+
+    await chainState.updateChainTip();
+
+    if (chainState.tip == walletState.lastScan) {
       return;
     }
 
@@ -80,7 +86,6 @@ class WalletScreenState extends State<WalletScreen> {
       if (scanProgress.scanning) {
         await scanProgress.interruptScan();
       } else {
-        await chainState.updateChainTip();
         await scanProgress.scan(walletState);
       }
     } catch (e) {
