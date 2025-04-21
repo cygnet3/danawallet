@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/widgets/confirmation_widget.dart';
 import 'package:danawallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
@@ -84,6 +85,30 @@ String exceptionToString(Object e) {
     message = e.toString();
   }
   return message;
+}
+
+RichText addressAsRichText(String address) {
+  List<String> chunks = address.split(' ');
+
+  String first = chunks.removeAt(0);
+
+  List<TextSpan> spans = List.empty(growable: true);
+  for (final (i, chunk) in chunks.indexed) {
+    spans.add(TextSpan(
+        text: '$chunk ',
+        style: BitcoinTextStyle.body5(
+                i % 2 == 0 ? Bitcoin.neutral8 : Bitcoin.neutral6)
+            .copyWith(fontFamily: 'Inter', letterSpacing: 2, height: 2)));
+  }
+
+  return RichText(
+    text: TextSpan(
+        text: '$first ',
+        style: BitcoinTextStyle.body5(Bitcoin.blue)
+            .copyWith(fontFamily: 'Inter', letterSpacing: 2, height: 2),
+        children: spans),
+    textAlign: TextAlign.justify,
+  );
 }
 
 String displayAddress(BuildContext context, String address, TextStyle style,
