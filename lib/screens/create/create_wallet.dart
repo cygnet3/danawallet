@@ -21,7 +21,7 @@ class CreateWalletScreen extends StatefulWidget {
 }
 
 class CreateWalletScreenState extends State<CreateWalletScreen> {
-  Network _selectedNetwork = Network.signet;
+  Network _selectedNetwork = Network.regtest;
 
   @override
   void initState() {
