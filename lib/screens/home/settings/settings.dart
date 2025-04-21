@@ -1,7 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/create/create_wallet.dart';
+import 'package:danawallet/screens/onboarding/create_wallet.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';

@@ -2,7 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/create/create_wallet.dart';
+import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -11,6 +11,7 @@ import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,15 +53,17 @@ class SilentPaymentApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dana wallet',
-      navigatorKey: globalNavigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.blue),
-        useMaterial3: true,
-        fontFamily: 'Space Grotesk',
-      ),
-      home: walletLoaded ? const HomeScreen() : const CreateWalletScreen(),
-    );
+    return Sizer(builder: (context, orientation, screenType) {
+      return MaterialApp(
+        title: 'Dana wallet',
+        navigatorKey: globalNavigatorKey,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Bitcoin.blue),
+          useMaterial3: true,
+          fontFamily: 'Space Grotesk',
+        ),
+        home: walletLoaded ? const HomeScreen() : const IntroductionScreen(),
+      );
+    });
   }
 }
