@@ -1,8 +1,8 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/onboarding/create_wallet.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
@@ -53,6 +53,7 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _setBlindbitUrl(BuildContext context, Network network) async {
     SettingsRepository settings = SettingsRepository.instance;
+    final chainState = Provider.of<ChainState>(context, listen: false);
     final controller = TextEditingController();
     controller.text = await settings.getBlindbitUrl() ?? '';
 
@@ -61,8 +62,10 @@ class SettingsScreen extends StatelessWidget {
     if (value is bool && value) {
       final defaultBlindbitUrl = network.getDefaultBlindbitUrl();
       await settings.setBlindbitUrl(defaultBlindbitUrl);
+      await chainState.updateBlindbitUrl(defaultBlindbitUrl);
     } else if (value is String) {
       await settings.setBlindbitUrl(value);
+      await chainState.updateBlindbitUrl(value);
     }
   }
 
@@ -122,7 +125,7 @@ Without a backup, your funds willl be lost!""");
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => const CreateWalletScreen()));
+                builder: (context) => const IntroductionScreen()));
       }
     }
   }

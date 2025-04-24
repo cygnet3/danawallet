@@ -30,8 +30,10 @@ class GetStartedScreen extends StatelessWidget {
     await walletState.createNewWallet(chainState);
 
     if (context.mounted) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (Route<dynamic> route) => false);
     }
   }
 
@@ -78,7 +80,9 @@ class GetStartedScreen extends StatelessWidget {
         const SizedBox(
           height: 15,
         ),
-        FooterButton(title: 'Create new wallet', onPressed: () => ()),
+        FooterButton(
+            title: 'Create new wallet',
+            onPressed: () => onCreateNewWallet(context)),
       ],
     );
     return OnboardingSkeleton(body: body, footer: footer);
