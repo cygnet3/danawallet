@@ -2,6 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/services/logging_service.dart';
@@ -30,7 +31,9 @@ void main() async {
   }
 
   if (walletLoaded) {
-    await chainState.initialize();
+    final network = walletState.network;
+    final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
+    await chainState.initialize(network, blindbitUrl!);
   }
 
   runApp(

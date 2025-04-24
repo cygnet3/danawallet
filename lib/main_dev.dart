@@ -26,14 +26,16 @@ void main() async {
     rethrow;
   }
 
-  if (walletLoaded) {
-    await chainState.initialize();
-  }
-
   // if a blindbit url is given, override the saved url
   const blindbitUrl = String.fromEnvironment("BLINDBIT_URL");
   if (blindbitUrl != '') {
     await SettingsRepository.instance.setBlindbitUrl(blindbitUrl);
+  }
+
+  if (walletLoaded) {
+    final network = walletState.network;
+    final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
+    await chainState.initialize(network, blindbitUrl!);
   }
 
   runApp(

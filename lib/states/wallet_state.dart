@@ -11,6 +11,7 @@ import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:flutter/material.dart';
 
 class WalletState extends ChangeNotifier {
@@ -98,8 +99,19 @@ class WalletState extends ChangeNotifier {
     await walletRepository.reset();
   }
 
-  Future<void> createNewWallet(
-      WalletSetupResult setupResult, Network network, int birthday) async {
+  Future<void> createNewWallet(ChainState chainState) async {
+    if (!chainState.initiated) {
+      throw Exception(
+          'Chain state must be initialized before creating a wallet');
+    }
+
+    final birthday = chainState.tip;
+    final network = chainState.network;
+
+    final args = WalletSetupArgs(
+        setupType: const WalletSetupType.newWallet(),
+        network: network.toBitcoinNetwork);
+    final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
         await walletRepository.setupWallet(setupResult, network, birthday);
 
