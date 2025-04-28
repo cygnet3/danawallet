@@ -37,6 +37,7 @@ dependencies:
   flutter_spinkit: ^5.2.1
   dots_indicator: ^4.0.1
   sizer: ^3.0.4
+  url_launcher: ^6.3.1
 
 
 
