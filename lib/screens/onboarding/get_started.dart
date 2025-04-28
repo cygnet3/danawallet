@@ -10,9 +10,11 @@ import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/icons/circular_icon.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({super.key});
@@ -102,13 +104,26 @@ class GetStartedScreen extends StatelessWidget {
             const SizedBox(
               height: 10,
             ),
-            Text(
-              "Dana is a donation wallet with Contacts feature, using silent payments. Learn more.",
-              style: BitcoinTextStyle.body3(Bitcoin.neutral7).copyWith(
-                fontFamily: 'Inter',
-              ),
+            RichText(
               textAlign: TextAlign.center,
-            ),
+              text: TextSpan(children: [
+                TextSpan(
+                    text:
+                        "To learn more about our privacy-preserving addresses,",
+                    style: BitcoinTextStyle.body3(Bitcoin.neutral7).copyWith(
+                      fontFamily: 'Inter',
+                    )),
+                TextSpan(
+                  text: ' Click here',
+                  style: BitcoinTextStyle.body3(Colors.blue).copyWith(
+                    fontFamily: 'Inter',
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => launchUrlString(
+                        'https://silentpayments.xyz/docs/explained/'),
+                ),
+              ]),
+            )
           ],
         ),
       ],

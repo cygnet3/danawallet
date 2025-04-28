@@ -12,9 +12,9 @@ class TutorialScreen3 extends StatelessWidget {
       step: 2,
       nextScreen: const GetStartedScreen(),
       iconPath: "assets/icons/tag.svg",
-      title: 'Auto-apply labels',
+      title: 'Stay organized',
       text:
-          'When you add labels to your address before sharing, those labels get auto-applied to every payment you receive at that labelled address!',
+          'Contacts and automatic labels help you with keeping your transactions organized',
       main: Container(
         width: 372,
         height: 261,
@@ -27,8 +27,7 @@ class TutorialScreen3 extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text('history')),
+                padding: EdgeInsets.symmetric(horizontal: 20), child: Text('')),
           ],
         ),
       ),
