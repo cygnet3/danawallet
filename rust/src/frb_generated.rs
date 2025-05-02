@@ -698,6 +698,41 @@ fn wire__crate__api__structs__ApiSilentPaymentAddress_from_json_string_impl(
         },
     )
 }
+fn wire__crate__api__structs__ApiSilentPaymentAddress_from_string_representation_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "ApiSilentPaymentAddress_from_string_representation",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_address = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok =
+                        crate::api::structs::ApiSilentPaymentAddress::from_string_representation(
+                            &api_address,
+                        )?;
+                    Ok(output_ok)
+                })(),
+            )
+        },
+    )
+}
 fn wire__crate__api__wallet__ApiSpendKey_decode_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -5630,16 +5665,16 @@ fn pde_ffi_dispatcher_primary_impl(
 ) {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        34 => {
+        35 => {
             wire__crate__api__wallet__SpWallet_broadcast_tx_impl(port, ptr, rust_vec_len, data_len)
         }
-        35 => wire__crate__api__wallet__SpWallet_broadcast_using_blindbit_impl(
+        36 => wire__crate__api__wallet__SpWallet_broadcast_using_blindbit_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        53 => {
+        54 => {
             wire__crate__api__wallet__SpWallet_scan_to_tip_impl(port, ptr, rust_vec_len, data_len)
         }
         75 => wire__crate__api__structs__api_amount_default_impl(port, ptr, rust_vec_len, data_len),
