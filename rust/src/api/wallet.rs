@@ -2,6 +2,7 @@ mod info;
 mod scan;
 pub mod setup;
 mod transaction;
+mod labels;
 
 use crate::wallet::WalletFingerprint;
 use anyhow::Result;
@@ -12,7 +13,7 @@ use sp_client::{
     SpClient, SpendKey,
 };
 
-use super::{history::TxHistory, outputs::OwnedOutputs};
+use super::{history::TxHistory, outputs::OwnedOutputs, structs::ApiSilentPaymentAddress};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
@@ -74,6 +75,26 @@ impl SpWallet {
     #[frb(sync)]
     pub fn get_spend_key(&self) -> ApiSpendKey {
         ApiSpendKey(self.client.get_spend_key())
+    }
+
+    #[frb(sync)]
+    /// We expect as label the sorted, concatenated labels
+    pub fn get_silent_payment_address_for_label(&self, label: Option<String>) -> Result<ApiSilentPaymentAddress> {
+        // get the label from the string
+        if let Some(label) = label {
+            // "change" is a special case for the change address
+            if label.as_str() == "change" {
+                Ok(self.client.sp_receiver.get_change_address().into())
+            } else {
+                // We handle all other cases here
+                let label = self.generate_label_from_input(label)?;
+                let labelled_address = self.client.sp_receiver.get_receiving_address_for_label(&label)?;
+                Ok(labelled_address.into())
+            }
+        } else {
+            // Just the unlabeled address
+            Ok(self.client.get_receiving_address().into())
+        }
     }
 }
 
