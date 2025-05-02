@@ -63,6 +63,8 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
 
     if (form.recipientBip353 != null) {
       recipientName = form.recipientBip353!;
+    } else if (form.contact != null) {
+      recipientName = form.contact!.nym;
     } else {
       recipientName = displayAddress(
           context, form.recipientAddress!, recipientTextStyle, 0.86);
