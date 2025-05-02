@@ -4,14 +4,8 @@ use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use sp_client::{
     bitcoin::{
-        self,
-        absolute::Height,
-        consensus::{deserialize, serialize},
-        hex::{DisplayHex, FromHex},
-        secp256k1::SecretKey,
-        Network, OutPoint, ScriptBuf, Txid,
-    },
-    OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
+        self, absolute::Height, consensus::{deserialize, serialize}, hex::{DisplayHex, FromHex}, network::ParseNetworkError, secp256k1::SecretKey, Network, OutPoint, ScriptBuf, Txid
+    }, silentpayments::SilentPaymentAddress, OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction
 };
 
 use crate::state::constants::{
@@ -20,6 +14,80 @@ use crate::state::constants::{
 
 type SpendingTxId = String;
 type MinedInBlock = String;
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct ApiNetwork(Network);
+
+impl TryFrom<&str> for ApiNetwork {
+    type Error = ParseNetworkError;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let network = Network::from_core_arg(value)?;
+        Ok(Self(network))
+    }
+}
+
+impl From<ApiNetwork> for String {
+    fn from(value: ApiNetwork) -> Self {
+        let sp_network = sp_client::silentpayments::Network::try_from(value.0.to_core_arg()).unwrap();
+        <sp_client::silentpayments::Network as Into<&str>>::into(sp_network).to_owned()
+    }
+}
+
+impl From<Network> for ApiNetwork {
+    fn from(value: Network) -> Self {
+        Self(value)
+    }
+}
+
+impl From<ApiNetwork> for Network {
+    fn from(value: ApiNetwork) -> Self {
+        value.0
+    }
+}
+
+impl ApiNetwork {
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn to_string(&self) -> String {
+        <Self as Into<String>>::into(self.clone())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct ApiSilentPaymentAddress {
+    pub version: u8,
+    pub scan_pubkey: String,
+    pub m_pubkey: String,
+    pub network: ApiNetwork,
+    pub string_representation: String,
+}
+
+impl From<SilentPaymentAddress> for ApiSilentPaymentAddress {
+    fn from(value: SilentPaymentAddress) -> Self {
+        ApiSilentPaymentAddress {
+            version: 0, // For now we just assume version 0, but we should add a getter in rust-silentpayments or make it public
+            scan_pubkey: value.get_scan_key().to_string(),
+            m_pubkey: value.get_spend_key().to_string(),
+            network: ApiNetwork::from(Network::from_str(value.get_network().into()).unwrap()),
+            string_representation: value.into(),
+        }
+    }
+}
+
+impl TryFrom<ApiSilentPaymentAddress> for SilentPaymentAddress {
+    type Error = anyhow::Error;
+
+    fn try_from(value: ApiSilentPaymentAddress) -> Result<Self, Self::Error> {
+        Ok(value.string_representation.try_into()?)
+    }
+}
+
+impl ApiSilentPaymentAddress {
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn from_json_string(json: &str) -> anyhow::Result<Self> {
+        let res = serde_json::from_str(json)?;
+        Ok(res)
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum ApiOutputSpendStatus {
