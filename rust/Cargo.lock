@@ -1799,8 +1799,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "silentpayments"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0931dfd631f4c096fec95716f96b9d74f42c3027ff9f179b1d1881e5abc6551a"
+source = "git+https://github.com/Sosthene00/rust-silentpayments.git?branch=dev#6ede782450c84114d44d72b8950a3f340d8c024e"
 dependencies = [
  "bech32 0.9.1",
  "bimap",
@@ -1861,7 +1860,7 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-client?branch=master#12dc93c9cc2f755f21b28d601931253c698b0851"
+source = "git+https://github.com/Sosthene00/sp-client?branch=dev#f49e273f1f39b36fddf842269c5dd4aa5dbdac59"
 dependencies = [
  "anyhow",
  "async-trait",

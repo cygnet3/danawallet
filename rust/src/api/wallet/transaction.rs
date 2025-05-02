@@ -6,6 +6,7 @@ use crate::api::structs::ApiSilentPaymentUnsignedTransaction;
 use anyhow::Result;
 use bip39::rand::{thread_rng, RngCore};
 use sp_client::BlindbitClient;
+use sp_client::FeeRate;
 use sp_client::{
     bitcoin::{consensus::serialize, hex::DisplayHex, Network, OutPoint},
     OwnedOutput, Recipient, RecipientAddress, SpClient,
@@ -22,6 +23,10 @@ impl SpWallet {
         feerate: f32,
         network: String,
     ) -> Result<ApiSilentPaymentUnsignedTransaction> {
+        // Check that the fee rate value is normal
+        if !feerate.is_normal() {
+            return Err(anyhow::Error::msg("Abnormal feerate"));
+        }
         let client = &self.client;
         let available_utxos: Result<Vec<(OutPoint, OwnedOutput)>> = api_outputs
             .into_iter()
@@ -36,7 +41,7 @@ impl SpWallet {
             .collect();
         let core_network = Network::from_core_arg(&network)?;
         let res =
-            client.create_new_transaction(available_utxos?, recipients, feerate, core_network)?;
+            client.create_new_transaction(available_utxos?, recipients, FeeRate::from_sat_per_vb(feerate), core_network)?;
 
         Ok(res.into())
     }
