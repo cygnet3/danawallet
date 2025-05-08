@@ -1,32 +1,39 @@
 import 'package:danawallet/data/models/contacts.dart';
-import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:danawallet/data/models/payment_address.dart';
+import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart';
 import 'database_helper.dart';
 
-class ContactDAO {
+class ContactDAO extends ChangeNotifier {
   final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
 
-  Future<int> insertContact(Contact contact) async {
-    final db = await _databaseHelper.database;
-    return await db.insert('contacts', contact.toMap());
+  List<Contact> _contacts = [];
+
+  List<Contact> get contacts => List.unmodifiable(_contacts);
+
+  ContactDAO() {
+    _loadAll();
   }
 
-  Future<List<Contact>> getContacts() async {
+  Future<void> _loadAll() async {
     final db = await _databaseHelper.database;
     final maps = await db.query('contacts');
-    return maps.map((map) => Contact.fromMap(map)).toList();
+    _contacts = maps.map((m) => Contact.fromMap(m)).toList();
+    notifyListeners();
   }
 
-  Future<bool> nymExists(String name) async {
+  Future<void> insertContact(Contact contact) async {
     final db = await _databaseHelper.database;
-    final result = await db.query(
-      'contacts',
-      where: 'nym = ?',
-      whereArgs: [name],
-    );
-    return result.isNotEmpty;
+    await db.insert('contacts', contact.toMap());
+    await _loadAll();
   }
 
-  Future<Contact?> addressExistsIn(ApiSilentPaymentAddress address) async {
+  Future<List<Contact>> getContacts() async => contacts;
+
+  Future<bool> nymExists(String name) async =>
+    _contacts.any((c) => c.nym == name);
+
+  Future<Contact?> addressExistsIn(PaymentAddress address) async {
     final db = await _databaseHelper.database;
     final result = await db.query('contacts');
 
@@ -47,6 +54,7 @@ class ContactDAO {
       where: 'id = ?',
       whereArgs: [contact.id],
     );
+    await _loadAll();
   }
 
   Future<void> deleteContact(int id) async {
@@ -56,5 +64,6 @@ class ContactDAO {
       where: 'id = ?',
       whereArgs: [id],
     );
+    await _loadAll();
   }
 }
