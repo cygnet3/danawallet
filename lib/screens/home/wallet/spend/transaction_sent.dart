@@ -172,24 +172,16 @@ class TransactionSentScreen extends StatelessWidget {
           const SizedBox(
             height: 10.0,
           ),
-          BitcoinButtonOutlined(
-            textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-            title: 'Add to Contacts',
-            onPressed: () {
-              addToContacts(context);
-            },
-            cornerRadius: 5.0,
-          ),
-          const SizedBox(
-            height: 10.0,
-          ),
           BitcoinButtonFilled(
             body: Text('Done', style: BitcoinTextStyle.body2(Bitcoin.neutral1)),
             onPressed: () {
               Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (Route<dynamic> route) => false);
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HomeScreen(sentAddress: sentAddress),
+                ),
+                (route) => false,
+              );
             },
             cornerRadius: 5.0,
           )
