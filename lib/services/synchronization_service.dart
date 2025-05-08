@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 class SynchronizationService {
   final BuildContext context;
   Timer? _timer;
-  final Duration _interval = const Duration(minutes: 10);
+  final Duration _interval = const Duration(minutes: 1);
 
   SynchronizationService(this.context);
 
