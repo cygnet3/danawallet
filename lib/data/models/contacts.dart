@@ -1,12 +1,11 @@
 import 'dart:convert';
 
-import 'package:danawallet/generated/rust/api/structs.dart';
-import 'package:danawallet/data/models/silent_payment_address.dart';
+import 'package:danawallet/data/models/payment_address.dart';
 
 class Contact {
   int? id;
   final String nym;
-  final Map<ApiSilentPaymentAddress, List<String>> addresses;
+  final Map<PaymentAddress, List<String>> addresses;
   final String? imagePath;
 
   Contact({
@@ -30,9 +29,9 @@ class Contact {
   factory Contact.fromMap(Map<String, dynamic> map) {
     final raw = map['addresses'] as String; // <-- this is a String in the DB
     final decoded = jsonDecode(raw) as Map<String, dynamic>;
-    final Map<ApiSilentPaymentAddress, List<String>> addresses =
+    final Map<PaymentAddress, List<String>> addresses =
         decoded.map((k, v) => MapEntry(
-              ApiSilentPaymentAddress.fromJsonString(json: k),
+              PaymentAddress.fromJson(jsonDecode(k)),
               List<String>.from(v),
             ));
     return Contact(
