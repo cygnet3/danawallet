@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/contacts.dart';
+import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
@@ -61,7 +62,7 @@ class TransactionSentScreen extends StatelessWidget {
       return;
     }
 
-    Map<ApiSilentPaymentAddress, List<String>> addressesMap = {};
+    Map<PaymentAddress, List<String>> addressesMap = {};
 
     ApiSilentPaymentAddress spAddress;
 
@@ -82,7 +83,7 @@ class TransactionSentScreen extends StatelessWidget {
     // Also check if we already have this address in db
     final contactDao = ContactDAO();
 
-    final existingContact = await contactDao.addressExistsIn(spAddress);
+    final existingContact = await contactDao.addressExistsIn(PaymentAddress(spAddress));
     if (existingContact != null) {
       // We show user the contact that already have this address
       messenger.showSnackBar(
@@ -96,7 +97,7 @@ class TransactionSentScreen extends StatelessWidget {
 
     // We put it into the addresses map
     // TODO allow user to add labels to the address
-    addressesMap[spAddress] = [];
+    addressesMap[PaymentAddress(spAddress)] = [];
 
     final newContact = Contact(
       nym: contactName,
@@ -119,6 +120,8 @@ class TransactionSentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String estimatedTime = RecipientForm().fee!.toEstimatedTime;
+    // If we already have a contact, we don't need to ask user to add to contact
+    PaymentAddress? sentAddress = RecipientForm().contact != null ? null : RecipientForm().spAddress;
 
     return SpendSkeleton(
       showBackButton: false,

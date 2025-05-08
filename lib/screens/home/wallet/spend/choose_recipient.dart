@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/contacts.dart';
+import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
@@ -53,10 +54,12 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
 
       // Check if we have a contact associated to that address
       final contactDao = ContactDAO();
-      ApiSilentPaymentAddress? spAddress;
+      PaymentAddress? spAddress;
 
       try {
-        spAddress = ApiSilentPaymentAddress.fromStringRepresentation(address: form.recipientAddress!);
+        spAddress = PaymentAddress(ApiSilentPaymentAddress.fromStringRepresentation(address: form.recipientAddress!));
+        // We can already keep the spAddress
+        form.spAddress = spAddress;
       } catch (e) {
         // This is a regular, disposable address, we just continue
         if (mounted) {
