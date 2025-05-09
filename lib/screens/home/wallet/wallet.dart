@@ -290,24 +290,6 @@ class WalletScreenState extends State<WalletScreen> {
       title: Row(
         children: [
           const Spacer(),
-          InkResponse(
-            onTap: onScanPressed,
-            child: isScanning
-                ? SpinKitFadingCircle(
-                    color: Bitcoin.neutral8,
-                    size: 20.0,
-                  )
-                : SizedBox(
-                    height: 30.0,
-                    width: 30.0,
-                    child: SvgPicture.asset(
-                      "assets/icons/refresh.svg",
-                      colorFilter:
-                          ColorFilter.mode(Bitcoin.neutral8, BlendMode.srcIn),
-                    ),
-                  ),
-          ),
-          const SizedBox(width: 10),
           SizedBox(
               height: 30.0,
               width: 30.0,
