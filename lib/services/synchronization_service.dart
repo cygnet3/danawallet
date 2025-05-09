@@ -15,14 +15,25 @@ class SynchronizationService {
   SynchronizationService(this.context);
 
   void startSyncTimer() {
-    _scheduleNextTask();
+    // for the first task, we just received the chain tip so skip it
+    _scheduleNextTask(false);
   }
 
-  void _scheduleNextTask() async {
+  void _scheduleNextTask(bool updateChainTip) async {
+    if (updateChainTip) {
+      await performChainUpdateTask();
+    }
+    await performSynchronizationTask();
+
+    // for next tasks, also update the chain tip
     _timer = Timer(_interval, () async {
-      await performSynchronizationTask();
-      _scheduleNextTask();
+      _scheduleNextTask(true);
     });
+  }
+
+  Future<void> performChainUpdateTask() async {
+    final chainState = Provider.of<ChainState>(context, listen: false);
+    await chainState.updateChainTip();
   }
 
   Future<void> performSynchronizationTask() async {
@@ -32,8 +43,6 @@ class SynchronizationService {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
-      
-      await chainState.updateChainTip();
 
       if (walletState.lastScan < chainState.tip) {
         if (!scanProgress.scanning) {
