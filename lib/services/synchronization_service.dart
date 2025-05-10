@@ -20,10 +20,14 @@ class SynchronizationService {
   }
 
   void _scheduleNextTask(bool updateChainTip) async {
-    if (updateChainTip) {
-      await performChainUpdateTask();
+    try {
+      if (updateChainTip) {
+        await performChainUpdateTask();
+      }
+      await performSynchronizationTask();
+    } catch (e) {
+      displayNotification(exceptionToString(e));
     }
-    await performSynchronizationTask();
 
     // for next tasks, also update the chain tip
     _timer = Timer(_interval, () async {
@@ -38,24 +42,20 @@ class SynchronizationService {
 
   Future<void> performSynchronizationTask() async {
     Logger().i("Performing sync task");
-    try {
-      final chainState = Provider.of<ChainState>(context, listen: false);
-      final walletState = Provider.of<WalletState>(context, listen: false);
-      final scanProgress =
-          Provider.of<ScanProgressNotifier>(context, listen: false);
+    final chainState = Provider.of<ChainState>(context, listen: false);
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final scanProgress =
+        Provider.of<ScanProgressNotifier>(context, listen: false);
 
-      if (walletState.lastScan < chainState.tip) {
-        if (!scanProgress.scanning) {
-          await scanProgress.scan(walletState);
-        }
+    if (walletState.lastScan < chainState.tip) {
+      if (!scanProgress.scanning) {
+        await scanProgress.scan(walletState);
       }
+    }
 
-      if (chainState.tip < walletState.lastScan) {
-        // not sure what we should do here, that's really bad
-        Logger().e('Current height is less than wallet last scan');
-      }
-    } catch (e) {
-      displayNotification(exceptionToString(e));
+    if (chainState.tip < walletState.lastScan) {
+      // not sure what we should do here, that's really bad
+      Logger().e('Current height is less than wallet last scan');
     }
   }
 
