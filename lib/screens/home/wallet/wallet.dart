@@ -3,13 +3,10 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/services/synchronization_service.dart';
-import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 
@@ -64,33 +61,6 @@ class WalletScreenState extends State<WalletScreen> {
         );
       },
     );
-  }
-
-  void onScanPressed() async {
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final chainState = Provider.of<ChainState>(context, listen: false);
-    final scanProgress =
-        Provider.of<ScanProgressNotifier>(context, listen: false);
-
-    if (!chainState.initiated) {
-      return;
-    }
-
-    await chainState.updateChainTip();
-
-    if (chainState.tip == walletState.lastScan) {
-      return;
-    }
-
-    try {
-      if (scanProgress.scanning) {
-        await scanProgress.interruptScan();
-      } else {
-        await scanProgress.scan(walletState);
-      }
-    } catch (e) {
-      displayNotification(exceptionToString(e));
-    }
   }
 
   Widget buildScanProgress(double scanProgress) {
