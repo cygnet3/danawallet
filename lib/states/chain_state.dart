@@ -47,14 +47,10 @@ class ChainState extends ChangeNotifier {
   }
 
   Future<void> updateChainTip() async {
-    try {
-      _tip = await getChainHeight(blindbitUrl: _blindbitUrl!);
-      Logger().i('updating tip: $_tip');
+    _tip = await getChainHeight(blindbitUrl: _blindbitUrl!);
+    Logger().i('updating tip: $_tip');
 
-      notifyListeners();
-    } catch (e) {
-      Logger().e('Failed to update chain height');
-    }
+    notifyListeners();
   }
 
   Future<void> updateBlindbitUrl(String blindbitUrl) async {
