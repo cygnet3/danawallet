@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
@@ -14,12 +16,32 @@ class SynchronizationService {
 
   SynchronizationService(this.context);
 
-  void startSyncTimer() {
+  Future<void> startSyncTimer() async {
     // for the first task, we just received the chain tip so skip it
-    _scheduleNextTask(false);
+    await _tryPerformTask(false);
+    await _scheduleNextTask();
   }
 
-  void _scheduleNextTask(bool updateChainTip) async {
+  Future<void> _tryPerformTask(bool updateChainTip) async {
+    if (Platform.isAndroid) {
+      final appState = SchedulerBinding.instance.lifecycleState;
+
+      if (appState == AppLifecycleState.resumed) {
+        // only sync on android if app is in foreground
+        await _performTask(updateChainTip);
+      } else {
+        // todo: claim the wifi lock, so that we have internet access
+        // to sync, even when the screen is off
+        Logger().i("We are in background, skip sync");
+      }
+    } else {
+      // for other platforms, we assume we always want to sync
+      // todo: probably requires similar flow for iOS
+      await _performTask(updateChainTip);
+    }
+  }
+
+  Future<void> _performTask(bool updateChainTip) async {
     try {
       if (updateChainTip) {
         await performChainUpdateTask();
@@ -28,10 +50,12 @@ class SynchronizationService {
     } catch (e) {
       displayNotification(exceptionToString(e));
     }
+  }
 
-    // for next tasks, also update the chain tip
+  Future<void> _scheduleNextTask() async {
     _timer = Timer(_interval, () async {
-      _scheduleNextTask(true);
+      await _tryPerformTask(true);
+      _scheduleNextTask();
     });
   }
 
@@ -41,7 +65,6 @@ class SynchronizationService {
   }
 
   Future<void> performSynchronizationTask() async {
-    Logger().i("Performing sync task");
     final chainState = Provider.of<ChainState>(context, listen: false);
     final walletState = Provider.of<WalletState>(context, listen: false);
     final scanProgress =
@@ -49,6 +72,7 @@ class SynchronizationService {
 
     if (walletState.lastScan < chainState.tip) {
       if (!scanProgress.scanning) {
+        Logger().i("Starting sync");
         await scanProgress.scan(walletState);
       }
     }
