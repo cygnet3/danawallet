@@ -181,8 +181,10 @@ impl ApiRecordedTransactionOutgoing {
     #[frb(sync)]
     pub fn total_outgoing(&self) -> ApiAmount {
         let sum: u64 = self.recipients.iter().map(|r| r.amount.0).sum();
+        // include fee to the total as well
+        let fee = self.fee.0;
 
-        ApiAmount(sum)
+        ApiAmount(sum + fee)
     }
 }
 
