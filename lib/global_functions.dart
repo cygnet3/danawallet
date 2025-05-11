@@ -128,8 +128,7 @@ RichText addressAsRichText(String address, double? fontSize) {
   );
 }
 
-String displayAddress(BuildContext context, String address, TextStyle style,
-    double widthFraction) {
+String displayAddress(String address, TextStyle style, double maxWidth) {
   // split the address into chunks of size 4
   List<String> addrChunks = [];
 
@@ -141,10 +140,6 @@ String displayAddress(BuildContext context, String address, TextStyle style,
     int endIndex = min(i + 4, address.length);
     addrChunks.add(address.substring(i, endIndex));
   }
-
-  // we take a fraction of the total screen width
-  // this is the maximum size the address widget is allowed to be
-  final maxWidth = MediaQuery.of(context).size.width * widthFraction;
 
   final chunkCount = _getChunkFittingWidth(addrChunks, style, maxWidth);
 

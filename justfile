@@ -8,6 +8,8 @@ run-live:
     flutter run --flavor live
 run--live-release:
     flutter run --release --flavor live
+run-off:
+    flutter run --flavor off --target lib/main_dev.dart
 
 build-apk-dev:
     just clean-bin
@@ -17,6 +19,10 @@ build-apk-live:
     just clean-bin
     just build-android-release
     flutter build apk --flavor live --target-platform android-arm,android-arm64
+build-apk-off:
+    just clean-bin
+    just build-android-release
+    flutter build apk --flavor off --target-platform android-arm,android-arm64
 
 clean-bin:
     cd rust && just clean-bin

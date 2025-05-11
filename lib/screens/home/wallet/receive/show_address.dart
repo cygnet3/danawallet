@@ -51,14 +51,15 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Your receive address",
+            Text("Your receive address for Oslo Freedom Forum!",
                 style: BitcoinTextStyle.title4(Bitcoin.neutral8)),
             const SizedBox(
               height: 20,
             ),
-            Text("You can share this address on your social media.",
+            Text(
+                "This is your receive address for Oslo Freedom Forum.\n\nWhen you receive payments to this address, the app will detect them as payments related to Oslo Freedom Forum.",
                 style: BitcoinTextStyle.body3(Bitcoin.neutral8)),
           ],
         ),

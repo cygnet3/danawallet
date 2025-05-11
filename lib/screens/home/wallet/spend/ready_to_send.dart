@@ -56,8 +56,10 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
     if (recipient.recipientBip353 != null) {
       displayRecipient = recipient.recipientBip353!;
     } else {
+      final maxWidth = MediaQuery.of(context).size.width * 0.85;
+
       displayRecipient = displayAddress(
-          context, recipient.recipientAddress!, displayRecipientStyle, 0.85);
+          recipient.recipientAddress!, displayRecipientStyle, maxWidth);
     }
 
     String displayAmount = recipient.amount!.displayBtc();
