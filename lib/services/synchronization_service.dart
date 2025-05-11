@@ -42,13 +42,23 @@ class SynchronizationService {
   }
 
   Future<void> _performTask(bool updateChainTip) async {
-    try {
-      if (updateChainTip) {
+    Exception? err;
+    if (updateChainTip) {
+      try {
         await performChainUpdateTask();
+      } on Exception catch (e) {
+        // todo: we should have a connection status with the server
+        // e.g. a green or red circle based on whether we have connection issues
+        Logger().w("Error trying to update the chain tip");
+        err = e;
       }
-      await performSynchronizationTask();
-    } catch (e) {
-      displayNotification(exceptionToString(e));
+    }
+    if (err == null) {
+      try {
+        await performSynchronizationTask();
+      } catch (e) {
+        displayNotification(exceptionToString(e));
+      }
     }
   }
 
