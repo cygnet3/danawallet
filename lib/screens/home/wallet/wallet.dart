@@ -4,6 +4,8 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/widgets/add_funds_widget.dart';
+import 'package:danawallet/widgets/icons/circular_icon.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -173,14 +175,28 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget buildTransactionHistory(List<ApiRecordedTransaction> transactions) {
-    Widget history;
+  Widget buildTransactionOverview(List<ApiRecordedTransaction> transactions) {
     if (transactions.isEmpty) {
-      history = Center(
-          child: Text('No transactions yet.',
-              style: BitcoinTextStyle.body3(Bitcoin.neutral6)));
+      // the user has not made any transactions yet
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('No transactions yet.\n',
+              textAlign: TextAlign.center,
+              style: BitcoinTextStyle.body3(Bitcoin.neutral6)
+                  .copyWith(fontFamily: 'Inter')),
+          Text('Fund your wallet to get started!',
+              textAlign: TextAlign.center,
+              style: BitcoinTextStyle.body3(Bitcoin.neutral6)
+                  .copyWith(fontFamily: 'Inter')),
+        ],
+      );
+
+      // history = Center(
+      //     child: Text('No transactions yet.',
+      //         style: BitcoinTextStyle.body3(Bitcoin.neutral6)));
     } else {
-      history = ListView.separated(
+      final history = ListView.separated(
           separatorBuilder: (BuildContext context, int index) =>
               const Divider(),
           reverse: false,
@@ -188,18 +204,17 @@ class WalletScreenState extends State<WalletScreen> {
           itemBuilder: (context, index) {
             return toListTile(transactions[transactions.length - 1 - index]);
           });
+      return Column(children: [
+        Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Recent transactions',
+              style: BitcoinTextStyle.body2(Bitcoin.neutral8)
+                  .apply(fontWeightDelta: 2),
+            )),
+        LimitedBox(maxHeight: 240, child: history),
+      ]);
     }
-
-    return Column(children: [
-      Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Recent transactions',
-            style: BitcoinTextStyle.body2(Bitcoin.neutral8)
-                .apply(fontWeightDelta: 2),
-          )),
-      LimitedBox(maxHeight: 240, child: history),
-    ]);
   }
 
   Widget buildBottomButtons(String address) {
@@ -275,7 +290,7 @@ class WalletScreenState extends State<WalletScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Visibility(
                         visible: scanProgress.scanning,
@@ -283,15 +298,31 @@ class WalletScreenState extends State<WalletScreen> {
                         maintainSize: true,
                         maintainState: true,
                         child: buildScanProgress(scanProgress.progress)),
-                    const SizedBox(height: 20.0),
-                    buildAmountDisplay(amount),
-                    const Spacer(),
-                    buildTransactionHistory(
-                        walletState.txHistory.toApiTransactions()),
-                    buildBottomButtons(walletState.address),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
+                    const SizedBox(height: 30.0),
+                    Expanded(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              buildAmountDisplay(amount),
+                              // click to receive funds
+                              AddFundsWidget(),
+                            ],
+                          ),
+                        ),
+                        Flexible(
+                          child: buildTransactionOverview(
+                              walletState.txHistory.toApiTransactions()),
+                        ),
+                        buildBottomButtons(walletState.address),
+                        const SizedBox(
+                          height: 20.0,
+                        ),
+                      ],
+                    )),
                   ],
                 ),
               ),
