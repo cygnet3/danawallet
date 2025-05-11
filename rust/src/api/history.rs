@@ -97,6 +97,7 @@ impl TxHistory {
         spent_outpoints: Vec<String>,
         recipients: Vec<ApiRecipient>,
         change: ApiAmount,
+        fee: ApiAmount,
     ) -> Result<()> {
         let txid = Txid::from_str(&txid)?;
         let spent_outpoints = spent_outpoints
@@ -109,7 +110,13 @@ impl TxHistory {
             .map(|r| r.try_into().unwrap())
             .collect();
 
-        self.record_outgoing_transaction(txid, spent_outpoints, recipients, change.into());
+        self.record_outgoing_transaction(
+            txid,
+            spent_outpoints,
+            recipients,
+            change.into(),
+            fee.into(),
+        );
 
         Ok(())
     }
@@ -148,6 +155,7 @@ impl TxHistory {
         spent_outpoints: Vec<OutPoint>,
         recipients: Vec<Recipient>,
         change: Amount,
+        fee: Amount,
     ) {
         self.0
             .push(RecordedTransaction::Outgoing(RecordedTransactionOutgoing {
@@ -156,6 +164,7 @@ impl TxHistory {
                 recipients,
                 confirmed_at: None,
                 change,
+                fee,
             }))
     }
 

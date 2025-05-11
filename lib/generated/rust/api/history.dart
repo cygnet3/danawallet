@@ -17,7 +17,8 @@ abstract class TxHistory implements RustOpaqueInterface {
       {required String txid,
       required List<String> spentOutpoints,
       required List<ApiRecipient> recipients,
-      required ApiAmount change});
+      required ApiAmount change,
+      required ApiAmount fee});
 
   static TxHistory decode({required String encodedHistory}) =>
       RustLib.instance.api
