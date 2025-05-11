@@ -48,7 +48,7 @@ impl From<ApiOutputSpendStatus> for OutputSpendStatus {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
 pub struct ApiAmount(pub u64);
 
 impl From<bitcoin::Amount> for ApiAmount {
@@ -193,6 +193,7 @@ pub struct ApiRecordedTransactionOutgoing {
     pub recipients: Vec<ApiRecipient>,
     pub confirmed_at: Option<u32>,
     pub change: ApiAmount,
+    pub fee: ApiAmount,
 }
 
 impl From<RecordedTransaction> for ApiRecordedTransaction {
@@ -254,6 +255,7 @@ impl From<RecordedTransactionOutgoing> for ApiRecordedTransactionOutgoing {
             recipients: value.recipients.into_iter().map(Into::into).collect(),
             confirmed_at,
             change: value.change.into(),
+            fee: value.fee.into(),
         }
     }
 }
@@ -278,6 +280,7 @@ impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
                 .collect(),
             confirmed_at,
             change: value.change.into(),
+            fee: value.fee.into(),
         }
     }
 }

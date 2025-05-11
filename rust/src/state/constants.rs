@@ -24,4 +24,6 @@ pub struct RecordedTransactionOutgoing {
     pub recipients: Vec<Recipient>,
     pub confirmed_at: Option<Height>,
     pub change: Amount,
+    #[serde(default)]
+    pub fee: Amount,
 }

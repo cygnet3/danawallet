@@ -18,6 +18,9 @@ class ApiAmount {
     required this.field0,
   });
 
+  static Future<ApiAmount> default_() =>
+      RustLib.instance.api.crateApiStructsApiAmountDefault();
+
   String displayBtc() =>
       RustLib.instance.api.crateApiStructsApiAmountDisplayBtc(
         that: this,
@@ -163,6 +166,7 @@ class ApiRecordedTransactionOutgoing {
   final List<ApiRecipient> recipients;
   final int? confirmedAt;
   final ApiAmount change;
+  final ApiAmount fee;
 
   const ApiRecordedTransactionOutgoing({
     required this.txid,
@@ -170,6 +174,7 @@ class ApiRecordedTransactionOutgoing {
     required this.recipients,
     this.confirmedAt,
     required this.change,
+    required this.fee,
   });
 
   String toString() => RustLib.instance.api
@@ -188,7 +193,8 @@ class ApiRecordedTransactionOutgoing {
       spentOutpoints.hashCode ^
       recipients.hashCode ^
       confirmedAt.hashCode ^
-      change.hashCode;
+      change.hashCode ^
+      fee.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -199,7 +205,8 @@ class ApiRecordedTransactionOutgoing {
           spentOutpoints == other.spentOutpoints &&
           recipients == other.recipients &&
           confirmedAt == other.confirmedAt &&
-          change == other.change;
+          change == other.change &&
+          fee == other.fee;
 }
 
 class ApiSilentPaymentUnsignedTransaction {

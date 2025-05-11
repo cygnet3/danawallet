@@ -206,6 +206,8 @@ class WalletState extends ChangeNotifier {
     final changeValue =
         unsignedTx.getChangeAmount(changeAddress: changeAddress);
 
+    final feeAmount = unsignedTx.getFeeAmount();
+
     final recipients = unsignedTx.getRecipients(changeAddress: changeAddress);
 
     final finalizedTx =
@@ -233,7 +235,8 @@ class WalletState extends ChangeNotifier {
         txid: txid,
         spentOutpoints: selectedOutpoints,
         recipients: recipients,
-        change: changeValue);
+        change: changeValue,
+        fee: feeAmount);
 
     // save the updated wallet
     await walletRepository.saveOwnedOutputs(ownedOutputs);
