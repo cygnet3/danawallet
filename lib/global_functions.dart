@@ -87,8 +87,18 @@ String exceptionToString(Object e) {
   return message;
 }
 
-RichText addressAsRichText(String address) {
-  List<String> chunks = address.split(' ');
+RichText addressAsRichText(String address, double? fontSize) {
+  // split the address into chunks of size 4
+  List<String> chunks = [];
+
+  // if there is overflow, we add it to the first chunk
+  int overflow = address.length % 4;
+  chunks.add(address.substring(0, 4 + overflow));
+
+  for (int i = 4 + overflow; i < address.length; i += 4) {
+    int endIndex = min(i + 4, address.length);
+    chunks.add(address.substring(i, endIndex));
+  }
 
   String first = chunks.removeAt(0);
 
@@ -98,21 +108,20 @@ RichText addressAsRichText(String address) {
         text: '$chunk ',
         style: BitcoinTextStyle.body5(
                 i % 2 == 0 ? Bitcoin.neutral8 : Bitcoin.neutral6)
-            .copyWith(fontFamily: 'Inter', letterSpacing: 2, height: 2)));
+            .copyWith(fontSize: fontSize, fontFamily: 'Inter', letterSpacing: 2, height: 2)));
   }
 
   return RichText(
     text: TextSpan(
         text: '$first ',
         style: BitcoinTextStyle.body5(Bitcoin.blue)
-            .copyWith(fontFamily: 'Inter', letterSpacing: 2, height: 2),
+            .copyWith(fontSize: fontSize, fontFamily: 'Inter', letterSpacing: 2, height: 2),
         children: spans),
     textAlign: TextAlign.justify,
   );
 }
 
-String displayAddress(BuildContext context, String address, TextStyle style,
-    double widthFraction) {
+String displayAddress(String address, TextStyle style, double maxWidth) {
   // split the address into chunks of size 4
   List<String> addrChunks = [];
 
@@ -124,10 +133,6 @@ String displayAddress(BuildContext context, String address, TextStyle style,
     int endIndex = min(i + 4, address.length);
     addrChunks.add(address.substring(i, endIndex));
   }
-
-  // we take a fraction of the total screen width
-  // this is the maximum size the address widget is allowed to be
-  final maxWidth = MediaQuery.of(context).size.width * widthFraction;
 
   final chunkCount = _getChunkFittingWidth(addrChunks, style, maxWidth);
 

@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/constants.dart';
 import 'package:flutter/material.dart';
 
 class ReceiveWidget extends StatelessWidget {
@@ -12,7 +13,7 @@ class ReceiveWidget extends StatelessWidget {
         style: ButtonStyle(
           elevation: const WidgetStatePropertyAll(0),
           backgroundColor:
-              WidgetStateProperty.all(Theme.of(context).colorScheme.primary),
+              WidgetStateProperty.all(danaBlue),
           padding: WidgetStateProperty.all(EdgeInsets.zero),
           fixedSize: const WidgetStatePropertyAll(Size(46, 46)),
           shape: WidgetStateProperty.all(

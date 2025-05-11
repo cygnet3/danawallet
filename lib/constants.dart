@@ -122,3 +122,7 @@ const int defaultRegtestBirthday = 0;
 
 // dust limit used in scanning. outputs < dust limit will not be scanned
 const int defaultDustLimit = 1000;
+
+
+// colors
+const Color danaBlue = Color.fromARGB(255, 10, 109, 214);

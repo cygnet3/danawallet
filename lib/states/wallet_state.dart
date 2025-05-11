@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
+import 'package:danawallet/data/enums/wallet_setup_phase.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
@@ -16,6 +17,11 @@ import 'package:flutter/material.dart';
 
 class WalletState extends ChangeNotifier {
   final walletRepository = WalletRepository.instance;
+
+  // temporary value to store whether the user has gone though the generate address screen
+  bool addressCreated = false;
+  // toggle hide amount, todo: use ApiAmount and implement display using ApiAmount
+  bool hideAmount = false;
 
   // variables that never change (unless wallet is reset)
   late Network network;
@@ -40,6 +46,25 @@ class WalletState extends ChangeNotifier {
     final instance = WalletState._();
     await instance._initStreams();
     return instance;
+  }
+
+  void setAddressCreated() {
+    addressCreated = true;
+  }
+
+  void toggleHideAmount() {
+    hideAmount = !hideAmount;
+    notifyListeners();
+  }
+
+  WalletSetupPhase get currentState {
+    if (txHistory.toApiTransactions().isNotEmpty) {
+      return WalletSetupPhase.full;
+    } else if (addressCreated) {
+      return WalletSetupPhase.addressCreated;
+    } else {
+      return WalletSetupPhase.firstTime;
+    }
   }
 
   Future<void> _initStreams() async {
@@ -97,6 +122,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> reset() async {
     await walletRepository.reset();
+    addressCreated = false;
   }
 
   Future<void> createNewWallet(ChainState chainState) async {
