@@ -6,6 +6,7 @@ import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
@@ -23,6 +24,8 @@ class GetStartedScreen extends StatelessWidget {
     try {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final chainState = Provider.of<ChainState>(context, listen: false);
+      final scanProgress =
+          Provider.of<ScanProgressNotifier>(context, listen: false);
       final encryptedBackup = await BackupService.getEncryptedBackupFromFile();
 
       if (encryptedBackup != null) {
@@ -44,6 +47,7 @@ class GetStartedScreen extends StatelessWidget {
           final blindbitUrl =
               await SettingsRepository.instance.getBlindbitUrl();
           await chainState.initialize(network, blindbitUrl!);
+          chainState.startSyncService(walletState, scanProgress);
           if (context.mounted) {
             Navigator.pushAndRemoveUntil(
                 context,
@@ -60,6 +64,8 @@ class GetStartedScreen extends StatelessWidget {
   Future<void> onCreateNewWallet(BuildContext context) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
+    final scanProgress =
+        Provider.of<ScanProgressNotifier>(context, listen: false);
 
     // always regtest for now
     Network selectedNetwork = Network.regtest;
@@ -70,6 +76,8 @@ class GetStartedScreen extends StatelessWidget {
     await chainState.initialize(selectedNetwork, blindbitUrl);
 
     await walletState.createNewWallet(chainState);
+
+    chainState.startSyncService(walletState, scanProgress);
 
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(

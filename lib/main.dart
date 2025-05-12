@@ -34,6 +34,7 @@ void main() async {
     final network = walletState.network;
     final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
     await chainState.initialize(network, blindbitUrl!);
+    chainState.startSyncService(walletState, scanNotifier);
   }
 
   runApp(
