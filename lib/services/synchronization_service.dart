@@ -4,20 +4,25 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
 
 class SynchronizationService {
-  final BuildContext context;
+  WalletState walletState;
+  ChainState chainState;
+  ScanProgressNotifier scanProgress;
+
   Timer? _timer;
   final Duration _interval = const Duration(seconds: 10);
 
-  SynchronizationService(this.context);
+  SynchronizationService(
+      {required this.chainState,
+      required this.walletState,
+      required this.scanProgress});
 
   Future<void> startSyncTimer() async {
     // for the first task, we just received the chain tip so skip it
+    Logger().i("Starting sync service");
     await _tryPerformTask(false);
     await _scheduleNextTask();
   }
@@ -45,7 +50,7 @@ class SynchronizationService {
     Exception? err;
     if (updateChainTip) {
       try {
-        await performChainUpdateTask();
+        await _performChainUpdateTask();
       } on Exception catch (e) {
         // todo: we should have a connection status with the server
         // e.g. a green or red circle based on whether we have connection issues
@@ -55,7 +60,7 @@ class SynchronizationService {
     }
     if (err == null) {
       try {
-        await performSynchronizationTask();
+        await _performSynchronizationTask();
       } catch (e) {
         displayNotification(exceptionToString(e));
       }
@@ -69,17 +74,11 @@ class SynchronizationService {
     });
   }
 
-  Future<void> performChainUpdateTask() async {
-    final chainState = Provider.of<ChainState>(context, listen: false);
+  Future<void> _performChainUpdateTask() async {
     await chainState.updateChainTip();
   }
 
-  Future<void> performSynchronizationTask() async {
-    final chainState = Provider.of<ChainState>(context, listen: false);
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final scanProgress =
-        Provider.of<ScanProgressNotifier>(context, listen: false);
-
+  Future<void> _performSynchronizationTask() async {
     if (walletState.lastScan < chainState.tip) {
       if (!scanProgress.scanning) {
         Logger().i("Starting sync");
@@ -94,6 +93,7 @@ class SynchronizationService {
   }
 
   void stopSyncTimer() {
+    Logger().i("Stopping sync service");
     _timer?.cancel();
   }
 }

@@ -2,7 +2,6 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
-import 'package:danawallet/services/synchronization_service.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
@@ -19,20 +18,6 @@ class WalletScreen extends StatefulWidget {
 
 class WalletScreenState extends State<WalletScreen> {
   bool hideAmount = false;
-  late SynchronizationService _synchronizationService;
-
-  @override
-  void initState() {
-    super.initState();
-    _synchronizationService = SynchronizationService(context);
-    _synchronizationService.startSyncTimer();
-  }
-
-  @override
-  void dispose() {
-    _synchronizationService.stopSyncTimer();
-    super.dispose();
-  }
 
   void _showReceiveDialog(BuildContext context, String address) {
     showDialog(

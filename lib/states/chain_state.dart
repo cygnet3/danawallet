@@ -1,9 +1,13 @@
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/chain.dart';
+import 'package:danawallet/services/synchronization_service.dart';
+import 'package:danawallet/states/scan_progress_notifier.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class ChainState extends ChangeNotifier {
+  late SynchronizationService _synchronizationService;
   int? _tip;
   Network? _network;
   String? _blindbitUrl;
@@ -24,7 +28,15 @@ class ChainState extends ChangeNotifier {
     Logger().i('Current tip: $_tip');
   }
 
+  void startSyncService(
+      WalletState walletState, ScanProgressNotifier scanProgress) {
+    _synchronizationService = SynchronizationService(
+        chainState: this, walletState: walletState, scanProgress: scanProgress);
+    _synchronizationService.startSyncTimer();
+  }
+
   void reset() {
+    _synchronizationService.stopSyncTimer();
     _tip = null;
     _blindbitUrl = null;
     _network = null;
