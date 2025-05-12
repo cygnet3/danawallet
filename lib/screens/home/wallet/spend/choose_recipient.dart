@@ -1,6 +1,10 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/contacts.dart';
+import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
@@ -47,6 +51,32 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
       }
 
       // todo: verify address
+
+      // Check if we have a contact associated to that address
+      final contactDao = ContactDAO();
+      PaymentAddress? spAddress;
+
+      try {
+        spAddress = PaymentAddress(ApiSilentPaymentAddress.fromStringRepresentation(address: form.recipientAddress!));
+        // We can already keep the spAddress
+        form.spAddress = spAddress;
+      } catch (e) {
+        // This is a regular, disposable address, we just continue
+        if (mounted) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AmountSelectionScreen()));
+        }
+      }
+
+      final existingContact = await contactDao.addressExistsIn(spAddress!);
+
+      if (existingContact != null) {
+        // We already know about that address, keep the contact
+        form.contact = existingContact;
+        // Maybe if there are labels attached to this address we could display them too
+      }
 
       if (mounted) {
         Navigator.push(

@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/database_helper.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -266,6 +267,8 @@ class WalletScreenState extends State<WalletScreen> {
 
     ApiAmount amount =
         ApiAmount(field0: walletState.amount + walletState.unconfirmedChange);
+
+    DatabaseHelper.instance.setMyAddress(walletState.address);
 
     return Scaffold(
         appBar: buildAppBar(scanProgress.scanning, walletState.network.toColor),

@@ -9,7 +9,45 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'structs.freezed.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`, `try_from`, `try_from`
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiNetwork>>
+abstract class ApiNetwork implements RustOpaqueInterface {
+  String toString();
+}
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiSilentPaymentAddress>>
+abstract class ApiSilentPaymentAddress implements RustOpaqueInterface {
+  String get mPubkey;
+
+  ApiNetwork get network;
+
+  String get scanPubkey;
+
+  String get stringRepresentation;
+
+  int get version;
+
+  set mPubkey(String mPubkey);
+
+  set network(ApiNetwork network);
+
+  set scanPubkey(String scanPubkey);
+
+  set stringRepresentation(String stringRepresentation);
+
+  set version(int version);
+
+  static ApiSilentPaymentAddress fromJsonString({required String json}) =>
+      RustLib.instance.api
+          .crateApiStructsApiSilentPaymentAddressFromJsonString(json: json);
+
+  static ApiSilentPaymentAddress fromStringRepresentation(
+          {required String address}) =>
+      RustLib.instance.api
+          .crateApiStructsApiSilentPaymentAddressFromStringRepresentation(
+              address: address);
+}
 
 class ApiAmount {
   final BigInt field0;
