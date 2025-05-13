@@ -111,8 +111,7 @@ RichText addressAsRichText(String address) {
   );
 }
 
-String displayAddress(BuildContext context, String address, TextStyle style,
-    double widthFraction) {
+String displayAddress(String address, TextStyle style, double maxWidth) {
   // split the address into chunks of size 4
   List<String> addrChunks = [];
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
+import 'package:danawallet/data/models/wallet_setup_state.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
@@ -41,6 +42,8 @@ class WalletState extends ChangeNotifier {
     await instance._initStreams();
     return instance;
   }
+
+  WalletSetupState get currentState => WalletSetupState.full;
 
   Future<void> _initStreams() async {
     scanResultSubscription = createScanResultStream().listen(((event) async {
