@@ -4,14 +4,22 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/widgets/add_funds_widget.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
+import 'package:danawallet/widgets/transaction_history.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class WalletSkeleton extends StatelessWidget {
   final bool showBottomButtons;
+  final bool showAddFundsWidget;
+  final bool showTxHistory;
 
-  const WalletSkeleton({super.key, required this.showBottomButtons});
+  const WalletSkeleton(
+      {super.key,
+      required this.showBottomButtons,
+      required this.showAddFundsWidget,
+      required this.showTxHistory});
 
   AppBar buildAppBar(Network network) {
     return AppBar(
@@ -131,6 +139,41 @@ class WalletSkeleton extends StatelessWidget {
     );
   }
 
+  Widget buildTransactionOverview(List<ApiRecordedTransaction> transactions) {
+    if (transactions.isEmpty) {
+      // the user has not made any transactions yet
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('No transactions yet.\n',
+              textAlign: TextAlign.center,
+              style: BitcoinTextStyle.body3(Bitcoin.neutral6)
+                  .copyWith(fontFamily: 'Inter')),
+          Text('Fund your wallet to get started!',
+              textAlign: TextAlign.center,
+              style: BitcoinTextStyle.body3(Bitcoin.neutral6)
+                  .copyWith(fontFamily: 'Inter')),
+        ],
+      );
+
+      // history = Center(
+      //     child: Text('No transactions yet.',
+      //         style: BitcoinTextStyle.body3(Bitcoin.neutral6)));
+    } else {
+      final history = TransactionHistoryWidget(transactions: transactions);
+      return Column(children: [
+        Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Recent transactions',
+              style: BitcoinTextStyle.body2(Bitcoin.neutral8)
+                  .apply(fontWeightDelta: 2),
+            )),
+        LimitedBox(maxHeight: 240, child: history),
+      ]);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
@@ -160,14 +203,18 @@ class WalletSkeleton extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               buildAmountDisplay(amount, false),
-                              // AddFundsWidget(),
+                              showAddFundsWidget
+                                  ? AddFundsWidget()
+                                  : const SizedBox(),
                             ],
                           ),
                         ),
-                        // Flexible(
-                        //   child: buildTransactionOverview(
-                        //       walletState.txHistory.toApiTransactions()),
-                        // ),
+                        showTxHistory
+                            ? Flexible(
+                                child: buildTransactionOverview(
+                                    walletState.txHistory.toApiTransactions()),
+                              )
+                            : const SizedBox(),
                         if (showBottomButtons) buildBottomButtons(context),
                         const SizedBox(
                           height: 20.0,

@@ -124,10 +124,6 @@ String displayAddress(String address, TextStyle style, double maxWidth) {
     addrChunks.add(address.substring(i, endIndex));
   }
 
-  // we take a fraction of the total screen width
-  // this is the maximum size the address widget is allowed to be
-  final maxWidth = MediaQuery.of(context).size.width * widthFraction;
-
   final chunkCount = _getChunkFittingWidth(addrChunks, style, maxWidth);
 
   // if all chunks fit, print everything
