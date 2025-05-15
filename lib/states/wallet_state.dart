@@ -18,6 +18,9 @@ import 'package:flutter/material.dart';
 class WalletState extends ChangeNotifier {
   final walletRepository = WalletRepository.instance;
 
+  // temporary value to store whether the user has gone though the generate address screen
+  bool addressCreated = false;
+
   // variables that never change (unless wallet is reset)
   late Network network;
   late String address;
@@ -43,7 +46,19 @@ class WalletState extends ChangeNotifier {
     return instance;
   }
 
-  WalletSetupPhase get currentState => WalletSetupPhase.addressCreated;
+  void setAddressCreated() {
+    addressCreated = true;
+  }
+
+  WalletSetupPhase get currentState {
+    if (txHistory.toApiTransactions().isNotEmpty) {
+      return WalletSetupPhase.full;
+    } else if (addressCreated) {
+      return WalletSetupPhase.addressCreated;
+    } else {
+      return WalletSetupPhase.firstTime;
+    }
+  }
 
   Future<void> _initStreams() async {
     scanResultSubscription = createScanResultStream().listen(((event) async {
@@ -100,6 +115,7 @@ class WalletState extends ChangeNotifier {
 
   Future<void> reset() async {
     await walletRepository.reset();
+    addressCreated = false;
   }
 
   Future<void> createNewWallet(ChainState chainState) async {

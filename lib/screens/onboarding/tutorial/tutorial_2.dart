@@ -36,7 +36,7 @@ class TutorialScreen2 extends StatelessWidget {
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: addressAsRichText(
-                              'sp1q q0cy gnet gn3r z2kl a5cp 05nj 5uet lsrz ez0l 4p8g 7weh f7ld r93l cqad w65u pymw zvp5 ed38 l8ur 2rzn d693 4xh9 5mse vwrd wtrp k372 hyz4 vr6g')),
+                              'sp1qq0cygnetgn3rz2kla5cp05nj5uetlsrzez0l4p8g7wehf7ldr93lcqadw65upymwzvp5ed38l8ur2rznd6934xh95msevwrdwtrpk372hyz4vr6g', null)),
                     ],
                   ),
                 )),

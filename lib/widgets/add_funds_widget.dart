@@ -3,10 +3,14 @@ import 'package:danawallet/widgets/icons/circular_icon.dart';
 import 'package:flutter/material.dart';
 
 class AddFundsWidget extends StatelessWidget {
+  final void Function() onTap;
+
+  const AddFundsWidget({super.key, required this.onTap});
+
   @override
   Widget build(BuildContext context) {
     return InkResponse(
-        onTap: () {},
+        onTap: onTap,
         highlightShape: BoxShape.rectangle,
         containedInkWell: true,
         child: Container(
@@ -31,14 +35,6 @@ class AddFundsWidget extends StatelessWidget {
                     package: "bitcoin_ui"),
                 color: Bitcoin.neutral7,
               ),
-
-              //  InkResponse(
-              //     onTap: () {},
-              //     child: Image(
-              //       image: const AssetImage("icons/caret_right.png",
-              //           package: "bitcoin_ui"),
-              //       color: Bitcoin.neutral7,
-              //     )),
             ))));
   }
 }
