@@ -3,6 +3,7 @@ import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 /// Screen for creating a new contact, adding the passed-in address with optional labels.
 class CreateContactScreen extends StatefulWidget {
@@ -95,7 +96,7 @@ class _CreateContactScreenState extends State<CreateContactScreen> {
         nym: _nameController.text.trim(),
         addresses: addresses,
       );
-      final contactDao = ContactDAO();
+      final contactDao = Provider.of<ContactDAO>(context, listen: false);
 
       await contactDao.insertContact(newContact);
 
