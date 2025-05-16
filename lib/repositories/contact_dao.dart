@@ -1,18 +1,31 @@
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/data/models/payment_address.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'database_helper.dart';
 
 class ContactDAO extends ChangeNotifier {
   final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+  String? _myAddress;
+
+  void setMyAddress(String address) {
+    _myAddress = address;
+  }
 
   List<Contact> _contacts = [];
 
   List<Contact> get contacts => List.unmodifiable(_contacts);
 
-  ContactDAO() {
-    _loadAll();
+  ContactDAO();
+
+  Future init() async { 
+    final exists = await nymExists(myWalletNym);
+    if (!exists) {
+      await _setMyWallet();
+    }
+    await _loadAll();
   }
 
   Future<void> _loadAll() async {
@@ -20,6 +33,21 @@ class ContactDAO extends ChangeNotifier {
     final maps = await db.query('contacts');
     _contacts = maps.map((m) => Contact.fromMap(m)).toList();
     notifyListeners();
+  }
+
+  Future _setMyWallet() async {
+    final apiAddress = ApiSilentPaymentAddress.fromStringRepresentation(address: _myAddress!);
+
+    final Map<PaymentAddress, List<String>> addresses = {
+      PaymentAddress(apiAddress): []
+    };
+
+    final contact = Contact(
+      nym: myWalletNym,
+      addresses: addresses,
+      imagePath: null,
+    );
+    await insertContact(contact);
   }
 
   Future<void> insertContact(Contact contact) async {
