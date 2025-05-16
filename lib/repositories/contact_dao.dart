@@ -103,4 +103,11 @@ class ContactDAO extends ChangeNotifier {
     );
     await _loadAll();
   }
+
+  Future<void> deleteAllContacts() async {
+    final db = await _databaseHelper.database;
+    final deletedRows = await db.delete('contacts');
+    Logger().d('Deleted rows: $deletedRows');
+    await _loadAll();
+  }
 }
