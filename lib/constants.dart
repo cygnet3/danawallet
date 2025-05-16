@@ -122,3 +122,5 @@ const int defaultRegtestBirthday = 0;
 
 // dust limit used in scanning. outputs < dust limit will not be scanned
 const int defaultDustLimit = 1000;
+
+const String myWalletNym = "MyWallet";
