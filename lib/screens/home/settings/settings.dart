@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/services/backup_service.dart';
@@ -30,6 +31,11 @@ class SettingsScreen extends StatelessWidget {
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<void> _resetDb() async {
+    final dao = ContactDAO();
+    await dao.deleteAllContacts();
   }
 
   Future<void> _setLastScan(BuildContext context, WalletState walletState,
@@ -121,6 +127,7 @@ Without a backup, your funds willl be lost!""");
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
       await _removeWallet(walletState, chainState, scanProgress, homeState);
+      await _resetDb();
       if (context.mounted) {
         Navigator.pushReplacement(
             context,
