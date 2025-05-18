@@ -15,7 +15,8 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class ChooseRecipientScreen extends StatefulWidget {
-  const ChooseRecipientScreen({super.key});
+  final String? initialAddress;
+  const ChooseRecipientScreen({super.key, this.initialAddress});
 
   @override
   ChooseRecipientScreenState createState() => ChooseRecipientScreenState();
@@ -24,6 +25,21 @@ class ChooseRecipientScreen extends StatefulWidget {
 class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
   final TextEditingController addressController = TextEditingController();
   String? _addressErrorText;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialAddress != null && widget.initialAddress!.isNotEmpty) {
+      addressController.text = widget.initialAddress!;
+      onContinue();
+    }
+  }
+
+  @override
+  void dispose() {
+    addressController.dispose();
+    super.dispose();
+  }
 
   Future<void> onContinue() async {
     RecipientForm form = RecipientForm();
