@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:danawallet/data/models/payment_address.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/screens/home/contacts/create_contact.dart';
+import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:danawallet/data/models/contacts.dart';
@@ -126,9 +128,18 @@ class ContactsScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.qr_code_scanner),
               title: const Text('Scan'),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                // TODO: hook up scan flow
+              onTap: () async {
+                final result = await Navigator.push(
+                  ctx,
+                  MaterialPageRoute(
+                    builder: (ctx) => const QRCodeScannerWidget(),
+                  ),
+                );
+                if (result is String && result != "") {
+                  // Check that it's a valid address
+                  final scannedAddress = ApiSilentPaymentAddress.fromStringRepresentation(address: result);
+                  CreateContactScreen(newAddress: PaymentAddress(scannedAddress));
+                }
               },
             ),
           ],
