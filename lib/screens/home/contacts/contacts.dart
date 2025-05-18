@@ -118,7 +118,7 @@ class ContactsScreen extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) =>
-                        const CreateContactScreen(sentAddress: null),
+                        const CreateContactScreen(newAddress: null),
                   ),
                 );
               },

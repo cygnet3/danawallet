@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.pop(ctx);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => CreateContactScreen(sentAddress: widget.sentAddress!)),
+                    MaterialPageRoute(builder: (_) => CreateContactScreen(newAddress: widget.sentAddress!)),
                   );
                 },
               ),

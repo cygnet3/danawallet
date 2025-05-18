@@ -7,9 +7,9 @@ import 'package:provider/provider.dart';
 
 /// Screen for creating a new contact, adding the passed-in address with optional labels.
 class CreateContactScreen extends StatefulWidget {
-  final PaymentAddress? sentAddress;
+  final PaymentAddress? newAddress;
 
-  const CreateContactScreen({Key? key, this.sentAddress}) : super(key: key);
+  const CreateContactScreen({Key? key, this.newAddress}) : super(key: key);
 
   @override
   _CreateContactScreenState createState() => _CreateContactScreenState();
@@ -26,8 +26,8 @@ class _CreateContactScreenState extends State<CreateContactScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.sentAddress != null) {
-      _addressController.text = widget.sentAddress!.inner.stringRepresentation;
+    if (widget.newAddress != null) {
+      _addressController.text = widget.newAddress!.inner.stringRepresentation;
     }
   }
 
@@ -135,12 +135,12 @@ class _CreateContactScreenState extends State<CreateContactScreen> {
 
               TextFormField(
                 controller: _addressController,
-                readOnly: widget.sentAddress != null,
+                readOnly: widget.newAddress != null,
                 decoration: InputDecoration(
                   labelText: 'Contact Address',
                   border: const OutlineInputBorder(),
-                  fillColor: widget.sentAddress != null ? Colors.grey[200] : null,
-                  filled: widget.sentAddress != null,
+                  fillColor: widget.newAddress != null ? Colors.grey[200] : null,
+                  filled: widget.newAddress != null,
                   errorText: _addressErrorText,  
                   errorBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.red),
@@ -150,7 +150,7 @@ class _CreateContactScreenState extends State<CreateContactScreen> {
                   ),
                 ),
                 style: TextStyle(
-                  color: widget.sentAddress != null ? Colors.grey : null,
+                  color: widget.newAddress != null ? Colors.grey : null,
                 ),
                 onChanged: _validateAddress,
                 validator: (value) {
