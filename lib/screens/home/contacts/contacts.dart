@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/screens/home/contacts/create_contact.dart';
+import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -60,13 +62,11 @@ class ContactsScreen extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (_) => ContactDetailPage(
                                   contact: contact,
-                                  /// you’ll add this callback below
                                   onAddressSelected: (a) => Navigator.of(context).pop(a),
                                 ),
                               ),
                             );
-                            // bubble the chosen address back up
-                            if (addr != null) Navigator.of(context).pop(addr);
+                            if (addr != null && context.mounted) Navigator.of(context).pop(addr);
                           }
                         }
                       );
@@ -160,37 +160,67 @@ class ContactDetailPage extends StatelessWidget {
     final addresses = contact.addresses.keys.toList();
     return Scaffold(
       appBar: AppBar(title: Text(contact.nym)),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: addresses.length,
-        separatorBuilder: (_, __) => const Divider(),
-        itemBuilder: (_, i) {
-          final addr = addresses[i];
-          final labels = contact.addresses[addr];
-          return ListTile(
-            leading: CircleAvatar(child: Text('${i + 1}')),
-            title: Text(addr.inner.stringRepresentation),
-            onTap: () {
-              if (onAddressSelected != null) {
-                onAddressSelected!(addr);
-              } else {
-                // maybe push further detail, or do nothing
-              }
-            },
-            subtitle: labels != null 
-            ? Wrap(
-              spacing: 8.0,
-              children: labels.map<Widget>((label) {
-                return Chip(
-                  label: Text(label),
-                  backgroundColor: Colors.blueAccent, 
-                  labelStyle: TextStyle(color: Colors.white),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 24),
+
+          CircleAvatar(
+            radius: 48,
+            backgroundImage: contact.imagePath != null && contact.imagePath!.isNotEmpty
+              ? FileImage(File(contact.imagePath!))
+              : const AssetImage('assets/images/default_avatar.png')
+                  as ImageProvider,
+          ),
+
+          const SizedBox(height: 16),
+
+          Text(
+            contact.nym,
+            style: BitcoinTextStyle.title1(Colors.black),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 24),
+          const Divider(),
+
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: addresses.length,
+              separatorBuilder: (_, __) => const Divider(),
+              itemBuilder: (_, i) {
+                final addr = addresses[i];
+                final labels = contact.addresses[addr];
+                return ListTile(
+                  leading: CircleAvatar(child: Text('${i + 1}')),
+                  title: Text(addr.inner.stringRepresentation),
+                  subtitle: labels != null
+                    ? Wrap(
+                        spacing: 8.0,
+                        children: labels.map((label) => Chip(
+                          label: Text(label),
+                          backgroundColor: Colors.blueAccent,
+                          labelStyle: const TextStyle(color: Colors.white),
+                        )).toList(),
+                      )
+                    : null,
+                  onTap: () async {
+                    if (onAddressSelected != null) {
+                      onAddressSelected!(addr);
+                    } else {
+                      // We initialize spending with this address
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ChooseRecipientScreen(initialAddress: addr.inner.stringRepresentation)));
+                    }
+                  },
                 );
-              }).toList()
-            )
-            : const SizedBox.shrink(),
-          );
-        },
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
