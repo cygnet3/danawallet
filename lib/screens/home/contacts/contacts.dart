@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/screens/home/contacts/create_contact.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +7,8 @@ import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/repositories/contact_dao.dart';
 
 class ContactsScreen extends StatelessWidget {
-  const ContactsScreen({super.key});
+  final bool pickAddress;
+  const ContactsScreen({super.key, this.pickAddress = false});
 
   @override
   Widget build(BuildContext context) {
@@ -30,25 +32,41 @@ class ContactsScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: contacts.length,
                     itemBuilder: (context, index) {
-                      final fren = contacts[index];
+                      final contact = contacts[index];
                       return ListTile(
-                        leading: fren.imagePath != null &&
-                                fren.imagePath!.isNotEmpty
+                        leading: contact.imagePath != null &&
+                                contact.imagePath!.isNotEmpty
                             ? CircleAvatar(
                                 backgroundImage:
-                                    FileImage(File(fren.imagePath!)),
+                                    FileImage(File(contact.imagePath!)),
                               )
                             : const CircleAvatar(
                                 backgroundImage:
                                     AssetImage('assets/images/default_avatar.png'),
                               ),
-                        title: Text(fren.nym),
+                        title: Text(contact.nym),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ContactDetailPage(fren: fren),
-                          ),
-                        ),
+                        onTap: () async {
+                          if (!pickAddress) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ContactDetailPage(contact: contact),
+                              ),
+                            );
+                          } else {
+                            final PaymentAddress? addr = await Navigator.of(context).push<PaymentAddress>(
+                              MaterialPageRoute(
+                                builder: (_) => ContactDetailPage(
+                                  contact: contact,
+                                  /// you’ll add this callback below
+                                  onAddressSelected: (a) => Navigator.of(context).pop(a),
+                                ),
+                              ),
+                            );
+                            // bubble the chosen address back up
+                            if (addr != null) Navigator.of(context).pop(addr);
+                          }
+                        }
                       );
                     },
                   ),
@@ -121,25 +139,33 @@ class ContactsScreen extends StatelessWidget {
 }
 
 class ContactDetailPage extends StatelessWidget {
-  final Contact fren;
+  final Contact contact;
+  final void Function(PaymentAddress)? onAddressSelected;
 
-  const ContactDetailPage({Key? key, required this.fren}) : super(key: key);
+  const ContactDetailPage({Key? key, required this.contact, this.onAddressSelected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final addresses = fren.addresses.keys.toList();
+    final addresses = contact.addresses.keys.toList();
     return Scaffold(
-      appBar: AppBar(title: Text(fren.nym)),
+      appBar: AppBar(title: Text(contact.nym)),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: addresses.length,
         separatorBuilder: (_, __) => const Divider(),
         itemBuilder: (_, i) {
           final addr = addresses[i];
-          final labels = fren.addresses[addr];
+          final labels = contact.addresses[addr];
           return ListTile(
             leading: CircleAvatar(child: Text('${i + 1}')),
             title: Text(addr.inner.stringRepresentation),
+            onTap: () {
+              if (onAddressSelected != null) {
+                onAddressSelected!(addr);
+              } else {
+                // maybe push further detail, or do nothing
+              }
+            },
             subtitle: labels != null 
             ? Wrap(
               spacing: 8.0,
