@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:logger/logger.dart';
 
 class SynchronizationService {
   WalletState walletState;
@@ -22,7 +22,7 @@ class SynchronizationService {
 
   Future<void> startSyncTimer() async {
     // for the first task, we just received the chain tip so skip it
-    Logger().i("Starting sync service");
+    logger.i("Starting sync service");
     await _tryPerformTask(false);
     await _scheduleNextTask();
   }
@@ -37,7 +37,7 @@ class SynchronizationService {
       } else {
         // todo: claim the wifi lock, so that we have internet access
         // to sync, even when the screen is off
-        Logger().i("We are in background, skip sync");
+        logger.i("We are in background, skip sync");
       }
     } else {
       // for other platforms, we assume we always want to sync
@@ -54,7 +54,7 @@ class SynchronizationService {
       } on Exception catch (e) {
         // todo: we should have a connection status with the server
         // e.g. a green or red circle based on whether we have connection issues
-        Logger().w("Error trying to update the chain tip");
+        logger.w("Error trying to update the chain tip");
         err = e;
       }
     }
@@ -81,19 +81,19 @@ class SynchronizationService {
   Future<void> _performSynchronizationTask() async {
     if (walletState.lastScan < chainState.tip) {
       if (!scanProgress.scanning) {
-        Logger().i("Starting sync");
+        logger.i("Starting sync");
         await scanProgress.scan(walletState);
       }
     }
 
     if (chainState.tip < walletState.lastScan) {
       // not sure what we should do here, that's really bad
-      Logger().e('Current height is less than wallet last scan');
+      logger.e('Current height is less than wallet last scan');
     }
   }
 
   void stopSyncTimer() {
-    Logger().i("Stopping sync service");
+    logger.i("Stopping sync service");
     _timer?.cancel();
   }
 }

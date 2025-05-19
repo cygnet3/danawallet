@@ -2,6 +2,18 @@ import 'dart:async';
 
 import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/logger.dart';
+import 'package:logger/logger.dart';
+
+var logger = Logger(
+  printer: PrettyPrinter(
+    methodCount: 1,
+    errorMethodCount: 8,
+    lineLength: 120,
+    colors: true,
+    printEmojis: true,
+    dateTimeFormat: DateTimeFormat.none,
+  ),
+);
 
 class LoggingService {
   late StreamSubscription logStreamSubscription;
