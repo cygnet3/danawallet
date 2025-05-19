@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::frb_generated::StreamSink;
-use log::{warn, LevelFilter, Log, Metadata, Record};
+use log::{warn, Level, LevelFilter, Log, Metadata, Record};
 
 use lazy_static::lazy_static;
 use simplelog::{CombinedLogger, Config, SharedLogger};
@@ -18,7 +18,7 @@ static INIT_LOGGER_ONCE: Once = Once::new();
 #[derive(Debug)]
 pub struct LogEntry {
     pub time_millis: i64,
-    pub level: String,
+    pub level: LogLevel,
     pub tag: String,
     pub msg: String,
 }
@@ -33,7 +33,9 @@ pub fn init_logger(level: LevelFilter, show_dependency_logs: bool) {
     });
 }
 
+#[derive(Debug)]
 pub enum LogLevel {
+    Trace,
     Debug,
     Info,
     Warn,
@@ -45,10 +47,23 @@ impl From<LogLevel> for LevelFilter {
     fn from(value: LogLevel) -> Self {
         match value {
             LogLevel::Debug => LevelFilter::Debug,
+            LogLevel::Trace => LevelFilter::Trace,
             LogLevel::Info => LevelFilter::Info,
             LogLevel::Warn => LevelFilter::Warn,
             LogLevel::Error => LevelFilter::Error,
             LogLevel::Off => LevelFilter::Off,
+        }
+    }
+}
+
+impl From<Level> for LogLevel {
+    fn from(value: Level) -> Self {
+        match value {
+            Level::Error => Self::Error,
+            Level::Warn => Self::Warn,
+            Level::Info => Self::Info,
+            Level::Debug => Self::Debug,
+            Level::Trace => Self::Trace,
         }
     }
 }
@@ -88,7 +103,7 @@ impl FlutterLogger {
             .unwrap_or_else(|_| Duration::from_secs(0))
             .as_millis() as i64;
 
-        let level = record.level().to_string();
+        let level: LogLevel = record.level().into();
 
         let tag = record.target().to_owned();
 

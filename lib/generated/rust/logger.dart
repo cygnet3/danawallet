@@ -8,7 +8,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 class LogEntry {
   final PlatformInt64 timeMillis;
-  final String level;
+  final LogLevel level;
   final String tag;
   final String msg;
 
@@ -35,6 +35,7 @@ class LogEntry {
 }
 
 enum LogLevel {
+  trace,
   debug,
   info,
   warn,

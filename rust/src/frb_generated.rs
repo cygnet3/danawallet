@@ -4762,7 +4762,7 @@ impl SseDecode for crate::logger::LogEntry {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_timeMillis = <i64>::sse_decode(deserializer);
-        let mut var_level = <String>::sse_decode(deserializer);
+        let mut var_level = <crate::logger::LogLevel>::sse_decode(deserializer);
         let mut var_tag = <String>::sse_decode(deserializer);
         let mut var_msg = <String>::sse_decode(deserializer);
         return crate::logger::LogEntry {
@@ -4779,11 +4779,12 @@ impl SseDecode for crate::logger::LogLevel {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <i32>::sse_decode(deserializer);
         return match inner {
-            0 => crate::logger::LogLevel::Debug,
-            1 => crate::logger::LogLevel::Info,
-            2 => crate::logger::LogLevel::Warn,
-            3 => crate::logger::LogLevel::Error,
-            4 => crate::logger::LogLevel::Off,
+            0 => crate::logger::LogLevel::Trace,
+            1 => crate::logger::LogLevel::Debug,
+            2 => crate::logger::LogLevel::Info,
+            3 => crate::logger::LogLevel::Warn,
+            4 => crate::logger::LogLevel::Error,
+            5 => crate::logger::LogLevel::Off,
             _ => unreachable!("Invalid variant for LogLevel: {}", inner),
         };
     }
@@ -5466,11 +5467,12 @@ impl flutter_rust_bridge::IntoIntoDart<crate::logger::LogEntry> for crate::logge
 impl flutter_rust_bridge::IntoDart for crate::logger::LogLevel {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
-            Self::Debug => 0.into_dart(),
-            Self::Info => 1.into_dart(),
-            Self::Warn => 2.into_dart(),
-            Self::Error => 3.into_dart(),
-            Self::Off => 4.into_dart(),
+            Self::Trace => 0.into_dart(),
+            Self::Debug => 1.into_dart(),
+            Self::Info => 2.into_dart(),
+            Self::Warn => 3.into_dart(),
+            Self::Error => 4.into_dart(),
+            Self::Off => 5.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -6006,7 +6008,7 @@ impl SseEncode for crate::logger::LogEntry {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i64>::sse_encode(self.time_millis, serializer);
-        <String>::sse_encode(self.level, serializer);
+        <crate::logger::LogLevel>::sse_encode(self.level, serializer);
         <String>::sse_encode(self.tag, serializer);
         <String>::sse_encode(self.msg, serializer);
     }
@@ -6017,11 +6019,12 @@ impl SseEncode for crate::logger::LogLevel {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(
             match self {
-                crate::logger::LogLevel::Debug => 0,
-                crate::logger::LogLevel::Info => 1,
-                crate::logger::LogLevel::Warn => 2,
-                crate::logger::LogLevel::Error => 3,
-                crate::logger::LogLevel::Off => 4,
+                crate::logger::LogLevel::Trace => 0,
+                crate::logger::LogLevel::Debug => 1,
+                crate::logger::LogLevel::Info => 2,
+                crate::logger::LogLevel::Warn => 3,
+                crate::logger::LogLevel::Error => 4,
+                crate::logger::LogLevel::Off => 5,
                 _ => {
                     unimplemented!("");
                 }

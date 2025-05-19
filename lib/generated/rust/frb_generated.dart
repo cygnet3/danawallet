@@ -3759,7 +3759,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return LogEntry(
       timeMillis: dco_decode_i_64(arr[0]),
-      level: dco_decode_String(arr[1]),
+      level: dco_decode_log_level(arr[1]),
       tag: dco_decode_String(arr[2]),
       msg: dco_decode_String(arr[3]),
     );
@@ -4562,7 +4562,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   LogEntry sse_decode_log_entry(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_timeMillis = sse_decode_i_64(deserializer);
-    var var_level = sse_decode_String(deserializer);
+    var var_level = sse_decode_log_level(deserializer);
     var var_tag = sse_decode_String(deserializer);
     var var_msg = sse_decode_String(deserializer);
     return LogEntry(
@@ -5354,7 +5354,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_log_entry(LogEntry self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_64(self.timeMillis, serializer);
-    sse_encode_String(self.level, serializer);
+    sse_encode_log_level(self.level, serializer);
     sse_encode_String(self.tag, serializer);
     sse_encode_String(self.msg, serializer);
   }

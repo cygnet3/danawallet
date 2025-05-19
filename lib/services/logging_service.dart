@@ -25,8 +25,26 @@ class LoggingService {
     logStreamSubscription =
         createLogStream(level: LogLevel.info, logDependencies: true)
             .listen((event) {
-      // ignore: avoid_print
-      print('${event.level} (${event.tag}): ${event.msg}');
+      String msg = '(${event.tag}): ${event.msg}';
+      switch (event.level) {
+        case LogLevel.debug:
+          logger.d(msg);
+          break;
+        case LogLevel.error:
+          logger.e(msg);
+          break;
+        case LogLevel.info:
+          logger.i(msg);
+          break;
+        case LogLevel.off:
+          break;
+        case LogLevel.trace:
+          logger.t(msg);
+          break;
+        case LogLevel.warn:
+          logger.w(msg);
+          break;
+      }
     });
   }
 
