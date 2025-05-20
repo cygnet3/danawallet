@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
-import 'package:danawallet/data/models/wallet_setup_phase.dart';
+import 'package:danawallet/data/enums/wallet_setup_phase.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';

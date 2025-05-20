@@ -1,5 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:danawallet/data/models/wallet_setup_phase.dart';
+import 'package:danawallet/data/enums/wallet_setup_phase.dart';
 import 'package:danawallet/screens/home/wallet/main/wallet_full.dart';
 import 'package:danawallet/screens/home/wallet/main/wallet_address_created.dart';
 import 'package:danawallet/screens/home/wallet/main/wallet_new.dart';

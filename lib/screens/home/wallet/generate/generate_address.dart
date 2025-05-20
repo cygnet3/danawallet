@@ -1,6 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
-import 'package:danawallet/data/models/public_address_choice.dart';
+import 'package:danawallet/data/enums/public_address_choice.dart';
 import 'package:danawallet/screens/home/wallet/generate/show_address.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/back_button.dart';
