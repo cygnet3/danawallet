@@ -29,7 +29,7 @@ enum PublicAddressChoice {
       case PublicAddressChoice.website:
         return SvgPicture.asset("assets/icons/globe.svg");
       case PublicAddressChoice.hrf:
-        return const Image(image: AssetImage('assets/icons/hrf.png'));
+        return const Image(image: AssetImage('assets/icons/off.png'));
     }
   }
 }
