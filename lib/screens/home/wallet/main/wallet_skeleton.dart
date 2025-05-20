@@ -2,25 +2,22 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/screens/home/wallet/generate/generate_address.dart';
-import 'package:danawallet/screens/home/wallet/generate/show_address.dart';
-import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/add_funds_widget.dart';
-import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class WalletSkeleton extends StatelessWidget {
-  final bool showBottomButtons;
   final bool showAddFundsWidget;
   final Widget txHistory;
+  final Widget? footerButtons;
 
   const WalletSkeleton(
       {super.key,
-      required this.showBottomButtons,
       required this.showAddFundsWidget,
-      required this.txHistory});
+      required this.txHistory,
+      this.footerButtons});
 
   AppBar buildAppBar(Network network) {
     return AppBar(
@@ -105,45 +102,6 @@ class WalletSkeleton extends StatelessWidget {
     );
   }
 
-  Widget buildBottomButtons(BuildContext context, String address) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: BitcoinButtonFilled(
-              tintColor: danaBlue,
-              body: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text(
-                  'Pay  ',
-                  style: BitcoinTextStyle.body3(Bitcoin.white),
-                ),
-                Image(
-                  image:
-                      const AssetImage("icons/send.png", package: "bitcoin_ui"),
-                  color: Bitcoin.white,
-                )
-              ]),
-              cornerRadius: 6,
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ChooseRecipientScreen())),
-            ),
-          ),
-          const SizedBox(width: 10),
-          ReceiveWidget(
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ShowAddressScreen(address: address))),
-          )
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
@@ -189,8 +147,7 @@ class WalletSkeleton extends StatelessWidget {
                           ),
                         ),
                         Flexible(child: txHistory),
-                        if (showBottomButtons)
-                          buildBottomButtons(context, walletState.address),
+                        if (footerButtons != null) footerButtons!,
                         const SizedBox(
                           height: 20.0,
                         ),

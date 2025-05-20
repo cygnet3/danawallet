@@ -7,24 +7,20 @@ class WalletScreenNew extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final txHistory = Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('No transactions yet.\n',
-              textAlign: TextAlign.center,
-              style: BitcoinTextStyle.body3(Bitcoin.neutral6)
-                  .copyWith(fontFamily: 'Inter')),
-          Text('Fund your wallet to get started!',
-              textAlign: TextAlign.center,
-              style: BitcoinTextStyle.body3(Bitcoin.neutral6)
-                  .copyWith(fontFamily: 'Inter')),
-        ],
-      );
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text('No transactions yet.\n',
+            textAlign: TextAlign.center,
+            style: BitcoinTextStyle.body3(Bitcoin.neutral6)
+                .copyWith(fontFamily: 'Inter')),
+        Text('Fund your wallet to get started!',
+            textAlign: TextAlign.center,
+            style: BitcoinTextStyle.body3(Bitcoin.neutral6)
+                .copyWith(fontFamily: 'Inter')),
+      ],
+    );
 
-    return WalletSkeleton(
-        showBottomButtons: false,
-        showAddFundsWidget: true,
-        txHistory: txHistory);
+    return WalletSkeleton(showAddFundsWidget: true, txHistory: txHistory);
   }
 }
