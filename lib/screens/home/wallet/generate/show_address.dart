@@ -1,3 +1,4 @@
+import 'package:barcode_widget/barcode_widget.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/home.dart';
@@ -6,53 +7,70 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class ShowAddressScreen extends StatelessWidget {
+class ShowAddressScreen extends StatefulWidget {
   final String address;
 
   const ShowAddressScreen({super.key, required this.address});
 
+  @override
+  State<ShowAddressScreen> createState() => ShowAddressScreenState();
+}
+
+class ShowAddressScreenState extends State<ShowAddressScreen> {
+  bool toggleQr = false;
+
   Future<void> copyToClipboard() async {
-    await Clipboard.setData(ClipboardData(text: address));
+    await Clipboard.setData(ClipboardData(text: widget.address));
   }
 
   @override
   Widget build(BuildContext context) {
+    final address = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "tap to copy",
+          style: BitcoinTextStyle.body5(Bitcoin.neutral5)
+              .copyWith(fontFamily: "Inter"),
+        ),
+        addressAsRichText(widget.address, 18)
+      ],
+    );
+
+    final qrCode =
+        BarcodeWidget(data: widget.address, barcode: Barcode.qrCode());
+
     final body = Column(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      // mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Column(
           children: [
             Text("Your public address for Oslo Freedom Forum!",
                 style: BitcoinTextStyle.title4(Bitcoin.neutral8)),
-                const SizedBox(height: 20,),
+            const SizedBox(
+              height: 20,
+            ),
             Text(
                 "This is your public address for Oslo Freedom Forum.\n\nWhen you receive payments to this address, the app will detect them as payments related to Oslo Freedom Forum.",
                 style: BitcoinTextStyle.body3(Bitcoin.neutral8)),
           ],
         ),
-        GestureDetector(
+        const SizedBox(height: 50),
+        Expanded(
+            child: GestureDetector(
           onTap: copyToClipboard,
           child: Container(
-            decoration: ShapeDecoration(
-              color: Bitcoin.neutral2,
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10))),
-            ),
-            child: Padding(
+              decoration: ShapeDecoration(
+                color: Bitcoin.neutral2,
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10))),
+              ),
+              child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "tap to copy",
-                      style: BitcoinTextStyle.body5(Bitcoin.neutral5)
-                          .copyWith(fontFamily: "Inter"),
-                    ),
-                    addressAsRichText(address, 18),
-                  ],
-                )),
-          ),
-        ),
+                child: toggleQr ? qrCode : address,
+              )),
+        )),
         const SizedBox(
           height: 15,
         ),
@@ -61,7 +79,11 @@ class ShowAddressScreen extends StatelessWidget {
 
     final footer = Column(
       children: [
-        FooterButtonOutlined(title: "Show QR code", onPressed: () => ()),
+        FooterButtonOutlined(
+            title: "Show QR code",
+            onPressed: () => setState(() {
+                  toggleQr = !toggleQr;
+                })),
         const SizedBox(
           height: 15,
         ),
