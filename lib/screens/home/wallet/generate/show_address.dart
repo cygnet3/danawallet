@@ -6,6 +6,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ShowAddressScreen extends StatefulWidget {
   final String address;
@@ -21,6 +22,10 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
 
   Future<void> copyToClipboard() async {
     await Clipboard.setData(ClipboardData(text: widget.address));
+  }
+
+  void shareAddress() async {
+    await SharePlus.instance.share(ShareParams(text: widget.address));
   }
 
   @override
@@ -91,7 +96,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
           children: [
             Flexible(
                 child:
-                    FooterButtonOutlined(title: "Share", onPressed: () => ())),
+                    FooterButtonOutlined(title: "Share", onPressed: shareAddress)),
             const SizedBox(
               width: 15,
             ),
