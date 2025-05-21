@@ -1,15 +1,22 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
+import 'package:danawallet/screens/home/contacts/contacts.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class ChooseRecipientScreen extends StatefulWidget {
-  const ChooseRecipientScreen({super.key});
+  final String? initialAddress;
+  const ChooseRecipientScreen({super.key, this.initialAddress});
 
   @override
   ChooseRecipientScreenState createState() => ChooseRecipientScreenState();
@@ -18,6 +25,21 @@ class ChooseRecipientScreen extends StatefulWidget {
 class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
   final TextEditingController addressController = TextEditingController();
   String? _addressErrorText;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialAddress != null && widget.initialAddress!.isNotEmpty) {
+      addressController.text = widget.initialAddress!;
+      onContinue();
+    }
+  }
+
+  @override
+  void dispose() {
+    addressController.dispose();
+    super.dispose();
+  }
 
   Future<void> onContinue() async {
     RecipientForm form = RecipientForm();
@@ -48,6 +70,34 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
 
       // todo: verify address
 
+      // Check if we have a contact associated to that address
+      PaymentAddress? spAddress;
+
+      try {
+        spAddress = PaymentAddress(ApiSilentPaymentAddress.fromStringRepresentation(address: form.recipientAddress!));
+        // We can already keep the spAddress
+        form.spAddress = spAddress;
+      } catch (e) {
+        // This is a regular, disposable address, we just continue
+        if (mounted) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AmountSelectionScreen()));
+        }
+      }
+
+      if (mounted) {
+        final contactDao = Provider.of<ContactDAO>(context, listen: false);
+        final existingContact = await contactDao.addressExistsIn(spAddress!);
+
+        if (existingContact != null) {
+          // We already know about that address, keep the contact
+          form.contact = existingContact;
+          // Maybe if there are labels attached to this address we could display them too
+        }
+      }
+
       if (mounted) {
         Navigator.push(
             context,
@@ -58,6 +108,18 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
       setState(() {
         _addressErrorText = exceptionToString(e);
       });
+    }
+  }
+
+  Future<void> onSelectFromContact() async {
+    final PaymentAddress? chosen = await Navigator.of(context).push<PaymentAddress>(
+      MaterialPageRoute(
+        builder: (_) => const ContactsScreen(pickAddress: true),
+      ),
+    );
+    if (chosen != null) {
+      addressController.text = chosen.inner.stringRepresentation;
+      await onContinue();
     }
   }
 
@@ -125,14 +187,13 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   const SizedBox(
                     height: 10.0,
                   ),
-                  if (isDevEnv())
-                    BitcoinButtonOutlined(
-                        disabledTintColor: Bitcoin.neutral5,
-                        textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-                        title: 'Choose from Contacts',
-                        onPressed: () => (),
-                        cornerRadius: 5.0,
-                        disabled: true),
+                  BitcoinButtonOutlined(
+                    tintColor: Bitcoin.neutral5,
+                    textStyle: BitcoinTextStyle.title4(Bitcoin.black),
+                    title: 'Choose from Contacts',
+                    onPressed: onSelectFromContact,
+                    cornerRadius: 5.0,
+                  ),
                   const SizedBox(
                     height: 10.0,
                   ),

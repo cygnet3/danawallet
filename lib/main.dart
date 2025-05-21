@@ -2,6 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/home/home.dart';
@@ -21,6 +22,7 @@ void main() async {
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
+  final contactDao = ContactDAO();
 
   final bool walletLoaded;
   try {
@@ -35,6 +37,8 @@ void main() async {
     final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
     await chainState.initialize(network, blindbitUrl!);
     chainState.startSyncService(walletState, scanNotifier);
+    contactDao.setMyAddress(walletState.address);
+    await contactDao.init();
   }
 
   runApp(
@@ -44,6 +48,7 @@ void main() async {
         ChangeNotifierProvider.value(value: scanNotifier),
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
+        ChangeNotifierProvider.value(value: contactDao)
       ],
       child: SilentPaymentApp(walletLoaded: walletLoaded),
     ),
