@@ -14,7 +14,7 @@ class TutorialScreen3 extends StatelessWidget {
       iconPath: "assets/icons/tag.svg",
       title: 'Stay organized',
       text:
-          'Contacts and automatic labels help you with keeping your transactions organized',
+          'Contacts and automatic labels help you with keeping your transactions organized.',
       main: Container(
         width: 372,
         height: 261,
