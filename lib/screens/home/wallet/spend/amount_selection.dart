@@ -21,13 +21,14 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
   final TextEditingController amountController = TextEditingController();
   String? _amountErrorText;
 
-  Future<void> onContinue() async {
+  Future<void> onContinue(BigInt availableBalance) async {
     setState(() {
       _amountErrorText = null;
     });
+
+    final BigInt amount;
     try {
-      RecipientForm().amount =
-          ApiAmount(field0: BigInt.from(int.parse(amountController.text)));
+      amount = BigInt.from(int.parse(amountController.text));
     } on FormatException {
       setState(() {
         _amountErrorText = 'Invalid amount';
@@ -35,7 +36,14 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
       return;
     }
 
-    // todo: verify amount
+    if (amount > availableBalance) {
+      setState(() {
+        _amountErrorText = 'Not enough available funds';
+      });
+      return;
+    }
+
+    RecipientForm().amount = ApiAmount(field0: amount);
 
     // get fee rates, these are needed for the next screen
     // todo: make a chainstate, get the fee rates from the chainstate instead
@@ -154,7 +162,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
           ),
           FooterButton(
             title: 'Proceed to fee selection',
-            onPressed: onContinue,
+            onPressed: () => onContinue(availableBalance),
           ),
         ],
       ),
