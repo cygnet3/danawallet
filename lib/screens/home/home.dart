@@ -1,6 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/wallet_setup_phase.dart';
-import 'package:danawallet/screens/home/contacts/contacts.dart';
 import 'package:danawallet/screens/home/wallet/main/wallet_full.dart';
 import 'package:danawallet/screens/home/wallet/main/wallet_address_created.dart';
 import 'package:danawallet/screens/home/wallet/main/wallet_new.dart';
@@ -33,7 +32,7 @@ class HomeScreen extends StatelessWidget {
 
     List<Widget> widgetOptions = [
       walletScreen,
-      const ContactsScreen(),
+      // const ContactsScreen(),
       const SettingsScreen(),
     ];
 
@@ -55,18 +54,18 @@ class HomeScreen extends StatelessWidget {
                 color: Bitcoin.blue),
             label: 'Transact',
           ),
-          BottomNavigationBarItem(
-            icon: Image(
-              image:
-                  const AssetImage("icons/contacts.png", package: "bitcoin_ui"),
-              color: Bitcoin.neutral7,
-            ),
-            activeIcon: Image(
-                image: const AssetImage("icons/contacts.png",
-                    package: "bitcoin_ui"),
-                color: Bitcoin.blue),
-            label: 'Contacts',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Image(
+          //     image:
+          //         const AssetImage("icons/contacts.png", package: "bitcoin_ui"),
+          //     color: Bitcoin.neutral7,
+          //   ),
+          //   activeIcon: Image(
+          //       image: const AssetImage("icons/contacts.png",
+          //           package: "bitcoin_ui"),
+          //       color: Bitcoin.blue),
+          //   label: 'Contacts',
+          // ),
           BottomNavigationBarItem(
             icon: Image(
                 image:
