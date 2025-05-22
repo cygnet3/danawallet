@@ -1,4 +1,4 @@
-import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/chain.dart';
 import 'package:danawallet/services/synchronization_service.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';

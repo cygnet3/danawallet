@@ -1,4 +1,4 @@
-import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/backup.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
