@@ -61,9 +61,8 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
                 style: BitcoinTextStyle.body3(Bitcoin.neutral8)),
           ],
         ),
-        const SizedBox(height: 50),
-        Expanded(
-            child: GestureDetector(
+        const Spacer(),
+         GestureDetector(
           onTap: copyToClipboard,
           child: Container(
               decoration: ShapeDecoration(
@@ -75,7 +74,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
                 padding: const EdgeInsets.all(20),
                 child: toggleQr ? qrCode : address,
               )),
-        )),
+        ),
         const SizedBox(
           height: 15,
         ),
