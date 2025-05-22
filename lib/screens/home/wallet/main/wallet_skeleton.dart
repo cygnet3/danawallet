@@ -75,15 +75,12 @@ class WalletSkeleton extends StatelessWidget {
         child: inner);
   }
 
-  Widget buildAmountDisplay(ApiAmount amount, bool hideAmount) {
-    String btcAmount = hideAmount ? '*****' : amount.displayBtc();
-    String fiatAmount = hideAmount ? '*****' : '\$ 0.00';
+  Widget buildAmountDisplay(WalletState walletState, ApiAmount amount, bool hideAmount) {
+    String btcAmount = walletState.hideAmount ? '*****' : amount.displayBtc();
+    String fiatAmount = walletState.hideAmount ? '*****' : '\$ 0.00';
 
     return GestureDetector(
-      onTap: () => (),
-      // onTap: () => setState(() {
-      //   hideAmount = !hideAmount;
-      // }),
+      onTap: () => walletState.toggleHideAmount(),
       child: Column(
         children: [
           Text(
@@ -130,7 +127,7 @@ class WalletSkeleton extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              buildAmountDisplay(amount, false),
+                              buildAmountDisplay(walletState, amount, false),
                               showAddFundsWidget
                                   ? AddFundsWidget(
                                       onTap: () => {

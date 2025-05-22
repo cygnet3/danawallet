@@ -20,6 +20,8 @@ class WalletState extends ChangeNotifier {
 
   // temporary value to store whether the user has gone though the generate address screen
   bool addressCreated = false;
+  // toggle hide amount, todo: use ApiAmount and implement display using ApiAmount
+  bool hideAmount = false;
 
   // variables that never change (unless wallet is reset)
   late Network network;
@@ -48,6 +50,11 @@ class WalletState extends ChangeNotifier {
 
   void setAddressCreated() {
     addressCreated = true;
+  }
+
+  void toggleHideAmount() {
+    hideAmount = !hideAmount;
+    notifyListeners();
   }
 
   WalletSetupPhase get currentState {
