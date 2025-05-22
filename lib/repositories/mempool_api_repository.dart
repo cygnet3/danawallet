@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/services/fee_api_converter.dart';
 import 'package:http/http.dart' as http;
 import 'package:danawallet/data/models/recommended_fee_model.dart';
