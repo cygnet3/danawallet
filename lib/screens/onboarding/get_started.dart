@@ -108,29 +108,6 @@ class GetStartedScreen extends StatelessWidget {
               "Get started!",
               style: BitcoinTextStyle.title2(Colors.black)
                   .copyWith(height: 1.8, fontFamily: 'Inter'),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(children: [
-                TextSpan(
-                    text:
-                        "To learn more about our privacy-preserving addresses,",
-                    style: BitcoinTextStyle.body3(Bitcoin.neutral7).copyWith(
-                      fontFamily: 'Inter',
-                    )),
-                TextSpan(
-                  text: ' Click here',
-                  style: BitcoinTextStyle.body3(Colors.blue).copyWith(
-                    fontFamily: 'Inter',
-                  ),
-                  recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrlString(
-                        'https://silentpayments.xyz/docs/explained/'),
-                ),
-              ]),
             )
           ],
         ),
