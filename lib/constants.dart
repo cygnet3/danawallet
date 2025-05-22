@@ -122,3 +122,7 @@ const int defaultRegtestBirthday = 0;
 
 // dust limit used in scanning. outputs < dust limit will not be scanned
 const int defaultDustLimit = 1000;
+
+// example address, used in onboarding flow
+const String exampleAddress =
+    "sp1qq0cygnetgn3rz2kla5cp05nj5uetlsrzez0l4p8g7wehf7ldr93lcqadw65upymwzvp5ed38l8ur2rznd6934xh95msevwrdwtrpk372hyz4vr6g";

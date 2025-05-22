@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/onboarding/tutorial/tutorial_2.dart';
 import 'package:danawallet/screens/onboarding/tutorial/tutorial_skeleton.dart';
@@ -37,8 +38,7 @@ class TutorialScreen1 extends StatelessWidget {
             ),
             Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: addressAsRichText(
-                    'sp1q q0cy gnet gn3r z2kl a5cp 05nj 5uet lsrz ez0l 4p8g 7weh f7ld r93l cqad w65u pymw zvp5 ed38 l8ur 2rzn d693 4xh9 5mse vwrd wtrp k372 hyz4 vr6g')),
+                child: addressAsRichText(exampleAddress, null)),
           ],
         ),
       ),
