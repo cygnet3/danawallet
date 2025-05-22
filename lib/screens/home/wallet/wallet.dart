@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -230,9 +231,10 @@ class WalletScreenState extends State<WalletScreen> {
           ),
           const SizedBox(width: 10),
           ReceiveWidget(
-            onPressed: () {
-              _showReceiveDialog(context, address);
-            },
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ShowAddressScreen(address: address))),
           )
         ],
       ),
