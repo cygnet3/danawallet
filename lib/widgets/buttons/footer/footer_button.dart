@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 class FooterButton extends StatelessWidget {
   final String title;
   final VoidCallback? onPressed;
+  final bool isLoading;
 
-  const FooterButton({super.key, required this.title, required this.onPressed});
+  const FooterButton(
+      {super.key,
+      required this.title,
+      required this.onPressed,
+      this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +22,7 @@ class FooterButton extends StatelessWidget {
       onPressed: onPressed,
       cornerRadius: 5.0,
       tintColor: const Color.fromARGB(255, 10, 109, 214),
+      isLoading: isLoading,
     );
   }
 }
