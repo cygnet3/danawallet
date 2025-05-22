@@ -6,6 +6,7 @@ class FooterButton extends StatelessWidget {
   final AssetImage? prefixImage;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final bool enabled;
 
   const FooterButton({
     super.key,
@@ -13,6 +14,7 @@ class FooterButton extends StatelessWidget {
     required this.onPressed,
     this.prefixImage,
     this.isLoading = false,
+    this.enabled = true,
   });
 
   @override
@@ -35,6 +37,8 @@ class FooterButton extends StatelessWidget {
       cornerRadius: 5.0,
       tintColor: const Color.fromARGB(255, 10, 109, 214),
       isLoading: isLoading,
+      disabled: !enabled,
+      disabledTintColor: Colors.grey,
     );
   }
 }
