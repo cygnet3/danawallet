@@ -9,7 +9,6 @@ import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
-import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/icons/circular_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -114,8 +113,8 @@ class GetStartedScreen extends StatelessWidget {
 
     final footer = Column(
       children: [
-        FooterButtonOutlined(
-            title: 'Restore', onPressed: () => onRestoreWallet(context)),
+        // FooterButtonOutlined(
+        //     title: 'Restore', onPressed: () => onRestoreWallet(context)),
         const SizedBox(
           height: 15,
         ),
