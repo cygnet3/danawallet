@@ -6,6 +6,7 @@ import 'package:danawallet/screens/home/wallet/spend/fee_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -151,14 +152,10 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
           const SizedBox(
             height: 10.0,
           ),
-          BitcoinButtonFilled(
-            body: Text(
-              'Proceed to fee selection',
-              style: BitcoinTextStyle.body2(Bitcoin.neutral1),
-            ),
+          FooterButton(
+            title: 'Proceed to fee selection',
             onPressed: onContinue,
-            cornerRadius: 5.0,
-          )
+          ),
         ],
       ),
     );

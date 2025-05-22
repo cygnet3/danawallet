@@ -3,6 +3,8 @@ import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
+import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
 
 class TransactionSentScreen extends StatelessWidget {
@@ -52,25 +54,19 @@ class TransactionSentScreen extends StatelessWidget {
       footer: Column(
         children: [
           if (isDevEnv())
-            BitcoinButtonOutlined(
-              textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-              title: 'View transaction',
-              onPressed: () => (),
-              cornerRadius: 5.0,
-            ),
+            FooterButtonOutlined(
+                title: 'View transaction', onPressed: () => ()),
           const SizedBox(
             height: 10.0,
           ),
-          BitcoinButtonFilled(
-            body: Text('Done', style: BitcoinTextStyle.body2(Bitcoin.neutral1)),
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (Route<dynamic> route) => false);
-            },
-            cornerRadius: 5.0,
-          )
+          FooterButton(
+              title: 'Done',
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    (Route<dynamic> route) => false);
+              })
         ],
       ),
     );

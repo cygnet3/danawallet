@@ -3,6 +3,7 @@ import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
@@ -150,11 +151,9 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
               const SizedBox(),
               const SizedBox(),
             ]),
-        footer: BitcoinButtonFilled(
-          body:
-              Text('Continue', style: BitcoinTextStyle.body2(Bitcoin.neutral1)),
+        footer: FooterButton(
+          title: 'Continue',
           onPressed: onContinue,
-          cornerRadius: 5.0,
         ));
   }
 }
