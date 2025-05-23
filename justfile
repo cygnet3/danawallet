@@ -9,7 +9,11 @@ run-live:
 run--live-release:
     flutter run --release --flavor live
 
-build-apk:
+build-apk-dev:
+    just clean-bin
+    just build-android-release
+    flutter build apk --flavor dev --target-platform android-arm,android-arm64
+build-apk-live:
     just clean-bin
     just build-android-release
     flutter build apk --flavor live --target-platform android-arm,android-arm64
