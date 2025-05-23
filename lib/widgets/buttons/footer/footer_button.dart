@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/constants.dart';
 import 'package:flutter/material.dart';
 
 class FooterButton extends StatelessWidget {
@@ -35,7 +36,7 @@ class FooterButton extends StatelessWidget {
       ]),
       onPressed: onPressed,
       cornerRadius: 5.0,
-      tintColor: const Color.fromARGB(255, 10, 109, 214),
+      tintColor: danaBlue,
       isLoading: isLoading,
       disabled: !enabled,
       disabledTintColor: Colors.grey,

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 // The default blindbit backend used
 const String defaultMainnet = "https://silentpayments.dev/blindbit/mainnet";
 const String defaultTestnet = "https://silentpayments.dev/blindbit/testnet";
@@ -13,6 +15,9 @@ const int defaultRegtestBirthday = 0;
 
 // dust limit used in scanning. outputs < dust limit will not be scanned
 const int defaultDustLimit = 1000;
+
+// colors
+const Color danaBlue = Color.fromARGB(255, 10, 109, 214);
 
 // example address, used in onboarding flow
 const String exampleAddress =

@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
@@ -181,6 +182,7 @@ class WalletScreenState extends State<WalletScreen> {
         children: [
           Expanded(
             child: BitcoinButtonFilled(
+              tintColor: danaBlue,
               body: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(
                   'Pay  ',
