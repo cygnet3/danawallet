@@ -7,6 +7,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:sizer/sizer.dart';
 
 class ShowAddressScreen extends StatefulWidget {
   final String address;
@@ -51,7 +52,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Your receive address for Oslo Freedom Forum!",
                 style: BitcoinTextStyle.title4(Bitcoin.neutral8)),
@@ -121,9 +122,14 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
       ],
     );
 
+    final insetTop = Adaptive.h(10);
+    final insetBottom = Adaptive.h(4.7);
+    final insetHorizontal = Adaptive.w(6.1);
+
     return Scaffold(
         body: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 060, 25, 45),
+            padding: EdgeInsets.fromLTRB(
+                insetHorizontal, insetTop, insetHorizontal, insetBottom),
             child: Column(
               children: [
                 Expanded(child: body),

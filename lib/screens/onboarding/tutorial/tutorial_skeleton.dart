@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -62,20 +63,22 @@ class TutorialSkeleton extends StatelessWidget {
             const SizedBox(
               height: 20,
             ),
-            Text(
+            AutoSizeText(
               title,
               style: BitcoinTextStyle.title2(Colors.black)
                   .copyWith(height: 1.8, fontFamily: 'Inter'),
+                  maxLines: 1,
             ),
             const SizedBox(
               height: 10,
             ),
-            Text(
+            AutoSizeText(
               text,
               style: BitcoinTextStyle.body3(Bitcoin.neutral7).copyWith(
                 fontFamily: 'Inter',
               ),
               textAlign: TextAlign.center,
+              maxLines: 2,
             ),
           ],
         ),
@@ -85,8 +88,8 @@ class TutorialSkeleton extends StatelessWidget {
 
     final footer = Column(
       children: [
-        const SizedBox(
-          height: 40,
+        SizedBox(
+          height: Adaptive.h(3),
         ),
         DotsIndicator(
           dotsCount: 3,

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/widgets/confirmation_widget.dart';
 import 'package:danawallet/widgets/input_alert_widget.dart';
@@ -87,7 +88,7 @@ String exceptionToString(Object e) {
   return message;
 }
 
-RichText addressAsRichText(String address, double? fontSize) {
+AutoSizeText addressAsRichText(String address, double? fontSize) {
   // split the address into chunks of size 4
   List<String> chunks = [];
 
@@ -115,8 +116,8 @@ RichText addressAsRichText(String address, double? fontSize) {
                 height: 2)));
   }
 
-  return RichText(
-    text: TextSpan(
+  return AutoSizeText.rich(
+    TextSpan(
         text: '$first ',
         style: BitcoinTextStyle.body5(Bitcoin.blue).copyWith(
             fontSize: fontSize,
@@ -125,6 +126,7 @@ RichText addressAsRichText(String address, double? fontSize) {
             height: 2),
         children: spans),
     textAlign: TextAlign.justify,
+    maxLines: 5,
   );
 }
 

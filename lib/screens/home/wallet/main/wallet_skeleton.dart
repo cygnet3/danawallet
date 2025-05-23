@@ -7,6 +7,7 @@ import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/add_funds_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 
 class WalletSkeleton extends StatelessWidget {
   final bool showAddFundsWidget;
@@ -104,6 +105,8 @@ class WalletSkeleton extends StatelessWidget {
     final walletState = Provider.of<WalletState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
 
+    final bottomPadding = Adaptive.h(2.4);
+
     ApiAmount amount =
         ApiAmount(field0: walletState.amount + walletState.unconfirmedChange);
 
@@ -145,8 +148,8 @@ class WalletSkeleton extends StatelessWidget {
                         ),
                         Flexible(child: txHistory),
                         if (footerButtons != null) footerButtons!,
-                        const SizedBox(
-                          height: 20.0,
+                        SizedBox(
+                          height: bottomPadding,
                         ),
                       ],
                     )),

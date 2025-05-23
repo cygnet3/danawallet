@@ -1,8 +1,10 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/overview.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_plain.dart';
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 
 class IntroductionScreen extends StatelessWidget {
   const IntroductionScreen({super.key});
@@ -13,20 +15,24 @@ class IntroductionScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Image(
-          width: 200.0,
+          height: Adaptive.h(22),
           image: const AssetImage(
             "assets/icons/dana_outline.png",
           ),
           color: Bitcoin.black,
         ),
-        Text(
+        AutoSizeText(
           'Dana wallet',
           style: BitcoinTextStyle.title2(Colors.black)
               .copyWith(height: 1.8, fontFamily: 'Inter'),
+          maxLines: 1,
         ),
-        Text('Convenient, private payments',
-            style: BitcoinTextStyle.body1(Bitcoin.neutral8)
-                .copyWith(height: 1.8, fontFamily: 'Inter')),
+        AutoSizeText(
+          'Convenient, private payments',
+          style: BitcoinTextStyle.body1(Bitcoin.neutral8)
+              .copyWith(height: 1.8, fontFamily: 'Inter'),
+          maxLines: 1,
+        ),
       ],
     );
 

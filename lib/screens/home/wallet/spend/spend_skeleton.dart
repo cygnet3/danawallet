@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/widgets/back_button.dart';
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 
 class SpendSkeleton extends StatelessWidget {
   final bool showBackButton;
@@ -16,13 +17,14 @@ class SpendSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final padding = Adaptive.h(2.4);
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
           title: showBackButton ? const BackButtonWidget() : null,
         ),
         body: Padding(
-            padding: const EdgeInsets.all(25.0),
+            padding: EdgeInsets.all(padding),
             child: Column(
               children: [
                 if (title != null)

@@ -7,7 +7,9 @@ import 'package:danawallet/widgets/back_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 
 class GenerateAddressScreen extends StatefulWidget {
   const GenerateAddressScreen({super.key});
@@ -59,8 +61,7 @@ class GenerateAddressScreenState extends State<GenerateAddressScreen> {
           const SizedBox(
             height: 20,
           ),
-          Text(
-              'Where will you be sharing this address?',
+          Text('Where will you be sharing this address?',
               style: BitcoinTextStyle.body3(Bitcoin.neutral8)
                   .copyWith(fontFamily: 'Inter')),
           const SizedBox(
@@ -117,13 +118,18 @@ class GenerateAddressScreenState extends State<GenerateAddressScreen> {
       ),
     );
 
+    final insetTop = Adaptive.h(2.1);
+    final insetBottom = Adaptive.h(4.7);
+    final insetHorizontal = Adaptive.w(6.1);
+
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
           title: const BackButtonWidget(),
         ),
         body: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 20, 25, 45),
+            padding: EdgeInsets.fromLTRB(
+                insetHorizontal, insetTop, insetHorizontal, insetBottom),
             child: Column(
               children: [
                 Expanded(child: body),

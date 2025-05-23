@@ -8,6 +8,7 @@ import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:danawallet/widgets/transaction_history.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 
 class WalletScreenFull extends StatelessWidget {
   const WalletScreenFull({super.key});
@@ -15,6 +16,8 @@ class WalletScreenFull extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
+
+    final height = Adaptive.h(27);
 
     final transactions = walletState.txHistory.toApiTransactions();
     final txHistory = Column(children: [
@@ -26,7 +29,7 @@ class WalletScreenFull extends StatelessWidget {
                 .apply(fontWeightDelta: 2),
           )),
       LimitedBox(
-          maxHeight: 240,
+          maxHeight: height,
           child: TransactionHistoryWidget(transactions: transactions)),
     ]);
 
