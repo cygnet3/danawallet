@@ -25,7 +25,7 @@ class OverviewScreen extends StatelessWidget {
           height: 10,
         ),
         Text(
-          "The Dana promise",
+          "The Dana Promise",
           style: BitcoinTextStyle.title2(Colors.black)
               .copyWith(height: 1.8, fontFamily: 'Inter'),
         ),
@@ -48,9 +48,9 @@ class OverviewScreen extends StatelessWidget {
           height: 30,
         ),
         const InfoWidget(
-            iconPath: "assets/icons/contact.svg",
-            title: "Contacts & labels",
-            text: "Great for sending quickly and keeping things organized."),
+            iconPath: "assets/icons/address-book.svg",
+            title: "Address book",
+            text: "Keep an overview of your payments and addresses."),
       ],
     );
 

@@ -60,7 +60,7 @@ class GenerateAddressScreenState extends State<GenerateAddressScreen> {
             height: 20,
           ),
           Text(
-              'Where will you be posting or sharing this address?',
+              'Where will you be sharing this address?',
               style: BitcoinTextStyle.body3(Bitcoin.neutral8)
                   .copyWith(fontFamily: 'Inter')),
           const SizedBox(

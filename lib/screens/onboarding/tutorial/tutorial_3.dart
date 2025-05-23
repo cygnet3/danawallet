@@ -11,10 +11,9 @@ class TutorialScreen3 extends StatelessWidget {
     return TutorialSkeleton(
       step: 2,
       nextScreen: const GetStartedScreen(),
-      iconPath: "assets/icons/tag.svg",
+      iconPath: "assets/icons/boxes.svg",
       title: 'Stay organized',
-      text:
-          'Contacts and automatic labels help you with keeping your transactions organized.',
+      text: 'Keep things organized with dedicated addresses!',
       main: Container(
         width: 372,
         height: 261,

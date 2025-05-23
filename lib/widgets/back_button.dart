@@ -21,7 +21,7 @@ class BackButtonWidget extends StatelessWidget {
                 )),
             TextSpan(
               text: 'Back',
-              style: BitcoinTextStyle.title5(Bitcoin.black)
+              style: BitcoinTextStyle.body3(Bitcoin.black)
                   .apply(fontFamily: 'Space Grotesk'),
             ),
           ],

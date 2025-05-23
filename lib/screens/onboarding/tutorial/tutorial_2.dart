@@ -14,10 +14,10 @@ class TutorialScreen2 extends StatelessWidget {
     return TutorialSkeleton(
         step: 1,
         nextScreen: const TutorialScreen3(),
-        iconPath: "assets/icons/contact.svg",
-        title: 'Contacts',
-        text:
-            'Easily store & send to bitcoin addresses of people you want to send to.',
+        iconPath: "assets/icons/address-book.svg",
+        iconHeight: 55,
+        title: 'Address book',
+        text: 'Save bitcoin addresses as contacts!',
         main: Stack(
           alignment: Alignment.topCenter,
           children: [

@@ -9,6 +9,9 @@ import 'package:sizer/sizer.dart';
 class TutorialSkeleton extends StatelessWidget {
   final Widget nextScreen;
   final String iconPath;
+  final double iconHeight;
+  final String? leftIconPath;
+  final String? rightIconPath;
   final String title;
   final String text;
   final Widget main;
@@ -22,6 +25,9 @@ class TutorialSkeleton extends StatelessWidget {
     required this.text,
     required this.main,
     required this.step,
+    this.leftIconPath,
+    this.rightIconPath,
+    this.iconHeight = 44,
   });
 
   @override
@@ -34,7 +40,25 @@ class TutorialSkeleton extends StatelessWidget {
             SizedBox(
               height: Adaptive.h(5),
             ),
-            CircularIcon(iconPath: iconPath, iconHeight: 44, radius: 50),
+            Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                CircularIcon(
+                    iconPath: iconPath, iconHeight: iconHeight, radius: 50),
+                if (leftIconPath != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 100),
+                    child: CircularIcon(
+                        iconPath: leftIconPath!, iconHeight: 22, radius: 25),
+                  ),
+                if (rightIconPath != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 100),
+                    child: CircularIcon(
+                        iconPath: rightIconPath!, iconHeight: 22, radius: 25),
+                  ),
+              ],
+            ),
             const SizedBox(
               height: 20,
             ),
