@@ -1,4 +1,7 @@
-default: build-emulator build-android
+default: clean-bin build-emulator build-android
+
+clean-bin:
+    rm -r ../android/app/src/main/jniLibs/*
 
 gen:
     flutter_rust_bridge_codegen generate --config-file ../flutter_rust_bridge.yaml --enable-lifetime
