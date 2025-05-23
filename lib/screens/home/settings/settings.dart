@@ -140,16 +140,18 @@ Without a backup, your funds willl be lost!""");
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          BitcoinButtonOutlined(
-            title: 'Show seed phrase',
-            onPressed: () async {
-              const title = 'Backup seed phrase';
-              final text = await walletState.getSeedPhraseFromSecureStorage() ??
-                  'Seed phrase unknown! Did you import from keys?';
+          if (isDevEnv())
+            BitcoinButtonOutlined(
+              title: 'Show seed phrase',
+              onPressed: () async {
+                const title = 'Backup seed phrase';
+                final text =
+                    await walletState.getSeedPhraseFromSecureStorage() ??
+                        'Seed phrase unknown! Did you import from keys?';
 
-              showAlertDialog(title, text);
-            },
-          ),
+                showAlertDialog(title, text);
+              },
+            ),
           if (isDevEnv())
             BitcoinButtonOutlined(
                 title: 'Set scan height',
