@@ -96,7 +96,7 @@ class GetStartedScreen extends StatelessWidget {
               height: Adaptive.h(5),
             ),
             const CircularIcon(
-                iconPath: "assets/icons/rocket.svg",
+                iconPath: "assets/icons/rocket-large.svg",
                 iconHeight: 44,
                 radius: 50),
             const SizedBox(
