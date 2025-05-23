@@ -86,6 +86,19 @@ impl ApiAmount {
     pub fn display_sats(&self) -> String {
         format!("{} sats", self.0)
     }
+
+    #[frb(sync)]
+    pub fn displaybip177(&self) -> String {
+        let mut s = String::new();
+        for (i, c) in self.0.to_string().chars().rev().enumerate() {
+            if (i + 1) % 3 == 0 {
+                s.insert(0, ' ');
+            }
+            s.insert(0, c);
+        }
+
+        format!("{} ₿", s)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

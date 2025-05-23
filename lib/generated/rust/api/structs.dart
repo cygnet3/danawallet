@@ -31,6 +31,11 @@ class ApiAmount {
         that: this,
       );
 
+  String displaybip177() =>
+      RustLib.instance.api.crateApiStructsApiAmountDisplaybip177(
+        that: this,
+      );
+
   BigInt toInt() => RustLib.instance.api.crateApiStructsApiAmountToInt(
         that: this,
       );
