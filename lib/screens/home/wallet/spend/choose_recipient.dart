@@ -4,6 +4,7 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
+import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
@@ -92,6 +93,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              const SizedBox(),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -116,13 +118,9 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  BitcoinButtonOutlined(
-                    tintColor: Bitcoin.neutral5,
-                    textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-                    title: 'Paste from clipboard',
-                    onPressed: onPasteFromClipboard,
-                    cornerRadius: 5.0,
-                  ),
+                  FooterButtonOutlined(
+                      title: "Paste from clipboard",
+                      onPressed: onPasteFromClipboard),
                   const SizedBox(
                     height: 10.0,
                   ),
@@ -137,13 +135,8 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   const SizedBox(
                     height: 10.0,
                   ),
-                  BitcoinButtonOutlined(
-                    tintColor: Bitcoin.neutral5,
-                    textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-                    title: 'Scan from image',
-                    onPressed: onScanWithCamera,
-                    cornerRadius: 5.0,
-                  ),
+                  FooterButtonOutlined(
+                      title: "Scan QR Code", onPressed: onScanWithCamera)
                 ],
               ),
               // these work as spacers, will remove them later

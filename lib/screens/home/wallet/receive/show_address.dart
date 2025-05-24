@@ -59,9 +59,18 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
             const SizedBox(
               height: 20,
             ),
-            Text(
-                "This is your receive address for Oslo Freedom Forum.\n\nWhen you receive payments to this address, the app will detect them as payments related to Oslo Freedom Forum.",
-                style: BitcoinTextStyle.body3(Bitcoin.neutral8)),
+            RichText(
+                text: TextSpan(
+                    text: "This is your ",
+                    style: BitcoinTextStyle.body3(Bitcoin.neutral8),
+                    children: const [
+                  TextSpan(
+                      text: "Receive Address",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(
+                      text:
+                          " for Oslo Freedom Forum.\n\nWhen you receive payments to this address, the app will detect them as payments related to Oslo Freedom Forum."),
+                ])),
           ],
         ),
         const Spacer(),

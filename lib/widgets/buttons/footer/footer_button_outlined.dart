@@ -12,6 +12,7 @@ class FooterButtonOutlined extends StatelessWidget {
   Widget build(BuildContext context) {
     return BitcoinButtonOutlined(
       title: title,
+      // textStyle: BitcoinTextStyle.body2(Bitcoin.black),
       textStyle: BitcoinTextStyle.body2(Bitcoin.black),
       onPressed: onPressed,
       cornerRadius: 5.0,
