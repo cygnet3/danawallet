@@ -7,6 +7,7 @@ import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
+import 'package:danawallet/widgets/transaction_history.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -74,77 +75,6 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  ListTile toListTile(ApiRecordedTransaction tx) {
-    Color? color;
-    String amount;
-    String amountprefix;
-    String title;
-    String text;
-    Image image;
-    String recipient;
-    String date;
-
-    switch (tx) {
-      case ApiRecordedTransaction_Incoming(:final field0):
-        recipient = 'Incoming';
-        date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
-        color = Bitcoin.green;
-        amount = field0.amount.displayBtc();
-        amountprefix = '+';
-        title = 'Incoming transaction';
-        text = field0.toString();
-        image = Image(
-            image: const AssetImage("icons/receive.png", package: "bitcoin_ui"),
-            color: Bitcoin.neutral3Dark);
-      case ApiRecordedTransaction_Outgoing(:final field0):
-        recipient = displayAddress(context, field0.recipients[0].address,
-            BitcoinTextStyle.body4(Bitcoin.black), 0.53);
-        date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
-        if (field0.confirmedAt == null) {
-          color = Bitcoin.neutral4;
-        } else {
-          color = Bitcoin.red;
-        }
-        amount = field0.totalOutgoing().displayBtc();
-        amountprefix = '-';
-        title = 'Outgoing transaction';
-        text = field0.toString();
-        image = Image(
-            image: const AssetImage("icons/send.png", package: "bitcoin_ui"),
-            color: Bitcoin.neutral3Dark);
-    }
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: image,
-      title: Row(
-        children: [
-          Text(
-            recipient,
-            style: BitcoinTextStyle.body4(Bitcoin.black),
-          ),
-          const Spacer(),
-          Text('$amountprefix $amount', style: BitcoinTextStyle.body4(color)),
-        ],
-      ),
-      subtitle: Row(
-        children: [
-          Text(date, style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
-          const Spacer(),
-          Text('\$ 0.00', style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
-        ],
-      ),
-      trailing: InkResponse(
-          onTap: () {
-            showAlertDialog(title, text);
-          },
-          child: Image(
-            image: const AssetImage("icons/caret_right.png",
-                package: "bitcoin_ui"),
-            color: Bitcoin.neutral7,
-          )),
-    );
-  }
-
   Widget buildTransactionHistory(List<ApiRecordedTransaction> transactions) {
     Widget history;
     if (transactions.isEmpty) {
@@ -152,14 +82,7 @@ class WalletScreenState extends State<WalletScreen> {
           child: Text('No transactions yet.',
               style: BitcoinTextStyle.body3(Bitcoin.neutral6)));
     } else {
-      history = ListView.separated(
-          separatorBuilder: (BuildContext context, int index) =>
-              const Divider(),
-          reverse: false,
-          itemCount: transactions.length,
-          itemBuilder: (context, index) {
-            return toListTile(transactions[transactions.length - 1 - index]);
-          });
+      history = TransactionHistoryWidget(transactions: transactions);
     }
 
     return Column(children: [
