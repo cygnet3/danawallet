@@ -33,14 +33,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
   Widget build(BuildContext context) {
     final address = Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          "tap to copy",
-          style: BitcoinTextStyle.body5(Bitcoin.neutral5)
-              .copyWith(fontFamily: "Inter"),
-        ),
-        addressAsRichText(widget.address, 18)
-      ],
+      children: [addressAsRichText(widget.address, 18)],
     );
 
     final qrCode =
@@ -49,22 +42,38 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
     final body = Column(
       // mainAxisAlignment: MainAxisAlignment.spaceAround,
       mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Your receive address for Oslo Freedom Forum!",
-                style: BitcoinTextStyle.title4(Bitcoin.neutral8)),
+            Text("Your Receive Address",
+                style: BitcoinTextStyle.title3(Bitcoin.neutral8)),
             const SizedBox(
               height: 20,
             ),
-            Text(
-                "This is your receive address for Oslo Freedom Forum.\n\nWhen you receive payments to this address, the app will detect them as payments related to Oslo Freedom Forum.",
-                style: BitcoinTextStyle.body3(Bitcoin.neutral8)),
           ],
         ),
         const Spacer(),
+        Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                    text: "This is your ",
+                    style: BitcoinTextStyle.body3(Bitcoin.neutral8),
+                    children: const [
+                      TextSpan(
+                          text: "Receive Address",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(text: " for "),
+                      TextSpan(
+                          text: " Oslo Freedom Forum",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ]))),
+        const SizedBox(
+          height: 15,
+        ),
         GestureDetector(
           onTap: copyToClipboard,
           child: Container(
@@ -74,13 +83,19 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(10))),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: toggleQr ? qrCode : address,
+                // padding: const EdgeInsets.all(20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child:
+                    SizedBox(height: Adaptive.h(22), child: toggleQr ? qrCode : address),
               )),
         ),
-        const SizedBox(
-          height: 15,
+        Text(
+          "Tap above to copy",
+          style: BitcoinTextStyle.body5(Bitcoin.neutral5)
+              .copyWith(fontFamily: "Inter"),
         ),
+        const Spacer(),
       ],
     );
 
@@ -111,7 +126,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
           height: 15,
         ),
         FooterButton(
-          title: "Done!",
+          title: "Done",
           onPressed: () {
             Navigator.pushAndRemoveUntil(
                 context,
