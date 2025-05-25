@@ -29,6 +29,9 @@ abstract class TxHistory implements RustOpaqueInterface {
 
   String encode();
 
+  static TxHistory exampleHistory() =>
+      RustLib.instance.api.crateApiHistoryTxHistoryExampleHistory();
+
   BigInt getUnconfirmedChange();
 
   void processStateUpdate({required StateUpdate update});

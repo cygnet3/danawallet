@@ -43,6 +43,36 @@ impl TxHistory {
     }
 
     #[flutter_rust_bridge::frb(sync)]
+    pub fn example_history() -> Self {
+        let tx_one = RecordedTransaction::Incoming(RecordedTransactionIncoming {
+            txid: "76026d3cfb711740291bfb4f7bfba2fe171cf48f503b6db164b83c94f9338d7a"
+                .parse()
+                .unwrap(),
+            amount: Amount::from_sat(20_000),
+            confirmed_at: Some(Height::from_consensus(1).unwrap()),
+            label: Some("Nostr".to_string()),
+        });
+        let tx_two = RecordedTransaction::Incoming(RecordedTransactionIncoming {
+            txid: "76026d3cfb711740291bfb4f7bfba2fe171cf48f503b6db164b83c94f9338d7a"
+                .parse()
+                .unwrap(),
+            amount: Amount::from_sat(100_000),
+            confirmed_at: Some(Height::from_consensus(2).unwrap()),
+            label: Some("Instagram".to_string()),
+        });
+        let tx_three = RecordedTransaction::Incoming(RecordedTransactionIncoming {
+            txid: "76026d3cfb711740291bfb4f7bfba2fe171cf48f503b6db164b83c94f9338d7a"
+                .parse()
+                .unwrap(),
+            amount: Amount::from_sat(1_000_000),
+            confirmed_at: Some(Height::from_consensus(3).unwrap()),
+            label: Some("Oslo Freedom Forum".to_string()),
+        });
+
+        TxHistory(vec![tx_one, tx_two, tx_three])
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
     pub fn process_state_update(&mut self, update: &StateUpdate) -> Result<()> {
         match update {
             StateUpdate::Update {
@@ -197,6 +227,7 @@ impl TxHistory {
                 txid,
                 amount,
                 confirmed_at: Some(confirmed_at),
+                label: None,
             }))
     }
 

@@ -13,7 +13,7 @@ class OnboardingSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = Adaptive.h(3.8);
-    final horizontalPadding = Adaptive.h(3);
+    final horizontalPadding = Adaptive.h(2.5);
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,

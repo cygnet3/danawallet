@@ -20,8 +20,16 @@ class TransactionHistoryWidget extends StatelessWidget {
 
     switch (tx) {
       case ApiRecordedTransaction_Incoming(:final field0):
-        recipient = 'Oslo Freedom Forum';
+        recipient = field0.label ?? 'Oslo Freedom Forum';
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
+        // example values used on the onboarding screen
+        if (field0.confirmedAt == 3) {
+          date = "A few minutes ago";
+        } else if (field0.confirmedAt == 2) {
+          date = "Yesterday";
+        } else if (field0.confirmedAt == 1) {
+          date = "Last week";
+        }
         color = Bitcoin.green;
         amount = field0.amount.displayBtc();
         amountprefix = '+';

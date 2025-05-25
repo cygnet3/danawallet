@@ -163,6 +163,7 @@ pub struct ApiRecordedTransactionIncoming {
     pub txid: String,
     pub amount: ApiAmount,
     pub confirmed_at: Option<u32>,
+    pub label: Option<String>,
 }
 
 impl ApiRecordedTransactionIncoming {
@@ -225,6 +226,7 @@ impl From<RecordedTransactionIncoming> for ApiRecordedTransactionIncoming {
             txid: value.txid.to_string(),
             amount: value.amount.into(),
             confirmed_at,
+            label: value.label,
         }
     }
 }
@@ -239,6 +241,7 @@ impl From<ApiRecordedTransactionIncoming> for RecordedTransactionIncoming {
             txid: Txid::from_str(&value.txid).unwrap(),
             amount: value.amount.into(),
             confirmed_at,
+            label: value.label,
         }
     }
 }

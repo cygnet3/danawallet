@@ -135,11 +135,13 @@ class ApiRecordedTransactionIncoming {
   final String txid;
   final ApiAmount amount;
   final int? confirmedAt;
+  final String? label;
 
   const ApiRecordedTransactionIncoming({
     required this.txid,
     required this.amount,
     this.confirmedAt,
+    this.label,
   });
 
   String toString() => RustLib.instance.api
@@ -148,7 +150,8 @@ class ApiRecordedTransactionIncoming {
       );
 
   @override
-  int get hashCode => txid.hashCode ^ amount.hashCode ^ confirmedAt.hashCode;
+  int get hashCode =>
+      txid.hashCode ^ amount.hashCode ^ confirmedAt.hashCode ^ label.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -157,7 +160,8 @@ class ApiRecordedTransactionIncoming {
           runtimeType == other.runtimeType &&
           txid == other.txid &&
           amount == other.amount &&
-          confirmedAt == other.confirmedAt;
+          confirmedAt == other.confirmedAt &&
+          label == other.label;
 }
 
 class ApiRecordedTransactionOutgoing {

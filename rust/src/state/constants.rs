@@ -15,6 +15,7 @@ pub struct RecordedTransactionIncoming {
     pub txid: Txid,
     pub amount: Amount,
     pub confirmed_at: Option<Height>,
+    pub label: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
