@@ -11,6 +11,7 @@ import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -21,6 +22,8 @@ void main() async {
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
+
+  await precacheImages();
 
   final bool walletLoaded;
   try {
@@ -70,4 +73,23 @@ class SilentPaymentApp extends StatelessWidget {
       );
     });
   }
+}
+
+Future<void> precacheImages() async {
+  await precacheSvgPicture("assets/icons/rocket-large.svg");
+  await precacheSvgPicture("assets/icons/contact.svg");
+  await precacheSvgPicture("assets/icons/rocket.svg");
+  await precacheSvgPicture("assets/icons/hidden.svg");
+  await precacheSvgPicture("assets/icons/address-book.svg");
+  await precacheSvgPicture("assets/icons/wallet.svg");
+  await precacheSvgPicture("assets/icons/boxes.svg");
+  await precacheSvgPicture("assets/icons/sparkle.svg");
+  await precacheSvgPicture("assets/icons/twitter.svg");
+  await precacheSvgPicture("assets/icons/nostr.svg");
+  await precacheSvgPicture("assets/icons/globe.svg");
+}
+
+Future precacheSvgPicture(String svgPath) async {
+  final logo = SvgAssetLoader(svgPath);
+  await svg.cache.putIfAbsent(logo.cacheKey(null), () => logo.loadBytes(null));
 }
