@@ -17,7 +17,7 @@ class TutorialScreen2 extends StatelessWidget {
         iconPath: "assets/icons/address-book.svg",
         iconHeight: 55,
         title: 'Address book',
-        text: 'Save bitcoin addresses as contacts!',
+        text: 'Save bitcoin addresses as contacts.',
         main: Stack(
           alignment: Alignment.topCenter,
           children: [

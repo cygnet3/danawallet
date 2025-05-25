@@ -55,7 +55,7 @@ class GenerateAddressScreenState extends State<GenerateAddressScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Generate a receive address',
+          Text('Generate a Receive Address',
               textAlign: TextAlign.center,
               style: BitcoinTextStyle.title4(Bitcoin.neutral8)),
           const SizedBox(

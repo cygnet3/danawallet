@@ -108,10 +108,8 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _wipeWalletButtonPressed(BuildContext context) async {
-    final confirmed = await showConfirmationAlertDialog(
-        'Confirm deletion', """Are you sure you want to wipe your wallet?
-Make sure you have a backup of your seed phrase.
-Without a backup, your funds willl be lost!""");
+    final confirmed = await showConfirmationAlertDialog('Confirm deletion',
+        "Are you sure you want to wipe your wallet? Without a backup, you will lose your funds!");
 
     if (confirmed && context.mounted) {
       final walletState = Provider.of<WalletState>(context, listen: false);

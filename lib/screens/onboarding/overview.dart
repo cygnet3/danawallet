@@ -46,12 +46,12 @@ class OverviewScreen extends StatelessWidget {
                 iconPath: "assets/icons/hidden.svg",
                 title: "Better privacy",
                 text:
-                    "Bitcoin privacy tools used to be hard-to-use. Not anymore!",
+                    "Bitcoin privacy tools used to be hard-to-use. Not anymore.",
                 group: autoSizeGroup),
             InfoWidget(
                 iconPath: "assets/icons/address-book.svg",
                 title: "Address book",
-                text: "Keep an overview of your payments and addresses!",
+                text: "Keep an overview of your payments and addresses.",
                 group: autoSizeGroup),
             const SizedBox(),
             const SizedBox(),

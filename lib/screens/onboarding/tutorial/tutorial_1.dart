@@ -15,7 +15,7 @@ class TutorialScreen1 extends StatelessWidget {
       nextScreen: const TutorialScreen2(),
       iconPath: "assets/icons/sparkle.svg",
       title: 'Re-usable bitcoin address',
-      text: 'Dana uses a new type of address that can be reused indefinitely!',
+      text: 'Dana uses a new type of address that can be reused indefinitely.',
       main: Container(
         width: 372,
         height: 212,

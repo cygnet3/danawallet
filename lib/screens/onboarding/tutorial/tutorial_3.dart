@@ -8,28 +8,29 @@ class TutorialScreen3 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TutorialSkeleton(
+    return const TutorialSkeleton(
       step: 2,
-      nextScreen: const GetStartedScreen(),
+      nextScreen: GetStartedScreen(),
       iconPath: "assets/icons/boxes.svg",
       title: 'Stay organized',
-      text: 'Keep things organized with dedicated addresses!',
-      main: Container(
-        width: 372,
-        height: 261,
-        decoration: ShapeDecoration(
-          color: Bitcoin.neutral2,
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10))),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20), child: Text('')),
-          ],
-        ),
-      ),
+      text: 'Keep things organized with dedicated addresses.',
+      main: SizedBox(),
+      // main: Container(
+      //   width: 372,
+      //   height: 261,
+      //   decoration: ShapeDecoration(
+      //     color: Bitcoin.neutral2,
+      //     shape: const RoundedRectangleBorder(
+      //         borderRadius: BorderRadius.all(Radius.circular(10))),
+      //   ),
+      //   child: const Column(
+      //     mainAxisAlignment: MainAxisAlignment.center,
+      //     children: [
+      //       Padding(
+      //           padding: EdgeInsets.symmetric(horizontal: 20), child: Text('')),
+      //     ],
+      //   ),
+      // ),
     );
   }
 }

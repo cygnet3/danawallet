@@ -68,7 +68,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       TextSpan(text: " for "),
                       TextSpan(
-                          text: " Oslo Freedom Forum",
+                          text: "Oslo Freedom Forum",
                           style: TextStyle(fontWeight: FontWeight.bold)),
                     ]))),
         const SizedBox(
