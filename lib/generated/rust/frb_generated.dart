@@ -9,6 +9,7 @@ import 'api/history.dart';
 import 'api/outputs.dart';
 import 'api/stream.dart';
 import 'api/structs.dart';
+import 'api/validate.dart';
 import 'api/wallet.dart';
 import 'api/wallet/setup.dart';
 import 'dart:async';
@@ -78,7 +79,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.9.0';
 
   @override
-  int get rustContentHash => 1485946307;
+  int get rustContentHash => 1588161698;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -378,6 +379,8 @@ abstract class RustLibApi extends BaseApi {
 
   SettingsBackup crateApiBackupSettingsBackupNew(
       {required String blindbitUrl, required int dustLimit});
+
+  bool crateApiValidateValidateAddress({required String address});
 
   RustArcIncrementStrongCountFnType
       get rust_arc_increment_strong_count_ApiScanKey;
@@ -3117,6 +3120,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(
         debugName: "settings_backup_new",
         argNames: ["blindbitUrl", "dustLimit"],
+      );
+
+  @override
+  bool crateApiValidateValidateAddress({required String address}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(address, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 97)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiValidateValidateAddressConstMeta,
+      argValues: [address],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiValidateValidateAddressConstMeta =>
+      const TaskConstMeta(
+        debugName: "validate_address",
+        argNames: ["address"],
       );
 
   RustArcIncrementStrongCountFnType

@@ -10,3 +10,4 @@ pub mod simple;
 pub mod stream;
 pub mod structs;
 pub mod wallet;
+pub mod validate;

@@ -9,6 +9,7 @@ import 'api/history.dart';
 import 'api/outputs.dart';
 import 'api/stream.dart';
 import 'api/structs.dart';
+import 'api/validate.dart';
 import 'api/wallet.dart';
 import 'api/wallet/setup.dart';
 import 'dart:async';
