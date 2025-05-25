@@ -80,71 +80,69 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
 
     return SpendSkeleton(
       showBackButton: true,
+      title: 'Enter amount',
       body: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            Row(children: [
+              SizedBox(
+                  height: 50.0,
+                  width: 50.0,
+                  child: Image(
+                    fit: BoxFit.contain,
+                    image: const AssetImage("icons/3.0x/bitcoin_circle.png",
+                        package: "bitcoin_ui"),
+                    color: Bitcoin.orange,
+                  )),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('To', style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
+                  Text(recipientName, style: recipientTextStyle),
+                ],
+              )
+            ]),
             Column(
               children: [
-                Text('Available Balance',
-                    style: BitcoinTextStyle.body5(Bitcoin.neutral8)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Amount',
+                    style: BitcoinTextStyle.body5(Bitcoin.black),
+                  ),
+                ),
+                const SizedBox(
+                  height: 10.0,
+                ),
+                TextField(
+                  controller: amountController,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    labelText: 'Enter an amount',
+                    errorText: _amountErrorText,
+                    suffixText: 'sats',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(
+                  height: 10.0,
+                ),
+                Text('Available Balance: $availableBalance',
+                    style: BitcoinTextStyle.body3(Bitcoin.black)
                         .apply(fontWeightDelta: 1)),
-                Text(
-                  '$availableBalance sats',
-                  style: BitcoinTextStyle.body1(Bitcoin.neutral8).apply(
-                      fontSizeDelta: 3,
-                      fontFeatures: [const FontFeature.slashedZero()]),
-                ),
-              ],
-            ),
-            const SizedBox(),
-            const SizedBox(),
-            Column(
-              children: [
-                Column(
-                  children: [
-                    TextField(
-                      controller: amountController,
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        floatingLabelAlignment: FloatingLabelAlignment.center,
-                        labelText: 'Enter an amount',
-                        errorText: _amountErrorText,
-                        suffixText: 'sats',
-                      ),
-                      keyboardType: TextInputType.number,
+                if (blocksToScan != 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'Warning: $blocksToScan block(s) to scan, balance might be inaccurate.',
+                      style: BitcoinTextStyle.body5(Bitcoin.orange),
+                      textAlign: TextAlign.center,
                     ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Text('Will be sent to',
-                    style: BitcoinTextStyle.body5(Bitcoin.black)),
-                const SizedBox(
-                  height: 5,
-                ),
-                Row(children: [
-                  SizedBox(
-                      height: 50.0,
-                      width: 50.0,
-                      child: Image(
-                        fit: BoxFit.contain,
-                        image: const AssetImage("icons/3.0x/bitcoin_circle.png",
-                            package: "bitcoin_ui"),
-                        color: Bitcoin.orange,
-                      )),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Text('Will be sent to',
-                      //     style: BitcoinTextStyle.body5(Bitcoin.black)),
-                      Text(recipientName, style: recipientTextStyle),
-                    ],
-                  )
-                ]),
+                  ),
               ],
             ),
+            // just here for spacing, replace with fractionallysizedbox later
             const SizedBox(),
             const SizedBox(),
             const SizedBox(),
