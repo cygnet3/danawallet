@@ -187,9 +187,9 @@ class WalletState extends ChangeNotifier {
 
   Future<RecommendedFeeResponse> getCurrentFeeRates() async {
     if (network == Network.regtest) {
-      // for regtest, we always return 1 sat/vb
+      // for regtest, we return custom fees
       return RecommendedFeeResponse(
-          nextBlockFee: 1, halfHourFee: 1, hourFee: 1, dayFee: 1);
+          nextBlockFee: 3, halfHourFee: 2, hourFee: 1, dayFee: 1);
     } else {
       final mempoolApiRepository = MempoolApiRepository(network: network);
       final response = await mempoolApiRepository.getCurrentFeeRate();
