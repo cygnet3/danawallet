@@ -3,5 +3,11 @@ use sp_client::RecipientAddress;
 
 #[frb(sync)]
 pub fn validate_address(address: String) -> bool {
-    RecipientAddress::try_from(address).is_ok()
+    let address = RecipientAddress::try_from(address);
+
+    match address {
+        Ok(RecipientAddress::LegacyAddress(_)) => true,
+        Ok(RecipientAddress::SpAddress(_)) => true,
+        _ => false,
+    }
 }
