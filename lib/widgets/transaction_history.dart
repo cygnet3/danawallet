@@ -72,15 +72,6 @@ class TransactionHistoryWidget extends StatelessWidget {
           Text('\$ 0.00', style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
         ],
       ),
-      trailing: InkResponse(
-          onTap: () {
-            showAlertDialog(title, text);
-          },
-          child: Image(
-            image: const AssetImage("icons/caret_right.png",
-                package: "bitcoin_ui"),
-            color: Bitcoin.neutral7,
-          )),
     );
   }
 
