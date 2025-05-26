@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/home.dart';
@@ -13,6 +14,9 @@ class TransactionSentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String estimatedTime = RecipientForm().fee!.toEstimatedTime;
+    // If we already have a contact, we don't need to ask user to add to contact
+    PaymentAddress? sentAddress =
+        RecipientForm().contact != null ? null : RecipientForm().spAddress;
 
     return SpendSkeleton(
       showBackButton: false,
@@ -64,7 +68,10 @@ class TransactionSentScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => HomeScreen(
+                              sentAddress: sentAddress,
+                            )),
                     (Route<dynamic> route) => false);
               })
         ],
