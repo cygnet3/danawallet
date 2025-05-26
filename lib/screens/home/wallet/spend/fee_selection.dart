@@ -22,7 +22,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
   SelectedFee? _selected = SelectedFee.normal;
 
   Future<void> onContinue() async {
-    RecipientForm().fee = _selected!;
+    RecipientForm().fee = _selected;
 
     final walletState = Provider.of<WalletState>(context, listen: false);
     final changeAddress = walletState.changeAddress;
