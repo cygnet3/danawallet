@@ -3,6 +3,10 @@ import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/screens/home/contacts/contacts.dart';
 import 'package:danawallet/screens/home/wallet/wallet.dart';
+import 'package:danawallet/data/models/payment_address.dart';
+import 'package:danawallet/screens/home/contacts/create_contact.dart';
+import 'package:danawallet/states/home_state.dart';
+import 'package:danawallet/screens/home/contacts/contacts.dart';
 import 'package:danawallet/screens/home/settings/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -65,6 +69,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final homeState = Provider.of<HomeState>(context, listen: true);
 
+    // return a different screen based on the wallet seup phase
+    final walletScreen = Selector<WalletState, WalletSetupPhase>(
+        selector: (context, walletState) => walletState.currentState,
+        builder: (context, data, child) {
+          switch (data) {
+            case WalletSetupPhase.firstTime:
+              return const WalletScreenNew();
+            case WalletSetupPhase.addressCreated:
+              return const WalletScreenAddressCreated();
+            case WalletSetupPhase.full:
+              return const WalletScreenFull();
+          }
+        });
+
+    List<Widget> widgetOptions = [
+      walletScreen,
+      const ContactsScreen(),
+      const SettingsScreen(),
+    ];
+
     return Scaffold(
       body: IndexedStack(
         index: homeState.selectedIndex,
@@ -85,11 +109,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           BottomNavigationBarItem(
             icon: Image(
-              image:
-                  const AssetImage("icons/contacts.png", package: "bitcoin_ui"),
-              color: Bitcoin.neutral7,
-            ),
-            activeIcon: Image(
                 image: const AssetImage("icons/contacts.png",
                     package: "bitcoin_ui"),
                 color: Bitcoin.blue),
