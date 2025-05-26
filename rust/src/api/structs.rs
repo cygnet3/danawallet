@@ -81,11 +81,25 @@ impl TryFrom<ApiSilentPaymentAddress> for SilentPaymentAddress {
     }
 }
 
+impl TryFrom<&str> for ApiSilentPaymentAddress {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let sp_address: SilentPaymentAddress = value.try_into()?;
+        Ok(sp_address.into())
+    }
+}
+
 impl ApiSilentPaymentAddress {
     #[flutter_rust_bridge::frb(sync)]
     pub fn from_json_string(json: &str) -> anyhow::Result<Self> {
         let res = serde_json::from_str(json)?;
         Ok(res)
+    }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn from_string_representation(address: &str) -> anyhow::Result<Self> {
+        address.try_into()
     }
 }
 
