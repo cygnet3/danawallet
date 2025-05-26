@@ -44,7 +44,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.9.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 120964918;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 859682404;
 
 // Section: executor
 
@@ -5719,8 +5719,8 @@ fn pde_ffi_dispatcher_primary_impl(
             wire__crate__api__wallet__SpWallet_scan_to_tip_impl(port, ptr, rust_vec_len, data_len)
         }
         89 => wire__crate__api__structs__api_amount_default_impl(port, ptr, rust_vec_len, data_len),
-        107 => wire__crate__api__chain__get_chain_height_impl(port, ptr, rust_vec_len, data_len),
-        108 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        108 => wire__crate__api__chain__get_chain_height_impl(port, ptr, rust_vec_len, data_len),
+        109 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -5819,24 +5819,25 @@ fn pde_ffi_dispatcher_sync_impl(
 87 => wire__crate__api__wallet__setup__WalletSetupResult_auto_accessor_set_scan_key_impl(ptr, rust_vec_len, data_len),
 88 => wire__crate__api__wallet__setup__WalletSetupResult_auto_accessor_set_spend_key_impl(ptr, rust_vec_len, data_len),
 90 => wire__crate__api__structs__api_amount_display_btc_impl(ptr, rust_vec_len, data_len),
-91 => wire__crate__api__structs__api_amount_display_sats_impl(ptr, rust_vec_len, data_len),
-92 => wire__crate__api__structs__api_amount_to_int_impl(ptr, rust_vec_len, data_len),
-93 => wire__crate__api__structs__api_recorded_transaction_incoming_to_string_impl(ptr, rust_vec_len, data_len),
-94 => wire__crate__api__structs__api_recorded_transaction_outgoing_to_string_impl(ptr, rust_vec_len, data_len),
-95 => wire__crate__api__structs__api_recorded_transaction_outgoing_total_outgoing_impl(ptr, rust_vec_len, data_len),
-96 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_change_amount_impl(ptr, rust_vec_len, data_len),
-97 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_fee_amount_impl(ptr, rust_vec_len, data_len),
-98 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_recipients_impl(ptr, rust_vec_len, data_len),
-99 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_send_amount_impl(ptr, rust_vec_len, data_len),
-100 => wire__crate__api__stream__create_log_stream_impl(ptr, rust_vec_len, data_len),
-101 => wire__crate__api__stream__create_scan_progress_stream_impl(ptr, rust_vec_len, data_len),
-102 => wire__crate__api__stream__create_scan_result_stream_impl(ptr, rust_vec_len, data_len),
-103 => wire__crate__api__backup__encrypted_dana_backup_decode_impl(ptr, rust_vec_len, data_len),
-104 => wire__crate__api__backup__encrypted_dana_backup_decrypt_impl(ptr, rust_vec_len, data_len),
-105 => wire__crate__api__backup__encrypted_dana_backup_encode_impl(ptr, rust_vec_len, data_len),
-106 => wire__crate__api__backup__encrypted_dana_backup_new_impl(ptr, rust_vec_len, data_len),
-109 => wire__crate__api__backup__settings_backup_new_impl(ptr, rust_vec_len, data_len),
-110 => wire__crate__api__validate__validate_address_impl(ptr, rust_vec_len, data_len),
+91 => wire__crate__api__structs__api_amount_display_euro_impl(ptr, rust_vec_len, data_len),
+92 => wire__crate__api__structs__api_amount_display_sats_impl(ptr, rust_vec_len, data_len),
+93 => wire__crate__api__structs__api_amount_to_int_impl(ptr, rust_vec_len, data_len),
+94 => wire__crate__api__structs__api_recorded_transaction_incoming_to_string_impl(ptr, rust_vec_len, data_len),
+95 => wire__crate__api__structs__api_recorded_transaction_outgoing_to_string_impl(ptr, rust_vec_len, data_len),
+96 => wire__crate__api__structs__api_recorded_transaction_outgoing_total_outgoing_impl(ptr, rust_vec_len, data_len),
+97 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_change_amount_impl(ptr, rust_vec_len, data_len),
+98 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_fee_amount_impl(ptr, rust_vec_len, data_len),
+99 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_recipients_impl(ptr, rust_vec_len, data_len),
+100 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_send_amount_impl(ptr, rust_vec_len, data_len),
+101 => wire__crate__api__stream__create_log_stream_impl(ptr, rust_vec_len, data_len),
+102 => wire__crate__api__stream__create_scan_progress_stream_impl(ptr, rust_vec_len, data_len),
+103 => wire__crate__api__stream__create_scan_result_stream_impl(ptr, rust_vec_len, data_len),
+104 => wire__crate__api__backup__encrypted_dana_backup_decode_impl(ptr, rust_vec_len, data_len),
+105 => wire__crate__api__backup__encrypted_dana_backup_decrypt_impl(ptr, rust_vec_len, data_len),
+106 => wire__crate__api__backup__encrypted_dana_backup_encode_impl(ptr, rust_vec_len, data_len),
+107 => wire__crate__api__backup__encrypted_dana_backup_new_impl(ptr, rust_vec_len, data_len),
+110 => wire__crate__api__backup__settings_backup_new_impl(ptr, rust_vec_len, data_len),
+111 => wire__crate__api__validate__validate_address_impl(ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
