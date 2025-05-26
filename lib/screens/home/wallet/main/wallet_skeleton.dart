@@ -23,20 +23,6 @@ class WalletSkeleton extends StatelessWidget {
   AppBar buildAppBar(Network network) {
     return AppBar(
       forceMaterialTransparency: true,
-      title: Row(
-        children: [
-          const Spacer(),
-          SizedBox(
-              height: 30.0,
-              width: 30.0,
-              child: Image(
-                fit: BoxFit.contain,
-                image: const AssetImage("icons/3.0x/bitcoin_circle.png",
-                    package: "bitcoin_ui"),
-                color: network.toColor,
-              )),
-        ],
-      ),
     );
   }
 
@@ -69,14 +55,15 @@ class WalletSkeleton extends StatelessWidget {
     );
 
     return Visibility(
-        visible: scanProgress.scanning,
+        visible: false,
         maintainAnimation: true,
         maintainSize: true,
         maintainState: true,
         child: inner);
   }
 
-  Widget buildAmountDisplay(WalletState walletState, ApiAmount amount, bool hideAmount) {
+  Widget buildAmountDisplay(
+      WalletState walletState, ApiAmount amount, bool hideAmount) {
     String btcAmount = walletState.hideAmount ? '*****' : amount.displaySats();
     String fiatAmount = walletState.hideAmount ? '*****' : '\$ 0.00';
 
