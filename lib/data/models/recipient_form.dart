@@ -1,3 +1,5 @@
+import 'package:danawallet/data/models/contacts.dart';
+import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
@@ -9,6 +11,8 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 class RecipientForm {
   String? recipientAddress;
   String? recipientBip353;
+  PaymentAddress? spAddress;
+  Contact? contact;
   ApiAmount? amount;
   SelectedFee? fee;
   RecommendedFeeResponse? currentFeeRates;
@@ -24,7 +28,9 @@ class RecipientForm {
 
   void reset() {
     _instance.recipientAddress = null;
+    _instance.spAddress = null;
     _instance.recipientBip353 = null;
+    _instance.contact = null;
     _instance.amount = null;
     _instance.fee = null;
     _instance.unsignedTx = null;
