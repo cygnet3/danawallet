@@ -31,7 +31,7 @@ class TransactionHistoryWidget extends StatelessWidget {
           date = "Last week";
         }
         color = Bitcoin.green;
-        amount = field0.amount.displayBtc();
+        amount = field0.amount.displaySats();
         amountprefix = '+';
         title = 'Incoming transaction';
         text = field0.toString();
@@ -47,7 +47,7 @@ class TransactionHistoryWidget extends StatelessWidget {
         } else {
           color = Bitcoin.red;
         }
-        amount = field0.totalOutgoing().displayBtc();
+        amount = field0.totalOutgoing().displaySats();
         amountprefix = '-';
         title = 'Outgoing transaction';
         text = field0.toString();

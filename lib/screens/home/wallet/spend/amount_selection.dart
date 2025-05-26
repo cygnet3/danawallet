@@ -21,7 +21,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
   final TextEditingController amountController = TextEditingController();
   String? _amountErrorText;
 
-  Future<void> onContinue(BigInt availableBalance) async {
+  Future<void> onContinue(ApiAmount availableBalance) async {
     setState(() {
       _amountErrorText = null;
     });
@@ -36,7 +36,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
       return;
     }
 
-    if (amount > availableBalance) {
+    if (amount > availableBalance.field0) {
       setState(() {
         _amountErrorText = 'Not enough available funds';
       });
@@ -64,7 +64,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
 
-    final availableBalance = walletState.amount;
+    final availableBalance = ApiAmount(field0: walletState.amount);
     final blocksToScan = chainState.tip - walletState.lastScan;
 
     String recipientName;
@@ -128,7 +128,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
                 const SizedBox(
                   height: 10.0,
                 ),
-                Text('Available Balance: $availableBalance',
+                Text('Available Balance: ${availableBalance.displaySats()}',
                     style: BitcoinTextStyle.body3(Bitcoin.black)
                         .apply(fontWeightDelta: 1)),
                 if (blocksToScan != 0)

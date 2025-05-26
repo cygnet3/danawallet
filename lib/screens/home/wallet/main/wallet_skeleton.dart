@@ -77,7 +77,7 @@ class WalletSkeleton extends StatelessWidget {
   }
 
   Widget buildAmountDisplay(WalletState walletState, ApiAmount amount, bool hideAmount) {
-    String btcAmount = walletState.hideAmount ? '*****' : amount.displayBtc();
+    String btcAmount = walletState.hideAmount ? '*****' : amount.displaySats();
     String fiatAmount = walletState.hideAmount ? '*****' : '\$ 0.00';
 
     return GestureDetector(

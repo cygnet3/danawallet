@@ -62,12 +62,12 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
           recipient.recipientAddress!, displayRecipientStyle, maxWidth);
     }
 
-    String displayAmount = recipient.amount!.displayBtc();
+    String displayAmount = recipient.amount!.displaySats();
 
     String displayArrivalTime = recipient.fee!.toEstimatedTime;
 
     String displayEstimatedFee =
-        recipient.unsignedTx!.getFeeAmount().displayBtc();
+        recipient.unsignedTx!.getFeeAmount().displaySats();
 
     return SpendSkeleton(
         showBackButton: true,
