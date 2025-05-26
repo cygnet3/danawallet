@@ -18,6 +18,9 @@ const int defaultRegtestBirthday = 80000;
 // for sending, the user needs to send a minimum of >= dust
 const int defaultDustLimit = 1000;
 
+// Name of user wallet in contact interface
+const String myWalletNym = "MyWallet";
+
 // colors
 const Color danaBlue = Color.fromARGB(255, 10, 109, 214);
 
