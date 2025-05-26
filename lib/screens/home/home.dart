@@ -9,8 +9,59 @@ import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  /// If non-null, shows a hint to add this address as a contact on load.
+  final PaymentAddress? sentAddress;
+
+  const HomeScreen({Key? key, this.sentAddress}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.sentAddress != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showModalBottomSheet(
+          context: context,
+          builder: (ctx) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.person_add),
+                  title: const Text('Create new contact'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => CreateContactScreen(
+                              newAddress: widget.sentAddress!)),
+                    );
+                  },
+                ),
+                // ListTile(
+                //   leading: Icon(Icons.person_search),
+                //   title: Text('Add to existing contact'),
+                //   onTap: () {
+                //     Navigator.pop(ctx);
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (_) => SelectContactScreen(address: widget.sentAddress!)),
+                //     );
+                //   },
+                // ),
+              ],
+            ),
+          ),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
