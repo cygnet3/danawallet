@@ -11,6 +11,7 @@ class TransactionHistoryWidget extends StatelessWidget {
   ListTile toListTile(ApiRecordedTransaction tx, double maxWidth) {
     Color? color;
     String amount;
+    String amountFiat;
     String amountprefix;
     String title;
     String text;
@@ -32,6 +33,7 @@ class TransactionHistoryWidget extends StatelessWidget {
         }
         color = Bitcoin.green;
         amount = field0.amount.displaySats();
+        amountFiat = field0.amount.displayEuro();
         amountprefix = '+';
         title = 'Incoming transaction';
         text = field0.toString();
@@ -48,6 +50,7 @@ class TransactionHistoryWidget extends StatelessWidget {
           color = Bitcoin.red;
         }
         amount = field0.totalOutgoing().displaySats();
+        amountFiat = field0.totalOutgoing().displayEuro();
         amountprefix = '-';
         title = 'Outgoing transaction';
         text = field0.toString();
@@ -77,7 +80,7 @@ class TransactionHistoryWidget extends StatelessWidget {
         children: [
           Text(date, style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
           const Spacer(),
-          Text('\$ 0.00', style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
+          Text(amountFiat, style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
         ],
       ),
     );

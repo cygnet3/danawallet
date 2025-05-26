@@ -86,6 +86,17 @@ impl ApiAmount {
     pub fn display_sats(&self) -> String {
         format!("{} sats", self.0)
     }
+
+    #[frb(sync)]
+    pub fn display_euro(&self) -> String {
+        let euro_price = 96056.0;
+
+        let amount_eur = self.0 as f32 / 100_000_000.0 * euro_price;
+
+        let decimals = format!("{:.2}", amount_eur);
+
+        format!("€ {}", decimals)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

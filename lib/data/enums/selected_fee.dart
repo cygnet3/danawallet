@@ -35,11 +35,11 @@ enum SelectedFee {
   String get toEstimatedEuro {
     switch (this) {
       case SelectedFee.fast:
-        return "~0.00 €";
+        return "~0.60 €";
       case SelectedFee.normal:
-        return "~0.00 €";
+        return "~0.40 €";
       case SelectedFee.slow:
-        return "~0.00 €";
+        return "~0.20 €";
       case SelectedFee.custom:
         return "Custom";
     }

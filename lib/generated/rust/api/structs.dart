@@ -26,6 +26,11 @@ class ApiAmount {
         that: this,
       );
 
+  String displayEuro() =>
+      RustLib.instance.api.crateApiStructsApiAmountDisplayEuro(
+        that: this,
+      );
+
   String displaySats() =>
       RustLib.instance.api.crateApiStructsApiAmountDisplaySats(
         that: this,
