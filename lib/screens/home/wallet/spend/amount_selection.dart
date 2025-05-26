@@ -43,6 +43,13 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
       return;
     }
 
+    if (amount < BigInt.from(1000)) {
+      setState(() {
+        _amountErrorText = 'Please send at least 1000 sats';
+      });
+      return;
+    }
+
     RecipientForm().amount = ApiAmount(field0: amount);
 
     // get fee rates, these are needed for the next screen
