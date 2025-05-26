@@ -3,6 +3,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/screens/home/contacts/create_contact.dart';
+import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -204,8 +205,18 @@ class ContactDetailPage extends StatelessWidget {
                     ),
                     subtitle: Text(addr.inner.stringRepresentation),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // Define action if needed
+                    onTap: () async {
+                      if (onAddressSelected != null) {
+                        onAddressSelected!(addr);
+                      } else {
+                        // We initialize spending with this address
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ChooseRecipientScreen(
+                                    initialAddress:
+                                        addr.inner.stringRepresentation)));
+                      }
                     },
                   );
                 }),
