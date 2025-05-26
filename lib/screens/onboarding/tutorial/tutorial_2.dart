@@ -1,7 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/onboarding/tutorial/tutorial_3.dart';
 import 'package:danawallet/screens/onboarding/tutorial/tutorial_skeleton.dart';
 import 'package:danawallet/widgets/icons/circular_icon.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +12,6 @@ class TutorialScreen2 extends StatelessWidget {
   Widget build(BuildContext context) {
     return TutorialSkeleton(
         step: 1,
-        nextScreen: const TutorialScreen3(),
         iconPath: "assets/icons/address-book.svg",
         iconHeight: 55,
         title: 'Address book',
@@ -36,7 +34,7 @@ class TutorialScreen2 extends StatelessWidget {
                     children: [
                       Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: addressAsRichText(exampleAddress, null)),
+                          child: addressAsRichText(exampleAddress, 14)),
                     ],
                   ),
                 )),

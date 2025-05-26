@@ -3,6 +3,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/screens/onboarding/get_started.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/tutorial/tutorial_1.dart';
+import 'package:danawallet/screens/onboarding/tutorial/tutorial_page_view.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_plain.dart';
 import 'package:danawallet/widgets/info_widget.dart';
@@ -73,10 +74,8 @@ class OverviewScreen extends StatelessWidget {
         ),
         FooterButton(
             title: 'Learn more',
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const TutorialScreen1()))),
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => TutorialPageView()))),
       ],
     );
 

@@ -1,14 +1,10 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
-import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/icons/circular_icon.dart';
-import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 class TutorialSkeleton extends StatelessWidget {
-  final Widget nextScreen;
   final String iconPath;
   final double iconHeight;
   final String? leftIconPath;
@@ -20,7 +16,6 @@ class TutorialSkeleton extends StatelessWidget {
 
   const TutorialSkeleton({
     super.key,
-    required this.nextScreen,
     required this.iconPath,
     required this.title,
     required this.text,
@@ -33,7 +28,7 @@ class TutorialSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final body = Column(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
@@ -67,7 +62,7 @@ class TutorialSkeleton extends StatelessWidget {
               title,
               style: BitcoinTextStyle.title2(Colors.black)
                   .copyWith(height: 1.8, fontFamily: 'Inter'),
-                  maxLines: 1,
+              maxLines: 1,
             ),
             const SizedBox(
               height: 10,
@@ -85,26 +80,5 @@ class TutorialSkeleton extends StatelessWidget {
         main,
       ],
     );
-
-    final footer = Column(
-      children: [
-        SizedBox(
-          height: Adaptive.h(3),
-        ),
-        DotsIndicator(
-          dotsCount: 3,
-          position: step,
-        ),
-        const SizedBox(
-          height: 15,
-        ),
-        FooterButton(
-            title: 'Next',
-            onPressed: () => Navigator.push(
-                context, MaterialPageRoute(builder: (context) => nextScreen))),
-      ],
-    );
-
-    return OnboardingSkeleton(body: body, footer: footer);
   }
 }

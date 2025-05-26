@@ -1,6 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
-import 'package:danawallet/screens/onboarding/get_started.dart';
 import 'package:danawallet/screens/onboarding/tutorial/tutorial_skeleton.dart';
 import 'package:danawallet/widgets/transaction_history.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +20,6 @@ class TutorialScreen3 extends StatelessWidget {
 
     return TutorialSkeleton(
       step: 2,
-      nextScreen: const GetStartedScreen(),
       iconPath: "assets/icons/boxes.svg",
       title: 'Stay organized',
       text: 'Keep things organized with dedicated addresses.',
