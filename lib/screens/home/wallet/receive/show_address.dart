@@ -19,7 +19,7 @@ class ShowAddressScreen extends StatefulWidget {
 }
 
 class ShowAddressScreenState extends State<ShowAddressScreen> {
-  bool toggleQr = false;
+  bool toggleQr = true;
 
   Future<void> copyToClipboard() async {
     await Clipboard.setData(ClipboardData(text: widget.address));
