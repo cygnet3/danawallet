@@ -34,14 +34,20 @@ class GenerateAddressScreenState extends State<GenerateAddressScreen> {
               style: BitcoinTextStyle.body4(Colors.red)),
         FooterButton(
             enabled: _selectedValue == PublicAddressChoice.hrf,
-            title: 'Create',
-            onPressed: () {
+            title: 'Generate',
+            onPressed: () async {
+              final wallet = await walletState.getWalletFromSecureStorage();
+              final labelledAddress =
+                  wallet.getSilentPaymentAddressForIndex(index: 1);
               walletState.setAddressCreated();
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          ShowAddressScreen(address: walletState.address)));
+              Logger().d(labelledAddress);
+              if (mounted) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ShowAddressScreen(
+                            address: labelledAddress.stringRepresentation)));
+              }
             }),
       ],
     );
