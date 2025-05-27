@@ -7,7 +7,6 @@ import 'package:danawallet/widgets/back_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -35,7 +34,7 @@ class GenerateAddressScreenState extends State<GenerateAddressScreen> {
               style: BitcoinTextStyle.body4(Colors.red)),
         FooterButton(
             enabled: _selectedValue == PublicAddressChoice.hrf,
-            title: 'Generate',
+            title: 'Create',
             onPressed: () {
               walletState.setAddressCreated();
               Navigator.push(
@@ -52,13 +51,13 @@ class GenerateAddressScreenState extends State<GenerateAddressScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Generate a Receive Address',
+          Text('Create a new Deposit Account',
               textAlign: TextAlign.center,
               style: BitcoinTextStyle.title4(Bitcoin.neutral8)),
           const SizedBox(
             height: 20,
           ),
-          Text('Where will you be sharing this address?',
+          Text('What will you be using this new account for?',
               style: BitcoinTextStyle.body3(Bitcoin.neutral8)
                   .copyWith(fontFamily: 'Inter')),
           const SizedBox(

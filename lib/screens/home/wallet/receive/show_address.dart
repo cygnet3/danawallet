@@ -47,7 +47,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Your Receive Address",
+            Text("Your Deposit Account",
                 style: BitcoinTextStyle.title3(Bitcoin.neutral8)),
             const SizedBox(
               height: 20,
@@ -64,7 +64,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
                     style: BitcoinTextStyle.body3(Bitcoin.neutral8),
                     children: const [
                       TextSpan(
-                          text: "Receive Address",
+                          text: "Deposit Account",
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       TextSpan(text: " for "),
                       TextSpan(
@@ -102,7 +102,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
     final footer = Column(
       children: [
         FooterButtonOutlined(
-            title: toggleQr ? "Show address" : "Show QR code",
+            title: toggleQr ? "Show account number" : "Show QR code",
             onPressed: () => setState(() {
                   toggleQr = !toggleQr;
                 })),

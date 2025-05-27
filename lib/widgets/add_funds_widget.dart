@@ -29,7 +29,7 @@ class AddFundsWidget extends StatelessWidget {
                 radius: 20,
                 iconPath: "assets/icons/wallet.svg",
               ),
-              title: Text('Set up your first address!',
+              title: Text('Set up your first account!',
                   style: BitcoinTextStyle.body4(Bitcoin.neutral8)),
               trailing: Image(
                 image: const AssetImage("icons/caret_right.png",
