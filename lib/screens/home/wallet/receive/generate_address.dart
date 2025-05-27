@@ -21,9 +21,6 @@ class GenerateAddressScreen extends StatefulWidget {
 class GenerateAddressScreenState extends State<GenerateAddressScreen> {
   PublicAddressChoice? _selectedValue;
   final List<PublicAddressChoice> choices = [
-    PublicAddressChoice.twitter,
-    PublicAddressChoice.nostr,
-    PublicAddressChoice.website,
     PublicAddressChoice.hrf,
   ];
 
