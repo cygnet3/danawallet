@@ -3,6 +3,7 @@ import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
@@ -71,6 +72,7 @@ class GetStartedScreen extends StatelessWidget {
     final chainState = Provider.of<ChainState>(context, listen: false);
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
+    final contactDao = Provider.of<ContactDAO>(context, listen: false);
 
     // Get network from flavor
     Network network = Network.getNetworkForFlavor;
@@ -83,6 +85,8 @@ class GetStartedScreen extends StatelessWidget {
     await walletState.createNewWallet(chainState);
 
     chainState.startSyncService(walletState, scanProgress);
+    contactDao.setMyAddress(walletState.address);
+    await contactDao.init();
 
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
