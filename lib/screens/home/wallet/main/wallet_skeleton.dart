@@ -10,15 +10,15 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class WalletSkeleton extends StatelessWidget {
-  final bool showAddFundsWidget;
+  final Widget? callToActionWidget;
   final Widget txHistory;
   final Widget? footerButtons;
 
   const WalletSkeleton(
       {super.key,
-      required this.showAddFundsWidget,
       required this.txHistory,
-      this.footerButtons});
+      this.footerButtons,
+      this.callToActionWidget});
 
   AppBar buildAppBar(Network network) {
     return AppBar(
@@ -118,17 +118,8 @@ class WalletSkeleton extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               buildAmountDisplay(walletState, amount, false),
-                              showAddFundsWidget
-                                  ? AddFundsWidget(
-                                      onTap: () => {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const GenerateAddressScreen()),
-                                        )
-                                      },
-                                    )
+                              (callToActionWidget != null)
+                                  ? callToActionWidget!
                                   : const SizedBox(),
                             ],
                           ),

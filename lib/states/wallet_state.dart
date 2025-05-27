@@ -22,6 +22,8 @@ class WalletState extends ChangeNotifier {
   bool addressCreated = false;
   // toggle hide amount, todo: use ApiAmount and implement display using ApiAmount
   bool hideAmount = false;
+  // to toggle the backup creation popup
+  bool backupAlert = true;
 
   // variables that never change (unless wallet is reset)
   late Network network;
@@ -54,6 +56,11 @@ class WalletState extends ChangeNotifier {
 
   void toggleHideAmount() {
     hideAmount = !hideAmount;
+    notifyListeners();
+  }
+
+  void backupCreated() {
+    backupAlert = false;
     notifyListeners();
   }
 

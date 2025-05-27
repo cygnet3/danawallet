@@ -4,6 +4,7 @@ import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/home/wallet/main/wallet_skeleton.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/widgets/add_funds_widget.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:danawallet/widgets/transaction_history.dart';
 import 'package:flutter/material.dart';
@@ -71,8 +72,21 @@ class WalletScreenFull extends StatelessWidget {
       ),
     );
 
+    final alertWidget = AddFundsWidget(
+      text: "Create a backup",
+      onTap: () => walletState.backupCreated(),
+      color: Colors.orange,
+      iconPath: "assets/icons/sdcard.svg",
+    );
+    final widget = Visibility(
+        visible: walletState.backupAlert,
+        maintainAnimation: true,
+        maintainSize: true,
+        maintainState: true,
+        child: alertWidget);
+
     return WalletSkeleton(
-      showAddFundsWidget: false,
+      callToActionWidget: widget,
       txHistory: txHistory,
       footerButtons: buttons,
     );

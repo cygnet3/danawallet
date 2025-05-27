@@ -57,7 +57,7 @@ class WalletScreenAddressCreated extends StatelessWidget {
     // );
 
     return WalletSkeleton(
-      showAddFundsWidget: false,
+      callToActionWidget: null,
       txHistory: txHistory,
       footerButtons: footerButton,
     );
