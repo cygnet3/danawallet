@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/contacts/create_contact.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
@@ -202,13 +203,17 @@ class ContactDetailPage extends StatelessWidget {
                   final addr = addresses[i];
                   final label = contact.addresses[addr]!;
                   final displayLabel = label.isNotEmpty ? label : 'Unknown';
+                  final maxWidth = MediaQuery.of(context).size.width * 0.86;
 
                   return ListTile(
                     title: Text(
                       displayLabel,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text(addr.inner.stringRepresentation),
+                    subtitle: Text(displayAddress(
+                        addr.inner.stringRepresentation,
+                        BitcoinTextStyle.body5(Bitcoin.neutral7),
+                        maxWidth)),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
                       if (onAddressSelected != null) {
