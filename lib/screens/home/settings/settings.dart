@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
@@ -33,10 +34,13 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _setLastScan(BuildContext context) async {
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final homeState = Provider.of<HomeState>(context, listen: false);
+  Future<void> _resetDb() async {
+    final dao = ContactDAO();
+    await dao.deleteAllContacts();
+  }
 
+  Future<void> _setLastScan(BuildContext context, WalletState walletState,
+      HomeState homeState) async {
     TextEditingController controller = TextEditingController();
     final scanHeight = await showInputAlertDialog(
         controller,
@@ -137,6 +141,7 @@ class SettingsScreen extends StatelessWidget {
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
       await _removeWallet(walletState, chainState, scanProgress, homeState);
+      await _resetDb();
       if (context.mounted) {
         Navigator.pushReplacement(
             context,
