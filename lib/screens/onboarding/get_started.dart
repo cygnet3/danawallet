@@ -2,6 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/services/backup_service.dart';
@@ -63,6 +64,7 @@ class GetStartedScreen extends StatelessWidget {
     final chainState = Provider.of<ChainState>(context, listen: false);
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
+    final contactDao = Provider.of<ContactDAO>(context, listen: false);
 
     // always regtest for now
     Network selectedNetwork = Network.regtest;
@@ -75,6 +77,8 @@ class GetStartedScreen extends StatelessWidget {
     await walletState.createNewWallet(chainState);
 
     chainState.startSyncService(walletState, scanProgress);
+    contactDao.setMyAddress(walletState.address);
+    await contactDao.init();
 
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
