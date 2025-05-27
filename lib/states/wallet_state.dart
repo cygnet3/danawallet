@@ -193,15 +193,10 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<RecommendedFeeResponse> getCurrentFeeRates() async {
-    if (network == Network.regtest) {
-      // for regtest, we return custom fees
-      return RecommendedFeeResponse(
-          nextBlockFee: 3, halfHourFee: 2, hourFee: 1, dayFee: 1);
-    } else {
-      final mempoolApiRepository = MempoolApiRepository(network: network);
-      final response = await mempoolApiRepository.getCurrentFeeRate();
-      return response;
-    }
+    final feeNetwork = network == Network.regtest ? Network.mainnet : network;
+    final mempoolApiRepository = MempoolApiRepository(network: feeNetwork);
+    final response = await mempoolApiRepository.getCurrentFeeRate();
+    return response;
   }
 
   Future<ApiSilentPaymentUnsignedTransaction> createUnsignedTxToThisRecipient(
