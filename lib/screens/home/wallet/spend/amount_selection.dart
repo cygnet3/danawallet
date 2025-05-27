@@ -79,8 +79,10 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
 
     if (form.recipientBip353 != null) {
       recipientName = form.recipientBip353!;
+    } else if (form.contact != null) {
+      recipientName = form.contact!.nym;
     } else {
-      final maxWidth = MediaQuery.of(context).size.width * 0.86;
+      final maxWidth = MediaQuery.of(context).size.width * 0.70;
       recipientName =
           displayAddress(form.recipientAddress!, recipientTextStyle, maxWidth);
     }
