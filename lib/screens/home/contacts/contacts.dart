@@ -6,6 +6,7 @@ import 'package:danawallet/screens/home/contacts/create_contact.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/repositories/contact_dao.dart';
@@ -140,11 +141,15 @@ class ContactsScreen extends StatelessWidget {
                 );
                 if (result is String && result != "") {
                   // Check that it's a valid address
-                  final scannedAddress =
-                      ApiSilentPaymentAddress.fromStringRepresentation(
-                          address: result);
-                  CreateContactScreen(
-                      newAddress: PaymentAddress(scannedAddress));
+                  try {
+                    final scannedAddress =
+                        ApiSilentPaymentAddress.fromStringRepresentation(
+                            address: result);
+                    CreateContactScreen(
+                        newAddress: PaymentAddress(scannedAddress));
+                  } catch (e) {
+                    Logger().e('Not an address');
+                  }
                 }
               },
             ),
