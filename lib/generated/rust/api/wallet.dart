@@ -74,6 +74,9 @@ abstract class SpWallet implements RustOpaqueInterface {
 
   ApiScanKey getScanKey();
 
+  /// We expect as label the sorted, concatenated labels
+  ApiSilentPaymentAddress getSilentPaymentAddressForIndex({required int index});
+
   ApiSpendKey getSpendKey();
 
   /// Only call this when we expect this value to be present

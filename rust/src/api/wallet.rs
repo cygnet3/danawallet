@@ -2,6 +2,7 @@ mod info;
 mod scan;
 pub mod setup;
 mod transaction;
+mod labels;
 
 use crate::wallet::WalletFingerprint;
 use anyhow::Result;
@@ -12,7 +13,7 @@ use sp_client::{
     SpClient, SpendKey,
 };
 
-use super::{history::TxHistory, outputs::OwnedOutputs};
+use super::{history::TxHistory, outputs::OwnedOutputs, structs::ApiSilentPaymentAddress};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
@@ -74,6 +75,15 @@ impl SpWallet {
     #[frb(sync)]
     pub fn get_spend_key(&self) -> ApiSpendKey {
         ApiSpendKey(self.client.get_spend_key())
+    }
+
+    #[frb(sync)]
+    /// We expect as label the sorted, concatenated labels
+    pub fn get_silent_payment_address_for_index(&mut self, index: u32) -> Result<ApiSilentPaymentAddress> {
+        let label = self.generate_label(index)?;
+        self.client.sp_receiver.add_label(label.clone())?;
+        let labelled_address = self.client.sp_receiver.get_receiving_address_for_label(&label)?;
+        Ok(labelled_address.into())
     }
 }
 
