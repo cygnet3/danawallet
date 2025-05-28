@@ -2,6 +2,8 @@ import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/data/models/payment_address.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'database_helper.dart';
@@ -101,6 +103,7 @@ class ContactDAO extends ChangeNotifier {
     return null;
   }
 
+  /// This replace the whole contact
   Future<void> updateContact(Contact contact) async {
     final db = await _databaseHelper.database;
     await db.update(
@@ -110,6 +113,28 @@ class ContactDAO extends ChangeNotifier {
       whereArgs: [contact.id],
     );
     await _loadAll();
+  }
+
+  /// User adds a new account to its wallet
+  Future<String> addAccount(WalletState walletState, String account) async {
+    Contact? contact = await getContactWithNym(myWalletNym);
+    if (contact == null) {
+      throw Exception('Missing user contact'); // Shouldn't ever happen
+    }
+    // Get the current number of addresses
+    final newIndex = contact.addresses.length;
+    // `0` is for change, we don't have it in db because we shouldn't ever let user see it. We have default address which is the `null` address though
+    // WARNING this is broken, we need to rethink how we keep track of the wallet or we won't find our labelled outputs
+    SpWallet wallet = await walletState.getWalletFromSecureStorage();
+
+    final labelledAddress =
+        wallet.getSilentPaymentAddressForIndex(index: newIndex);
+
+    // We allow for empty strings, it might be useful for recovery for example
+    contact.addresses[PaymentAddress(labelledAddress)] = account;
+    await updateContact(contact);
+
+    return labelledAddress.stringRepresentation;
   }
 
   Future<void> deleteContact(int id) async {
