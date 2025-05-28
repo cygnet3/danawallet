@@ -59,6 +59,23 @@ class ContactDAO extends ChangeNotifier {
 
   Future<List<Contact>> getContacts() async => contacts;
 
+  Future<Contact?> getContactWithNym(String nym) async {
+    final db = await _databaseHelper.database;
+    final rows = await db.query(
+      'contacts',
+      where: 'nym = ?',
+      whereArgs: [nym.trim()],
+      limit: 1,
+    );
+
+    if (rows.isNotEmpty) {
+      final res = Contact.fromMap(rows.first);
+      return res;
+    } else {
+      return null;
+    }
+  }
+
   Future<bool> nymExists(String nym) async {
     final db = await _databaseHelper.database;
     final rows = await db.query(
