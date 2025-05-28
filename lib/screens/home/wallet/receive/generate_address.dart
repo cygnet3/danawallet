@@ -1,12 +1,14 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/enums/public_address_choice.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/back_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -36,17 +38,23 @@ class GenerateAddressScreenState extends State<GenerateAddressScreen> {
             enabled: _selectedValue == PublicAddressChoice.hrf,
             title: 'Generate',
             onPressed: () async {
-              final wallet = await walletState.getWalletFromSecureStorage();
-              final labelledAddress =
-                  wallet.getSilentPaymentAddressForIndex(index: 1);
+              // Put address as a new account for us in contact book
+              late String labelledAddress;
+              try {
+                final contactDao = ContactDAO();
+                labelledAddress = await contactDao.addAccount(
+                    walletState, "Oslo Freedom Forum");
+              } catch (e) {
+                Logger().e('Failed to update contact: $e');
+              }
               walletState.setAddressCreated();
               Logger().d(labelledAddress);
               if (mounted) {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => ShowAddressScreen(
-                            address: labelledAddress.stringRepresentation)));
+                        builder: (context) =>
+                            ShowAddressScreen(address: labelledAddress)));
               }
             }),
       ],
