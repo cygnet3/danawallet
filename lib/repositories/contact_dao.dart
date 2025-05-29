@@ -9,18 +9,30 @@ import 'package:logger/logger.dart';
 import 'database_helper.dart';
 
 class ContactDAO extends ChangeNotifier {
+  ContactDAO._privateConstructor();
+
+  static final ContactDAO _instance = ContactDAO._privateConstructor();
+
+  factory ContactDAO() => _instance;
+
   final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+
   String? _myAddress;
+
+  List<Contact> _contacts = [];
 
   void setMyAddress(String address) {
     _myAddress = address;
   }
 
-  List<Contact> _contacts = [];
-
   List<Contact> get contacts => List.unmodifiable(_contacts);
 
-  ContactDAO();
+  Future<void> loadAll() async {
+    final db = await _databaseHelper.database;
+    final maps = await db.query('contacts');
+    _contacts = maps.map((m) => Contact.fromMap(m)).toList();
+    notifyListeners();
+  }
 
   Future init() async {
     final exists = await nymExists(myWalletNym);
