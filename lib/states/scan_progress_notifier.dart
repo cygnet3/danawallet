@@ -71,6 +71,17 @@ class ScanProgressNotifier extends ChangeNotifier {
       final ownedOutPoints =
           walletState.ownedOutputs.getUnconfirmedSpentOutpoints();
 
+      // Load all the accounts that exists in the db
+      final contactDao = ContactDAO();
+      final userContact = contactDao.getUserContact();
+
+      final nbAccounts = userContact.addresses.length;
+
+      for (int i = 1; i < nbAccounts; i++) {
+        final _ = wallet.getSilentPaymentAddressForIndex(index: i);
+        Logger().d('Registered account at index $i');
+      }
+
       activate(walletState.lastScan);
       await wallet.scanToTip(
           blindbitUrl: blindbitUrl!,
