@@ -127,22 +127,29 @@ class ContactDAO extends ChangeNotifier {
     await _loadAll();
   }
 
+  Contact getUserContact() {
+    return _contacts.firstWhere((c) => c.nym == myWalletNym);
+  }
+
   /// User adds a new account to its wallet
   Future<String> addAccount(WalletState walletState, String account) async {
-    Contact? contact = await getContactWithNym(myWalletNym);
-    if (contact == null) {
-      throw Exception('Missing user contact'); // Shouldn't ever happen
+    final contact = getUserContact();
+    // We allow for empty strings, it might be useful for recovery for example
+    // We don't allow for account names that already exist
+    if (contact.addresses.values.contains(account)) {
+      throw Exception('Account name already exists: $account');
     }
+
     // Get the current number of addresses
     final newIndex = contact.addresses.length;
+
     // `0` is for change, we don't have it in db because we shouldn't ever let user see it. We have default address which is the `null` address though
     // WARNING this is broken, we need to rethink how we keep track of the wallet or we won't find our labelled outputs
-    SpWallet wallet = await walletState.getWalletFromSecureStorage();
+    SpWallet wallet = walletState.wallet;
 
     final labelledAddress =
         wallet.getSilentPaymentAddressForIndex(index: newIndex);
 
-    // We allow for empty strings, it might be useful for recovery for example
     contact.addresses[PaymentAddress(labelledAddress)] = account;
     await updateContact(contact);
 
