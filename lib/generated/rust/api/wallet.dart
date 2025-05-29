@@ -91,6 +91,8 @@ abstract class SpWallet implements RustOpaqueInterface {
   static void interruptScanning() =>
       RustLib.instance.api.crateApiWalletSpWalletInterruptScanning();
 
+  SpWallet neuter();
+
   factory SpWallet(
           {required ApiScanKey scanKey,
           required ApiSpendKey spendKey,

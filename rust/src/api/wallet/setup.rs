@@ -103,4 +103,16 @@ impl SpWallet {
             }
         }
     }
+
+    #[flutter_rust_bridge::frb(sync)]
+    pub fn neuter(self) -> Result<Self> {
+        let spend_key: SpendKey = self.get_spend_key().into();
+        let pub_spend_key: PublicKey = spend_key.into();
+        SpWallet::new(
+            self.get_scan_key(), 
+            ApiSpendKey(SpendKey::Public(pub_spend_key)), 
+            self.get_network(), 
+            self.get_birthday()
+        )
+    }
 }
