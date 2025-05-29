@@ -29,6 +29,7 @@ class WalletState extends ChangeNotifier {
   late int lastScan;
   late TxHistory txHistory;
   late OwnedOutputs ownedOutputs;
+  late SpWallet wallet;
 
   // stream to receive updates while scanning
   late StreamSubscription scanResultSubscription;
@@ -56,7 +57,6 @@ class WalletState extends ChangeNotifier {
 
       // update UI
       await _updateWalletState();
-      notifyListeners();
     }));
   }
 
@@ -80,6 +80,7 @@ class WalletState extends ChangeNotifier {
       address = wallet.getReceivingAddress();
       changeAddress = wallet.getChangeAddress();
       birthday = wallet.getBirthday();
+      this.wallet = wallet;
 
       await _updateWalletState();
 
@@ -145,6 +146,7 @@ class WalletState extends ChangeNotifier {
     changeAddress = wallet.getChangeAddress();
     this.birthday = wallet.getBirthday();
     this.network = network;
+    this.wallet = wallet.neuter();
     await _updateWalletState();
   }
 
@@ -161,6 +163,10 @@ class WalletState extends ChangeNotifier {
     return await walletRepository.readSeedPhrase();
   }
 
+  SpWallet getNeuteredWallet() {
+    return wallet;
+  }
+
   Future<void> resetToScanHeight(int height) async {
     lastScan = height;
 
@@ -172,7 +178,6 @@ class WalletState extends ChangeNotifier {
     await walletRepository.saveOwnedOutputs(ownedOutputs);
 
     await _updateWalletState();
-    notifyListeners();
   }
 
   Future<void> _updateWalletState() async {
@@ -182,6 +187,7 @@ class WalletState extends ChangeNotifier {
 
     amount = ownedOutputs.getUnspentAmount();
     unconfirmedChange = txHistory.getUnconfirmedChange();
+    notifyListeners();
   }
 
   Future<RecommendedFeeResponse> getCurrentFeeRates() async {
@@ -198,8 +204,6 @@ class WalletState extends ChangeNotifier {
 
   Future<ApiSilentPaymentUnsignedTransaction> createUnsignedTxToThisRecipient(
       RecipientFormFilled recipient) async {
-    final wallet = await getWalletFromSecureStorage();
-
     final unspentOutputs = ownedOutputs.getUnspentOutputs();
     final bitcoinNetwork = network.toBitcoinNetwork;
 
@@ -269,7 +273,6 @@ class WalletState extends ChangeNotifier {
 
     // refresh variables and notify listeners
     await _updateWalletState();
-    notifyListeners();
 
     return;
   }
