@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
+import 'package:danawallet/repositories/contact_dao.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 class ScanProgressNotifier extends ChangeNotifier {
   Completer? _completer;
@@ -61,7 +64,7 @@ class ScanProgressNotifier extends ChangeNotifier {
 
   Future<void> scan(WalletState walletState) async {
     try {
-      final wallet = await walletState.getWalletFromSecureStorage();
+      final wallet = walletState.wallet;
       final settings = SettingsRepository.instance;
       final blindbitUrl = await settings.getBlindbitUrl();
       final dustLimit = await settings.getDustLimit();
