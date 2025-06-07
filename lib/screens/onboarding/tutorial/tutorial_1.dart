@@ -1,7 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/onboarding/tutorial/tutorial_2.dart';
 import 'package:danawallet/screens/onboarding/tutorial/tutorial_skeleton.dart';
 import 'package:flutter/material.dart';
 
@@ -12,11 +11,9 @@ class TutorialScreen1 extends StatelessWidget {
   Widget build(BuildContext context) {
     return TutorialSkeleton(
       step: 0,
-      nextScreen: const TutorialScreen2(),
       iconPath: "assets/icons/sparkle.svg",
       title: 'Re-usable bitcoin address',
-      text:
-          'Dana uses a new type of address that can be reused privately. Just get or share it once, and reuse it whenever you want.',
+      text: 'Dana uses a new type of address that can be reused indefinitely.',
       main: Container(
         width: 372,
         height: 212,
@@ -38,7 +35,7 @@ class TutorialScreen1 extends StatelessWidget {
             ),
             Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: addressAsRichText(exampleAddress, null)),
+                child: addressAsRichText(exampleAddress, 14)),
           ],
         ),
       ),
