@@ -1,0 +1,1 @@
+class InvalidAddressException implements Exception {}

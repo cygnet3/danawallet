@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/widgets/confirmation_widget.dart';
 import 'package:danawallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
@@ -81,6 +82,8 @@ String exceptionToString(Object e) {
   if (e is AnyhowException) {
     // remove stack trace from anyhow exception
     message = e.message.split('\n').first;
+  } else if (e is InvalidAddressException) {
+    message = "Invalid address";
   } else {
     message = e.toString();
   }

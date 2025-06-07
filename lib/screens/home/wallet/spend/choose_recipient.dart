@@ -1,9 +1,12 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
+import 'package:danawallet/exceptions.dart';
+import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
+import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
 import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
@@ -37,17 +40,19 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
           final data = await Bip353.getAdressResolve(address);
           if (data.silentpayment != null) {
             form.recipientBip353 = address;
-            form.recipientAddress = data.silentpayment!;
+            address = data.silentpayment!;
           }
         } catch (e) {
           // todo wrap bip353 logic in a separate class that throws custom errors
           throw Exception('Failed to look up address');
         }
-      } else {
-        form.recipientAddress = addressController.text;
       }
 
-      // todo: verify address
+      if (!validateAddress(address: address)) {
+        throw InvalidAddressException();
+      }
+
+      form.recipientAddress = address;
 
       if (mounted) {
         Navigator.push(
