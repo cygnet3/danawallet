@@ -9,4 +9,5 @@ pub mod outputs;
 pub mod simple;
 pub mod stream;
 pub mod structs;
+pub mod validate;
 pub mod wallet;
