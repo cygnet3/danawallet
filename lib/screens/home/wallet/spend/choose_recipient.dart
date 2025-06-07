@@ -97,6 +97,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              const SizedBox(),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -121,34 +122,23 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  BitcoinButtonOutlined(
-                    tintColor: Bitcoin.neutral5,
-                    textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-                    title: 'Paste from clipboard',
-                    onPressed: onPasteFromClipboard,
-                    cornerRadius: 5.0,
-                  ),
+                  FooterButtonOutlined(
+                      title: "Paste from clipboard",
+                      onPressed: onPasteFromClipboard),
                   const SizedBox(
                     height: 10.0,
                   ),
                   if (isDevEnv())
-                    BitcoinButtonOutlined(
-                        disabledTintColor: Bitcoin.neutral5,
-                        textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-                        title: 'Choose from Contacts',
-                        onPressed: () => (),
-                        cornerRadius: 5.0,
-                        disabled: true),
+                    FooterButtonOutlined(
+                      title: "Choose from Contacts",
+                      onPressed: () => (),
+                      enabled: false,
+                    ),
                   const SizedBox(
                     height: 10.0,
                   ),
-                  BitcoinButtonOutlined(
-                    tintColor: Bitcoin.neutral5,
-                    textStyle: BitcoinTextStyle.title4(Bitcoin.black),
-                    title: 'Scan from image',
-                    onPressed: onScanWithCamera,
-                    cornerRadius: 5.0,
-                  ),
+                  FooterButtonOutlined(
+                      title: "Scan QR Code", onPressed: onScanWithCamera)
                 ],
               ),
               // these work as spacers, will remove them later
