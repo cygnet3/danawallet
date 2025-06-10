@@ -18,6 +18,8 @@ void main() async {
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
 
+  await precacheImages();
+
   final bool walletLoaded;
   try {
     walletLoaded = await walletState.initialize();
