@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
@@ -238,8 +239,7 @@ class WalletScreenState extends State<WalletScreen> {
     final walletState = Provider.of<WalletState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
 
-    ApiAmount amount =
-        ApiAmount(field0: walletState.amount + walletState.unconfirmedChange);
+    ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
 
     return Scaffold(
         appBar: buildAppBar(scanProgress.scanning, walletState.network.toColor),

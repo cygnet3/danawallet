@@ -13,7 +13,9 @@ const int defaultTestnetBirthday = 2900000;
 const int defaultSignetBirthday = 200000;
 const int defaultRegtestBirthday = 0;
 
-// dust limit used in scanning. outputs < dust limit will not be scanned
+// default dust limit. this is used in syncing, as well as sending
+// for syncing, amounts < dust limit will be ignored
+// for sending, the user needs to send a minimum of >= dust
 const int defaultDustLimit = 1000;
 
 // colors

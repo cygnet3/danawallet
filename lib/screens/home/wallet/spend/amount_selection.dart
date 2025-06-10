@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
@@ -21,7 +22,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
   final TextEditingController amountController = TextEditingController();
   String? _amountErrorText;
 
-  Future<void> onContinue(BigInt availableBalance) async {
+  Future<void> onContinue(ApiAmount availableBalance) async {
     setState(() {
       _amountErrorText = null;
     });
@@ -36,9 +37,16 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
       return;
     }
 
-    if (amount > availableBalance) {
+    if (amount > availableBalance.field0) {
       setState(() {
         _amountErrorText = 'Not enough available funds';
+      });
+      return;
+    }
+
+    if (amount < BigInt.from(defaultDustLimit)) {
+      setState(() {
+        _amountErrorText = 'Please send at least $defaultDustLimit sats';
       });
       return;
     }
@@ -127,7 +135,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
                 const SizedBox(
                   height: 10.0,
                 ),
-                Text('Available Balance: $availableBalance',
+                Text('Available Balance: ${availableBalance.displaySats()}',
                     style: BitcoinTextStyle.body3(Bitcoin.black)
                         .apply(fontWeightDelta: 1)),
                 if (blocksToScan != 0)
