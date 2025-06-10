@@ -28,7 +28,7 @@ abstract class OwnedOutputs implements RustOpaqueInterface {
 
   OwnedOutPoints getUnconfirmedSpentOutpoints();
 
-  BigInt getUnspentAmount();
+  ApiAmount getUnspentAmount();
 
   Map<String, ApiOwnedOutput> getUnspentOutputs();
 

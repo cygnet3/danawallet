@@ -130,7 +130,7 @@ abstract class RustLibApi extends BaseApi {
   OwnedOutPoints crateApiOutputsOwnedOutputsGetUnconfirmedSpentOutpoints(
       {required OwnedOutputs that});
 
-  BigInt crateApiOutputsOwnedOutputsGetUnspentAmount(
+  ApiAmount crateApiOutputsOwnedOutputsGetUnspentAmount(
       {required OwnedOutputs that});
 
   Map<String, ApiOwnedOutput> crateApiOutputsOwnedOutputsGetUnspentOutputs(
@@ -233,7 +233,7 @@ abstract class RustLibApi extends BaseApi {
 
   String crateApiHistoryTxHistoryEncode({required TxHistory that});
 
-  BigInt crateApiHistoryTxHistoryGetUnconfirmedChange(
+  ApiAmount crateApiHistoryTxHistoryGetUnconfirmedChange(
       {required TxHistory that});
 
   void crateApiHistoryTxHistoryProcessStateUpdate(
@@ -889,7 +889,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
 
   @override
-  BigInt crateApiOutputsOwnedOutputsGetUnspentAmount(
+  ApiAmount crateApiOutputsOwnedOutputsGetUnspentAmount(
       {required OwnedOutputs that}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
@@ -899,7 +899,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_u_64,
+        decodeSuccessData: sse_decode_api_amount,
         decodeErrorData: null,
       ),
       constMeta: kCrateApiOutputsOwnedOutputsGetUnspentAmountConstMeta,
@@ -1752,7 +1752,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  BigInt crateApiHistoryTxHistoryGetUnconfirmedChange(
+  ApiAmount crateApiHistoryTxHistoryGetUnconfirmedChange(
       {required TxHistory that}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
@@ -1762,7 +1762,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48)!;
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_u_64,
+        decodeSuccessData: sse_decode_api_amount,
         decodeErrorData: null,
       ),
       constMeta: kCrateApiHistoryTxHistoryGetUnconfirmedChangeConstMeta,
@@ -5672,7 +5672,7 @@ class OwnedOutputsImpl extends RustOpaque implements OwnedOutputs {
         that: this,
       );
 
-  BigInt getUnspentAmount() =>
+  ApiAmount getUnspentAmount() =>
       RustLib.instance.api.crateApiOutputsOwnedOutputsGetUnspentAmount(
         that: this,
       );
@@ -5867,7 +5867,7 @@ class TxHistoryImpl extends RustOpaque implements TxHistory {
         that: this,
       );
 
-  BigInt getUnconfirmedChange() =>
+  ApiAmount getUnconfirmedChange() =>
       RustLib.instance.api.crateApiHistoryTxHistoryGetUnconfirmedChange(
         that: this,
       );
