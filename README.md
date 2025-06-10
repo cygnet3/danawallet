@@ -76,3 +76,13 @@ Finally, to build and install the app for your android device:
 ```
 flutter run
 ```
+
+## Donate to Dana
+
+You can donate to Dana wallet using our address:
+
+> ₿donate@danawallet.app
+
+or you can use the following silent payment-address:
+
+> sp1qq0cygnetgn3rz2kla5cp05nj5uetlsrzez0l4p8g7wehf7ldr93lcqadw65upymwzvp5ed38l8ur2rznd6934xh95msevwrdwtrpk372hyz4vr6g
