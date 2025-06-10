@@ -204,13 +204,10 @@ impl TxHistory {
     // check if this is a transaction we have sent ourselves
     fn check_is_self_send(&self, txid: Txid) -> bool {
         for history in self.0.iter() {
-            match history {
-                RecordedTransaction::Outgoing(outgoing) => {
-                    if outgoing.txid == txid {
-                        return true;
-                    }
+            if let RecordedTransaction::Outgoing(outgoing) = history {
+                if outgoing.txid == txid {
+                    return true;
                 }
-                _ => (),
             }
         }
         false
