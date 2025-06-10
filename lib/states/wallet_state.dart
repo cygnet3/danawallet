@@ -24,8 +24,8 @@ class WalletState extends ChangeNotifier {
   late int birthday;
 
   // variables that change
-  late BigInt amount;
-  late BigInt unconfirmedChange;
+  late ApiAmount amount;
+  late ApiAmount unconfirmedChange;
   late int lastScan;
   late TxHistory txHistory;
   late OwnedOutputs ownedOutputs;
@@ -178,7 +178,7 @@ class WalletState extends ChangeNotifier {
     final unspentOutputs = ownedOutputs.getUnspentOutputs();
     final bitcoinNetwork = network.toBitcoinNetwork;
 
-    if (recipient.amount.field0 < amount - BigInt.from(546)) {
+    if (recipient.amount.field0 < amount.field0 - BigInt.from(546)) {
       return wallet.createNewTransaction(
           apiOutputs: unspentOutputs,
           apiRecipients: [
