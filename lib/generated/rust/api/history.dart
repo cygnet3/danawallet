@@ -29,7 +29,7 @@ abstract class TxHistory implements RustOpaqueInterface {
 
   String encode();
 
-  BigInt getUnconfirmedChange();
+  ApiAmount getUnconfirmedChange();
 
   void processStateUpdate({required StateUpdate update});
 

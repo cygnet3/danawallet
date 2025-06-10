@@ -137,16 +137,17 @@ impl TxHistory {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn get_unconfirmed_change(&self) -> u64 {
+    pub fn get_unconfirmed_change(&self) -> ApiAmount {
         self.0
             .iter()
             .filter_map(|x| match x {
-                RecordedTransaction::Outgoing(outgoing) if outgoing.confirmed_at == None => {
-                    Some(outgoing.change.to_sat())
+                RecordedTransaction::Outgoing(outgoing) if outgoing.confirmed_at.is_none() => {
+                    Some(outgoing.change)
                 }
                 _ => None,
             })
-            .sum()
+            .sum::<Amount>()
+            .into()
     }
 
     fn record_outgoing_transaction(

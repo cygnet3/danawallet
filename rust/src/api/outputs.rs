@@ -6,13 +6,13 @@ use std::{
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use sp_client::{
-    bitcoin::{absolute::Height, BlockHash, OutPoint, Txid},
+    bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
     OutputSpendStatus, OwnedOutput,
 };
 
 use anyhow::{Error, Result};
 
-use crate::stream::StateUpdate;
+use crate::{api::structs::ApiAmount, stream::StateUpdate};
 
 use super::structs::ApiOwnedOutput;
 
@@ -92,11 +92,12 @@ impl OwnedOutputs {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn get_unspent_amount(&self) -> u64 {
+    pub fn get_unspent_amount(&self) -> ApiAmount {
         self.0
             .values()
             .filter(|x| x.spend_status == OutputSpendStatus::Unspent)
-            .fold(0, |acc, x| acc + x.amount.to_sat())
+            .fold(Amount::ZERO, |acc, x| acc + x.amount)
+            .into()
     }
 
     #[flutter_rust_bridge::frb(sync)]
