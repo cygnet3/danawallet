@@ -28,6 +28,7 @@
 use crate::api::backup::*;
 use crate::api::history::*;
 use crate::api::outputs::*;
+use crate::api::structs::*;
 use crate::api::wallet::setup::*;
 use crate::api::wallet::*;
 use crate::stream::*;
@@ -4259,6 +4260,9 @@ fn wire__crate__api__validate__validate_address_impl(
 // Section: related_funcs
 
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>
+);
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiScanKey>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
@@ -4296,6 +4300,16 @@ impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <String>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::anyhow::anyhow!("{}", inner);
+    }
+}
+
+impl SseDecode for ApiLabel {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
     }
 }
 
@@ -4405,6 +4419,16 @@ impl SseDecode for std::collections::HashMap<String, crate::api::structs::ApiOwn
         let mut inner =
             <Vec<(String, crate::api::structs::ApiOwnedOutput)>>::sse_decode(deserializer);
         return inner.into_iter().collect();
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
     }
 }
 
@@ -4582,7 +4606,7 @@ impl SseDecode for crate::api::structs::ApiOwnedOutput {
         let mut var_tweak = <[u8; 32]>::sse_decode(deserializer);
         let mut var_amount = <crate::api::structs::ApiAmount>::sse_decode(deserializer);
         let mut var_script = <String>::sse_decode(deserializer);
-        let mut var_label = <Option<String>>::sse_decode(deserializer);
+        let mut var_label = <Option<ApiLabel>>::sse_decode(deserializer);
         let mut var_spendStatus =
             <crate::api::structs::ApiOutputSpendStatus>::sse_decode(deserializer);
         return crate::api::structs::ApiOwnedOutput {
@@ -4825,6 +4849,17 @@ impl SseDecode for Option<String> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<String>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<ApiLabel> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<ApiLabel>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -5115,6 +5150,21 @@ fn pde_ffi_dispatcher_sync_impl(
 }
 
 // Section: rust2dart
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<ApiLabel> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<ApiLabel> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<ApiLabel>> for ApiLabel {
+    fn into_into_dart(self) -> FrbWrapper<ApiLabel> {
+        self.into()
+    }
+}
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<ApiScanKey> {
@@ -5619,6 +5669,13 @@ impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     }
 }
 
+impl SseEncode for ApiLabel {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
 impl SseEncode for ApiScanKey {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -5696,6 +5753,17 @@ impl SseEncode for std::collections::HashMap<String, crate::api::structs::ApiOwn
             self.into_iter().collect(),
             serializer,
         );
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
     }
 }
 
@@ -5877,7 +5945,7 @@ impl SseEncode for crate::api::structs::ApiOwnedOutput {
         <[u8; 32]>::sse_encode(self.tweak, serializer);
         <crate::api::structs::ApiAmount>::sse_encode(self.amount, serializer);
         <String>::sse_encode(self.script, serializer);
-        <Option<String>>::sse_encode(self.label, serializer);
+        <Option<ApiLabel>>::sse_encode(self.label, serializer);
         <crate::api::structs::ApiOutputSpendStatus>::sse_encode(self.spend_status, serializer);
     }
 }
@@ -6073,6 +6141,16 @@ impl SseEncode for Option<String> {
     }
 }
 
+impl SseEncode for Option<ApiLabel> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <ApiLabel>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<OwnedOutputs> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6224,6 +6302,7 @@ mod io {
     use crate::api::backup::*;
     use crate::api::history::*;
     use crate::api::outputs::*;
+    use crate::api::structs::*;
     use crate::api::wallet::setup::*;
     use crate::api::wallet::*;
     use crate::stream::*;
@@ -6236,6 +6315,20 @@ mod io {
     // Section: boilerplate
 
     flutter_rust_bridge::frb_generated_boilerplate_io!();
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_danawallet_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerApiLabel(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_danawallet_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerApiLabel(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>>::decrement_strong_count(ptr as _);
+    }
 
     #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_danawallet_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerApiScanKey(
@@ -6392,6 +6485,7 @@ mod web {
     use crate::api::backup::*;
     use crate::api::history::*;
     use crate::api::outputs::*;
+    use crate::api::structs::*;
     use crate::api::wallet::setup::*;
     use crate::api::wallet::*;
     use crate::stream::*;
@@ -6406,6 +6500,20 @@ mod web {
     // Section: boilerplate
 
     flutter_rust_bridge::frb_generated_boilerplate_web!();
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerApiLabel(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerApiLabel(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ApiLabel>>::decrement_strong_count(ptr as _);
+    }
 
     #[wasm_bindgen]
     pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerApiScanKey(

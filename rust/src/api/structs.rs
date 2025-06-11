@@ -11,6 +11,7 @@ use sp_client::{
         secp256k1::SecretKey,
         Network, OutPoint, ScriptBuf, Txid,
     },
+    silentpayments::receiving::Label,
     OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
 };
 
@@ -89,12 +90,27 @@ impl ApiAmount {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct ApiLabel(Label);
+
+impl From<ApiLabel> for Label {
+    fn from(value: ApiLabel) -> Self {
+        value.0
+    }
+}
+
+impl From<Label> for ApiLabel {
+    fn from(value: Label) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ApiOwnedOutput {
     pub blockheight: u32,
     pub tweak: [u8; 32],
     pub amount: ApiAmount,
     pub script: String,
-    pub label: Option<String>,
+    pub label: Option<ApiLabel>,
     pub spend_status: ApiOutputSpendStatus,
 }
 
@@ -105,7 +121,7 @@ impl From<OwnedOutput> for ApiOwnedOutput {
             tweak: value.tweak,
             amount: value.amount.into(),
             script: value.script.to_hex_string(),
-            label: value.label,
+            label: value.label.map(Into::into),
             spend_status: value.spend_status.into(),
         }
     }
@@ -118,7 +134,7 @@ impl From<ApiOwnedOutput> for OwnedOutput {
             tweak: value.tweak,
             amount: value.amount.into(),
             script: ScriptBuf::from_hex(&value.script).unwrap(),
-            label: value.label,
+            label: value.label.map(Into::into),
             spend_status: value.spend_status.into(),
         }
     }
