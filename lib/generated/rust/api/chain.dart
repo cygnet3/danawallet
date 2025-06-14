@@ -8,3 +8,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 Future<int> getChainHeight({required String blindbitUrl}) =>
     RustLib.instance.api.crateApiChainGetChainHeight(blindbitUrl: blindbitUrl);
+
+Future<bool> checkNetwork(
+        {required String blindbitUrl, required String network}) =>
+    RustLib.instance.api
+        .crateApiChainCheckNetwork(blindbitUrl: blindbitUrl, network: network);

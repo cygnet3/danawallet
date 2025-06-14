@@ -65,13 +65,22 @@ class ChainState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateBlindbitUrl(String blindbitUrl) async {
-    // todo: make sure that url matches the network!
-    Logger().i('Updating blindbit url');
-    Logger().i('Old blindbit url: $_blindbitUrl');
-    _blindbitUrl = blindbitUrl;
-    Logger().i('New blindbit url: $_blindbitUrl');
+  Future<bool> updateBlindbitUrl(String blindbitUrl) async {
+    final correctNetwork = await checkNetwork(
+        blindbitUrl: blindbitUrl, network: _network!.toBitcoinNetwork);
 
-    await updateChainTip();
+    if (correctNetwork) {
+      Logger().i('Updating blindbit url');
+      Logger().i('Old blindbit url: $_blindbitUrl');
+      _blindbitUrl = blindbitUrl;
+      Logger().i('New blindbit url: $_blindbitUrl');
+
+      await updateChainTip();
+
+      return true;
+    } else {
+      Logger().w('Failed to update blindbit url, wrong network');
+      return false;
+    }
   }
 }
