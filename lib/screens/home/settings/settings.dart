@@ -60,13 +60,25 @@ class SettingsScreen extends StatelessWidget {
 
     final value = await showInputAlertDialog(controller, TextInputType.url,
         'Set blindbit url', 'Only blindbit is currently supported');
+
+    String? url;
     if (value is bool && value) {
-      final defaultBlindbitUrl = network.getDefaultBlindbitUrl();
-      await settings.setBlindbitUrl(defaultBlindbitUrl);
-      await chainState.updateBlindbitUrl(defaultBlindbitUrl);
+      url = network.getDefaultBlindbitUrl();
     } else if (value is String) {
-      await settings.setBlindbitUrl(value);
-      await chainState.updateBlindbitUrl(value);
+      url = value;
+    }
+
+    if (url != null) {
+      try {
+        final success = await chainState.updateBlindbitUrl(url);
+        if (success) {
+          await settings.setBlindbitUrl(url);
+        } else {
+          displayNotification("Wrong network for blindbit server");
+        }
+      } catch (e) {
+        displayNotification(exceptionToString(e));
+      }
     }
   }
 
