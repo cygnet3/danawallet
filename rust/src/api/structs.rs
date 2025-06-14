@@ -105,7 +105,7 @@ impl From<OwnedOutput> for ApiOwnedOutput {
             tweak: value.tweak,
             amount: value.amount.into(),
             script: value.script.to_hex_string(),
-            label: value.label,
+            label: value.label.map(|l| l.as_string()),
             spend_status: value.spend_status.into(),
         }
     }
@@ -118,7 +118,7 @@ impl From<ApiOwnedOutput> for OwnedOutput {
             tweak: value.tweak,
             amount: value.amount.into(),
             script: ScriptBuf::from_hex(&value.script).unwrap(),
-            label: value.label,
+            label: value.label.map(|l| l.try_into().unwrap()),
             spend_status: value.spend_status.into(),
         }
     }
