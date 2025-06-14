@@ -171,7 +171,7 @@ checksum = "33415e24172c1b7d6066f6d999545375ab8e1d95421d6784bdfff9496f292387"
 dependencies = [
  "bitcoin_hashes",
  "rand 0.8.5",
- "rand_core 0.4.2",
+ "rand_core 0.6.4",
  "serde",
  "unicode-normalization",
 ]
@@ -1798,9 +1798,9 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "silentpayments"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0931dfd631f4c096fec95716f96b9d74f42c3027ff9f179b1d1881e5abc6551a"
+checksum = "616e15864460d57052bee829c5a8ad4e910b8ff1089d3ebb1f65f398f134dc93"
 dependencies = [
  "bech32 0.9.1",
  "bimap",
@@ -1861,7 +1861,7 @@ dependencies = [
 [[package]]
 name = "sp_client"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/sp-client?branch=master#12dc93c9cc2f755f21b28d601931253c698b0851"
+source = "git+https://github.com/cygnet3/sp-client?branch=master#741b87cc228b7f6e05bed9d73586b94e9158b287"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2349,7 +2349,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
