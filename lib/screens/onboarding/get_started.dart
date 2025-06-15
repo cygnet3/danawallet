@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/home/home.dart';
@@ -55,7 +56,11 @@ class GetStartedScreen extends StatelessWidget {
         }
       }
     } catch (e) {
-      displayNotification("restore failed, wrong password?");
+      if (e is InvalidNetworkException) {
+        displayNotification("Backup file is for a different network");
+      } else {
+        displayNotification("restore failed, wrong password?");
+      }
     }
   }
 

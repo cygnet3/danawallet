@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/backup.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:file_picker/file_picker.dart';
@@ -65,7 +68,14 @@ class BackupService {
     SettingsRepository settingsRepository = SettingsRepository.instance;
     final backup = encryptedBackup.decrypt(password: password);
 
-    await walletRepository.restoreWalletBackup(backup.wallet);
-    await settingsRepository.restoreSettingsBackup(backup.settings);
+    final expectedNetwork = Network.getNetworkForFlavor;
+
+    // dev flavor allows any network
+    if (isDevEnv || backup.wallet.network == expectedNetwork.name) {
+      await walletRepository.restoreWalletBackup(backup.wallet);
+      await settingsRepository.restoreSettingsBackup(backup.settings);
+    } else {
+      throw InvalidNetworkException();
+    }
   }
 }
