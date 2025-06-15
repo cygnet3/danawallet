@@ -6,8 +6,16 @@ run-dev-release:
     flutter run --release --flavor dev --target lib/main_dev.dart
 run-live:
     flutter run --flavor live
-run--live-release:
+run-live-release:
     flutter run --release --flavor live
+run-mainnet:
+    flutter run --flavor mainnet
+run-mainnet-release:
+    flutter run --release --flavor mainnet
+run-signet:
+    flutter run --flavor signet
+run-signet-release:
+    flutter run --release --flavor signet
 
 build-apk-dev:
     just clean-bin
