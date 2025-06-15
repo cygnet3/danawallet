@@ -157,7 +157,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
       footer: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          if (isDevEnv())
+          if (isDevEnv)
             BitcoinButtonOutlined(
               tintColor: Bitcoin.neutral5,
               textStyle: BitcoinTextStyle.title4(Bitcoin.black),

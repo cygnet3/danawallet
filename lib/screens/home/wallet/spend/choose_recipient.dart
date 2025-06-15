@@ -128,7 +128,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   const SizedBox(
                     height: 10.0,
                   ),
-                  if (isDevEnv())
+                  if (isDevEnv)
                     FooterButtonOutlined(
                       title: "Choose from Contacts",
                       onPressed: () => (),
