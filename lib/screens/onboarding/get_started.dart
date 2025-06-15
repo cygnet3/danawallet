@@ -65,13 +65,13 @@ class GetStartedScreen extends StatelessWidget {
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
 
-    // always regtest for now
-    Network selectedNetwork = Network.regtest;
+    // Get network from flavor
+    Network network = Network.getNetworkForFlavor;
 
-    await SettingsRepository.instance.defaultSettings(selectedNetwork);
-    final blindbitUrl = selectedNetwork.getDefaultBlindbitUrl();
+    await SettingsRepository.instance.defaultSettings(network);
+    final blindbitUrl = network.getDefaultBlindbitUrl();
 
-    await chainState.initialize(selectedNetwork, blindbitUrl);
+    await chainState.initialize(network, blindbitUrl);
 
     await walletState.createNewWallet(chainState);
 
