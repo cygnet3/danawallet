@@ -26,25 +26,25 @@ enum Network {
   String getDefaultBlindbitUrl() {
     switch (this) {
       case Network.mainnet:
-        if (isDevEnv() && const String.fromEnvironment("MAINNET_URL") != "") {
+        if (isDevEnv && const String.fromEnvironment("MAINNET_URL") != "") {
           return const String.fromEnvironment("MAINNET_URL");
         } else {
           return defaultMainnet;
         }
       case Network.testnet:
-        if (isDevEnv() && const String.fromEnvironment("TESTNET_URL") != "") {
+        if (isDevEnv && const String.fromEnvironment("TESTNET_URL") != "") {
           return const String.fromEnvironment("TESTNET_URL");
         } else {
           return defaultTestnet;
         }
       case Network.signet:
-        if (isDevEnv() && const String.fromEnvironment("SIGNET_URL") != "") {
+        if (isDevEnv && const String.fromEnvironment("SIGNET_URL") != "") {
           return const String.fromEnvironment("SIGNET_URL");
         } else {
           return defaultSignet;
         }
       case Network.regtest:
-        if (isDevEnv() && const String.fromEnvironment("REGTEST_URL") != "") {
+        if (isDevEnv && const String.fromEnvironment("REGTEST_URL") != "") {
           return const String.fromEnvironment("REGTEST_URL");
         } else {
           return defaultRegtest;

@@ -150,7 +150,7 @@ class SettingsScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          if (isDevEnv())
+          if (isDevEnv)
             BitcoinButtonOutlined(
               title: 'Show seed phrase',
               onPressed: () async {
@@ -162,18 +162,18 @@ class SettingsScreen extends StatelessWidget {
                 showAlertDialog(title, text);
               },
             ),
-          if (isDevEnv())
+          if (isDevEnv)
             BitcoinButtonOutlined(
                 title: 'Set scan height',
                 onPressed: () => _setLastScan(context, walletState, homeState)),
-          if (isDevEnv())
+          if (isDevEnv)
             BitcoinButtonOutlined(
               title: 'Set backend url',
               onPressed: () {
                 _setBlindbitUrl(context, walletState.network);
               },
             ),
-          if (isDevEnv())
+          if (isDevEnv)
             BitcoinButtonOutlined(
               title: 'Set dust threshold',
               onPressed: () {

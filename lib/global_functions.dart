@@ -6,6 +6,7 @@ import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/widgets/confirmation_widget.dart';
 import 'package:danawallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 final globalNavigatorKey = GlobalKey<NavigatorState>();
@@ -198,6 +199,6 @@ int _getChunkFittingWidth(List<String> chunks, TextStyle style, double width) {
   return best;
 }
 
-bool isDevEnv() {
-  return const String.fromEnvironment('FLUTTER_APP_FLAVOR') == 'dev';
+bool get isDevEnv {
+  return appFlavor == 'dev';
 }
