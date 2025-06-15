@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:flutter/services.dart';
 
 enum Network {
   mainnet,
@@ -104,6 +103,18 @@ enum Network {
         return Network.regtest;
       default:
         throw Exception('unknown network');
+    }
+  }
+
+  static Network get getNetworkForFlavor {
+    switch (appFlavor) {
+      case 'mainnet':
+        return Network.mainnet;
+      case 'signet':
+        return Network.signet;
+      default:
+        // return regtest by default (for live & dev flavors)
+        return Network.regtest;
     }
   }
 }
