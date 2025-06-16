@@ -166,13 +166,12 @@ class SettingsScreen extends StatelessWidget {
             BitcoinButtonOutlined(
                 title: 'Set scan height',
                 onPressed: () => _setLastScan(context, walletState, homeState)),
-          if (isDevEnv)
-            BitcoinButtonOutlined(
-              title: 'Set backend url',
-              onPressed: () {
-                _setBlindbitUrl(context, walletState.network);
-              },
-            ),
+          BitcoinButtonOutlined(
+            title: 'Set backend url',
+            onPressed: () {
+              _setBlindbitUrl(context, walletState.network);
+            },
+          ),
           if (isDevEnv)
             BitcoinButtonOutlined(
               title: 'Set dust threshold',
