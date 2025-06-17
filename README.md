@@ -4,18 +4,38 @@ Dana is a flutter app used for accepting bitcoin donations. It uses silent payme
 
 ## Try out Dana wallet
 
-**Dana wallet is currently still in an experimental phase. We recommend sticking to testnet/signet. If you really want to test out the wallet on mainnet, only use funds you are willing to lose. We don't take responsibility for lost funds.**
-
 We are looking into releasing Dana wallet on the popular app stores once the app is more stable.
 
-In the meantime, there are two ways to try out Dana wallet:
+In the meantime, there are three ways to try out Dana wallet:
 
-- Download the latest Dana wallet APK from the [releases page](https://github.com/cygnet3/danawallet/releases)
-- Download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.silentpayments.dev/fdroid/repo)
+- Using Obtanium, download the latest release from GitHub
+- Manually download the latest Dana wallet APK from the [releases page](https://github.com/cygnet3/danawallet/releases)
+- Using F-Droid, download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.silentpayments.dev/fdroid/repo)
 
-### Download using F-Droid
+Downloading the APK from the releases page is probably the easiest option.
+However, for some extra options (e.g. if you want to test using Mainnet), you'll need to use the F-droid repository option. More info below.
 
-We recommend the F-Droid option, since this has support for automatic updates, and only requires setup once.
+### Getting funds to test
+
+If you downloaded the latest release on Github (either using Obtanium or manually), you will be using the Regtest network.
+Regtest is an easy way to quickly try out the wallet using fake coins.
+
+You can get some coins using our regtest faucet:
+
+https://silentpayments.dev/faucet/regtest
+
+Our regtest node produces a new block every minute.
+After claiming some coins, you may need to wait up to a minute before the funds appear in your wallet.
+
+### Trying out Mainnet or Signet
+
+**Dana wallet is currently still in an experimental phase. We recommend sticking to regtest or signet. If you really want to test out the wallet on mainnet, only use funds you are willing to lose. We don't take responsibility for lost funds.**
+
+Although using Regtest is an easy way to try out the wallet, it may not be what you want.
+
+If you want to try out Dana on different networks, you can use the 'Signet' or 'Mainnet' flavors, published on our F-droid repository.
+
+#### Adding our F-Droid repository
 
 - Open F-Droid on your android phone
 - Go to 'Settings'
@@ -23,7 +43,14 @@ We recommend the F-Droid option, since this has support for automatic updates, a
 - Add a new repository by clicking the '+' icon
 - Scan the QR code found on this page: https://fdroid.silentpayments.dev/fdroid/repo
 
-You now have added our self-hosted repository. To download the app, search for 'Dana Wallet' in the F-Droid app store section (you may need to refresh the app list first, by swiping down on the F-Droid store screen).
+#### App flavors
+
+There are 4 app 'flavors' hosted on our F-droid repository:
+
+- 'Dana wallet', this is the default flavor, and is identical to the APK released on GitHub. Uses the Regtest network.
+- 'Dana wallet - Development', this flavor has some additional extra advanced options/features. May be less stable. Uses the Regtest network.
+- 'Dana wallet - Signet', this flavor is for using the Signet network.
+- 'Dana wallet - Mainnet', this flavor is for using Mainnet, using real coins. Again, be very careful with this!
 
 ## Building Dana wallet from source
 
@@ -74,12 +101,12 @@ flutter devices
 Finally, to build and install the app for your android device:
 
 ```
-flutter run
+just run-dev
 ```
 
 ## Donate to Dana
 
-You can donate to Dana wallet using our address:
+You can donate to Dana wallet using our BIP353 address:
 
 > ₿donate@danawallet.app
 
