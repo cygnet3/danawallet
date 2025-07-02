@@ -36,3 +36,7 @@ build-android:
     cd rust && just build-android
 build-android-release:
     cd rust && just build-android-release
+
+gen-rust:
+    just gen
+    just build-android
