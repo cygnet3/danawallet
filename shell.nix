@@ -54,7 +54,7 @@ pkgs.mkShell {
     # Ensure we have the stable toolchain and Android targets
     rustup toolchain install stable
     rustup default stable
-    rustup target add aarch64-linux-android
+    rustup target add aarch64-linux-android armv7-linux-androideabi
     
     # Create a completely writable Android SDK
     WRITABLE_SDK="$HOME/.danawallet/android-sdk"
