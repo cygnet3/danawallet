@@ -8,7 +8,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // secure storage
-const String _keyWalletBlob = "wallet"; // deprecated; remove this later
 const String _keyScanSk = "scansk";
 const String _keySpendKey = "spendkey";
 const String _keySeedPhrase = "seedphrase";
@@ -82,6 +81,7 @@ class WalletRepository {
     final spendKey = await readSpendKey();
 
     if (scanKey != null && spendKey != null) {
+      // if the scan and spend keys are present, then birthday & network should also be present
       final birthday = await nonSecureStorage.getInt(_keyBirthday);
       final network = await readNetwork();
 
@@ -91,42 +91,7 @@ class WalletRepository {
           birthday: birthday!,
           network: network.toBitcoinNetwork);
     } else {
-      // this case is for backwards compatibility, to convert the wallet blob into separate
-      // values.
-      // todo: remove this
-      final walletBlob = await secureStorage.read(key: _keyWalletBlob);
-      if (walletBlob != null) {
-        final wallet = SpWallet.decode(encodedWallet: walletBlob);
-        final scanKey = wallet.getScanKey();
-        final spendKey = wallet.getSpendKey();
-        final birthday = wallet.getBirthday();
-
-        // insert new values
-        await secureStorage.write(key: _keyScanSk, value: scanKey.encode());
-        await secureStorage.write(key: _keySpendKey, value: spendKey.encode());
-        await nonSecureStorage.setInt(_keyBirthday, birthday);
-
-        // these values may be present in the wallet blob (for older versions)
-        // we have to save these too
-        if ((await nonSecureStorage.getString(_keyTxHistory)) == null) {
-          await saveHistory(wallet.getWalletTxHistory()!);
-        }
-
-        if ((await nonSecureStorage.getString(_keyOwnedOutputs)) == null) {
-          await saveOwnedOutputs(wallet.getWalletOwnedOutputs()!);
-        }
-
-        if ((await nonSecureStorage.getInt(_keyLastScan)) == null) {
-          await saveLastScan(wallet.getWalletLastScan()!);
-        }
-
-        // remove old (deprecated) value
-        await secureStorage.delete(key: _keyWalletBlob);
-
-        return wallet;
-      } else {
-        return null;
-      }
+      return null;
     }
   }
 
@@ -155,17 +120,9 @@ class WalletRepository {
   }
 
   Future<Network> readNetwork() async {
-    // read network from wallet repository
-    // if network is not in storage, user may be using an old wallet where
-    // it was stored in the wallet blob, so  try reading from there instead
     final networkStr = await nonSecureStorage.getString(_keyNetwork);
 
-    if (networkStr != null) {
-      return Network.values.byName(networkStr);
-    } else {
-      final wallet = await readWallet();
-      return Network.fromBitcoinNetwork(wallet!.getNetwork());
-    }
+    return Network.values.byName(networkStr!);
   }
 
   Future<void> saveHistory(TxHistory history) async {
