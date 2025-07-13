@@ -11,7 +11,7 @@ const String defaultRegtest = "https://silentpayments.dev/blindbit/regtest";
 const int defaultMainnetBirthday = 850000;
 const int defaultTestnetBirthday = 2900000;
 const int defaultSignetBirthday = 200000;
-const int defaultRegtestBirthday = 0;
+const int defaultRegtestBirthday = 80000;
 
 // default dust limit. this is used in syncing, as well as sending
 // for syncing, amounts < dust limit will be ignored
@@ -24,3 +24,6 @@ const Color danaBlue = Color.fromARGB(255, 10, 109, 214);
 // example address, used in onboarding flow
 const String exampleAddress =
     "sp1qq0cygnetgn3rz2kla5cp05nj5uetlsrzez0l4p8g7wehf7ldr93lcqadw65upymwzvp5ed38l8ur2rznd6934xh95msevwrdwtrpk372hyz4vr6g";
+
+// example mnemonic
+const String exampleMnemonic = "gloom police month stamp viable claim hospital heart alcohol off ocean ghost";
