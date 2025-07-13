@@ -202,3 +202,11 @@ int _getChunkFittingWidth(List<String> chunks, TextStyle style, double width) {
 bool get isDevEnv {
   return appFlavor == 'dev';
 }
+
+void goToScreen(BuildContext context, Widget screen) {
+  Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
+}
+
+void goBack(BuildContext context) {
+  Navigator.of(context).pop();
+}

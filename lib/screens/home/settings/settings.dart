@@ -1,9 +1,9 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
-import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
+import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
@@ -33,8 +33,10 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _setLastScan(BuildContext context, WalletState walletState,
-      HomeState homeState) async {
+  Future<void> _setLastScan(BuildContext context) async {
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final homeState = Provider.of<HomeState>(context, listen: false);
+
     TextEditingController controller = TextEditingController();
     final scanHeight = await showInputAlertDialog(
         controller,
@@ -52,7 +54,8 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _setBlindbitUrl(BuildContext context, Network network) async {
+  Future<void> _setBlindbitUrl(BuildContext context) async {
+    final wallet = Provider.of<WalletState>(context, listen: false);
     SettingsRepository settings = SettingsRepository.instance;
     final chainState = Provider.of<ChainState>(context, listen: false);
     final controller = TextEditingController();
@@ -60,6 +63,8 @@ class SettingsScreen extends StatelessWidget {
 
     final value = await showInputAlertDialog(controller, TextInputType.url,
         'Set blindbit url', 'Only blindbit is currently supported');
+
+    final network = wallet.network;
 
     String? url;
     if (value is bool && value) {
@@ -141,35 +146,37 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void onShowMnemonic(BuildContext context) async {
+    final wallet = Provider.of<WalletState>(context, listen: false);
+    final mnemonic = await wallet.getSeedPhraseFromSecureStorage();
+
+    if (context.mounted) {
+      if (mnemonic != null) {
+        goToScreen(context, ViewMnemonicScreen(mnemonic: mnemonic));
+      } else {
+        showAlertDialog("Seed phrase unknown",
+            "Seed phrase unknown! Did you import from keys?");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final homeState = Provider.of<HomeState>(context, listen: false);
-
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          if (isDevEnv)
-            BitcoinButtonOutlined(
+          BitcoinButtonOutlined(
               title: 'Show seed phrase',
-              onPressed: () async {
-                const title = 'Backup seed phrase';
-                final text =
-                    await walletState.getSeedPhraseFromSecureStorage() ??
-                        'Seed phrase unknown! Did you import from keys?';
-
-                showAlertDialog(title, text);
-              },
-            ),
+              onPressed: () => onShowMnemonic(context)),
           if (isDevEnv)
             BitcoinButtonOutlined(
                 title: 'Set scan height',
-                onPressed: () => _setLastScan(context, walletState, homeState)),
+                onPressed: () => _setLastScan(context)),
           BitcoinButtonOutlined(
             title: 'Set backend url',
             onPressed: () {
-              _setBlindbitUrl(context, walletState.network);
+              _setBlindbitUrl(context);
             },
           ),
           if (isDevEnv)
@@ -179,12 +186,13 @@ class SettingsScreen extends StatelessWidget {
                 _setDustLimit(context);
               },
             ),
-          BitcoinButtonOutlined(
-            title: 'Backup wallet',
-            onPressed: () {
-              _backupWalletButtonPressed();
-            },
-          ),
+          if (isDevEnv)
+            BitcoinButtonOutlined(
+              title: 'File backup wallet',
+              onPressed: () {
+                _backupWalletButtonPressed();
+              },
+            ),
           BitcoinButtonOutlined(
             title: 'Wipe wallet',
             onPressed: () => _wipeWalletButtonPressed(context),
