@@ -1,10 +1,12 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
+import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -119,8 +121,20 @@ class GetStartedScreen extends StatelessWidget {
 
     final footer = Column(
       children: [
+        if (isDevEnv)
+          FooterButtonOutlined(
+              title: 'Restore using file backup',
+              onPressed: () => onRestoreWallet(context)),
+        const SizedBox(
+          height: 15,
+        ),
         FooterButtonOutlined(
-            title: 'Restore', onPressed: () => onRestoreWallet(context)),
+            title: 'Restore',
+            onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SeedPhraseScreen()),
+                )),
         const SizedBox(
           height: 15,
         ),

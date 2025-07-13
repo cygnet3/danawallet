@@ -99,6 +99,31 @@ class WalletState extends ChangeNotifier {
     await walletRepository.reset();
   }
 
+  Future<void> restoreWallet(ChainState chainState, String mnemonic) async {
+    if (!chainState.initiated) {
+      throw Exception(
+          'Chain state must be initialized before restoring a wallet');
+    }
+
+    final network = chainState.network;
+    // set birthday to default wallet
+    final birthday = network.defaultBirthday;
+
+    final args = WalletSetupArgs(
+        setupType: WalletSetupType.mnemonic(mnemonic),
+        network: network.toBitcoinNetwork);
+    final setupResult = SpWallet.setupWallet(setupArgs: args);
+    final wallet =
+        await walletRepository.setupWallet(setupResult, network, birthday);
+
+    // fill current state variables
+    address = wallet.getReceivingAddress();
+    changeAddress = wallet.getChangeAddress();
+    this.birthday = wallet.getBirthday();
+    this.network = network;
+    await _updateWalletState();
+  }
+
   Future<void> createNewWallet(ChainState chainState) async {
     if (!chainState.initiated) {
       throw Exception(
