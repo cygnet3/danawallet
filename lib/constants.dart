@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'package:flutter/services.dart';
 
 // The default blindbit backend used
 const String defaultMainnet = "https://silentpayments.dev/blindbit/mainnet";
@@ -26,4 +26,28 @@ const String exampleAddress =
     "sp1qq0cygnetgn3rz2kla5cp05nj5uetlsrzez0l4p8g7wehf7ldr93lcqadw65upymwzvp5ed38l8ur2rznd6934xh95msevwrdwtrpk372hyz4vr6g";
 
 // example mnemonic
-const String exampleMnemonic = "gloom police month stamp viable claim hospital heart alcohol off ocean ghost";
+const String exampleMnemonic =
+    "gloom police month stamp viable claim hospital heart alcohol off ocean ghost";
+
+// BIP39 words list - loaded from file for easier verification and maintenance
+List<String> _bip39Words = [];
+
+/// Loads BIP39 words from the text file
+Future<void> loadBip39Words() async {
+  if (_bip39Words.isNotEmpty) return; // Already loaded
+
+  final String wordsText = await rootBundle.loadString('assets/english.txt');
+  _bip39Words = wordsText
+      .split('\n')
+      .map((word) => word.trim())
+      .where((word) => word.isNotEmpty)
+      .toList();
+}
+
+/// Gets the BIP39 words list. Call loadBip39Words() first to ensure it's loaded.
+List<String> get bip39Words {
+  if (_bip39Words.isEmpty) {
+    throw StateError('BIP39 words not loaded. Call loadBip39Words() first.');
+  }
+  return _bip39Words;
+}

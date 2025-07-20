@@ -19,6 +19,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   await LoggingService.create();
+  await loadBip39Words();
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
