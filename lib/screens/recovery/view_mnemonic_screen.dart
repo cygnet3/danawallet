@@ -5,6 +5,7 @@ import 'package:danawallet/widgets/back_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pills/mnemonic_pill_box.dart';
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 
 class ViewMnemonicScreen extends StatelessWidget {
   final String mnemonic;
@@ -40,23 +41,30 @@ class ViewMnemonicScreen extends StatelessWidget {
           automaticallyImplyLeading: false,
           title: const BackButtonWidget(),
         ),
-        body: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 0, 25, 45),
-            child: Column(
-              children: [
-                Column(
-                  children: [
-                    title,
-                    Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 25, horizontal: 10),
-                        child: text),
-                  ],
-                ),
-                pills,
-                const Spacer(),
-                footer,
-              ],
-            )));
+        body: SafeArea(
+          child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                Adaptive.w(5), // Responsive left padding
+                0,
+                Adaptive.w(5), // Responsive right padding
+                Adaptive.h(5), // Responsive bottom padding
+              ),
+              child: Column(
+                children: [
+                  Column(
+                    children: [
+                      title,
+                      Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: Adaptive.h(3),
+                              horizontal: Adaptive.w(2)),
+                          child: text),
+                    ],
+                  ),
+                  Expanded(child: pills),
+                  footer,
+                ],
+              )),
+        ));
   }
 }

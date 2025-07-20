@@ -9,20 +9,30 @@ class MnemonicPillBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final words = mnemonic.split(" ");
-    return SizedBox(
-        height: Adaptive.h(50),
-        child: GridView.count(
-          crossAxisCount: 6,
-          scrollDirection: Axis.horizontal,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(10),
-          mainAxisSpacing: Adaptive.w(2),
-          crossAxisSpacing: Adaptive.h(1.5),
-          childAspectRatio: 0.3,
-          children: List.generate(words.length, (index) {
-            return MnemonicPill(number: index + 1, word: words[index]);
-          }),
-        ));
+
+    const crossAxisCount = 2; // Assume we don't want more for larger screens
+
+    final wordsPerColumn = (words.length / crossAxisCount).ceil();
+
+    return Row(
+      children: List.generate(crossAxisCount, (columnIndex) {
+        return Expanded(
+          child: Column(
+            children: List.generate(wordsPerColumn, (rowIndex) {
+              final wordIndex = columnIndex * wordsPerColumn + rowIndex;
+              if (wordIndex >= words.length) {
+                return const SizedBox
+                    .shrink(); // Empty space for incomplete columns
+              }
+              return Padding(
+                padding: EdgeInsets.only(bottom: Adaptive.h(1.5)),
+                child:
+                    MnemonicPill(number: wordIndex + 1, word: words[wordIndex]),
+              );
+            }),
+          ),
+        );
+      }),
+    );
   }
 }
