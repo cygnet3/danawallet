@@ -64,6 +64,7 @@ flutter:
 
   assets:
     - assets/icons/
+    - assets/english.txt
 
   fonts:
     - family: Space grotesk
