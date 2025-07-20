@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -30,29 +31,42 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
   late MnemonicInputPillBox pills;
 
   Future<void> onRestore(BuildContext context) async {
-    final mnemonic = pills.mnemonic;
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final chainState = Provider.of<ChainState>(context, listen: false);
-    final scanProgress =
-        Provider.of<ScanProgressNotifier>(context, listen: false);
+    try {
+      final mnemonic = pills.mnemonic;
+      final walletState = Provider.of<WalletState>(context, listen: false);
+      final chainState = Provider.of<ChainState>(context, listen: false);
+      final scanProgress =
+          Provider.of<ScanProgressNotifier>(context, listen: false);
 
-    // Get network from flavor
-    Network network = Network.getNetworkForFlavor;
+      // Get network from flavor
+      Network network = Network.getNetworkForFlavor;
 
-    await SettingsRepository.instance.defaultSettings(network);
-    final blindbitUrl = network.getDefaultBlindbitUrl();
+      await SettingsRepository.instance.defaultSettings(network);
+      final blindbitUrl = network.getDefaultBlindbitUrl();
 
-    await chainState.initialize(network, blindbitUrl);
+      await chainState.initialize(network, blindbitUrl);
 
-    await walletState.restoreWallet(chainState, mnemonic);
+      await walletState.restoreWallet(chainState, mnemonic);
 
-    chainState.startSyncService(walletState, scanProgress);
+      chainState.startSyncService(walletState, scanProgress);
 
-    if (context.mounted) {
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (Route<dynamic> route) => false);
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (Route<dynamic> route) => false);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        final userFriendlyMessage = exceptionToString(e);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(userFriendlyMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
