@@ -28,7 +28,7 @@ class IntroductionScreen extends StatelessWidget {
           maxLines: 1,
         ),
         AutoSizeText(
-          'Convenient, private payments',
+          'Send and receive payments without middlemen',
           style: BitcoinTextStyle.body1(Bitcoin.neutral8)
               .copyWith(height: 1.8, fontFamily: 'Inter'),
           maxLines: 1,
