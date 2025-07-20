@@ -33,8 +33,8 @@ class ViewMnemonicScreen extends StatelessWidget {
     );
 
     final pills = MnemonicPillBox(mnemonic: mnemonic);
-    final footer =
-        FooterButton(title: "Verify", onPressed: () => goBack(context));
+    final footer = FooterButton(
+        title: "I wrote it down", onPressed: () => goBack(context));
 
     return Scaffold(
         appBar: AppBar(
