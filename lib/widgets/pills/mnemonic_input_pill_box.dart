@@ -17,27 +17,35 @@ class MnemonicInputPillBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-        height: Adaptive.h(50),
-        child: GridView.count(
-          crossAxisCount: 6,
-          scrollDirection: Axis.horizontal,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(10),
-          mainAxisSpacing: Adaptive.w(2),
-          crossAxisSpacing: Adaptive.h(1.5),
-          childAspectRatio: 0.3,
-          children: List.generate(12, (index) {
-            onSubmitted(value) => focusNodes[index + 1].requestFocus();
-
-            return MnemonicInputPill(
-              number: index + 1,
-              controller: controllers[index],
-              focusNode: focusNodes[index],
-              onSubmitted: (index == 11) ? onFinalSubmit : onSubmitted,
-            );
-          }),
-        ));
+    const crossAxisCount = 2; // 2 columns for better mobile layout
+    final wordsPerColumn = (controllers.length / crossAxisCount).ceil();
+    
+    return Row(
+      children: List.generate(crossAxisCount, (columnIndex) {
+        return Flexible(
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // Prevent infinite height
+            children: List.generate(wordsPerColumn, (rowIndex) {
+              final wordIndex = columnIndex * wordsPerColumn + rowIndex;
+              if (wordIndex >= controllers.length) {
+                return const SizedBox.shrink(); // Empty space for incomplete columns
+              }
+              
+              onSubmitted(value) => focusNodes[wordIndex + 1].requestFocus();
+              
+              return Padding(
+                padding: EdgeInsets.only(bottom: Adaptive.h(1.5)),
+                child: MnemonicInputPill(
+                  number: wordIndex + 1,
+                  controller: controllers[wordIndex],
+                  focusNode: focusNodes[wordIndex],
+                  onSubmitted: (wordIndex == 11) ? onFinalSubmit : onSubmitted,
+                ),
+              );
+            }),
+          ),
+        );
+      }),
+    );
   }
 }

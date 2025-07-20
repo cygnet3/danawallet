@@ -16,8 +16,9 @@ class MnemonicPillBox extends StatelessWidget {
 
     return Row(
       children: List.generate(crossAxisCount, (columnIndex) {
-        return Expanded(
+        return Flexible(
           child: Column(
+            mainAxisSize: MainAxisSize.min, // Prevent infinite height
             children: List.generate(wordsPerColumn, (rowIndex) {
               final wordIndex = columnIndex * wordsPerColumn + rowIndex;
               if (wordIndex >= words.length) {
