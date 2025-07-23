@@ -2,6 +2,7 @@ import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/main.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/services/fiat_exchange_rate_service.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
@@ -17,6 +18,8 @@ void main() async {
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
+
+  await FiatExchangeRateService.instance.updateExchangeRate();
 
   await precacheImages();
 

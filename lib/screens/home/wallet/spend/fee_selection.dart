@@ -5,6 +5,7 @@ import 'package:danawallet/data/enums/selected_fee.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/services/fiat_exchange_rate_service.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,8 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
 
   ListTile toListTile(SelectedFee fee) {
     final currentFeeRates = RecipientForm().currentFeeRates!;
+    final estimatedFee = fee.getEstimatedFee(currentFeeRates);
+    final exchangeRate = FiatExchangeRateService.instance.exchangeRate;
     switch (fee) {
       case SelectedFee.fast:
       case SelectedFee.normal:
@@ -64,10 +67,10 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
           ),
           subtitle: Row(
             children: [
-              Text(fee.toEstimatedSats(currentFeeRates),
+              Text(estimatedFee.displaySats(),
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
               const Spacer(),
-              Text(fee.toEstimatedEuro,
+              Text(estimatedFee.displayFiat(exchangeRate: exchangeRate),
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
             ],
           ),

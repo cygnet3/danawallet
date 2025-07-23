@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/mempool_prices_response.dart';
 import 'package:danawallet/services/fee_api_converter.dart';
 import 'package:http/http.dart' as http;
 import 'package:danawallet/data/models/recommended_fee_model.dart';
@@ -26,6 +27,19 @@ class MempoolApiRepository {
     } else {
       throw Exception(
           'Failed to get latest fee rates, response status: ${response.statusCode}');
+    }
+  }
+
+  Future<MempoolPricesResponse> getExchangeRate() async {
+    final response = await http.get(Uri.parse('$baseUrl/prices'));
+    if (response.statusCode == 200) {
+      try {
+        return MempoolPricesResponse.fromJson(jsonDecode(response.body));
+      } catch (e) {
+        throw Exception('Unexpected format: $e');
+      }
+    } else {
+      throw Exception('Unexpected status code: ${response.statusCode}');
     }
   }
 }
