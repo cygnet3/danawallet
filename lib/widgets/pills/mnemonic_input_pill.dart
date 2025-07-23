@@ -102,6 +102,7 @@ class _MnemonicInputPillState extends State<MnemonicInputPill> {
               border: Border.all(color: Colors.grey.shade300),
             ),
             child: ListView.builder(
+              padding: EdgeInsets.zero,
               shrinkWrap: true,
               itemCount: suggestions.length,
               itemBuilder: (context, index) {
