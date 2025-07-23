@@ -114,6 +114,10 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
     final footer =
         FooterButton(title: "Import", onPressed: () => onRestore(context));
 
+    // footer padding, reduced when keyboard is open
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    final bottomPaddingPercentage = keyboardOpen ? 1 : 5;
+
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -125,7 +129,8 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
                 Adaptive.w(5), // Responsive left padding
                 0,
                 Adaptive.w(5), // Responsive right padding
-                Adaptive.h(5), // Responsive bottom padding
+                Adaptive.h(
+                    bottomPaddingPercentage), // Responsive bottom padding
               ),
               child: Column(
                 children: [
