@@ -94,7 +94,8 @@ class GetStartedScreen extends StatelessWidget {
 
   Future<void> onRestoreMnemonic(BuildContext context) async {
     // load bip39 words from asset file
-    final String wordsText = await rootBundle.loadString('assets/english.txt');
+    final String wordsText =
+        await rootBundle.loadString('assets/mnemonic/english.txt');
     final bip39Words = wordsText
         .split('\n')
         .map((word) => word.trim())
