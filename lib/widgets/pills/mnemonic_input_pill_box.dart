@@ -20,7 +20,8 @@ class MnemonicInputPillBox extends StatelessWidget {
     const crossAxisCount = 2; // 2 columns for better mobile layout
     final wordsPerColumn = (controllers.length / crossAxisCount).ceil();
 
-    return Row(
+    return SingleChildScrollView(
+        child: Row(
       children: List.generate(crossAxisCount, (columnIndex) {
         return Flexible(
           child: Column(
@@ -47,6 +48,6 @@ class MnemonicInputPillBox extends StatelessWidget {
           ),
         );
       }),
-    );
+    ));
   }
 }
