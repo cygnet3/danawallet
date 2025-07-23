@@ -86,6 +86,15 @@ impl ApiAmount {
     pub fn display_sats(&self) -> String {
         format!("{} sats", self.0)
     }
+
+    #[frb(sync)]
+    pub fn display_fiat(&self, exchange_rate: FiatExchangeRate) -> String {
+        let amount_btc = self.0 as f32 / 100_000_000 as f32;
+        let amount_fiat = amount_btc * exchange_rate.exchange_rate;
+        let symbol = exchange_rate.currency.symbol();
+
+        format!("{symbol} {:.2}", amount_fiat)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -390,4 +399,34 @@ impl ApiSilentPaymentUnsignedTransaction {
             .cloned()
             .collect()
     }
+}
+
+pub enum FiatCurrency {
+    Eur,
+    Usd,
+    Gbp,
+    Cad,
+    Chf,
+    Aud,
+    Jpy,
+}
+
+impl FiatCurrency {
+    #[frb(sync)]
+    pub fn symbol(&self) -> String {
+        match self {
+            Self::Eur => '€'.to_string(),
+            Self::Usd => '$'.to_string(),
+            Self::Gbp => '£'.to_string(),
+            Self::Cad => '$'.to_string(),
+            Self::Chf => "Fr.".to_string(),
+            Self::Aud => "AU$".to_string(),
+            Self::Jpy => '¥'.to_string(),
+        }
+    }
+}
+
+pub struct FiatExchangeRate {
+    pub currency: FiatCurrency,
+    pub exchange_rate: f32,
 }

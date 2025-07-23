@@ -26,6 +26,10 @@ class ApiAmount {
         that: this,
       );
 
+  String displayFiat({required FiatExchangeRate exchangeRate}) =>
+      RustLib.instance.api.crateApiStructsApiAmountDisplayFiat(
+          that: this, exchangeRate: exchangeRate);
+
   String displaySats() =>
       RustLib.instance.api.crateApiStructsApiAmountDisplaySats(
         that: this,
@@ -262,4 +266,40 @@ class ApiSilentPaymentUnsignedTransaction {
           partialSecret == other.partialSecret &&
           unsignedTx == other.unsignedTx &&
           network == other.network;
+}
+
+enum FiatCurrency {
+  eur,
+  usd,
+  gbp,
+  cad,
+  chf,
+  aud,
+  jpy,
+  ;
+
+  String symbol() => RustLib.instance.api.crateApiStructsFiatCurrencySymbol(
+        that: this,
+      );
+}
+
+class FiatExchangeRate {
+  final FiatCurrency currency;
+  final double exchangeRate;
+
+  const FiatExchangeRate({
+    required this.currency,
+    required this.exchangeRate,
+  });
+
+  @override
+  int get hashCode => currency.hashCode ^ exchangeRate.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FiatExchangeRate &&
+          runtimeType == other.runtimeType &&
+          currency == other.currency &&
+          exchangeRate == other.exchangeRate;
 }

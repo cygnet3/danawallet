@@ -5,6 +5,7 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
+import 'package:danawallet/services/fiat_exchange_rate_service.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
@@ -50,8 +51,10 @@ class WalletScreenState extends State<WalletScreen> {
   }
 
   Widget buildAmountDisplay(ApiAmount amount) {
+    final exchangeRate = FiatExchangeRateService.instance.exchangeRate;
     String btcAmount = hideAmount ? '*****' : amount.displayBtc();
-    String fiatAmount = hideAmount ? '*****' : '\$ 0.00';
+    String fiatAmount =
+        hideAmount ? '*****' : amount.displayFiat(exchangeRate: exchangeRate);
 
     return GestureDetector(
       onTap: () => setState(() {
@@ -79,11 +82,14 @@ class WalletScreenState extends State<WalletScreen> {
     Color? color;
     String amount;
     String amountprefix;
+    String amountFiat;
     String title;
     String text;
     Image image;
     String recipient;
     String date;
+
+    final exchangeRate = FiatExchangeRateService.instance.exchangeRate;
 
     switch (tx) {
       case ApiRecordedTransaction_Incoming(:final field0):
@@ -92,6 +98,7 @@ class WalletScreenState extends State<WalletScreen> {
         color = Bitcoin.green;
         amount = field0.amount.displayBtc();
         amountprefix = '+';
+        amountFiat = field0.amount.displayFiat(exchangeRate: exchangeRate);
         title = 'Incoming transaction';
         text = field0.toString();
         image = Image(
@@ -108,6 +115,8 @@ class WalletScreenState extends State<WalletScreen> {
         }
         amount = field0.totalOutgoing().displayBtc();
         amountprefix = '-';
+        amountFiat =
+            field0.totalOutgoing().displayFiat(exchangeRate: exchangeRate);
         title = 'Outgoing transaction';
         text = field0.toString();
         image = Image(
@@ -131,7 +140,7 @@ class WalletScreenState extends State<WalletScreen> {
         children: [
           Text(date, style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
           const Spacer(),
-          Text('\$ 0.00', style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
+          Text(amountFiat, style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
         ],
       ),
       trailing: InkResponse(
