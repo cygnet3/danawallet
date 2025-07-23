@@ -73,8 +73,10 @@ class OverviewScreen extends StatelessWidget {
         ),
         FooterButton(
             title: 'Learn more',
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const TutorialPageView()))),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const TutorialPageView()))),
       ],
     );
 
