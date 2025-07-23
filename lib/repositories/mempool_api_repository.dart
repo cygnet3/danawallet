@@ -11,7 +11,8 @@ class MempoolApiRepository {
   final FeeConverter converter;
 
   MempoolApiRepository({Network network = Network.mainnet})
-        : baseUrl = 'https://mempool.space/${network != Network.mainnet ? '${network.name}/' : ''}api/v1',
+      : baseUrl =
+            'https://mempool.space/${network != Network.mainnet ? '${network.name}/' : ''}api/v1',
         converter = MempoolApiFeeConverter();
 
   Future<RecommendedFeeResponse> getCurrentFeeRate() async {
@@ -23,8 +24,8 @@ class MempoolApiRepository {
         throw Exception('Failed to parse recommended fees response: $e');
       }
     } else {
-      throw Exception('Failed to get latest fee rates, response status: ${response.statusCode}');
+      throw Exception(
+          'Failed to get latest fee rates, response status: ${response.statusCode}');
     }
   }
-
 }
