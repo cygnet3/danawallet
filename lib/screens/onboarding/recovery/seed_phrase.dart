@@ -79,7 +79,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
     pills = MnemonicInputPillBox(
       controllers: controllers,
       focusNodes: focusNodes,
-      onFinalSubmit: (string) => onRestore(context),
+      onFinalSubmit: () => onRestore(context),
     );
   }
 
@@ -123,7 +123,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
           child: Padding(
               padding: EdgeInsets.fromLTRB(
                 Adaptive.w(5), // Responsive left padding
-                0, 
+                0,
                 Adaptive.w(5), // Responsive right padding
                 Adaptive.h(5), // Responsive bottom padding
               ),
@@ -134,7 +134,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
                       title,
                       Padding(
                           padding: EdgeInsets.symmetric(
-                              vertical: Adaptive.h(3), 
+                              vertical: Adaptive.h(3),
                               horizontal: Adaptive.w(2)),
                           child: text),
                     ],

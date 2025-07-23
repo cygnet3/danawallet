@@ -5,13 +5,13 @@ import 'package:sizer/sizer.dart';
 class MnemonicInputPillBox extends StatelessWidget {
   final List<TextEditingController> controllers;
   final List<FocusNode> focusNodes;
-  final void Function(String)? onFinalSubmit;
+  final void Function() onFinalSubmit;
 
   const MnemonicInputPillBox(
       {super.key,
       required this.controllers,
       required this.focusNodes,
-      this.onFinalSubmit});
+      required this.onFinalSubmit});
 
   String get mnemonic => controllers.map((element) => element.text).join(" ");
 
@@ -19,7 +19,7 @@ class MnemonicInputPillBox extends StatelessWidget {
   Widget build(BuildContext context) {
     const crossAxisCount = 2; // 2 columns for better mobile layout
     final wordsPerColumn = (controllers.length / crossAxisCount).ceil();
-    
+
     return Row(
       children: List.generate(crossAxisCount, (columnIndex) {
         return Flexible(
@@ -28,11 +28,12 @@ class MnemonicInputPillBox extends StatelessWidget {
             children: List.generate(wordsPerColumn, (rowIndex) {
               final wordIndex = columnIndex * wordsPerColumn + rowIndex;
               if (wordIndex >= controllers.length) {
-                return const SizedBox.shrink(); // Empty space for incomplete columns
+                return const SizedBox
+                    .shrink(); // Empty space for incomplete columns
               }
-              
-              onSubmitted(value) => focusNodes[wordIndex + 1].requestFocus();
-              
+
+              onSubmitted() => focusNodes[wordIndex + 1].requestFocus();
+
               return Padding(
                 padding: EdgeInsets.only(bottom: Adaptive.h(1.5)),
                 child: MnemonicInputPill(
