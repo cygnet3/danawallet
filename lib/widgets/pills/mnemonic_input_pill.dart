@@ -115,11 +115,8 @@ class _MnemonicInputPillState extends State<MnemonicInputPill> {
                     maxLines: 1,
                   ),
                   onTap: () {
-                    widget.controller.text = suggestions[index];
-                    widget.controller.selection = TextSelection.fromPosition(
-                      TextPosition(offset: suggestions[index].length),
-                    );
                     _removeOverlay();
+                    widget.controller.text = suggestions[index];
                     widget.onSubmitted();
                   },
                 );
