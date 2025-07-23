@@ -21,6 +21,7 @@ class MnemonicInputPill extends StatefulWidget {
 }
 
 class _MnemonicInputPillState extends State<MnemonicInputPill> {
+  Color textColor = Bitcoin.black;
   List<String> suggestions = [];
   bool showSuggestions = false;
   OverlayEntry? overlayEntry;
@@ -41,8 +42,17 @@ class _MnemonicInputPillState extends State<MnemonicInputPill> {
   }
 
   void _onFocusChanged() {
+    setState(() {
+      textColor = Bitcoin.black;
+    });
     if (!widget.focusNode.hasFocus) {
       _removeOverlay();
+
+      if (!bip39Words.contains(widget.controller.text)) {
+        setState(() {
+          textColor = Bitcoin.red;
+        });
+      }
     }
   }
 
@@ -201,6 +211,7 @@ class _MnemonicInputPillState extends State<MnemonicInputPill> {
                       )),
                   child: Center(
                     child: TextField(
+                      style: BitcoinTextStyle.body3(textColor),
                       controller: widget.controller,
                       onSubmitted: (word) => widget.onSubmitted(),
                       focusNode: widget.focusNode,
