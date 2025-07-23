@@ -7,13 +7,13 @@ class MnemonicInputPill extends StatefulWidget {
   final int number;
   final TextEditingController controller;
   final FocusNode focusNode;
-  final void Function(String)? onSubmitted;
+  final void Function() onSubmitted;
 
   const MnemonicInputPill(
       {super.key,
       required this.number,
       required this.controller,
-      this.onSubmitted,
+      required this.onSubmitted,
       required this.focusNode});
 
   @override
@@ -109,7 +109,7 @@ class _MnemonicInputPillState extends State<MnemonicInputPill> {
                       TextPosition(offset: suggestions[index].length),
                     );
                     _removeOverlay();
-                    widget.focusNode.nextFocus();
+                    widget.onSubmitted();
                   },
                 );
               },
@@ -202,7 +202,7 @@ class _MnemonicInputPillState extends State<MnemonicInputPill> {
                   child: Center(
                     child: TextField(
                       controller: widget.controller,
-                      onSubmitted: widget.onSubmitted,
+                      onSubmitted: (word) => widget.onSubmitted(),
                       focusNode: widget.focusNode,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
