@@ -8,12 +8,15 @@ class MnemonicPill extends StatelessWidget {
   final String word;
 
   const MnemonicPill({super.key, required this.number, required this.word});
+
   @override
   Widget build(BuildContext context) {
+    final pillHeight = Adaptive.h(6);
     return Row(
       children: [
         Flexible(
             child: Container(
+          height: pillHeight,
           decoration: BoxDecoration(
             // border: Border.all(color: Bitcoin.black),
             color: Bitcoin.neutral3,
@@ -24,12 +27,13 @@ class MnemonicPill extends StatelessWidget {
           ),
           child: Center(
               child: Text(number.toString(),
-                  style: BitcoinTextStyle.title3(Bitcoin.black))),
+                  style: BitcoinTextStyle.title5(Bitcoin.black))),
         )),
         SizedBox(width: Adaptive.w(1)),
         Flexible(
             flex: 3,
             child: Container(
+                height: pillHeight,
                 decoration: BoxDecoration(
                   // border: Border.all(color: Bitcoin.black),
                   color: Bitcoin.neutral3,
@@ -40,7 +44,7 @@ class MnemonicPill extends StatelessWidget {
                 ),
                 child: Center(
                   child: AutoSizeText(word,
-                      style: BitcoinTextStyle.title3(Bitcoin.black)),
+                      style: BitcoinTextStyle.body3(Bitcoin.black)),
                 ))),
       ],
     );
