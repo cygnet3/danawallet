@@ -17,8 +17,10 @@ import 'package:sizer/sizer.dart';
 const int _mnemonicCount = 12;
 
 class SeedPhraseScreen extends StatefulWidget {
+  final List<String> bip39Words;
   const SeedPhraseScreen({
     super.key,
+    required this.bip39Words,
   });
 
   @override
@@ -77,6 +79,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
     controllers = List.generate(_mnemonicCount, (i) => TextEditingController());
     focusNodes = List.generate(_mnemonicCount, (i) => FocusNode());
     pills = MnemonicInputPillBox(
+      validWords: widget.bip39Words,
       controllers: controllers,
       focusNodes: focusNodes,
     );

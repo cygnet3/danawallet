@@ -3,11 +3,15 @@ import 'package:flutter/widgets.dart';
 import 'package:sizer/sizer.dart';
 
 class MnemonicInputPillBox extends StatelessWidget {
+  final List<String> validWords;
   final List<TextEditingController> controllers;
   final List<FocusNode> focusNodes;
 
   const MnemonicInputPillBox(
-      {super.key, required this.controllers, required this.focusNodes});
+      {super.key,
+      required this.controllers,
+      required this.focusNodes,
+      required this.validWords});
 
   String get mnemonic => controllers.map((element) => element.text).join(" ");
 
@@ -37,6 +41,7 @@ class MnemonicInputPillBox extends StatelessWidget {
               return Padding(
                 padding: EdgeInsets.only(bottom: Adaptive.h(1.5)),
                 child: MnemonicInputPill(
+                    validWords: validWords,
                     number: wordIndex + 1,
                     controller: controllers[wordIndex],
                     focusNode: focusNodes[wordIndex],

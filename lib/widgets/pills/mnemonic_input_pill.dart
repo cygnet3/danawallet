@@ -1,9 +1,9 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:danawallet/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 class MnemonicInputPill extends StatefulWidget {
+  final List<String> validWords;
   final int number;
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -14,7 +14,8 @@ class MnemonicInputPill extends StatefulWidget {
       required this.number,
       required this.controller,
       required this.onSubmitted,
-      required this.focusNode});
+      required this.focusNode,
+      required this.validWords});
 
   @override
   State<MnemonicInputPill> createState() => _MnemonicInputPillState();
@@ -48,7 +49,7 @@ class _MnemonicInputPillState extends State<MnemonicInputPill> {
     if (!widget.focusNode.hasFocus) {
       _removeOverlay();
 
-      if (!bip39Words.contains(widget.controller.text)) {
+      if (!widget.validWords.contains(widget.controller.text)) {
         setState(() {
           textColor = Bitcoin.red;
         });
@@ -64,7 +65,7 @@ class _MnemonicInputPillState extends State<MnemonicInputPill> {
     }
 
     // Filter BIP39 words that start with the input
-    final filteredSuggestions = bip39Words
+    final filteredSuggestions = widget.validWords
         .where((word) => word.startsWith(text))
         .take(5) // Show top 5 suggestions
         .toList();
