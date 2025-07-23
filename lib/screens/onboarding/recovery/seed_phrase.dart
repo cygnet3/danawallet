@@ -79,7 +79,6 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
     pills = MnemonicInputPillBox(
       controllers: controllers,
       focusNodes: focusNodes,
-      onFinalSubmit: () => onRestore(context),
     );
   }
 
