@@ -37,7 +37,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
             context,
             MaterialPageRoute(
                 builder: (context) => const TransactionSentScreen()),
-            (Route<dynamic> route) => false);
+            (Route<dynamic> route) => route.isFirst);
       }
     } catch (e) {
       setState(() {

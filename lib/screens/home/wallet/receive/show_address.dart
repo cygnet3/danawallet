@@ -1,7 +1,6 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
@@ -111,10 +110,7 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
         FooterButton(
           title: "Done!",
           onPressed: () {
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (Route<dynamic> route) => false);
+            Navigator.popUntil(context, (route) => route.isFirst);
           },
         )
       ],
