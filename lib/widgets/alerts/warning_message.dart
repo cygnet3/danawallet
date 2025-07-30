@@ -1,11 +1,13 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
 
 class WarningMessage extends StatelessWidget {
   final String message;
+  final WarningType type;
 
-  const WarningMessage({super.key, required this.message});
+  const WarningMessage({super.key, required this.message, required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +17,8 @@ class WarningMessage extends StatelessWidget {
       backgroundColor: Colors.white,
       icon: CircleAvatar(
         radius: 50,
-        backgroundColor: Colors.orange[100],
-        child: Icon(
-          size: 60,
-          Icons.warning_amber_rounded,
-          color: Colors.orange[700],
-        ),
+        backgroundColor: type.backgroundColor,
+        child: Icon(size: 60, type.icon, color: type.toColor),
       ),
       content: Text(
         message,
@@ -29,7 +27,7 @@ class WarningMessage extends StatelessWidget {
       ),
       actions: [
         FooterButton(
-          color: Colors.orange,
+          color: type.toColor,
           title: "I understand",
           onPressed: () => Navigator.of(context).pop(),
         ),

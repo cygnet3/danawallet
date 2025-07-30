@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/widgets/alerts/warning_message.dart';
 import 'package:danawallet/widgets/confirmation_widget.dart';
@@ -42,12 +43,12 @@ void showAlertDialog(String title, String text) {
   }
 }
 
-void showWarningDialog(String message) {
+void showWarningDialog(String message, WarningType type) {
   showDialog(
     context: globalNavigatorKey.currentContext!,
     barrierDismissible: false,
-    builder: (context) =>
-        PopScope(canPop: false, child: WarningMessage(message: message)),
+    builder: (context) => PopScope(
+        canPop: false, child: WarningMessage(message: message, type: type)),
   );
 }
 
