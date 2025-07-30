@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
@@ -12,6 +13,9 @@ import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+const String mainnetWarning =
+    "You are currently on Mainnet. This means you are using real funds. Please note that this wallet is still considered experimental, so there may be some risks involved. Don't use funds that you are unwilling to lose. You have been warned.";
+
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
 
@@ -21,6 +25,19 @@ class WalletScreen extends StatefulWidget {
 
 class WalletScreenState extends State<WalletScreen> {
   bool hideAmount = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // if we are on mainnet, show a warning message
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final walletState = Provider.of<WalletState>(context, listen: false);
+      if (walletState.network == Network.mainnet) {
+        showWarningDialog(mainnetWarning);
+      }
+    });
+  }
 
   Widget buildScanProgress(double scanProgress) {
     return Row(
