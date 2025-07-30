@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
@@ -34,7 +35,7 @@ class WalletScreenState extends State<WalletScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final walletState = Provider.of<WalletState>(context, listen: false);
       if (walletState.network == Network.mainnet) {
-        showWarningDialog(mainnetWarning);
+        showWarningDialog(mainnetWarning, WarningType.warn);
       }
     });
   }

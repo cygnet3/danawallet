@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/home/home.dart';
@@ -13,6 +14,9 @@ import 'package:danawallet/widgets/pills/mnemonic_input_pill_box.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+
+const String bandwidthWarning =
+    "The recovery process may require a lot of network usage. Please make sure you are connected to wifi before you continue.";
 
 const int _mnemonicCount = 12;
 
@@ -83,6 +87,11 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       controllers: controllers,
       focusNodes: focusNodes,
     );
+
+    // add warning message about bandwidth after building
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showWarningDialog(bandwidthWarning, WarningType.info);
+    });
   }
 
   @override
