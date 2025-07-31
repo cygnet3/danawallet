@@ -4,6 +4,11 @@ Dana is a flutter app used for accepting bitcoin donations. It uses silent payme
 
 ## Try out Dana wallet
 
+> [!WARNING]
+> Dana wallet is currently still considered 'experimental'.
+> Don't use funds you aren't willing to lose.
+> We don't take responsibility for lost funds.
+
 We are looking into releasing Dana wallet on the popular app stores once the app is more stable.
 
 In the meantime, there are three ways to try out Dana wallet:
@@ -13,27 +18,28 @@ In the meantime, there are three ways to try out Dana wallet:
 - Using F-Droid, download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.silentpayments.dev/fdroid/repo)
 
 Downloading the APK from the releases page is probably the easiest option.
-However, for some extra options (e.g. if you want to test using Mainnet), you'll need to use the F-droid repository option. More info below.
+However, for some extra options (e.g. if you want to test using Signet), you'll need to use the F-droid repository option. More info below.
 
-### Getting funds to test
+### Test using Signet
 
-If you downloaded the latest release on Github (either using Obtanium or manually), you will be using the Regtest network.
-Regtest is an easy way to quickly try out the wallet using fake coins.
+If you downloaded the latest release on GitHub, you will be using Mainnet.
+This means you are working with real bitcoin.
+Perhaps to make testing easier, you prefer to use fake coins instead.
+For this, we provide a special 'Signet' flavor for Dana.
+This Signet flavor can be found on our self-hosted F-Droid repository.
+See the 'Adding our F-Droid repository' section on how to add our repository and download the Signet flavor.
 
-You can get some coins using our regtest faucet:
+### Getting Signet coins to test
 
-https://silentpayments.dev/faucet/regtest
+Of course, in order to actually test the wallet, you will probably need some test coins.
+To get some coins, you can use our silent payments faucet:
 
-Our regtest node produces a new block every minute.
-After claiming some coins, you may need to wait up to a minute before the funds appear in your wallet.
+https://silentpayments.dev/faucet/signet
 
-### Trying out Mainnet or Signet
-
-**Dana wallet is currently still in an experimental phase. We recommend sticking to regtest or signet. If you really want to test out the wallet on mainnet, only use funds you are willing to lose. We don't take responsibility for lost funds.**
-
-Although using Regtest is an easy way to try out the wallet, it may not be what you want.
-
-If you want to try out Dana on different networks, you can use the 'Signet' or 'Mainnet' flavors, published on our F-droid repository.
+Signet is a test network, but tries to emulate the behavior of the real bitcoin network.
+After claiming some funds, you will have to wait for the next block confirmation before they appear on Dana.
+If they do not appear after a few confirmed blocks, please reach out to us,
+as this may imply there's an issue with the faucet.
 
 #### Adding our F-Droid repository
 
@@ -45,12 +51,11 @@ If you want to try out Dana on different networks, you can use the 'Signet' or '
 
 #### App flavors
 
-There are 4 app 'flavors' hosted on our F-droid repository:
+There are 3 app 'flavors' hosted on our F-droid repository:
 
-- 'Dana wallet', this is the default flavor, and is identical to the APK released on GitHub. Uses the Regtest network.
+- 'Dana wallet', this is the default flavor, and is identical to the APK released on GitHub. Uses Mainnet (real bitcoin).
 - 'Dana wallet - Development', this flavor has some additional extra advanced options/features. May be less stable. Uses the Regtest network.
 - 'Dana wallet - Signet', this flavor is for using the Signet network.
-- 'Dana wallet - Mainnet', this flavor is for using Mainnet, using real coins. Again, be very careful with this!
 
 ## Building Dana wallet from source
 
@@ -61,7 +66,7 @@ Below are some instructions to build Dana wallet from souce. This is only recomm
 Building for linux should require no extra effort, simply execute
 
 ```
-flutter run
+flutter run --flavor dev
 ```
 
 This may also work on other platforms (macOS, Windows), but we have not tested this.
