@@ -57,12 +57,6 @@ android {
             versionNameSuffix '.dev'
             resValue "string", "app_name", "Dana Development"
         }
-        mainnet {
-            dimension 'default'
-            applicationIdSuffix '.mainnet'
-            versionNameSuffix '.mainnet'
-            resValue "string", "app_name", "Dana Mainnet"
-        }
         signet {
             dimension 'default'
             applicationIdSuffix '.signet'
