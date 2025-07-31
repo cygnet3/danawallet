@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:flutter/services.dart';
 
@@ -108,13 +109,15 @@ enum Network {
 
   static Network get getNetworkForFlavor {
     switch (appFlavor) {
-      case 'mainnet':
+      case 'live':
         return Network.mainnet;
       case 'signet':
         return Network.signet;
-      default:
-        // return regtest by default (for live & dev flavors)
+      // dev flavor defaults to regtest
+      case 'dev':
         return Network.regtest;
+      default:
+        throw UnknownFlavorException();
     }
   }
 }
