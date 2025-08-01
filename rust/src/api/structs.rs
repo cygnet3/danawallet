@@ -424,6 +424,20 @@ impl FiatCurrency {
             Self::Jpy => '¥'.to_string(),
         }
     }
+
+    #[frb(sync)]
+    pub fn display_name(&self) -> String {
+        match self {
+            Self::Eur => "Euro",
+            Self::Usd => "US Dollar",
+            Self::Gbp => "British Pound",
+            Self::Cad => "Canadian Dollar",
+            Self::Chf => "Swiss Franc",
+            Self::Aud => "Australian Dollar",
+            Self::Jpy => "Japanese Yen",
+        }
+        .to_string()
+    }
 }
 
 pub struct FiatExchangeRate {

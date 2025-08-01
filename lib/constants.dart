@@ -1,3 +1,4 @@
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:flutter/services.dart';
 
 // The default blindbit backend used
@@ -17,6 +18,9 @@ const int defaultRegtestBirthday = 80000;
 // for syncing, amounts < dust limit will be ignored
 // for sending, the user needs to send a minimum of >= dust
 const int defaultDustLimit = 1000;
+
+// default fiat currency
+const FiatCurrency defaultCurrency = FiatCurrency.usd;
 
 // colors
 const Color danaBlue = Color.fromARGB(255, 10, 109, 214);

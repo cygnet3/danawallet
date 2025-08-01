@@ -4,6 +4,7 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
+import 'package:danawallet/screens/settings/change_fiat.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/home_state.dart';
@@ -160,6 +161,17 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void onChangeFiat(BuildContext context) async {
+    final currentCurrency = await SettingsRepository.instance.getFiatCurrency();
+    if (context.mounted) {
+      goToScreen(
+          context,
+          ChangeFiatScreen(
+            currentCurrency: currentCurrency,
+          ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -169,6 +181,9 @@ class SettingsScreen extends StatelessWidget {
           BitcoinButtonOutlined(
               title: 'Show seed phrase',
               onPressed: () => onShowMnemonic(context)),
+          BitcoinButtonOutlined(
+              title: "Change fiat currency",
+              onPressed: () => onChangeFiat(context)),
           if (isDevEnv)
             BitcoinButtonOutlined(
                 title: 'Set scan height',
