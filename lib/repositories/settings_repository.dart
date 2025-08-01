@@ -1,10 +1,12 @@
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/backup.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _keyBlindbitUrl = "blindbiturl";
 const String _keyDustLimit = "dustlimit";
+const String _keyFiatCurrency = "fiatcurrency";
 
 class SettingsRepository {
   final SharedPreferencesAsync prefs = SharedPreferencesAsync();
@@ -22,7 +24,8 @@ class SettingsRepository {
   }
 
   Future<void> resetAll() async {
-    await prefs.clear(allowList: {_keyBlindbitUrl, _keyDustLimit});
+    await prefs
+        .clear(allowList: {_keyBlindbitUrl, _keyDustLimit, _keyFiatCurrency});
   }
 
   Future<void> setBlindbitUrl(String url) async {
@@ -39,6 +42,21 @@ class SettingsRepository {
 
   Future<int?> getDustLimit() async {
     return await prefs.getInt(_keyDustLimit);
+  }
+
+  Future<void> setFiatCurrency(FiatCurrency currency) async {
+    return await prefs.setString(_keyFiatCurrency, currency.name);
+  }
+
+  Future<FiatCurrency> getFiatCurrency() async {
+    final currency = await prefs.getString(_keyFiatCurrency);
+
+    if (currency != null) {
+      return FiatCurrency.values.byName(currency);
+    } else {
+      // if no currency is present, return default currency
+      return defaultCurrency;
+    }
   }
 
   Future<SettingsBackup> createSettingsBackup() async {

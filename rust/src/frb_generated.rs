@@ -43,7 +43,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1981962847;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1065803947;
 
 // Section: executor
 
@@ -4192,6 +4192,38 @@ fn wire__crate__api__backup__encrypted_dana_backup_new_impl(
         },
     )
 }
+fn wire__crate__api__structs__fiat_currency_display_name_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "fiat_currency_display_name",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::structs::FiatCurrency>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::structs::FiatCurrency::display_name(&api_that),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__structs__fiat_currency_symbol_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -5140,8 +5172,8 @@ fn pde_ffi_dispatcher_primary_impl(
         }
         75 => wire__crate__api__structs__api_amount_default_impl(port, ptr, rust_vec_len, data_len),
         87 => wire__crate__api__chain__check_network_impl(port, ptr, rust_vec_len, data_len),
-        96 => wire__crate__api__chain__get_chain_height_impl(port, ptr, rust_vec_len, data_len),
-        97 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        97 => wire__crate__api__chain__get_chain_height_impl(port, ptr, rust_vec_len, data_len),
+        98 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -5243,9 +5275,10 @@ fn pde_ffi_dispatcher_sync_impl(
 92 => wire__crate__api__backup__encrypted_dana_backup_decrypt_impl(ptr, rust_vec_len, data_len),
 93 => wire__crate__api__backup__encrypted_dana_backup_encode_impl(ptr, rust_vec_len, data_len),
 94 => wire__crate__api__backup__encrypted_dana_backup_new_impl(ptr, rust_vec_len, data_len),
-95 => wire__crate__api__structs__fiat_currency_symbol_impl(ptr, rust_vec_len, data_len),
-98 => wire__crate__api__backup__settings_backup_new_impl(ptr, rust_vec_len, data_len),
-99 => wire__crate__api__validate__validate_address_impl(ptr, rust_vec_len, data_len),
+95 => wire__crate__api__structs__fiat_currency_display_name_impl(ptr, rust_vec_len, data_len),
+96 => wire__crate__api__structs__fiat_currency_symbol_impl(ptr, rust_vec_len, data_len),
+99 => wire__crate__api__backup__settings_backup_new_impl(ptr, rust_vec_len, data_len),
+100 => wire__crate__api__validate__validate_address_impl(ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }

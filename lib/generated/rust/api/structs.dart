@@ -278,6 +278,11 @@ enum FiatCurrency {
   jpy,
   ;
 
+  String displayName() =>
+      RustLib.instance.api.crateApiStructsFiatCurrencyDisplayName(
+        that: this,
+      );
+
   String symbol() => RustLib.instance.api.crateApiStructsFiatCurrencySymbol(
         that: this,
       );

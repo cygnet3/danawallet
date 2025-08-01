@@ -1,13 +1,14 @@
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:logger/logger.dart';
 
 class FiatExchangeRateService {
   MempoolApiRepository repository = MempoolApiRepository();
 
-  FiatCurrency currency = FiatCurrency.eur;
-  FiatExchangeRate? _cachedRate;
+  late FiatCurrency currency;
+  late FiatExchangeRate _cachedRate;
 
   // private constructor
   FiatExchangeRateService._();
@@ -16,15 +17,17 @@ class FiatExchangeRateService {
   static final instance = FiatExchangeRateService._();
 
   FiatExchangeRate get exchangeRate {
-    if (_cachedRate == null) {
+    try {
+      return _cachedRate;
+    } catch (e) {
       throw UninitializedExchangeRateException();
     }
-    return _cachedRate!;
   }
 
   // this only gets called once during app initialization
   // todo: periodically update exchange rate (?)
   Future<void> updateExchangeRate() async {
+    currency = await SettingsRepository.instance.getFiatCurrency();
     final rates = await repository.getExchangeRate();
 
     final double rate;
