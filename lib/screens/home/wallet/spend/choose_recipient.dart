@@ -33,7 +33,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
     });
 
     try {
-      String address = addressController.text;
+      String address = addressController.text.trim();
       if (address.contains('@')) {
         // we interpret the address as a bip353 address
         try {
