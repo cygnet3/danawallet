@@ -8,7 +8,7 @@ const String defaultRegtest = "https://silentpayments.dev/blindbit/regtest";
 
 // Default birthdays used in case we can't get the block height from blindbit
 // These values are pretty arbitrary, they can be updated for newer heights later
-const int defaultMainnetBirthday = 850000;
+const int defaultMainnetBirthday = 900000;
 const int defaultTestnetBirthday = 2900000;
 const int defaultSignetBirthday = 200000;
 const int defaultRegtestBirthday = 80000;
