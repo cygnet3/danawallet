@@ -7,7 +7,7 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
-import 'package:danawallet/services/fiat_exchange_rate_service.dart';
+import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
@@ -68,8 +68,7 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget buildAmountDisplay(ApiAmount amount) {
-    final exchangeRate = FiatExchangeRateService.instance.exchangeRate;
+  Widget buildAmountDisplay(ApiAmount amount, FiatExchangeRate exchangeRate) {
     String btcAmount = hideAmount ? '*****' : amount.displayBtc();
     String fiatAmount =
         hideAmount ? '*****' : amount.displayFiat(exchangeRate: exchangeRate);
@@ -96,7 +95,8 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  ListTile toListTile(ApiRecordedTransaction tx) {
+  ListTile toListTile(
+      ApiRecordedTransaction tx, FiatExchangeRate exchangeRate) {
     Color? color;
     String amount;
     String amountprefix;
@@ -106,8 +106,6 @@ class WalletScreenState extends State<WalletScreen> {
     Image image;
     String recipient;
     String date;
-
-    final exchangeRate = FiatExchangeRateService.instance.exchangeRate;
 
     switch (tx) {
       case ApiRecordedTransaction_Incoming(:final field0):
@@ -173,7 +171,8 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget buildTransactionHistory(List<ApiRecordedTransaction> transactions) {
+  Widget buildTransactionHistory(List<ApiRecordedTransaction> transactions,
+      FiatExchangeRate exchangeRate) {
     Widget history;
     if (transactions.isEmpty) {
       history = Center(
@@ -186,7 +185,8 @@ class WalletScreenState extends State<WalletScreen> {
           reverse: false,
           itemCount: transactions.length,
           itemBuilder: (context, index) {
-            return toListTile(transactions[transactions.length - 1 - index]);
+            return toListTile(
+                transactions[transactions.length - 1 - index], exchangeRate);
           });
     }
 
@@ -264,6 +264,8 @@ class WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
+    final exchangeRate =
+        Provider.of<FiatExchangeRateState>(context).exchangeRate;
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
 
     ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
@@ -285,10 +287,11 @@ class WalletScreenState extends State<WalletScreen> {
                         maintainState: true,
                         child: buildScanProgress(scanProgress.progress)),
                     const SizedBox(height: 20.0),
-                    buildAmountDisplay(amount),
+                    buildAmountDisplay(amount, exchangeRate),
                     const Spacer(),
                     buildTransactionHistory(
-                        walletState.txHistory.toApiTransactions()),
+                        walletState.txHistory.toApiTransactions(),
+                        exchangeRate),
                     buildBottomButtons(walletState.address),
                     const SizedBox(
                       height: 20.0,

@@ -7,6 +7,7 @@ import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
 import 'package:danawallet/screens/settings/change_fiat.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -162,13 +163,22 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void onChangeFiat(BuildContext context) async {
+    final homeState = Provider.of<HomeState>(context, listen: false);
+    final fiatExchangeRate =
+        Provider.of<FiatExchangeRateState>(context, listen: false);
     final currentCurrency = await SettingsRepository.instance.getFiatCurrency();
     if (context.mounted) {
       goToScreen(
           context,
           ChangeFiatScreen(
-            currentCurrency: currentCurrency,
-          ));
+              currentCurrency: currentCurrency,
+              onConfirm: (chosen) async {
+                await fiatExchangeRate.updateCurrency(chosen);
+                homeState.showMainScreen();
+                if (context.mounted) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                }
+              }));
     }
   }
 

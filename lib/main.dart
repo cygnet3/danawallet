@@ -5,9 +5,9 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/home/home.dart';
-import 'package:danawallet/services/fiat_exchange_rate_service.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -23,8 +23,9 @@ void main() async {
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
+  final fiatExchangeRate = await FiatExchangeRateState.create();
 
-  await FiatExchangeRateService.instance.updateExchangeRate();
+  await fiatExchangeRate.updateExchangeRate();
 
   await precacheImages();
 
@@ -50,6 +51,7 @@ void main() async {
         ChangeNotifierProvider.value(value: scanNotifier),
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
+        ChangeNotifierProvider.value(value: fiatExchangeRate),
       ],
       child: SilentPaymentApp(walletLoaded: walletLoaded),
     ),
