@@ -2,19 +2,29 @@ import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
-class FiatExchangeRateService {
+class FiatExchangeRateState extends ChangeNotifier {
   MempoolApiRepository repository = MempoolApiRepository();
 
   late FiatCurrency currency;
   late FiatExchangeRate _cachedRate;
 
-  // private constructor
-  FiatExchangeRateService._();
+  // private constructor, create class using static async 'create' instead
+  FiatExchangeRateState._();
 
-  // singleton instance
-  static final instance = FiatExchangeRateService._();
+  static Future<FiatExchangeRateState> create() async {
+    final instance = FiatExchangeRateState._();
+    final currency = await SettingsRepository.instance.getFiatCurrency();
+    final rate = await instance._fetchExchangeRate(currency);
+
+    // set internal values
+    instance.currency = currency;
+    instance._cachedRate = rate;
+
+    return instance;
+  }
 
   FiatExchangeRate get exchangeRate {
     try {
@@ -24,10 +34,24 @@ class FiatExchangeRateService {
     }
   }
 
-  // this only gets called once during app initialization
-  // todo: periodically update exchange rate (?)
+  Future<void> updateCurrency(FiatCurrency currency) async {
+    await SettingsRepository.instance.setFiatCurrency(currency);
+    this.currency = currency;
+
+    // after updating the currency, also update the exchange rate
+    return await updateExchangeRate();
+  }
+
   Future<void> updateExchangeRate() async {
-    currency = await SettingsRepository.instance.getFiatCurrency();
+    final rate = await _fetchExchangeRate(currency);
+
+    Logger().i("Updating exchange rate: ${rate.currency.displayName()}");
+    _cachedRate = rate;
+
+    notifyListeners();
+  }
+
+  Future<FiatExchangeRate> _fetchExchangeRate(FiatCurrency currency) async {
     final rates = await repository.getExchangeRate();
 
     final double rate;
@@ -54,9 +78,6 @@ class FiatExchangeRateService {
         rate = rates.jpy.toDouble();
         break;
     }
-
-    Logger().i("Updating exchange rate: $rate");
-
-    _cachedRate = FiatExchangeRate(currency: currency, exchangeRate: rate);
+    return FiatExchangeRate(currency: currency, exchangeRate: rate);
   }
 }

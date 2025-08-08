@@ -2,6 +2,7 @@ import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/backup.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _keyBlindbitUrl = "blindbiturl";
@@ -54,7 +55,7 @@ class SettingsRepository {
     if (currency != null) {
       return FiatCurrency.values.byName(currency);
     } else {
-      // if no currency is present, return default currency
+      Logger().w("No fiat currency set, picking default");
       return defaultCurrency;
     }
   }

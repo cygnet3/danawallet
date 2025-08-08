@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 
 class ChangeFiatScreen extends StatefulWidget {
   final FiatCurrency currentCurrency;
+  final ValueSetter<FiatCurrency> onConfirm;
 
-  const ChangeFiatScreen({super.key, required this.currentCurrency});
+  const ChangeFiatScreen(
+      {super.key, required this.currentCurrency, required this.onConfirm});
 
   @override
   State<StatefulWidget> createState() => ChangeFiatScreenState();
@@ -49,7 +51,8 @@ class ChangeFiatScreenState extends State<ChangeFiatScreen> {
       ),
     );
 
-    final footer = FooterButton(title: "Confirm", onPressed: () => ());
+    final footer = FooterButton(
+        title: "Confirm", onPressed: () => widget.onConfirm(_selected!));
 
     return SpendSkeleton(
         title: "Choose fiat currency",
