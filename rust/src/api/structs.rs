@@ -92,8 +92,9 @@ impl ApiAmount {
         let amount_btc = self.0 as f32 / 100_000_000 as f32;
         let amount_fiat = amount_btc * exchange_rate.exchange_rate;
         let symbol = exchange_rate.currency.symbol();
+        let minor_units = exchange_rate.currency.minor_units();
 
-        format!("{symbol} {:.2}", amount_fiat)
+        format!("{symbol} {amount_fiat:.minor_units$}")
     }
 }
 
@@ -430,13 +431,25 @@ impl FiatCurrency {
         match self {
             Self::Eur => "Euro",
             Self::Usd => "US Dollar",
-            Self::Gbp => "British Pound",
+            Self::Gbp => "Pound Sterling",
             Self::Cad => "Canadian Dollar",
             Self::Chf => "Swiss Franc",
             Self::Aud => "Australian Dollar",
             Self::Jpy => "Japanese Yen",
         }
         .to_string()
+    }
+
+    fn minor_units(&self) -> usize {
+        match self {
+            Self::Eur => 2,
+            Self::Usd => 2,
+            Self::Gbp => 2,
+            Self::Cad => 2,
+            Self::Chf => 2,
+            Self::Aud => 2,
+            Self::Jpy => 0,
+        }
     }
 }
 
