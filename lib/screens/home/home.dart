@@ -1,6 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/states/home_state.dart';
-import 'package:danawallet/screens/home/contacts/contacts.dart';
 import 'package:danawallet/screens/home/wallet/wallet.dart';
 import 'package:danawallet/screens/settings/settings.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:provider/provider.dart';
 class HomeScreen extends StatelessWidget {
   static const List<Widget> _widgetOptions = [
     WalletScreen(),
-    ContactsScreen(),
     SettingsScreen(),
   ];
 
@@ -38,18 +36,6 @@ class HomeScreen extends StatelessWidget {
                         package: "bitcoin_ui"),
                     color: Bitcoin.blue),
                 label: 'Transact',
-              ),
-              BottomNavigationBarItem(
-                icon: Image(
-                  image: const AssetImage("icons/contacts.png",
-                      package: "bitcoin_ui"),
-                  color: Bitcoin.neutral7,
-                ),
-                activeIcon: Image(
-                    image: const AssetImage("icons/contacts.png",
-                        package: "bitcoin_ui"),
-                    color: Bitcoin.blue),
-                label: 'Contacts',
               ),
               BottomNavigationBarItem(
                 icon: Image(
