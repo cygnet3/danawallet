@@ -22,9 +22,11 @@ const int _mnemonicCount = 12;
 
 class SeedPhraseScreen extends StatefulWidget {
   final List<String> bip39Words;
+  final Network network;
   const SeedPhraseScreen({
     super.key,
     required this.bip39Words,
+    required this.network,
   });
 
   @override
@@ -44,13 +46,10 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
-      // Get network from flavor
-      Network network = Network.getNetworkForFlavor;
+      await SettingsRepository.instance.defaultSettings(widget.network);
+      final blindbitUrl = widget.network.getDefaultBlindbitUrl();
 
-      await SettingsRepository.instance.defaultSettings(network);
-      final blindbitUrl = network.getDefaultBlindbitUrl();
-
-      await chainState.initialize(network, blindbitUrl);
+      await chainState.initialize(widget.network, blindbitUrl);
 
       await walletState.restoreWallet(chainState, mnemonic);
 
