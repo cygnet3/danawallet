@@ -4,6 +4,7 @@ import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/home/home.dart';
+import 'package:danawallet/screens/onboarding/choose_network.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
 import 'package:danawallet/services/backup_service.dart';
@@ -67,13 +68,24 @@ class GetStartedScreen extends StatelessWidget {
   }
 
   Future<void> onCreateNewWallet(BuildContext context) async {
+    Network network;
+    // in dev environment, allow user to choose network
+    if (isDevEnv) {
+      network = await Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const ChooseNetworkScreen()));
+    } else {
+      // Get network from flavor
+      network = Network.getNetworkForFlavor;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
-
-    // Get network from flavor
-    Network network = Network.getNetworkForFlavor;
 
     await SettingsRepository.instance.defaultSettings(network);
     final blindbitUrl = network.getDefaultBlindbitUrl();
@@ -93,6 +105,20 @@ class GetStartedScreen extends StatelessWidget {
   }
 
   Future<void> onRestoreMnemonic(BuildContext context) async {
+    Network network;
+    // in dev environment, allow user to choose network
+    if (isDevEnv) {
+      network = await Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const ChooseNetworkScreen()));
+    } else {
+      // Get network from flavor
+      network = Network.getNetworkForFlavor;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
     // load bip39 words from asset file
     final String wordsText =
         await rootBundle.loadString('assets/mnemonic/english.txt');
@@ -109,6 +135,7 @@ class GetStartedScreen extends StatelessWidget {
         MaterialPageRoute(
             builder: (context) => SeedPhraseScreen(
                   bip39Words: bip39Words,
+                  network: network,
                 )),
       );
     }
