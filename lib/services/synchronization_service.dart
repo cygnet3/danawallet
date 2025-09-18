@@ -70,7 +70,9 @@ class SynchronizationService {
   Future<void> _scheduleNextTask() async {
     _timer = Timer(_interval, () async {
       await _tryPerformTask(true);
-      _scheduleNextTask();
+      if (chainState.initiated) {
+        _scheduleNextTask();
+      }
     });
   }
 
