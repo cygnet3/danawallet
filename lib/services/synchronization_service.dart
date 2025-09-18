@@ -79,6 +79,11 @@ class SynchronizationService {
   }
 
   Future<void> _performSynchronizationTask() async {
+    if (!chainState.initiated) {
+      Logger().w('Cannot perform sync: chain state not initialized');
+      return;
+    }
+
     if (walletState.lastScan < chainState.tip) {
       if (!scanProgress.scanning) {
         Logger().i("Starting sync");

@@ -25,10 +25,11 @@ class SettingsScreen extends StatelessWidget {
   ) async {
     try {
       await scanProgress.interruptScan();
+      // Stop sync service before resetting wallet state
+      chainState.reset();
       await walletState.reset();
 
       await SettingsRepository.instance.resetAll();
-      chainState.reset();
       homeState.reset();
     } catch (e) {
       rethrow;
