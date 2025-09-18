@@ -41,9 +41,11 @@ class IntroductionScreen extends StatelessWidget {
         onPressed: () => Navigator.push(context,
             MaterialPageRoute(builder: (context) => const OverviewScreen())));
 
-    return OnboardingSkeleton(
-      body: body,
-      footer: footer,
-    );
+    return PopScope(
+        canPop: false,
+        child: OnboardingSkeleton(
+          body: body,
+          footer: footer,
+        ));
   }
 }
