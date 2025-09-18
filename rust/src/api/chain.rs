@@ -1,4 +1,5 @@
-use sp_client::{bitcoin::Network, BlindbitBackend, BlindbitClient, ChainBackend};
+use backend_blindbit_native::{BlindbitBackend, BlindbitClient, ChainBackend};
+use sp_client::{bitcoin::Network};
 
 pub async fn get_chain_height(blindbit_url: String) -> anyhow::Result<u32> {
     let backend = BlindbitBackend::new(blindbit_url)?;
