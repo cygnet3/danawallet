@@ -8,7 +8,8 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.11.1"
-sp_client = { git = "https://github.com/cygnet3/sp-client", branch = "master", features = ["blindbit-backend"]}
+sp-client = { git = "https://github.com/cygnet3/sp-client", branch = "wasm_sync", default-features = false }
+backend-blindbit-native = { git = "https://github.com/cygnet3/sp-client", branch = "wasm_sync", default-features = false }
 lazy_static = "1.4"
 anyhow = "1.0"
 serde = { version = "1.0.188", features = ["derive"] }
@@ -25,6 +26,7 @@ async-trait = "0.1"
 rust-crypto = "0.2.36"
 rand = "0.9.0"
 base64 = "0.22.1"
+futures-util = "0.3.31"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

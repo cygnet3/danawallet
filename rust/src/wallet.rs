@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use std::sync::atomic::AtomicBool;
+use std::sync::{atomic::AtomicBool, Arc};
 
 use anyhow::Result;
 use lazy_static::lazy_static;
@@ -9,7 +9,7 @@ use sp_client::bitcoin::secp256k1::SecretKey;
 use sp_client::bitcoin::{self, Network};
 
 lazy_static! {
-    pub static ref KEEP_SCANNING: AtomicBool = AtomicBool::new(true);
+    pub static ref KEEP_SCANNING: Arc<AtomicBool> = Arc::new(AtomicBool::new(true));
 }
 
 pub type WalletFingerprint = [u8; 8];
