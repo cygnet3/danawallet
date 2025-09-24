@@ -2,7 +2,6 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
-import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
@@ -46,7 +45,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     }
   }
 
-  ListTile toListTile(SelectedFee fee, FiatExchangeRate exchangeRate) {
+  ListTile toListTile(SelectedFee fee, FiatExchangeRateState fiatState) {
     final currentFeeRates = RecipientForm().currentFeeRates!;
     final estimatedFee = fee.getEstimatedFee(currentFeeRates);
     switch (fee) {
@@ -70,7 +69,9 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
               Text(estimatedFee.displaySats(),
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
               const Spacer(),
-              Text(estimatedFee.displayFiat(exchangeRate: exchangeRate),
+              Text(fiatState.hasExchangeRate
+                      ? estimatedFee.displayFiat(exchangeRate: fiatState.exchangeRate!)
+                      : fiatState.getUnavailableDisplay(),
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
             ],
           ),
@@ -108,21 +109,20 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exchangeRate =
-        Provider.of<FiatExchangeRateState>(context, listen: false).exchangeRate;
+    final fiatState = Provider.of<FiatExchangeRateState>(context, listen: false);
 
     return SpendSkeleton(
       showBackButton: true,
       title: 'Confirmation time',
       body: Column(children: [
         const Divider(),
-        toListTile(SelectedFee.fast, exchangeRate),
+        toListTile(SelectedFee.fast, fiatState),
         const Divider(),
-        toListTile(SelectedFee.normal, exchangeRate),
+        toListTile(SelectedFee.normal, fiatState),
         const Divider(),
-        toListTile(SelectedFee.slow, exchangeRate),
+        toListTile(SelectedFee.slow, fiatState),
         const Divider(),
-        if (isDevEnv) toListTile(SelectedFee.custom, exchangeRate),
+        if (isDevEnv) toListTile(SelectedFee.custom, fiatState),
         if (isDevEnv) const Divider(),
       ]),
       footer: Column(

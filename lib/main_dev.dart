@@ -9,6 +9,7 @@ import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -20,7 +21,13 @@ void main() async {
   final chainState = ChainState();
   final fiatExchangeRate = await FiatExchangeRateState.create();
 
-  await fiatExchangeRate.updateExchangeRate();
+  // Try to update exchange rate, but don't crash if it fails
+  try {
+    await fiatExchangeRate.updateExchangeRate();
+  } catch (e) {
+    Logger().w('Failed to update exchange rate during startup: $e');
+    // Continue with no data - UI will handle it
+  }
 
   await precacheImages();
 
@@ -41,8 +48,14 @@ void main() async {
   if (walletLoaded) {
     final network = walletState.network;
     final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
-    await chainState.initialize(network, blindbitUrl!);
-    chainState.startSyncService(walletState, scanNotifier);
+    
+    try {
+      await chainState.initialize(network, blindbitUrl!);
+      chainState.startSyncService(walletState, scanNotifier);
+    } catch (e) {
+      Logger().e('Failed to initialize chain state: $e');
+      // Continue without chain sync - wallet still usable for local operations
+    }
   }
 
   runApp(

@@ -68,10 +68,17 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget buildAmountDisplay(ApiAmount amount, FiatExchangeRate exchangeRate) {
+  Widget buildAmountDisplay(ApiAmount amount, FiatExchangeRateState fiatState) {
     String btcAmount = hideAmount ? '*****' : amount.displayBtc();
-    String fiatAmount =
-        hideAmount ? '*****' : amount.displayFiat(exchangeRate: exchangeRate);
+    String fiatAmount;
+    
+    if (hideAmount) {
+      fiatAmount = '*****';
+    } else if (fiatState.hasExchangeRate) {
+      fiatAmount = amount.displayFiat(exchangeRate: fiatState.exchangeRate!);
+    } else {
+      fiatAmount = fiatState.getUnavailableDisplay();
+    }
 
     return GestureDetector(
       onTap: () => setState(() {
@@ -96,7 +103,7 @@ class WalletScreenState extends State<WalletScreen> {
   }
 
   ListTile toListTile(
-      ApiRecordedTransaction tx, FiatExchangeRate exchangeRate) {
+      ApiRecordedTransaction tx, FiatExchangeRateState fiatState) {
     Color? color;
     String amount;
     String amountprefix;
@@ -114,7 +121,9 @@ class WalletScreenState extends State<WalletScreen> {
         color = Bitcoin.green;
         amount = field0.amount.displayBtc();
         amountprefix = '+';
-        amountFiat = field0.amount.displayFiat(exchangeRate: exchangeRate);
+        amountFiat = fiatState.hasExchangeRate
+            ? field0.amount.displayFiat(exchangeRate: fiatState.exchangeRate!)
+            : fiatState.getUnavailableDisplay();
         title = 'Incoming transaction';
         text = field0.toString();
         image = Image(
@@ -131,8 +140,9 @@ class WalletScreenState extends State<WalletScreen> {
         }
         amount = field0.totalOutgoing().displayBtc();
         amountprefix = '-';
-        amountFiat =
-            field0.totalOutgoing().displayFiat(exchangeRate: exchangeRate);
+        amountFiat = fiatState.hasExchangeRate
+            ? field0.totalOutgoing().displayFiat(exchangeRate: fiatState.exchangeRate!)
+            : fiatState.getUnavailableDisplay();
         title = 'Outgoing transaction';
         text = field0.toString();
         image = Image(
@@ -172,7 +182,7 @@ class WalletScreenState extends State<WalletScreen> {
   }
 
   Widget buildTransactionHistory(List<ApiRecordedTransaction> transactions,
-      FiatExchangeRate exchangeRate) {
+      FiatExchangeRateState fiatState) {
     Widget history;
     if (transactions.isEmpty) {
       history = Center(
@@ -186,7 +196,7 @@ class WalletScreenState extends State<WalletScreen> {
           itemCount: transactions.length,
           itemBuilder: (context, index) {
             return toListTile(
-                transactions[transactions.length - 1 - index], exchangeRate);
+                transactions[transactions.length - 1 - index], fiatState);
           });
     }
 
@@ -264,8 +274,7 @@ class WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
-    final exchangeRate =
-        Provider.of<FiatExchangeRateState>(context).exchangeRate;
+    final fiatExchangeRateState = Provider.of<FiatExchangeRateState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
 
     ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
@@ -287,11 +296,11 @@ class WalletScreenState extends State<WalletScreen> {
                         maintainState: true,
                         child: buildScanProgress(scanProgress.progress)),
                     const SizedBox(height: 20.0),
-                    buildAmountDisplay(amount, exchangeRate),
+                    buildAmountDisplay(amount, fiatExchangeRateState),
                     const Spacer(),
                     buildTransactionHistory(
                         walletState.txHistory.toApiTransactions(),
-                        exchangeRate),
+                        fiatExchangeRateState),
                     buildBottomButtons(walletState.address),
                     const SizedBox(
                       height: 20.0,
