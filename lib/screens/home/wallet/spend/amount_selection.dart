@@ -57,6 +57,14 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     // todo: make a chainstate, get the fee rates from the chainstate instead
     final walletState = Provider.of<WalletState>(context, listen: false);
     final currentFeeRates = await walletState.getCurrentFeeRates();
+    
+    if (currentFeeRates == null) {
+      setState(() {
+        _amountErrorText = 'Unable to get current fee rates. Please check your connection and try again.';
+      });
+      return;
+    }
+    
     RecipientForm().currentFeeRates = currentFeeRates;
 
     if (mounted) {
