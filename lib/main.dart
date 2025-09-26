@@ -26,14 +26,6 @@ void main() async {
   final chainState = ChainState();
   final fiatExchangeRate = await FiatExchangeRateState.create();
 
-  // Try to update exchange rate, but don't crash if it fails
-  try {
-    await fiatExchangeRate.updateExchangeRate();
-  } catch (e) {
-    Logger().w('Failed to update exchange rate during startup: $e');
-    // Continue with cached data or no data - UI will handle it
-  }
-
   await precacheImages();
 
   final bool walletLoaded;
@@ -50,7 +42,7 @@ void main() async {
     
     try {
       await chainState.initialize(network, blindbitUrl!);
-      chainState.startSyncService(walletState, scanNotifier);
+      chainState.startSyncService(walletState, scanNotifier, fiatExchangeRate);
     } catch (e) {
       Logger().e('Failed to initialize chain state: $e');
       // Continue without chain sync - wallet still usable for local operations

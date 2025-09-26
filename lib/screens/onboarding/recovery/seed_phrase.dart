@@ -6,6 +6,7 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/back_button.dart';
@@ -43,6 +44,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       final mnemonic = pills.mnemonic;
       final walletState = Provider.of<WalletState>(context, listen: false);
       final chainState = Provider.of<ChainState>(context, listen: false);
+      final fiatExchangeRate = Provider.of<FiatExchangeRateState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
@@ -53,7 +55,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
 
       await walletState.restoreWallet(chainState, mnemonic);
 
-      chainState.startSyncService(walletState, scanProgress);
+      chainState.startSyncService(walletState, scanProgress, fiatExchangeRate);
 
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
