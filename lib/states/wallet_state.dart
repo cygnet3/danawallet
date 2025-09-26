@@ -25,6 +25,8 @@ class WalletState extends ChangeNotifier {
   late int birthday;
 
   // variables that change
+  late RecommendedFeeResponse? currentFeeRates;
+  bool get hasNetworkFeeRates => currentFeeRates != null;
   late ApiAmount amount;
   late ApiAmount unconfirmedChange;
   late int lastScan;
@@ -196,10 +198,20 @@ class WalletState extends ChangeNotifier {
         final response = await mempoolApiRepository.getCurrentFeeRate();
         return response;
       } catch (e) {
-        Logger().w('Failed to fetch fee rates from mempool.space: $e');
-        // Don't use dangerous fallback rates - return null to block transactions
-        return null;
+        throw Exception('getCurrentFeeRates Error: $e');
       }
+    }
+  }
+
+  /// Updates fee rates and notifies listeners
+  Future<void> updateFeeRates() async {
+    try {
+      currentFeeRates = await getCurrentFeeRates();
+      notifyListeners();
+      Logger().d("Updated fee rates in wallet state");
+    } catch (e) {
+      currentFeeRates = null;
+      rethrow;
     }
   }
 
