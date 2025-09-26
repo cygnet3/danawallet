@@ -1,6 +1,7 @@
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/chain.dart';
 import 'package:danawallet/services/synchronization_service.dart';
+import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
@@ -63,9 +64,9 @@ class ChainState extends ChangeNotifier {
   }
 
   void startSyncService(
-      WalletState walletState, ScanProgressNotifier scanProgress) {
+      WalletState walletState, ScanProgressNotifier scanProgress, FiatExchangeRateState fiatExchangeRateState) {
     _synchronizationService = SynchronizationService(
-        chainState: this, walletState: walletState, scanProgress: scanProgress);
+        chainState: this, walletState: walletState, scanProgress: scanProgress, fiatExchangeRateState: fiatExchangeRateState);
     _synchronizationService.startSyncTimer();
   }
 
