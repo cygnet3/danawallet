@@ -1,3 +1,4 @@
+import 'package:danawallet/data/models/mempool_prices_response.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
@@ -9,6 +10,7 @@ class FiatExchangeRateState extends ChangeNotifier {
 
   late FiatCurrency currency;
   FiatExchangeRate? _cachedRate; // Make nullable to represent "no data available"
+  bool get hasExchangeRate => _cachedRate != null;
 
   // private constructor, create class using static async 'create' instead
   FiatExchangeRateState._();
@@ -33,10 +35,6 @@ class FiatExchangeRateState extends ChangeNotifier {
     return _cachedRate; // Can be null if no data available
   }
 
-  bool get hasExchangeRate {
-    return _cachedRate != null;
-  }
-
   /// Returns a display string for unavailable fiat amounts using the currency symbol
   String getUnavailableDisplay() {
     return '--${currency.symbol()}';
@@ -51,7 +49,12 @@ class FiatExchangeRateState extends ChangeNotifier {
     notifyListeners();
 
     // Try to fetch fresh data for new currency
-    return await updateExchangeRate();
+    try {
+      await updateExchangeRate();
+    } catch (e) {
+      _cachedRate = null;
+      rethrow;
+    }
   }
 
   Future<void> updateExchangeRate() async {
@@ -61,14 +64,18 @@ class FiatExchangeRateState extends ChangeNotifier {
       _cachedRate = rate;
       notifyListeners();
     } catch (e) {
-      Logger().w('Failed to update exchange rate: $e');
-      // Keep current state (which might be null), don't crash
-      // UI will show unavailable indicator
+      _cachedRate = null;
+      rethrow;
     }
   }
 
   Future<FiatExchangeRate> _fetchExchangeRate(FiatCurrency currency) async {
-    final rates = await repository.getExchangeRate();
+    MempoolPricesResponse? rates;
+    try {
+      rates = await repository.getExchangeRate();
+    } catch (e) {
+      rethrow;
+    }
 
     final double rate;
     switch (currency) {
