@@ -153,7 +153,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final body = Column(
       children: [
         Image(
-          width: Adaptive.h(14),
+          width: Adaptive.h(18),
           image: const AssetImage(
             "assets/icons/dana_outline.png",
           ),
@@ -178,9 +178,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     "Bitcoin donations needed servers & intimidating infrastructure. Not anymore!",
                 group: autoSizeGroup),
             InfoWidget(
-                iconPath: "assets/icons/contact.svg",
-                title: "Donation accounts",
-                text: "Keep track of your donations easily.",
+                iconPath: "assets/icons/address-book.svg",
+                title: "Email-like experience",
+                text: "Send or receive bitcoin as if sending an email!",
                 group: autoSizeGroup),
             const SizedBox(),
             const SizedBox(),
