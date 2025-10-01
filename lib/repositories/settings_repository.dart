@@ -2,12 +2,14 @@ import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/backup.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
+import 'package:danawallet/widgets/cta/cta_state_manager.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _keyBlindbitUrl = "blindbiturl";
 const String _keyDustLimit = "dustlimit";
 const String _keyFiatCurrency = "fiatcurrency";
+const String _keyUserAlias = "useralias";
 
 class SettingsRepository {
   final SharedPreferencesAsync prefs = SharedPreferencesAsync();
@@ -26,7 +28,9 @@ class SettingsRepository {
 
   Future<void> resetAll() async {
     await prefs
-        .clear(allowList: {_keyBlindbitUrl, _keyDustLimit, _keyFiatCurrency});
+        .clear(allowList: {_keyBlindbitUrl, _keyDustLimit, _keyFiatCurrency, _keyUserAlias});
+    // Also clear CTA state when resetting
+    await CtaStateManager.clearCtaState();
   }
 
   Future<void> setBlindbitUrl(String url) async {
@@ -58,6 +62,18 @@ class SettingsRepository {
       Logger().w("No fiat currency set, picking default");
       return defaultCurrency;
     }
+  }
+
+  Future<void> setUserAlias(String alias) async {
+    return await prefs.setString(_keyUserAlias, alias);
+  }
+
+  Future<String?> getUserAlias() async {
+    return await prefs.getString(_keyUserAlias);
+  }
+
+  Future<void> clearUserAlias() async {
+    return await prefs.remove(_keyUserAlias);
   }
 
   Future<SettingsBackup> createSettingsBackup() async {

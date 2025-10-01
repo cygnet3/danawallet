@@ -32,3 +32,7 @@ const String exampleAddress =
 // example mnemonic
 const String exampleMnemonic =
     "gloom police month stamp viable claim hospital heart alcohol off ocean ghost";
+
+const String defaultNameServer = "http://10.0.2.2:8080";
+
+const String defaultAliasDomain = 'danawallet.app';
