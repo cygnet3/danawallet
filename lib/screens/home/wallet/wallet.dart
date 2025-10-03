@@ -10,6 +10,7 @@ import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/widgets/cta/cta_manager.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -286,6 +287,7 @@ class WalletScreenState extends State<WalletScreen> {
                         maintainSize: true,
                         maintainState: true,
                         child: buildScanProgress(scanProgress.progress)),
+                    const CtaManager(),
                     const SizedBox(height: 20.0),
                     buildAmountDisplay(amount, exchangeRate),
                     const Spacer(),
