@@ -6,7 +6,7 @@ use std::{
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use spdk::{
-    bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
+    bitcoin::{absolute::Height, hashes::Hash, hex::DisplayHex, Amount, BlockHash, OutPoint, Txid},
     OutputSpendStatus, OwnedOutput,
 };
 
@@ -146,8 +146,8 @@ impl OwnedOutputs {
             .get_mut(&outpoint)
             .ok_or(Error::msg("Outpoint not in list"))?;
 
-        let block_hex = mined_in_block.to_string();
-        output.spend_status = OutputSpendStatus::Mined(block_hex);
+        output.spend_status =
+            OutputSpendStatus::Mined(mined_in_block.as_raw_hash().to_byte_array());
         Ok(())
     }
 
@@ -178,28 +178,27 @@ impl OwnedOutputs {
 
         match &output.spend_status {
             OutputSpendStatus::Unspent => {
-                let tx_hex = spending_tx.to_string();
-                output.spend_status = OutputSpendStatus::Spent(tx_hex);
+                output.spend_status =
+                    OutputSpendStatus::Spent(spending_tx.as_raw_hash().to_byte_array());
                 //self.outputs.insert(outpoint, output);
                 Ok(())
             }
-            OutputSpendStatus::Spent(tx_hex) => {
+            OutputSpendStatus::Spent(spending_tx) => {
                 // We may want to fail if that's the case, or force update if we know what we're doing
                 if force_update {
-                    let tx_hex = spending_tx.to_string();
-                    output.spend_status = OutputSpendStatus::Spent(tx_hex);
+                    output.spend_status = OutputSpendStatus::Spent(*spending_tx);
                     //self.outputs.insert(outpoint, output);
                     Ok(())
                 } else {
                     Err(Error::msg(format!(
                         "Output already spent by transaction {}",
-                        tx_hex
+                        spending_tx.to_lower_hex_string()
                     )))
                 }
             }
             OutputSpendStatus::Mined(block) => Err(Error::msg(format!(
                 "Output already mined in block {}",
-                block
+                block.to_lower_hex_string()
             ))),
         }
     }
