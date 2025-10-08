@@ -1907,7 +1907,7 @@ dependencies = [
 [[package]]
 name = "spdk"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/spdk?branch=master#c87d646b18540cae72e0262d3499e86bed58daa9"
+source = "git+https://github.com/cygnet3/spdk?branch=master#bc98465d41dced396ed64ade108480b42b77d26e"
 dependencies = [
  "anyhow",
  "async-trait",
