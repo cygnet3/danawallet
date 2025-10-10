@@ -51,7 +51,7 @@ class ChainState extends ChangeNotifier {
 
     try {
       final correctNetwork = await checkNetwork(
-          blindbitUrl: blindbitUrl, network: _network!.toBitcoinNetwork);
+          blindbitUrl: blindbitUrl, network: _network!.toCoreArg);
 
       if (!correctNetwork) {
         Logger().w('Wrong network');

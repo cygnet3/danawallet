@@ -89,7 +89,7 @@ class WalletRepository {
           scanKey: scanKey,
           spendKey: spendKey,
           birthday: birthday!,
-          network: network.toBitcoinNetwork);
+          network: network.toCoreArg);
     } else {
       return null;
     }
