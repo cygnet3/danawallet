@@ -105,7 +105,7 @@ class WalletState extends ChangeNotifier {
 
     final args = WalletSetupArgs(
         setupType: WalletSetupType.mnemonic(mnemonic),
-        network: network.toBitcoinNetwork);
+        network: network.toCoreArg);
     final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
         await walletRepository.setupWallet(setupResult, network, birthday);
@@ -123,7 +123,7 @@ class WalletState extends ChangeNotifier {
 
     final args = WalletSetupArgs(
         setupType: const WalletSetupType.newWallet(),
-        network: network.toBitcoinNetwork);
+        network: network.toCoreArg);
     final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
         await walletRepository.setupWallet(setupResult, network, birthday);
@@ -195,7 +195,7 @@ class WalletState extends ChangeNotifier {
     final wallet = await getWalletFromSecureStorage();
 
     final unspentOutputs = ownedOutputs.getUnspentOutputs();
-    final bitcoinNetwork = network.toBitcoinNetwork;
+    final bitcoinNetwork = network.toCoreArg;
 
     if (recipient.amount.field0 < amount.field0 - BigInt.from(546)) {
       return wallet.createNewTransaction(
@@ -238,7 +238,7 @@ class WalletState extends ChangeNotifier {
 
     String txid;
     try {
-      if (unsignedTx.network == Network.regtest.toBitcoinNetwork) {
+      if (unsignedTx.network == Network.regtest.toCoreArg) {
         // if we are currently on regtest, it's not possible to use our normal broadcasting flow
         // instead, we will forward the transaction to blindbit
         final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
@@ -246,7 +246,7 @@ class WalletState extends ChangeNotifier {
             blindbitUrl: blindbitUrl!, tx: signedTx);
       } else {
         txid = await SpWallet.broadcastTx(
-            tx: signedTx, network: network.toBitcoinNetwork);
+            tx: signedTx, network: network.toCoreArg);
       }
     } catch (e) {
       Logger().e('Failed to broadcast transaction: $e');

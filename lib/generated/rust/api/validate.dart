@@ -6,5 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-bool validateAddress({required String address}) =>
-    RustLib.instance.api.crateApiValidateValidateAddress(address: address);
+void validateAddressWithNetwork(
+        {required String address, required String network}) =>
+    RustLib.instance.api.crateApiValidateValidateAddressWithNetwork(
+        address: address, network: network);
