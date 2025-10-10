@@ -62,7 +62,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
 
     String displayAmount = recipient.amount!.displayBtc();
 
-    String displayArrivalTime = recipient.fee!.toEstimatedTime;
+    String displayArrivalTime = recipient.selectedFee!.toEstimatedTime;
 
     String displayEstimatedFee =
         recipient.unsignedTx!.getFeeAmount().displayBtc();
