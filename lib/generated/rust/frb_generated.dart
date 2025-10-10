@@ -81,7 +81,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1149212468;
+  int get rustContentHash => 1924410111;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -389,7 +389,8 @@ abstract class RustLibApi extends BaseApi {
   SettingsBackup crateApiBackupSettingsBackupNew(
       {required String blindbitUrl, required int dustLimit});
 
-  bool crateApiValidateValidateAddress({required String address});
+  void crateApiValidateValidateAddressWithNetwork(
+      {required String address, required String network});
 
   RustArcIncrementStrongCountFnType
       get rust_arc_increment_strong_count_ApiScanKey;
@@ -3206,27 +3207,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  bool crateApiValidateValidateAddress({required String address}) {
+  void crateApiValidateValidateAddressWithNetwork(
+      {required String address, required String network}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(address, serializer);
+        sse_encode_String(network, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 100)!;
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_bool,
-        decodeErrorData: null,
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-      constMeta: kCrateApiValidateValidateAddressConstMeta,
-      argValues: [address],
+      constMeta: kCrateApiValidateValidateAddressWithNetworkConstMeta,
+      argValues: [address, network],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiValidateValidateAddressConstMeta =>
+  TaskConstMeta get kCrateApiValidateValidateAddressWithNetworkConstMeta =>
       const TaskConstMeta(
-        debugName: "validate_address",
-        argNames: ["address"],
+        debugName: "validate_address_with_network",
+        argNames: ["address", "network"],
       );
 
   RustArcIncrementStrongCountFnType

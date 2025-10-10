@@ -43,7 +43,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1149212468;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1924410111;
 
 // Section: executor
 
@@ -4356,14 +4356,14 @@ fn wire__crate__api__backup__settings_backup_new_impl(
         },
     )
 }
-fn wire__crate__api__validate__validate_address_impl(
+fn wire__crate__api__validate__validate_address_with_network_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "validate_address",
+            debug_name: "validate_address_with_network",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -4378,12 +4378,17 @@ fn wire__crate__api__validate__validate_address_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_address = <String>::sse_decode(&mut deserializer);
+            let api_network = <String>::sse_decode(&mut deserializer);
             deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok =
-                    Result::<_, ()>::Ok(crate::api::validate::validate_address(api_address))?;
-                Ok(output_ok)
-            })())
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::validate::validate_address_with_network(
+                        api_address,
+                        api_network,
+                    )?;
+                    Ok(output_ok)
+                })(),
+            )
         },
     )
 }
@@ -5262,7 +5267,7 @@ fn pde_ffi_dispatcher_sync_impl(
 95 => wire__crate__api__structs__fiat_currency_minor_units_impl(ptr, rust_vec_len, data_len),
 96 => wire__crate__api__structs__fiat_currency_symbol_impl(ptr, rust_vec_len, data_len),
 99 => wire__crate__api__backup__settings_backup_new_impl(ptr, rust_vec_len, data_len),
-100 => wire__crate__api__validate__validate_address_impl(ptr, rust_vec_len, data_len),
+100 => wire__crate__api__validate__validate_address_with_network_impl(ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
