@@ -97,6 +97,8 @@ String exceptionToString(Object e) {
     message = e.message.split('\n').first;
   } else if (e is InvalidAddressException) {
     message = "Invalid address";
+  } else if (e is InvalidNetworkException) {
+    message = "Invalid network";
   } else {
     message = e.toString();
   }
