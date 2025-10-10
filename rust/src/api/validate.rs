@@ -1,11 +1,15 @@
-use flutter_rust_bridge::frb;
 use anyhow::Result;
+use flutter_rust_bridge::frb;
 use spdk::{RecipientAddress, bitcoin::Network};
 use spdk::silentpayments::Network as SpNetwork;
 
 #[frb(sync)]
 pub fn validate_address_with_network(address: String, network: String) -> Result<()> {
-    log::debug!("address_with_network: address: {}, network: {}", address, network);
+    log::debug!(
+        "address_with_network: address: {}, network: {}",
+        address,
+        network
+    );
     let target_network = Network::from_core_arg(&network)?;
     let address = RecipientAddress::try_from(address);
 
@@ -13,29 +17,36 @@ pub fn validate_address_with_network(address: String, network: String) -> Result
         Ok(RecipientAddress::LegacyAddress(legacy_address)) => {
             legacy_address.require_network(target_network)?;
             Ok(())
-        },
+        }
         Ok(RecipientAddress::SpAddress(sp_address)) => {
             let sp_network = match sp_address.get_network() {
                 SpNetwork::Mainnet => {
-                    if target_network == Network::Bitcoin { return Ok(()); }
+                    if target_network == Network::Bitcoin {
+                        return Ok(());
+                    }
                     "Mainnet"
                 }
-                SpNetwork::Testnet => {
-                    match target_network {
-                        Network::Testnet | Network::Signet => { return Ok(()); }
-                        _ => "Testnet"
+                SpNetwork::Testnet => match target_network {
+                    Network::Testnet | Network::Signet => {
+                        return Ok(());
                     }
-                }
+                    _ => "Testnet",
+                },
                 SpNetwork::Regtest => {
-                    if target_network == Network::Regtest { return Ok(()); }
+                    if target_network == Network::Regtest {
+                        return Ok(());
+                    }
                     "Regtest"
                 }
             };
-            return Err(anyhow::Error::msg(format!("Wrong network, expected: {}, got: {}", target_network, sp_network)));
-        },
+            return Err(anyhow::Error::msg(format!(
+                "Wrong network, expected: {}, got: {}",
+                target_network, sp_network
+            )));
+        }
         Ok(RecipientAddress::Data(_)) => {
             return Err(anyhow::Error::msg("Sending to OP_RETURN not allowed"));
-        },
+        }
         Err(e) => return Err(e),
     }
 }
