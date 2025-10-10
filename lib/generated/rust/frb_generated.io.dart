@@ -317,9 +317,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   EncryptedDanaBackup dco_decode_box_autoadd_encrypted_dana_backup(dynamic raw);
 
   @protected
-  FiatExchangeRate dco_decode_box_autoadd_fiat_exchange_rate(dynamic raw);
-
-  @protected
   SettingsBackup dco_decode_box_autoadd_settings_backup(dynamic raw);
 
   @protected
@@ -336,9 +333,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FiatCurrency dco_decode_fiat_currency(dynamic raw);
-
-  @protected
-  FiatExchangeRate dco_decode_fiat_exchange_rate(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -678,10 +672,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
-  FiatExchangeRate sse_decode_box_autoadd_fiat_exchange_rate(
-      SseDeserializer deserializer);
-
-  @protected
   SettingsBackup sse_decode_box_autoadd_settings_backup(
       SseDeserializer deserializer);
 
@@ -701,9 +691,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FiatCurrency sse_decode_fiat_currency(SseDeserializer deserializer);
-
-  @protected
-  FiatExchangeRate sse_decode_fiat_exchange_rate(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -1043,10 +1030,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       EncryptedDanaBackup self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_fiat_exchange_rate(
-      FiatExchangeRate self, SseSerializer serializer);
-
-  @protected
   void sse_encode_box_autoadd_settings_backup(
       SettingsBackup self, SseSerializer serializer);
 
@@ -1066,10 +1049,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_fiat_currency(FiatCurrency self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_fiat_exchange_rate(
-      FiatExchangeRate self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
