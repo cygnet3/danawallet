@@ -49,11 +49,13 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       await SettingsRepository.instance.defaultSettings(widget.network);
       final blindbitUrl = widget.network.getDefaultBlindbitUrl();
 
-      await chainState.initialize(widget.network, blindbitUrl);
+      await walletState.restoreWallet(widget.network, mnemonic);
 
-      await walletState.restoreWallet(chainState, mnemonic);
+      chainState.initialize(widget.network);
+      // we can safely ignore the result of connecting, since we use the default birthday
+      await chainState.connect(blindbitUrl);
 
-      chainState.startSyncService(walletState, scanProgress);
+      chainState.startSyncService(walletState, scanProgress, true);
 
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(

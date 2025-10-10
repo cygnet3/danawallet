@@ -54,8 +54,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
           final network = walletState.network;
           final blindbitUrl =
               await SettingsRepository.instance.getBlindbitUrl();
-          await chainState.initialize(network, blindbitUrl!);
-          chainState.startSyncService(walletState, scanProgress);
+          chainState.initialize(network);
+
+          // we can safely ignore the result of connecting, since we get the birthday from the backup
+          await chainState.connect(blindbitUrl!);
+
+          chainState.startSyncService(walletState, scanProgress, true);
           if (context.mounted) {
             Navigator.pushAndRemoveUntil(
                 context,
@@ -96,17 +100,23 @@ class _OverviewScreenState extends State<OverviewScreen> {
     await SettingsRepository.instance.defaultSettings(network);
     final blindbitUrl = network.getDefaultBlindbitUrl();
 
-    await chainState.initialize(network, blindbitUrl);
+    chainState.initialize(network);
+    final connected = await chainState.connect(blindbitUrl);
 
-    await walletState.createNewWallet(chainState);
-
-    chainState.startSyncService(walletState, scanProgress);
-
-    if (context.mounted) {
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (Route<dynamic> route) => false);
+    // we *must* be connected to get the wallet birthday
+    if (connected) {
+      chainState.startSyncService(walletState, scanProgress, false);
+      final chainTip = chainState.tip;
+      await walletState.createNewWallet(network, chainTip);
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (Route<dynamic> route) => false);
+      }
+    } else {
+      displayNotification(
+          "Unable to create a new wallet; internet access required");
     }
   }
 

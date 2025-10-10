@@ -48,14 +48,16 @@ void main() async {
   if (walletLoaded) {
     final network = walletState.network;
     final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
-    
-    try {
-      await chainState.initialize(network, blindbitUrl!);
-      chainState.startSyncService(walletState, scanNotifier);
-    } catch (e) {
-      Logger().e('Failed to initialize chain state: $e');
-      // Continue without chain sync - wallet still usable for local operations
+
+    chainState.initialize(network);
+
+    // Continue without chain sync - wallet still usable for local operations
+    final connected = await chainState.connect(blindbitUrl!);
+    if (!connected) {
+      Logger().w("Failed to connect");
     }
+
+    chainState.startSyncService(walletState, scanNotifier, true);
   }
 
   runApp(

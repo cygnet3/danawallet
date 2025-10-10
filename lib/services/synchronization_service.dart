@@ -20,20 +20,22 @@ class SynchronizationService {
       required this.walletState,
       required this.scanProgress});
 
-  Future<void> startSyncTimer() async {
-    // for the first task, we just received the chain tip so skip it
+  Future<void> startSyncTimer(bool immediate) async {
     Logger().i("Starting sync service");
-    await _tryPerformTask(false);
+
+    if (immediate) {
+      _tryPerformTask();
+    }
     await _scheduleNextTask();
   }
 
-  Future<void> _tryPerformTask(bool updateChainTip) async {
+  Future<void> _tryPerformTask() async {
     if (Platform.isAndroid) {
       final appState = SchedulerBinding.instance.lifecycleState;
 
       if (appState == AppLifecycleState.resumed) {
         // only sync on android if app is in foreground
-        await _performTask(updateChainTip);
+        await _performTask();
       } else {
         // todo: claim the wifi lock, so that we have internet access
         // to sync, even when the screen is off
@@ -42,34 +44,33 @@ class SynchronizationService {
     } else {
       // for other platforms, we assume we always want to sync
       // todo: probably requires similar flow for iOS
-      await _performTask(updateChainTip);
+      await _performTask();
     }
   }
 
-  Future<void> _performTask(bool updateChainTip) async {
-    Exception? err;
-    if (updateChainTip) {
-      try {
-        await _performChainUpdateTask();
-      } on Exception catch (e) {
-        // todo: we should have a connection status with the server
-        // e.g. a green or red circle based on whether we have connection issues
-        Logger().w("Error trying to update the chain tip");
-        err = e;
+  Future<void> _performTask() async {
+    try {
+      if (!chainState.available) {
+        //attempt to reconnect to the chain state
+        if (!await chainState.reconnect()) {
+          return;
+        }
       }
-    }
-    if (err == null) {
-      try {
-        await _performSynchronizationTask();
-      } catch (e) {
-        displayNotification(exceptionToString(e));
-      }
+
+      // fetch new tip before syncing
+      await _performChainUpdateTask();
+      await _performSynchronizationTask();
+    } on Exception catch (e) {
+      // todo: we should have a connection status with the server
+      // e.g. a green or red circle based on whether we have connection issues
+      Logger().e("Error performing sync task: $e");
+      displayNotification(exceptionToString(e));
     }
   }
 
   Future<void> _scheduleNextTask() async {
     _timer = Timer(_interval, () async {
-      await _tryPerformTask(true);
+      await _tryPerformTask();
       if (chainState.initiated) {
         _scheduleNextTask();
       }
@@ -81,11 +82,6 @@ class SynchronizationService {
   }
 
   Future<void> _performSynchronizationTask() async {
-    if (!chainState.initiated) {
-      Logger().w('Cannot perform sync: chain state not initialized');
-      return;
-    }
-
     if (walletState.lastScan < chainState.tip) {
       if (!scanProgress.scanning) {
         Logger().i("Starting sync");
