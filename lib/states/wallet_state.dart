@@ -99,13 +99,7 @@ class WalletState extends ChangeNotifier {
     await walletRepository.reset();
   }
 
-  Future<void> restoreWallet(ChainState chainState, String mnemonic) async {
-    if (!chainState.initiated) {
-      throw Exception(
-          'Chain state must be initialized before restoring a wallet');
-    }
-
-    final network = chainState.network;
+  Future<void> restoreWallet(Network network, String mnemonic) async {
     // set birthday to default wallet
     final birthday = network.defaultBirthday;
 
@@ -124,14 +118,8 @@ class WalletState extends ChangeNotifier {
     await _updateWalletState();
   }
 
-  Future<void> createNewWallet(ChainState chainState) async {
-    if (!chainState.initiated) {
-      throw Exception(
-          'Chain state must be initialized before creating a wallet');
-    }
-
-    final birthday = chainState.tip;
-    final network = chainState.network;
+  Future<void> createNewWallet(Network network, int currentTip) async {
+    final birthday = currentTip;
 
     final args = WalletSetupArgs(
         setupType: const WalletSetupType.newWallet(),
@@ -262,7 +250,8 @@ class WalletState extends ChangeNotifier {
       }
     } catch (e) {
       Logger().e('Failed to broadcast transaction: $e');
-      throw Exception('Unable to broadcast transaction. Please check your connection and try again.');
+      throw Exception(
+          'Unable to broadcast transaction. Please check your connection and try again.');
     }
 
     ownedOutputs.markOutpointsSpent(spentBy: txid, spent: selectedOutpoints);

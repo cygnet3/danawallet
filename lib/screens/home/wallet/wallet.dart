@@ -110,7 +110,7 @@ class WalletScreenState extends State<WalletScreen> {
                 ),
               );
 
-              final success = await chainState.retryConnection();
+              final success = await chainState.reconnect();
 
               if (mounted) {
                 // Clear the "retrying" message first
@@ -394,7 +394,7 @@ class WalletScreenState extends State<WalletScreen> {
                         child: buildScanProgress(scanProgress.progress)),
                     // Show offline status when chain sync has connection issues
                     Visibility(
-                        visible: !chainState.isAvailable,
+                        visible: !chainState.available,
                         maintainAnimation: true,
                         maintainSize: true,
                         maintainState: true,

@@ -8,65 +8,72 @@ import 'package:logger/logger.dart';
 
 class ChainState extends ChangeNotifier {
   late SynchronizationService _synchronizationService;
-  int? _tip;
-  Network? _network;
-  String? _blindbitUrl;
-  bool _serviceAvailable = false;
 
-  bool get initiated =>
-      _tip != null && _network != null && _blindbitUrl != null;
-  
-  bool get isAvailable => _serviceAvailable;
-  
-  /// Retry connecting to blindbit service
-  Future<bool> retryConnection() async {
-    if (_blindbitUrl == null || _network == null) {
-      return false;
-    }
-    
-    try {
-      _tip = await getChainHeight(blindbitUrl: _blindbitUrl!);
-      _serviceAvailable = true;
-      Logger().i('Successfully reconnected to blindbit');
-      notifyListeners();
-      
-      // Restart sync service if connection restored
-      // Note: This assumes sync service exists but was failing
-      return true;
-    } catch (e) {
-      Logger().w('Retry connection failed: $e');
-      return false;
-    }
-  }
+  // Indicates whether the chainstate is initialized.
+  // Once initialized we can check for the availability.
+  // We treat these as two separate states, because we want to allow
+  // a case where the app is unable to sync the chain (e.g. when there is no internet).
+  Network? _network;
+
+  // indicates whether the chain is 'available'
+  String? _blindbitUrl;
+  int? _tip;
+
+  bool get initiated => _network != null;
+
+  bool get available => initiated && _blindbitUrl != null && _tip != null;
 
   ChainState();
 
-  Future<void> initialize(Network network, String blindbitUrl) async {
-    // todo: make sure that url matches the network!
-    _blindbitUrl = blindbitUrl;
+  void initialize(Network network) {
+    Logger().i('Initializing chain state');
+    Logger().i('Network: $network');
+    // network is not yet verified in this state, it gets vetified in 'connect'
     _network = network;
-    
-    try {
-      _tip = await getChainHeight(blindbitUrl: blindbitUrl);
-      _serviceAvailable = true;
-      Logger().i('Initializing chain state');
-      Logger().i('Network: $_network');
-      Logger().i('Blindbit url: $_blindbitUrl');
-      Logger().i('Current tip: $_tip');
-      notifyListeners();
-    } catch (e) {
-      _serviceAvailable = false;
-      Logger().e('Failed to get chain height from blindbit: $e');
-      notifyListeners();
-      throw e; // Re-throw so main.dart can handle it
-    }
   }
 
   void startSyncService(
-      WalletState walletState, ScanProgressNotifier scanProgress) {
+      WalletState walletState, ScanProgressNotifier scanProgress, bool immediate) {
+    // start sync service & timer
     _synchronizationService = SynchronizationService(
         chainState: this, walletState: walletState, scanProgress: scanProgress);
-    _synchronizationService.startSyncTimer();
+    _synchronizationService.startSyncTimer(immediate);
+  }
+
+  /// Try connecting to blindbit service
+  Future<bool> connect(String blindbitUrl) async {
+    if (!initiated) {
+      return false;
+    }
+
+    Logger().i('Connecting to blindbit: $blindbitUrl');
+    _blindbitUrl = blindbitUrl;
+
+    try {
+      final correctNetwork = await checkNetwork(
+          blindbitUrl: blindbitUrl, network: _network!.toBitcoinNetwork);
+
+      if (!correctNetwork) {
+        Logger().w('Wrong network');
+        return false;
+      }
+
+      _tip = await getChainHeight(blindbitUrl: blindbitUrl);
+      Logger().i('Successfully connected to blindbit, current tip: $_tip');
+    } catch (e) {
+      Logger().w('Connection to blindbit failed: $e');
+    }
+    notifyListeners();
+    return available;
+  }
+
+  Future<bool> reconnect() async {
+    if (_blindbitUrl == null) {
+      Logger().w("Attempted to reconnect, but no blindbit url is known");
+      return false;
+    } else {
+      return await connect(_blindbitUrl!);
+    }
   }
 
   void reset() {
@@ -74,14 +81,13 @@ class ChainState extends ChangeNotifier {
     _tip = null;
     _blindbitUrl = null;
     _network = null;
-    _serviceAvailable = false;
   }
 
   int get tip {
-    if (initiated) {
+    if (available) {
       return _tip!;
     } else {
-      throw Exception('Attempted to get chain tip without initializing');
+      throw Exception('Attempted to get chain tip, but chain is unavailable');
     }
   }
 
@@ -94,41 +100,24 @@ class ChainState extends ChangeNotifier {
   }
 
   Future<void> updateChainTip() async {
-    if (!initiated) {
-      Logger().w('Cannot update chain tip: chain state not initialized');
+    if (!available) {
+      Logger().w('Cannot update chain tip: chain state not available');
       return;
     }
-    
+
     try {
       _tip = await getChainHeight(blindbitUrl: _blindbitUrl!);
       Logger().i('updating tip: $_tip');
-      _serviceAvailable = true;
       notifyListeners();
     } catch (e) {
       Logger().e('Failed to update chain tip: $e');
-      _serviceAvailable = false;
-      notifyListeners();
     }
   }
 
-  Future<bool> updateBlindbitUrl(String blindbitUrl) async {
-    final correctNetwork = await checkNetwork(
-        blindbitUrl: blindbitUrl, network: _network!.toBitcoinNetwork);
-
-    if (correctNetwork) {
-      Logger().i('Updating blindbit url');
-      Logger().i('Old blindbit url: $_blindbitUrl');
-      _blindbitUrl = blindbitUrl;
-      Logger().i('New blindbit url: $_blindbitUrl');
-
-      await updateChainTip();
-      _serviceAvailable = true;
-
-      return true;
-    } else {
-      Logger().w('Failed to update blindbit url, wrong network');
-      _serviceAvailable = false;
-      return false;
-    }
+  Future<bool> updateBlindbitUrl(String newUrl) async {
+    Logger().i('Updating blindbit url');
+    Logger().i('Old blindbit url: $_blindbitUrl');
+    Logger().i('New blindbit url: $newUrl');
+    return await connect(newUrl);
   }
 }
