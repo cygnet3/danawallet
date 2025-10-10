@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
+import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
@@ -24,12 +25,76 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
   final Map<int, ApiAmount> _feeAmounts = {};
   bool _isLoadingFees = true;
   String? _errorMessage;
+  RecommendedFeeResponse? _recommendedFees;
 
   @override
   void initState() {
     super.initState();
     _sliderValue = _selectedFeeRate.toDouble();
+    _loadRecommendedFees();
     _computeFeeAmounts();
+  }
+
+  void _loadRecommendedFees() async {
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    try {
+      final recommendedFees = await walletState.getCurrentFeeRates();
+      if (mounted) {
+        setState(() {
+          _recommendedFees = recommendedFees;
+        });
+      }
+    } catch (e) {
+      // If we can't load recommended fees, we'll just show the fee without arrival time
+      print('Failed to load recommended fees: $e');
+    }
+  }
+
+  String _getArrivalTimeEstimate(int feeRate) {
+    if (_recommendedFees == null) return 'Unknown';
+
+    final fees = _recommendedFees!;
+    
+    // Check for overpaying case first
+    if (feeRate >= fees.nextBlockFee * 2) {
+      return 'Overpaying (2x+ fast fee)';
+    }
+    
+    // Categorize the fee rate against recommended fees
+    if (feeRate >= fees.nextBlockFee) {
+      return 'Next block (~10 min)';
+    } else if (feeRate >= fees.halfHourFee) {
+      return 'High priority (~30 min)';
+    } else if (feeRate >= fees.hourFee) {
+      return 'Medium priority (~1 hour)';
+    } else if (feeRate >= fees.dayFee) {
+      return 'Low priority (~1 day)';
+    } else {
+      return 'Very low priority (>1 day)';
+    }
+  }
+
+  Color _getArrivalTimeColor(int feeRate) {
+    if (_recommendedFees == null) return Bitcoin.neutral7;
+
+    final fees = _recommendedFees!;
+    
+    // Check for overpaying case first
+    if (feeRate >= fees.nextBlockFee * 2) {
+      return Bitcoin.red; // Overpaying - red to warn user
+    }
+    
+    if (feeRate >= fees.nextBlockFee) {
+      return Bitcoin.green; // Next block - green for fast
+    } else if (feeRate >= fees.halfHourFee) {
+      return Bitcoin.orange; // High priority - orange
+    } else if (feeRate >= fees.hourFee) {
+      return Bitcoin.neutral7; // Medium priority - neutral
+    } else if (feeRate >= fees.dayFee) {
+      return Bitcoin.neutral6; // Low priority - muted
+    } else {
+      return Bitcoin.neutral5; // Very low priority - very muted
+    }
   }
 
   void _computeFeeAmounts() async {
@@ -261,6 +326,49 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Expected Confirmation',
+                            style: BitcoinTextStyle.body5(Bitcoin.neutral7),
+                          ),
+                          Text(
+                            _isLoadingFees 
+                              ? 'Loading...' 
+                              : _getArrivalTimeEstimate(_selectedFeeRate),
+                            style: BitcoinTextStyle.body5(
+                              _isLoadingFees 
+                                ? Bitcoin.neutral7 
+                                : _getArrivalTimeColor(_selectedFeeRate)
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Show overpaying warning if applicable
+                      if (_recommendedFees != null && 
+                          _selectedFeeRate >= _recommendedFees!.nextBlockFee * 2 &&
+                          !_isLoadingFees)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.warning_amber_outlined,
+                                color: Bitcoin.red,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '⚠️ You\'re paying 2x+ the fast fee rate. Consider reducing to save money.',
+                                  style: BitcoinTextStyle.body5(Bitcoin.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
           ),
