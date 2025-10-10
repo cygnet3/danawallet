@@ -30,9 +30,17 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     final BigInt amount;
     try {
       amount = BigInt.from(int.parse(amountController.text));
-    } on FormatException {
+      if (amount <= BigInt.from(0)) {
+        throw const FormatException('Amount must be positive');
+      }
+    } on FormatException catch (e) {
       setState(() {
-        _amountErrorText = 'Invalid amount';
+        _amountErrorText = 'Invalid amount: $e';
+      });
+      return;
+    } catch (e) {
+      setState(() {
+        _amountErrorText = 'Unknown error: $e';
       });
       return;
     }
