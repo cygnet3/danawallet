@@ -24,6 +24,19 @@ enum Network {
     }
   }
 
+  String get toCoreArg {
+    switch (this) {
+      case Network.mainnet:
+        return 'main';
+      case Network.testnet:
+        return 'test';
+      case Network.signet:
+        return 'signet';
+      case Network.regtest:
+        return 'regtest';
+    }
+  }
+
   String getDefaultBlindbitUrl() {
     switch (this) {
       case Network.mainnet:
