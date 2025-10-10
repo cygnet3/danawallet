@@ -11,7 +11,6 @@ import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
-import 'package:danawallet/states/chain_state.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 

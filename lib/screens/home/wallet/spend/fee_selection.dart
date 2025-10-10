@@ -45,7 +45,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     }
   }
 
-  ListTile toListTile(SelectedFee fee, FiatExchangeRateState fiatState) {
+  ListTile toListTile(SelectedFee fee, FiatExchangeRateState exchangeRate) {
     final currentFeeRates = RecipientForm().currentFeeRates!;
     final estimatedFee = fee.getEstimatedFee(currentFeeRates);
     switch (fee) {
@@ -69,9 +69,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
               Text(estimatedFee.displaySats(),
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
               const Spacer(),
-              Text(fiatState.hasExchangeRate
-                      ? estimatedFee.displayFiat(exchangeRate: fiatState.exchangeRate!)
-                      : fiatState.getUnavailableDisplay(),
+              Text(exchangeRate.displayFiat(estimatedFee),
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
             ],
           ),
@@ -109,20 +107,21 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final fiatState = Provider.of<FiatExchangeRateState>(context, listen: false);
+    final exchangeRate =
+        Provider.of<FiatExchangeRateState>(context, listen: false);
 
     return SpendSkeleton(
       showBackButton: true,
       title: 'Confirmation time',
       body: Column(children: [
         const Divider(),
-        toListTile(SelectedFee.fast, fiatState),
+        toListTile(SelectedFee.fast, exchangeRate),
         const Divider(),
-        toListTile(SelectedFee.normal, fiatState),
+        toListTile(SelectedFee.normal, exchangeRate),
         const Divider(),
-        toListTile(SelectedFee.slow, fiatState),
+        toListTile(SelectedFee.slow, exchangeRate),
         const Divider(),
-        if (isDevEnv) toListTile(SelectedFee.custom, fiatState),
+        if (isDevEnv) toListTile(SelectedFee.custom, exchangeRate),
         if (isDevEnv) const Divider(),
       ]),
       footer: Column(

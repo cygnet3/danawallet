@@ -109,19 +109,20 @@ class WalletScreenState extends State<WalletScreen> {
                   duration: const Duration(seconds: 2),
                 ),
               );
-              
+
               final success = await chainState.retryConnection();
-              
+
               if (mounted) {
                 // Clear the "retrying" message first
                 ScaffoldMessenger.of(context).clearSnackBars();
-                
+
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Row(
                         children: [
-                          Icon(Icons.check_circle, color: Bitcoin.green, size: 16),
+                          Icon(Icons.check_circle,
+                              color: Bitcoin.green, size: 16),
                           const SizedBox(width: 8),
                           const Text('Successfully reconnected!'),
                         ],
@@ -135,9 +136,11 @@ class WalletScreenState extends State<WalletScreen> {
                     SnackBar(
                       content: Row(
                         children: [
-                          Icon(Icons.error_outline, color: Bitcoin.orange, size: 16),
+                          Icon(Icons.error_outline,
+                              color: Bitcoin.orange, size: 16),
                           const SizedBox(width: 8),
-                          const Text('Still unable to connect. Please try again later.'),
+                          const Text(
+                              'Still unable to connect. Please try again later.'),
                         ],
                       ),
                       backgroundColor: Bitcoin.red.withValues(alpha: 0.8),
@@ -164,17 +167,12 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget buildAmountDisplay(ApiAmount amount, FiatExchangeRateState fiatState) {
-    String btcAmount = hideAmount ? '*****' : amount.displayBtc();
-    String fiatAmount;
-    
-    if (hideAmount) {
-      fiatAmount = '*****';
-    } else if (fiatState.hasExchangeRate) {
-      fiatAmount = amount.displayFiat(exchangeRate: fiatState.exchangeRate!);
-    } else {
-      fiatAmount = fiatState.getUnavailableDisplay();
-    }
+  Widget buildAmountDisplay(
+      ApiAmount amount, FiatExchangeRateState exchangeRate) {
+    String btcAmount = hideAmount ? hideAmountFormat : amount.displayBtc();
+
+    String fiatAmount =
+        hideAmount ? hideAmountFormat : exchangeRate.displayFiat(amount);
 
     return GestureDetector(
       onTap: () => setState(() {
@@ -199,7 +197,7 @@ class WalletScreenState extends State<WalletScreen> {
   }
 
   ListTile toListTile(
-      ApiRecordedTransaction tx, FiatExchangeRateState fiatState) {
+      ApiRecordedTransaction tx, FiatExchangeRateState exchangeRate) {
     Color? color;
     String amount;
     String amountprefix;
@@ -215,11 +213,11 @@ class WalletScreenState extends State<WalletScreen> {
         recipient = 'Incoming';
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         color = Bitcoin.green;
-        amount = field0.amount.displayBtc();
+        amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
         amountprefix = '+';
-        amountFiat = fiatState.hasExchangeRate
-            ? field0.amount.displayFiat(exchangeRate: fiatState.exchangeRate!)
-            : fiatState.getUnavailableDisplay();
+        amountFiat = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayFiat(field0.amount);
         title = 'Incoming transaction';
         text = field0.toString();
         image = Image(
@@ -234,11 +232,12 @@ class WalletScreenState extends State<WalletScreen> {
         } else {
           color = Bitcoin.red;
         }
-        amount = field0.totalOutgoing().displayBtc();
+        amount =
+            hideAmount ? hideAmountFormat : field0.totalOutgoing().displayBtc();
         amountprefix = '-';
-        amountFiat = fiatState.hasExchangeRate
-            ? field0.totalOutgoing().displayFiat(exchangeRate: fiatState.exchangeRate!)
-            : fiatState.getUnavailableDisplay();
+        amountFiat = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayFiat(field0.totalOutgoing());
         title = 'Outgoing transaction';
         text = field0.toString();
         image = Image(
@@ -278,7 +277,7 @@ class WalletScreenState extends State<WalletScreen> {
   }
 
   Widget buildTransactionHistory(List<ApiRecordedTransaction> transactions,
-      FiatExchangeRateState fiatState) {
+      FiatExchangeRateState exchangeRate) {
     Widget history;
     if (transactions.isEmpty) {
       history = Center(
@@ -292,7 +291,7 @@ class WalletScreenState extends State<WalletScreen> {
           itemCount: transactions.length,
           itemBuilder: (context, index) {
             return toListTile(
-                transactions[transactions.length - 1 - index], fiatState);
+                transactions[transactions.length - 1 - index], exchangeRate);
           });
     }
 
@@ -370,7 +369,7 @@ class WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
-    final fiatExchangeRateState = Provider.of<FiatExchangeRateState>(context);
+    final exchangeRate = Provider.of<FiatExchangeRateState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
     final chainState = Provider.of<ChainState>(context);
 
@@ -401,11 +400,15 @@ class WalletScreenState extends State<WalletScreen> {
                         maintainState: true,
                         child: buildOfflineStatus(chainState)),
                     const SizedBox(height: 20.0),
-                    buildAmountDisplay(amount, fiatExchangeRateState),
+                    buildAmountDisplay(
+                      amount,
+                      exchangeRate,
+                    ),
                     const Spacer(),
                     buildTransactionHistory(
-                        walletState.txHistory.toApiTransactions(),
-                        fiatExchangeRateState),
+                      walletState.txHistory.toApiTransactions(),
+                      exchangeRate,
+                    ),
                     buildBottomButtons(walletState.address),
                     const SizedBox(
                       height: 20.0,
