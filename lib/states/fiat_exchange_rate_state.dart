@@ -1,4 +1,5 @@
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/models/mempool_prices_response.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
@@ -54,13 +55,20 @@ class FiatExchangeRateState extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       Logger().w('Failed to update exchange rate: $e');
+      _cachedRate = null;
+      notifyListeners();
       // Keep current state (which might be null), don't crash
       // UI will show unavailable indicator
     }
   }
 
   Future<double> _fetchExchangeRate(FiatCurrency currency) async {
-    final rates = await repository.getExchangeRate();
+    MempoolPricesResponse? rates;
+    try {
+      rates = await repository.getExchangeRate();
+    } catch (e) {
+      rethrow;
+    }
 
     switch (currency) {
       case FiatCurrency.eur:

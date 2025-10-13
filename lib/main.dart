@@ -7,6 +7,7 @@ import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:danawallet/services/logging_service.dart';
+import 'package:danawallet/services/synchronization_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
@@ -26,14 +27,6 @@ void main() async {
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
   final fiatExchangeRate = await FiatExchangeRateState.create();
-
-  // Try to update exchange rate, but don't crash if it fails
-  try {
-    await fiatExchangeRate.updateExchangeRate();
-  } catch (e) {
-    Logger().w('Failed to update exchange rate during startup: $e');
-    // Continue with cached data or no data - UI will handle it
-  }
 
   await precacheImages();
 
@@ -58,7 +51,8 @@ void main() async {
       // UI will show appropriate "offline" state
     }
 
-    chainState.startSyncService(walletState, scanNotifier, true);
+    final synchronizationService = SynchronizationService(chainState: chainState, walletState: walletState, fiatExchangeRateState: fiatExchangeRate, scanProgress: scanNotifier);
+    await synchronizationService.startSyncTimer(true);
   }
 
   runApp(

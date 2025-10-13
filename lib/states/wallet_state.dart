@@ -29,6 +29,9 @@ class WalletState extends ChangeNotifier {
   late int lastScan;
   late TxHistory txHistory;
   late OwnedOutputs ownedOutputs;
+  RecommendedFeeResponse? _currentFeesEstimation;
+
+  RecommendedFeeResponse? get currentFeesEstimation => _currentFeesEstimation; 
 
   // stream to receive updates while scanning
   late StreamSubscription scanResultSubscription;
@@ -172,20 +175,23 @@ class WalletState extends ChangeNotifier {
     unconfirmedChange = txHistory.getUnconfirmedChange();
   }
 
-  Future<RecommendedFeeResponse?> getCurrentFeeRates() async {
+  Future<void> updateNetworkFees() async {
     if (network == Network.regtest) {
       // for regtest, we always return 1 sat/vb
-      return RecommendedFeeResponse(
+      _currentFeesEstimation = RecommendedFeeResponse(
           nextBlockFee: 1, halfHourFee: 1, hourFee: 1, dayFee: 1);
+      notifyListeners();
     } else {
       try {
         final mempoolApiRepository = MempoolApiRepository(network: network);
         final response = await mempoolApiRepository.getCurrentFeeRate();
-        return response;
+        _currentFeesEstimation = response;
+        notifyListeners();
       } catch (e) {
         Logger().w('Failed to fetch fee rates from mempool.space: $e');
         // Don't use dangerous fallback rates - return null to block transactions
-        return null;
+        _currentFeesEstimation = null;
+        notifyListeners();
       }
     }
   }

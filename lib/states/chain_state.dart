@@ -1,8 +1,6 @@
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/chain.dart';
 import 'package:danawallet/services/synchronization_service.dart';
-import 'package:danawallet/states/scan_progress_notifier.dart';
-import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -18,10 +16,11 @@ class ChainState extends ChangeNotifier {
   // indicates whether the chain is 'available'
   String? _blindbitUrl;
   int? _tip;
+  bool _available = false;
 
   bool get initiated => _network != null;
 
-  bool get available => initiated && _blindbitUrl != null && _tip != null;
+  bool get available => _available;
 
   ChainState();
 
@@ -30,14 +29,6 @@ class ChainState extends ChangeNotifier {
     Logger().i('Network: $network');
     // network is not yet verified in this state, it gets vetified in 'connect'
     _network = network;
-  }
-
-  void startSyncService(WalletState walletState,
-      ScanProgressNotifier scanProgress, bool immediate) {
-    // start sync service & timer
-    _synchronizationService = SynchronizationService(
-        chainState: this, walletState: walletState, scanProgress: scanProgress);
-    _synchronizationService.startSyncTimer(immediate);
   }
 
   /// Try connecting to blindbit service
@@ -54,14 +45,15 @@ class ChainState extends ChangeNotifier {
           blindbitUrl: blindbitUrl, network: _network!.toBitcoinNetwork);
 
       if (!correctNetwork) {
-        Logger().w('Wrong network');
-        return false;
+        throw Exception('Wrong network');
       }
 
       _tip = await getChainHeight(blindbitUrl: blindbitUrl);
+      _available = true;
       Logger().i('Successfully connected to blindbit, current tip: $_tip');
     } catch (e) {
       Logger().w('Connection to blindbit failed: $e');
+      _available = false;
     }
     notifyListeners();
     return available;
@@ -70,6 +62,9 @@ class ChainState extends ChangeNotifier {
   Future<bool> reconnect() async {
     if (_blindbitUrl == null) {
       Logger().w("Attempted to reconnect, but no blindbit url is known");
+      _available = false;
+      _tip = null;
+      notifyListeners();
       return false;
     } else {
       return await connect(_blindbitUrl!);
@@ -81,6 +76,8 @@ class ChainState extends ChangeNotifier {
     _tip = null;
     _blindbitUrl = null;
     _network = null;
+    _available = false;
+    notifyListeners();
   }
 
   int get tip {
@@ -112,7 +109,7 @@ class ChainState extends ChangeNotifier {
       return true;
     } catch (e) {
       Logger().e('Failed to update chain tip: $e');
-      _tip = null;
+      _available = false;
       notifyListeners();
       return false;
     }

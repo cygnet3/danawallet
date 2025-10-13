@@ -56,7 +56,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     // get fee rates, these are needed for the next screen
     // todo: make a chainstate, get the fee rates from the chainstate instead
     final walletState = Provider.of<WalletState>(context, listen: false);
-    final currentFeeRates = await walletState.getCurrentFeeRates();
+    final currentFeeRates = walletState.currentFeesEstimation;
     
     if (currentFeeRates == null) {
       setState(() {
