@@ -45,7 +45,8 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       final mnemonic = pills.mnemonic;
       final walletState = Provider.of<WalletState>(context, listen: false);
       final chainState = Provider.of<ChainState>(context, listen: false);
-      final fiatExchangeRate = Provider.of<FiatExchangeRateState>(context, listen: false);
+      final fiatExchangeRate =
+          Provider.of<FiatExchangeRateState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
@@ -58,7 +59,11 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       // we can safely ignore the result of connecting, since we use the default birthday
       await chainState.connect(blindbitUrl);
 
-      final synchronizationService = SynchronizationService(chainState: chainState, walletState: walletState, fiatExchangeRateState: fiatExchangeRate, scanProgress: scanProgress);
+      final synchronizationService = SynchronizationService(
+          chainState: chainState,
+          walletState: walletState,
+          fiatExchangeRateState: fiatExchangeRate,
+          scanProgress: scanProgress);
       await synchronizationService.startSyncTimer(true);
 
       if (context.mounted) {

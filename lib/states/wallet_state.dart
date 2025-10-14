@@ -31,7 +31,7 @@ class WalletState extends ChangeNotifier {
   late OwnedOutputs ownedOutputs;
   RecommendedFeeResponse? _currentFeesEstimation;
 
-  RecommendedFeeResponse? get currentFeesEstimation => _currentFeesEstimation; 
+  RecommendedFeeResponse? get currentFeesEstimation => _currentFeesEstimation;
 
   // stream to receive updates while scanning
   late StreamSubscription scanResultSubscription;

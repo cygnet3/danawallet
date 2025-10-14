@@ -19,8 +19,10 @@ class ServiceStatusDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final services = ConnectionStatusService.getAllServices(chainState, fiatState, walletState);
-    final overallStatus = ConnectionStatusService.getOverallStatus(chainState, fiatState, walletState);
+    final services = ConnectionStatusService.getAllServices(
+        chainState, fiatState, walletState);
+    final overallStatus = ConnectionStatusService.getOverallStatus(
+        chainState, fiatState, walletState);
 
     return AlertDialog(
       title: Row(
@@ -31,10 +33,10 @@ class ServiceStatusDialog extends StatelessWidget {
             size: 20,
           ),
           const SizedBox(width: 8),
-            Text(
-              'Service Status',
-              style: BitcoinTextStyle.title4(Bitcoin.black),
-            ),
+          Text(
+            'Service Status',
+            style: BitcoinTextStyle.title4(Bitcoin.black),
+          ),
         ],
       ),
       content: SizedBox(
@@ -92,7 +94,8 @@ class ServiceStatusDialog extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   _getStatusText(service.status),
-                  style: BitcoinTextStyle.body5(_getServiceColor(service.status)),
+                  style:
+                      BitcoinTextStyle.body5(_getServiceColor(service.status)),
                 ),
               ],
             ),

@@ -51,7 +51,11 @@ void main() async {
       // UI will show appropriate "offline" state
     }
 
-    final synchronizationService = SynchronizationService(chainState: chainState, walletState: walletState, fiatExchangeRateState: fiatExchangeRate, scanProgress: scanNotifier);
+    final synchronizationService = SynchronizationService(
+        chainState: chainState,
+        walletState: walletState,
+        fiatExchangeRateState: fiatExchangeRate,
+        scanProgress: scanNotifier);
     await synchronizationService.startSyncTimer(true);
   }
 

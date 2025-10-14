@@ -50,7 +50,11 @@ void main() async {
       Logger().w("Failed to connect");
     }
 
-    final synchronizationService = SynchronizationService(chainState: chainState, walletState: walletState, fiatExchangeRateState: fiatExchangeRate, scanProgress: scanNotifier);
+    final synchronizationService = SynchronizationService(
+        chainState: chainState,
+        walletState: walletState,
+        fiatExchangeRateState: fiatExchangeRate,
+        scanProgress: scanNotifier);
     await synchronizationService.startSyncTimer(true);
   }
 

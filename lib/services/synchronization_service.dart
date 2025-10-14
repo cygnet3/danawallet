@@ -16,11 +16,11 @@ class SynchronizationService {
 
   Timer? _timer;
   final Duration _interval = const Duration(seconds: 10);
-  
+
   // Different intervals for different data types
   static const Duration _exchangeRateInterval = Duration(minutes: 10);
   static const Duration _networkFeesInterval = Duration(minutes: 2);
-  
+
   // Track last update times
   DateTime? _lastExchangeRateUpdate;
   DateTime? _lastNetworkFeesUpdate;
@@ -77,13 +77,15 @@ class SynchronizationService {
       Logger().e("Error performing sync task: $e");
       displayNotification(exceptionToString(e));
     }
-    
+
     // Perform periodic updates for other data types
     await _updateExchangeRateIfNeeded();
     await _updateNetworkFeesIfNeeded();
 
     // if one or more services are not available, force update on all services to keep consistency
-    if (!chainState.available || fiatExchangeRateState.exchangeRate == null || walletState.currentFeesEstimation == null) {
+    if (!chainState.available ||
+        fiatExchangeRateState.exchangeRate == null ||
+        walletState.currentFeesEstimation == null) {
       await fiatExchangeRateState.updateExchangeRate();
       await walletState.updateNetworkFees();
       await chainState.updateChainTip();
@@ -114,7 +116,7 @@ class SynchronizationService {
   /// Updates exchange rate if enough time has passed since last update
   Future<void> _updateExchangeRateIfNeeded() async {
     final now = DateTime.now();
-    if (_lastExchangeRateUpdate == null || 
+    if (_lastExchangeRateUpdate == null ||
         now.difference(_lastExchangeRateUpdate!) > _exchangeRateInterval) {
       try {
         await fiatExchangeRateState.updateExchangeRate();
@@ -129,7 +131,7 @@ class SynchronizationService {
   /// Updates network fees estimation if enough time has passed since last update
   Future<void> _updateNetworkFeesIfNeeded() async {
     final now = DateTime.now();
-    if (_lastNetworkFeesUpdate == null || 
+    if (_lastNetworkFeesUpdate == null ||
         now.difference(_lastNetworkFeesUpdate!) > _networkFeesInterval) {
       try {
         await walletState.updateNetworkFees();

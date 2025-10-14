@@ -3,11 +3,7 @@ import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
 
-enum ServiceStatus {
-  available,
-  unavailable,
-  unknown
-}
+enum ServiceStatus { available, unavailable, unknown }
 
 class ExternalService {
   final String name;
@@ -22,7 +18,6 @@ class ExternalService {
 }
 
 class ConnectionStatusService extends ChangeNotifier {
-  
   /// Get the overall connection status
   static ServiceStatus getOverallStatus(
     ChainState chainState,
@@ -32,15 +27,17 @@ class ConnectionStatusService extends ChangeNotifier {
     final services = getAllServices(chainState, fiatState, walletState);
 
     // If any service is unavailable, show warning
-    if (services.any((service) => service.status == ServiceStatus.unavailable)) {
+    if (services
+        .any((service) => service.status == ServiceStatus.unavailable)) {
       return ServiceStatus.unavailable;
     }
-    
+
     // If all services are available, show success
-    if (services.every((service) => service.status == ServiceStatus.available)) {
+    if (services
+        .every((service) => service.status == ServiceStatus.available)) {
       return ServiceStatus.available;
     }
-    
+
     // Otherwise, show unknown
     return ServiceStatus.unknown;
   }
@@ -68,24 +65,23 @@ class ConnectionStatusService extends ChangeNotifier {
         name: 'Blindbit Sync',
         description: 'Block scanning and chain synchronization',
         status: chainState.available
-            ? ServiceStatus.available 
+            ? ServiceStatus.available
             : ServiceStatus.unavailable,
       ),
       ExternalService(
         name: 'Exchange Rates',
         description: 'Fiat currency conversion rates',
-        status: fiatState.exchangeRate != null 
-            ? ServiceStatus.available 
+        status: fiatState.exchangeRate != null
+            ? ServiceStatus.available
             : ServiceStatus.unavailable,
       ),
       ExternalService(
         name: 'Fee Estimation',
         description: 'Recommended bitcoin network transaction fees',
         status: walletState.currentFeesEstimation != null
-            ? ServiceStatus.available 
+            ? ServiceStatus.available
             : ServiceStatus.unavailable,
       ),
     ];
   }
 }
-

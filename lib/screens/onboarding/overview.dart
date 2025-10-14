@@ -36,7 +36,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
     try {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final chainState = Provider.of<ChainState>(context, listen: false);
-      final fiatExchangeRate = Provider.of<FiatExchangeRateState>(context, listen: false);
+      final fiatExchangeRate =
+          Provider.of<FiatExchangeRateState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
       final encryptedBackup = await BackupService.getEncryptedBackupFromFile();
@@ -64,7 +65,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
           // we can safely ignore the result of connecting, since we get the birthday from the backup
           await chainState.connect(blindbitUrl!);
 
-          final synchronizationService = SynchronizationService(chainState: chainState, walletState: walletState, fiatExchangeRateState: fiatExchangeRate, scanProgress: scanProgress);
+          final synchronizationService = SynchronizationService(
+              chainState: chainState,
+              walletState: walletState,
+              fiatExchangeRateState: fiatExchangeRate,
+              scanProgress: scanProgress);
           await synchronizationService.startSyncTimer(true);
           if (context.mounted) {
             Navigator.pushAndRemoveUntil(
@@ -100,7 +105,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
-    final fiatExchangeRate = Provider.of<FiatExchangeRateState>(context, listen: false);
+    final fiatExchangeRate =
+        Provider.of<FiatExchangeRateState>(context, listen: false);
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
 
@@ -112,7 +118,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     // we *must* be connected to get the wallet birthday
     if (connected) {
-      final synchronizationService = SynchronizationService(chainState: chainState, walletState: walletState, fiatExchangeRateState: fiatExchangeRate, scanProgress: scanProgress);
+      final synchronizationService = SynchronizationService(
+          chainState: chainState,
+          walletState: walletState,
+          fiatExchangeRateState: fiatExchangeRate,
+          scanProgress: scanProgress);
       await synchronizationService.startSyncTimer(false);
       final chainTip = chainState.tip;
       await walletState.createNewWallet(network, chainTip);

@@ -15,44 +15,49 @@ class ConnectionStatusIndicator extends StatelessWidget {
     return Consumer3<ChainState, FiatExchangeRateState, WalletState>(
       builder: (context, chainState, fiatState, walletState, child) {
         try {
-          final overallStatus = ConnectionStatusService.getOverallStatus(chainState, fiatState, walletState);
-          final statusMessage = ConnectionStatusService.getStatusMessage(overallStatus);
-          
+          final overallStatus = ConnectionStatusService.getOverallStatus(
+              chainState, fiatState, walletState);
+          final statusMessage =
+              ConnectionStatusService.getStatusMessage(overallStatus);
+
           return GestureDetector(
-            onTap: () => _showServiceStatusDialog(context, chainState, fiatState, walletState),
-            child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: _getBackgroundColor(overallStatus),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: _getBorderColor(overallStatus),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _getStatusIcon(overallStatus),
-                  color: _getIconColor(overallStatus),
-                  size: 14,
+              onTap: () => _showServiceStatusDialog(
+                  context, chainState, fiatState, walletState),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: _getBackgroundColor(overallStatus),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _getBorderColor(overallStatus),
+                    width: 1,
+                  ),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  statusMessage,
-                  style: BitcoinTextStyle.body5(_getTextColor(overallStatus)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getStatusIcon(overallStatus),
+                      color: _getIconColor(overallStatus),
+                      size: 14,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      statusMessage,
+                      style:
+                          BitcoinTextStyle.body5(_getTextColor(overallStatus)),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      color: _getTextColor(overallStatus),
+                      size: 12,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  color: _getTextColor(overallStatus),
-                  size: 12,
-                ),
-              ],
-            ),
-          ));
+              ));
         } catch (e) {
           // Fallback UI in case of errors
           return Container(
@@ -146,7 +151,7 @@ class ConnectionStatusIndicator extends StatelessWidget {
   ) {
     try {
       if (!context.mounted) return;
-      
+
       showDialog(
         context: context,
         builder: (context) => ServiceStatusDialog(
@@ -161,4 +166,3 @@ class ConnectionStatusIndicator extends StatelessWidget {
     }
   }
 }
-
