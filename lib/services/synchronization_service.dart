@@ -81,6 +81,13 @@ class SynchronizationService {
     // Perform periodic updates for other data types
     await _updateExchangeRateIfNeeded();
     await _updateNetworkFeesIfNeeded();
+
+    // if one or more services are not available, force update on all services to keep consistency
+    if (!chainState.available || fiatExchangeRateState.exchangeRate == null || walletState.currentFeesEstimation == null) {
+      await fiatExchangeRateState.updateExchangeRate();
+      await walletState.updateNetworkFees();
+      await chainState.updateChainTip();
+    }
   }
 
   Future<void> _scheduleNextTask() async {
