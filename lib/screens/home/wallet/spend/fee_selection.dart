@@ -2,7 +2,6 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
-import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
@@ -46,7 +45,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     }
   }
 
-  ListTile toListTile(SelectedFee fee, FiatExchangeRate exchangeRate) {
+  ListTile toListTile(SelectedFee fee, FiatExchangeRateState exchangeRate) {
     final currentFeeRates = RecipientForm().currentFeeRates!;
     final estimatedFee = fee.getEstimatedFee(currentFeeRates);
     switch (fee) {
@@ -70,7 +69,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
               Text(estimatedFee.displaySats(),
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
               const Spacer(),
-              Text(estimatedFee.displayFiat(exchangeRate: exchangeRate),
+              Text(exchangeRate.displayFiat(estimatedFee),
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
             ],
           ),
@@ -109,7 +108,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final exchangeRate =
-        Provider.of<FiatExchangeRateState>(context, listen: false).exchangeRate;
+        Provider.of<FiatExchangeRateState>(context, listen: false);
 
     return SpendSkeleton(
       showBackButton: true,

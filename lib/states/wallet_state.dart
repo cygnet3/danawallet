@@ -11,8 +11,8 @@ import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
-import 'package:danawallet/states/chain_state.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 class WalletState extends ChangeNotifier {
   final walletRepository = WalletRepository.instance;
@@ -99,13 +99,7 @@ class WalletState extends ChangeNotifier {
     await walletRepository.reset();
   }
 
-  Future<void> restoreWallet(ChainState chainState, String mnemonic) async {
-    if (!chainState.initiated) {
-      throw Exception(
-          'Chain state must be initialized before restoring a wallet');
-    }
-
-    final network = chainState.network;
+  Future<void> restoreWallet(Network network, String mnemonic) async {
     // set birthday to default wallet
     final birthday = network.defaultBirthday;
 
@@ -124,14 +118,8 @@ class WalletState extends ChangeNotifier {
     await _updateWalletState();
   }
 
-  Future<void> createNewWallet(ChainState chainState) async {
-    if (!chainState.initiated) {
-      throw Exception(
-          'Chain state must be initialized before creating a wallet');
-    }
-
-    final birthday = chainState.tip;
-    final network = chainState.network;
+  Future<void> createNewWallet(Network network, int currentTip) async {
+    final birthday = currentTip;
 
     final args = WalletSetupArgs(
         setupType: const WalletSetupType.newWallet(),
@@ -184,15 +172,21 @@ class WalletState extends ChangeNotifier {
     unconfirmedChange = txHistory.getUnconfirmedChange();
   }
 
-  Future<RecommendedFeeResponse> getCurrentFeeRates() async {
+  Future<RecommendedFeeResponse?> getCurrentFeeRates() async {
     if (network == Network.regtest) {
       // for regtest, we always return 1 sat/vb
       return RecommendedFeeResponse(
           nextBlockFee: 1, halfHourFee: 1, hourFee: 1, dayFee: 1);
     } else {
-      final mempoolApiRepository = MempoolApiRepository(network: network);
-      final response = await mempoolApiRepository.getCurrentFeeRate();
-      return response;
+      try {
+        final mempoolApiRepository = MempoolApiRepository(network: network);
+        final response = await mempoolApiRepository.getCurrentFeeRate();
+        return response;
+      } catch (e) {
+        Logger().w('Failed to fetch fee rates from mempool.space: $e');
+        // Don't use dangerous fallback rates - return null to block transactions
+        return null;
+      }
     }
   }
 
@@ -243,15 +237,21 @@ class WalletState extends ChangeNotifier {
     final signedTx = wallet.signTransaction(unsignedTransaction: finalizedTx);
 
     String txid;
-    if (unsignedTx.network == Network.regtest.toBitcoinNetwork) {
-      // if we are currently on regtest, it's not possible to use our normal broadcasting flow
-      // instead, we will forward the transaction to blindbit
-      final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
-      txid = await SpWallet.broadcastUsingBlindbit(
-          blindbitUrl: blindbitUrl!, tx: signedTx);
-    } else {
-      txid = await SpWallet.broadcastTx(
-          tx: signedTx, network: network.toBitcoinNetwork);
+    try {
+      if (unsignedTx.network == Network.regtest.toBitcoinNetwork) {
+        // if we are currently on regtest, it's not possible to use our normal broadcasting flow
+        // instead, we will forward the transaction to blindbit
+        final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
+        txid = await SpWallet.broadcastUsingBlindbit(
+            blindbitUrl: blindbitUrl!, tx: signedTx);
+      } else {
+        txid = await SpWallet.broadcastTx(
+            tx: signedTx, network: network.toBitcoinNetwork);
+      }
+    } catch (e) {
+      Logger().e('Failed to broadcast transaction: $e');
+      throw Exception(
+          'Unable to broadcast transaction. Please check your connection and try again.');
     }
 
     ownedOutputs.markOutpointsSpent(spentBy: txid, spent: selectedOutpoints);

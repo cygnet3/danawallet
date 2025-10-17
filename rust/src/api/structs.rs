@@ -86,16 +86,6 @@ impl ApiAmount {
     pub fn display_sats(&self) -> String {
         format!("{} sats", self.0)
     }
-
-    #[frb(sync)]
-    pub fn display_fiat(&self, exchange_rate: FiatExchangeRate) -> String {
-        let amount_btc = self.0 as f32 / 100_000_000 as f32;
-        let amount_fiat = amount_btc * exchange_rate.exchange_rate;
-        let symbol = exchange_rate.currency.symbol();
-        let minor_units = exchange_rate.currency.minor_units();
-
-        format!("{symbol} {amount_fiat:.minor_units$}")
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -440,7 +430,8 @@ impl FiatCurrency {
         .to_string()
     }
 
-    fn minor_units(&self) -> usize {
+    #[frb(sync)]
+    pub fn minor_units(&self) -> u32 {
         match self {
             Self::Eur => 2,
             Self::Usd => 2,
@@ -451,9 +442,4 @@ impl FiatCurrency {
             Self::Jpy => 0,
         }
     }
-}
-
-pub struct FiatExchangeRate {
-    pub currency: FiatCurrency,
-    pub exchange_rate: f32,
 }

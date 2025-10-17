@@ -7,6 +7,7 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -68,10 +69,110 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget buildAmountDisplay(ApiAmount amount, FiatExchangeRate exchangeRate) {
-    String btcAmount = hideAmount ? '*****' : amount.displayBtc();
+  Widget buildOfflineStatus(ChainState chainState) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Bitcoin.orange.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Bitcoin.orange.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off, color: Bitcoin.orange, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Sync offline - balance may be outdated',
+              style: BitcoinTextStyle.body5(Bitcoin.orange),
+            ),
+          ),
+          GestureDetector(
+            onTap: () async {
+              // Show immediate feedback that retry is happening
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(Bitcoin.white),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text('Retrying connection...'),
+                    ],
+                  ),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+
+              final success = await chainState.reconnect();
+
+              if (mounted) {
+                // Clear the "retrying" message first
+                ScaffoldMessenger.of(context).clearSnackBars();
+
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.check_circle,
+                              color: Bitcoin.green, size: 16),
+                          const SizedBox(width: 8),
+                          const Text('Successfully reconnected!'),
+                        ],
+                      ),
+                      backgroundColor: Bitcoin.green.withOpacity(0.1),
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.error_outline,
+                              color: Bitcoin.orange, size: 16),
+                          const SizedBox(width: 8),
+                          const Text(
+                              'Still unable to connect. Please try again later.'),
+                        ],
+                      ),
+                      backgroundColor: Bitcoin.red.withValues(alpha: 0.8),
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                }
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Bitcoin.orange,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'Retry',
+                style: BitcoinTextStyle.body5(Bitcoin.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildAmountDisplay(
+      ApiAmount amount, FiatExchangeRateState exchangeRate) {
+    String btcAmount = hideAmount ? hideAmountFormat : amount.displayBtc();
+
     String fiatAmount =
-        hideAmount ? '*****' : amount.displayFiat(exchangeRate: exchangeRate);
+        hideAmount ? hideAmountFormat : exchangeRate.displayFiat(amount);
 
     return GestureDetector(
       onTap: () => setState(() {
@@ -96,7 +197,7 @@ class WalletScreenState extends State<WalletScreen> {
   }
 
   ListTile toListTile(
-      ApiRecordedTransaction tx, FiatExchangeRate exchangeRate) {
+      ApiRecordedTransaction tx, FiatExchangeRateState exchangeRate) {
     Color? color;
     String amount;
     String amountprefix;
@@ -112,9 +213,11 @@ class WalletScreenState extends State<WalletScreen> {
         recipient = 'Incoming';
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         color = Bitcoin.green;
-        amount = field0.amount.displayBtc();
+        amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
         amountprefix = '+';
-        amountFiat = field0.amount.displayFiat(exchangeRate: exchangeRate);
+        amountFiat = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayFiat(field0.amount);
         title = 'Incoming transaction';
         text = field0.toString();
         image = Image(
@@ -129,10 +232,12 @@ class WalletScreenState extends State<WalletScreen> {
         } else {
           color = Bitcoin.red;
         }
-        amount = field0.totalOutgoing().displayBtc();
+        amount =
+            hideAmount ? hideAmountFormat : field0.totalOutgoing().displayBtc();
         amountprefix = '-';
-        amountFiat =
-            field0.totalOutgoing().displayFiat(exchangeRate: exchangeRate);
+        amountFiat = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayFiat(field0.totalOutgoing());
         title = 'Outgoing transaction';
         text = field0.toString();
         image = Image(
@@ -172,7 +277,7 @@ class WalletScreenState extends State<WalletScreen> {
   }
 
   Widget buildTransactionHistory(List<ApiRecordedTransaction> transactions,
-      FiatExchangeRate exchangeRate) {
+      FiatExchangeRateState exchangeRate) {
     Widget history;
     if (transactions.isEmpty) {
       history = Center(
@@ -264,9 +369,9 @@ class WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     final walletState = Provider.of<WalletState>(context);
-    final exchangeRate =
-        Provider.of<FiatExchangeRateState>(context).exchangeRate;
+    final exchangeRate = Provider.of<FiatExchangeRateState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
+    final chainState = Provider.of<ChainState>(context);
 
     ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
 
@@ -280,18 +385,30 @@ class WalletScreenState extends State<WalletScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Show sync progress when actively scanning
                     Visibility(
                         visible: scanProgress.scanning,
                         maintainAnimation: true,
                         maintainSize: true,
                         maintainState: true,
                         child: buildScanProgress(scanProgress.progress)),
+                    // Show offline status when chain sync has connection issues
+                    Visibility(
+                        visible: !chainState.available,
+                        maintainAnimation: true,
+                        maintainSize: true,
+                        maintainState: true,
+                        child: buildOfflineStatus(chainState)),
                     const SizedBox(height: 20.0),
-                    buildAmountDisplay(amount, exchangeRate),
+                    buildAmountDisplay(
+                      amount,
+                      exchangeRate,
+                    ),
                     const Spacer(),
                     buildTransactionHistory(
-                        walletState.txHistory.toApiTransactions(),
-                        exchangeRate),
+                      walletState.txHistory.toApiTransactions(),
+                      exchangeRate,
+                    ),
                     buildBottomButtons(walletState.address),
                     const SizedBox(
                       height: 20.0,

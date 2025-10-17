@@ -1,4 +1,4 @@
-import 'package:danawallet/exceptions.dart';
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
@@ -9,7 +9,7 @@ class FiatExchangeRateState extends ChangeNotifier {
   MempoolApiRepository repository = MempoolApiRepository();
 
   late FiatCurrency currency;
-  late FiatExchangeRate _cachedRate;
+  double? _cachedRate; // Make nullable to represent "no data available"
 
   // private constructor, create class using static async 'create' instead
   FiatExchangeRateState._();
@@ -17,67 +17,78 @@ class FiatExchangeRateState extends ChangeNotifier {
   static Future<FiatExchangeRateState> create() async {
     final instance = FiatExchangeRateState._();
     final currency = await SettingsRepository.instance.getFiatCurrency();
-    final rate = await instance._fetchExchangeRate(currency);
-
-    // set internal values
     instance.currency = currency;
-    instance._cachedRate = rate;
+
+    try {
+      final rate = await instance._fetchExchangeRate(currency);
+      instance._cachedRate = rate;
+    } catch (e) {
+      Logger().w('Failed to fetch exchange rate: $e');
+      instance._cachedRate = null;
+    }
 
     return instance;
   }
 
-  FiatExchangeRate get exchangeRate {
-    try {
-      return _cachedRate;
-    } catch (e) {
-      throw UninitializedExchangeRateException();
-    }
+  double? get exchangeRate {
+    return _cachedRate; // Can be null if no data available
   }
 
   Future<void> updateCurrency(FiatCurrency currency) async {
     await SettingsRepository.instance.setFiatCurrency(currency);
     this.currency = currency;
 
-    // after updating the currency, also update the exchange rate
+    // Reset exchange rate when currency changes
+    _cachedRate = null;
+    notifyListeners();
+
+    // Try to fetch fresh data for new currency
     return await updateExchangeRate();
   }
 
   Future<void> updateExchangeRate() async {
-    final rate = await _fetchExchangeRate(currency);
-
-    Logger().i("Updating exchange rate: ${rate.currency.displayName()}");
-    _cachedRate = rate;
-
-    notifyListeners();
+    try {
+      Logger().i("Updating exchange rate: ${currency.displayName()}");
+      final rate = await _fetchExchangeRate(currency);
+      _cachedRate = rate;
+      notifyListeners();
+    } catch (e) {
+      Logger().w('Failed to update exchange rate: $e');
+      // Keep current state (which might be null), don't crash
+      // UI will show unavailable indicator
+    }
   }
 
-  Future<FiatExchangeRate> _fetchExchangeRate(FiatCurrency currency) async {
+  Future<double> _fetchExchangeRate(FiatCurrency currency) async {
     final rates = await repository.getExchangeRate();
 
-    final double rate;
     switch (currency) {
       case FiatCurrency.eur:
-        rate = rates.eur.toDouble();
-        break;
+        return rates.eur.toDouble();
       case FiatCurrency.usd:
-        rate = rates.usd.toDouble();
-        break;
+        return rates.usd.toDouble();
       case FiatCurrency.gbp:
-        rate = rates.gbp.toDouble();
-        break;
+        return rates.gbp.toDouble();
       case FiatCurrency.cad:
-        rate = rates.cad.toDouble();
-        break;
+        return rates.cad.toDouble();
       case FiatCurrency.chf:
-        rate = rates.chf.toDouble();
-        break;
+        return rates.chf.toDouble();
       case FiatCurrency.aud:
-        rate = rates.aud.toDouble();
-        break;
+        return rates.aud.toDouble();
       case FiatCurrency.jpy:
-        rate = rates.jpy.toDouble();
-        break;
+        return rates.jpy.toDouble();
     }
-    return FiatExchangeRate(currency: currency, exchangeRate: rate);
+  }
+
+  String displayFiat(ApiAmount amount) {
+    final symbol = currency.symbol();
+    final minorUnits = currency.minorUnits();
+    if (_cachedRate != null) {
+      final btcAmount = amount.field0.toDouble() / bitcoinUnits.toDouble();
+      final fiatAmount = btcAmount * _cachedRate!;
+      return "$symbol ${fiatAmount.toStringAsFixed(minorUnits)}";
+    } else {
+      return "$symbol ---";
+    }
   }
 }
