@@ -32,8 +32,8 @@ class ChainState extends ChangeNotifier {
     _network = network;
   }
 
-  void startSyncService(
-      WalletState walletState, ScanProgressNotifier scanProgress, bool immediate) {
+  void startSyncService(WalletState walletState,
+      ScanProgressNotifier scanProgress, bool immediate) {
     // start sync service & timer
     _synchronizationService = SynchronizationService(
         chainState: this, walletState: walletState, scanProgress: scanProgress);
@@ -99,18 +99,22 @@ class ChainState extends ChangeNotifier {
     }
   }
 
-  Future<void> updateChainTip() async {
+  Future<bool> updateChainTip() async {
     if (!available) {
       Logger().w('Cannot update chain tip: chain state not available');
-      return;
+      return false;
     }
 
     try {
       _tip = await getChainHeight(blindbitUrl: _blindbitUrl!);
       Logger().i('updating tip: $_tip');
       notifyListeners();
+      return true;
     } catch (e) {
       Logger().e('Failed to update chain tip: $e');
+      _tip = null;
+      notifyListeners();
+      return false;
     }
   }
 
