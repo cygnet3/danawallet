@@ -58,8 +58,9 @@ class SynchronizationService {
       }
 
       // fetch new tip before syncing
-      await _performChainUpdateTask();
-      await _performSynchronizationTask();
+      if (await _performChainUpdateTask()) {
+        await _performSynchronizationTask();
+      }
     } on Exception catch (e) {
       // todo: we should have a connection status with the server
       // e.g. a green or red circle based on whether we have connection issues
@@ -77,8 +78,8 @@ class SynchronizationService {
     });
   }
 
-  Future<void> _performChainUpdateTask() async {
-    await chainState.updateChainTip();
+  Future<bool> _performChainUpdateTask() async {
+    return await chainState.updateChainTip();
   }
 
   Future<void> _performSynchronizationTask() async {
