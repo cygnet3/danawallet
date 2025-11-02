@@ -84,9 +84,6 @@ class _$WalletSetupTypeCopyWithImpl<$Res, $Val extends WalletSetupType>
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
-
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -105,9 +102,6 @@ class __$$WalletSetupType_NewWalletImplCopyWithImpl<$Res>
       _$WalletSetupType_NewWalletImpl _value,
       $Res Function(_$WalletSetupType_NewWalletImpl) _then)
       : super(_value, _then);
-
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -229,8 +223,6 @@ class __$$WalletSetupType_MnemonicImplCopyWithImpl<$Res>
       $Res Function(_$WalletSetupType_MnemonicImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -269,9 +261,7 @@ class _$WalletSetupType_MnemonicImpl extends WalletSetupType_Mnemonic {
   @override
   int get hashCode => Object.hash(runtimeType, field0);
 
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$WalletSetupType_MnemonicImplCopyWith<_$WalletSetupType_MnemonicImpl>
@@ -359,10 +349,7 @@ abstract class WalletSetupType_Mnemonic extends WalletSetupType {
   const WalletSetupType_Mnemonic._() : super._();
 
   String get field0;
-
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$WalletSetupType_MnemonicImplCopyWith<_$WalletSetupType_MnemonicImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -384,8 +371,6 @@ class __$$WalletSetupType_FullImplCopyWithImpl<$Res>
       $Res Function(_$WalletSetupType_FullImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -432,9 +417,7 @@ class _$WalletSetupType_FullImpl extends WalletSetupType_Full {
   @override
   int get hashCode => Object.hash(runtimeType, field0, field1);
 
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$WalletSetupType_FullImplCopyWith<_$WalletSetupType_FullImpl>
@@ -524,10 +507,7 @@ abstract class WalletSetupType_Full extends WalletSetupType {
 
   String get field0;
   String get field1;
-
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$WalletSetupType_FullImplCopyWith<_$WalletSetupType_FullImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -551,8 +531,6 @@ class __$$WalletSetupType_WatchOnlyImplCopyWithImpl<$Res>
       $Res Function(_$WalletSetupType_WatchOnlyImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -599,9 +577,7 @@ class _$WalletSetupType_WatchOnlyImpl extends WalletSetupType_WatchOnly {
   @override
   int get hashCode => Object.hash(runtimeType, field0, field1);
 
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$WalletSetupType_WatchOnlyImplCopyWith<_$WalletSetupType_WatchOnlyImpl>
@@ -691,10 +667,7 @@ abstract class WalletSetupType_WatchOnly extends WalletSetupType {
 
   String get field0;
   String get field1;
-
-  /// Create a copy of WalletSetupType
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$WalletSetupType_WatchOnlyImplCopyWith<_$WalletSetupType_WatchOnlyImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

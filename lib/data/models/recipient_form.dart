@@ -10,7 +10,8 @@ class RecipientForm {
   String? recipientAddress;
   String? recipientBip353;
   ApiAmount? amount;
-  SelectedFee? fee;
+  SelectedFee? selectedFee;
+  int? customFeeRate;
   RecommendedFeeResponse? currentFeeRates;
   ApiSilentPaymentUnsignedTransaction? unsignedTx;
 
@@ -26,7 +27,8 @@ class RecipientForm {
     _instance.recipientAddress = null;
     _instance.recipientBip353 = null;
     _instance.amount = null;
-    _instance.fee = null;
+    _instance.selectedFee = null;
+    _instance.customFeeRate = null;
     _instance.unsignedTx = null;
     _instance.currentFeeRates = null;
   }
@@ -34,12 +36,18 @@ class RecipientForm {
   RecipientFormFilled toFilled() {
     if (recipientAddress == null ||
         amount == null ||
-        fee == null ||
+        selectedFee == null ||
         currentFeeRates == null) {
       throw Exception('Not all required parameters filled');
     }
 
-    final feerate = fee!.getFeeRate(currentFeeRates!);
+    if (selectedFee == SelectedFee.custom && customFeeRate == null) {
+      throw Exception('Custom fee rate should be set');
+    }
+
+    final feerate = selectedFee == SelectedFee.custom 
+        ? customFeeRate!
+        : selectedFee!.getFeeRate(currentFeeRates!);
 
     return RecipientFormFilled(
         recipientAddress: recipientAddress!, amount: amount!, feerate: feerate);

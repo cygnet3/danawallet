@@ -11,7 +11,7 @@ class TransactionSentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String estimatedTime = RecipientForm().fee!.toEstimatedTime;
+    String estimatedTime = RecipientForm().selectedFee!.toEstimatedTime;
 
     return SpendSkeleton(
       showBackButton: false,
