@@ -7,12 +7,10 @@ import 'package:sizer/sizer.dart';
 
 class PinVerificationScreen extends StatefulWidget {
   final VoidCallback onPinVerified;
-  final VoidCallback onWalletCleared;
 
   const PinVerificationScreen({
     super.key,
     required this.onPinVerified,
-    required this.onWalletCleared,
   });
 
   @override
@@ -24,14 +22,6 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
   bool _isLoading = false;
   String _errorMessage = '';
   bool _obscurePin = true;
-  int _attempts = 0;
-  bool _isWalletLocked = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkWalletLockStatus();
-  }
 
   @override
   void dispose() {
@@ -39,17 +29,17 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
     super.dispose();
   }
 
-  Future<void> _checkWalletLockStatus() async {
-    final isLocked = await PinService.isWalletLocked();
-    final attempts = await PinService.getFailedAttempts();
-    
-    setState(() {
-      _isWalletLocked = isLocked;
-      _attempts = attempts;
-    });
-  }
-
   Future<void> _verifyPin() async {
+    // Check if currently locked out
+    final lockoutDuration = await PinService.getRemainingLockoutDuration();
+    if (lockoutDuration != null && lockoutDuration.inSeconds > 0) {
+      setState(() {
+        _errorMessage =
+            'Please wait ${_formatDuration(lockoutDuration)} before trying again.';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -63,18 +53,18 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
         await PinService.resetFailedAttempts();
         widget.onPinVerified();
       } else {
-        // Increment failed attempts
-        final maxAttemptsReached = await PinService.incrementFailedAttempts();
-        
+        // Increment failed attempts and get new lockout duration
+        await PinService.incrementFailedAttempts();
+        final newLockout = await PinService.getRemainingLockoutDuration();
+
         setState(() {
-          _attempts++;
           _isLoading = false;
-          
-          if (maxAttemptsReached) {
-            _isWalletLocked = true;
-            _errorMessage = 'Too many failed attempts. Wallet data has been cleared for security.';
+
+          if (newLockout != null && newLockout.inSeconds > 0) {
+            _errorMessage =
+                'Incorrect PIN. Wait ${_formatDuration(newLockout)} before trying again.';
           } else {
-            _errorMessage = 'Incorrect PIN. ${5 - _attempts} attempts remaining.';
+            _errorMessage = 'Incorrect PIN. Please try again.';
           }
         });
         _pinController.clear();
@@ -87,33 +77,25 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
     }
   }
 
-  Future<void> _clearWalletAndRestore() async {
-    // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Wallet Data'),
-        content: const Text(
-          'This will permanently delete all wallet data. You will need to restore from backup. '
-          'Are you sure you want to continue?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Clear Wallet'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      // Clear wallet data and notify parent
-      await PinService.clearWalletData();
-      widget.onWalletCleared();
+  String _formatDuration(Duration duration) {
+    if (duration.inHours > 0) {
+      final hours = duration.inHours;
+      final minutes = duration.inMinutes.remainder(60);
+      if (minutes > 0) {
+        return '$hours hour${hours > 1 ? 's' : ''} $minutes minute${minutes > 1 ? 's' : ''}';
+      }
+      return '$hours hour${hours > 1 ? 's' : ''}';
+    } else if (duration.inMinutes > 0) {
+      final minutes = duration.inMinutes;
+      final seconds = duration.inSeconds.remainder(60);
+      if (seconds > 0 && minutes < 5) {
+        // Show seconds only for short durations
+        return '$minutes minute${minutes > 1 ? 's' : ''} $seconds second${seconds > 1 ? 's' : ''}';
+      }
+      return '$minutes minute${minutes > 1 ? 's' : ''}';
+    } else {
+      final seconds = duration.inSeconds;
+      return '$seconds second${seconds > 1 ? 's' : ''}';
     }
   }
 
@@ -238,35 +220,22 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
                   ),
                 ),
               SizedBox(height: 4.h),
-              
-              // Verify Button or Clear Wallet Button
+
+              // Verify Button
               SizedBox(
                 width: double.infinity,
-                child: _isWalletLocked
-                    ? BitcoinButtonFilled(
-                        body: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Clear Wallet & Restore',
-                              style: BitcoinTextStyle.body3(Bitcoin.white),
-                            ),
-                          ],
-                        ),
-                        onPressed: _clearWalletAndRestore,
-                      )
-                    : BitcoinButtonFilled(
-                        body: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _isLoading ? 'Verifying...' : 'Verify PIN',
-                              style: BitcoinTextStyle.body3(Bitcoin.white),
-                            ),
-                          ],
-                        ),
-                        onPressed: _isLoading ? null : _verifyPin,
+                child: BitcoinButtonFilled(
+                  body: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isLoading ? 'Verifying...' : 'Verify PIN',
+                        style: BitcoinTextStyle.body3(Bitcoin.white),
                       ),
+                    ],
+                  ),
+                  onPressed: _isLoading ? null : _verifyPin,
+                ),
               ),
             ],
           ),

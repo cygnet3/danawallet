@@ -8,7 +8,11 @@ class PinService {
   static const String _pinHashKey = "pin_hash";
   static const String _pinSaltKey = "pin_salt";
   static const String _failedAttemptsKey = "pin_failed_attempts";
-  static const int _maxFailedAttempts = 5;
+  static const String _lockoutUntilKey = "pin_lockout_until";
+  
+  // Exponential backoff: 2^(attempts-1) seconds
+  // attempts: 1=1s, 2=2s, 3=4s, 4=8s, 5=16s, 6=32s, 7=64s, 8=128s, 9=256s, 10=512s, 11=1024s, etc.
+  static const int _maxLockoutSeconds = 43200; // 12 hours cap
 
   /// Generates a random salt for PIN hashing
   static String _generateSalt() {
@@ -83,36 +87,69 @@ class PinService {
     return attempts != null ? int.tryParse(attempts) ?? 0 : 0;
   }
 
-  /// Increments failed attempts and returns true if max attempts reached
-  static Future<bool> incrementFailedAttempts() async {
+  /// Calculates lockout duration in seconds based on failed attempts
+  /// Uses exponential backoff: 2^(attempts-1) seconds, capped at 12 hours
+  static int _calculateLockoutSeconds(int failedAttempts) {
+    if (failedAttempts == 0) return 0;
+    
+    // 2^(attempts-1) seconds: 1→1s, 2→2s, 3→4s, 4→8s, 5→16s, etc.
+    final seconds = pow(2, failedAttempts - 1).toInt();
+    
+    // Cap at 12 hours (43200 seconds)
+    return seconds > _maxLockoutSeconds ? _maxLockoutSeconds : seconds;
+  }
+
+  /// Increments failed attempts and sets lockout timestamp
+  static Future<void> incrementFailedAttempts() async {
     final currentAttempts = await getFailedAttempts();
     final newAttempts = currentAttempts + 1;
     
     await _storage.write(key: _failedAttemptsKey, value: newAttempts.toString());
     
-    return newAttempts >= _maxFailedAttempts;
+    // Calculate lockout duration and set lockout timestamp
+    final lockoutSeconds = _calculateLockoutSeconds(newAttempts);
+    final lockoutUntil = DateTime.now().add(Duration(seconds: lockoutSeconds));
+    await _storage.write(
+      key: _lockoutUntilKey, 
+      value: lockoutUntil.millisecondsSinceEpoch.toString()
+    );
   }
 
   /// Resets failed attempts counter (called on successful PIN verification)
   static Future<void> resetFailedAttempts() async {
     await _storage.delete(key: _failedAttemptsKey);
+    await _storage.delete(key: _lockoutUntilKey);
   }
 
-  /// Clears all wallet data (called when max attempts reached)
-  static Future<void> clearWalletData() async {
-    // Clear PIN data
-    await removePin();
+  /// Gets the timestamp until which the wallet is locked
+  static Future<DateTime?> getLockoutUntil() async {
+    final lockoutStr = await _storage.read(key: _lockoutUntilKey);
+    if (lockoutStr == null) return null;
     
-    // Clear failed attempts counter
-    await _storage.delete(key: _failedAttemptsKey);
+    final timestamp = int.tryParse(lockoutStr);
+    if (timestamp == null) return null;
     
-    // Note: Wallet data clearing will be handled by the calling code
-    // using WalletRepository.reset() and SettingsRepository.resetAll()
+    return DateTime.fromMillisecondsSinceEpoch(timestamp);
   }
 
-  /// Checks if wallet is locked due to too many failed attempts
+  /// Checks if wallet is currently locked due to failed attempts
+  /// Returns the remaining lockout duration if locked, null otherwise
+  static Future<Duration?> getRemainingLockoutDuration() async {
+    final lockoutUntil = await getLockoutUntil();
+    if (lockoutUntil == null) return null;
+    
+    final now = DateTime.now();
+    if (now.isBefore(lockoutUntil)) {
+      return lockoutUntil.difference(now);
+    }
+    
+    // Lockout period has passed
+    return null;
+  }
+
+  /// Checks if wallet is currently locked (simpler boolean check)
   static Future<bool> isWalletLocked() async {
-    final attempts = await getFailedAttempts();
-    return attempts >= _maxFailedAttempts;
+    final remaining = await getRemainingLockoutDuration();
+    return remaining != null && remaining.inSeconds > 0;
   }
 }
