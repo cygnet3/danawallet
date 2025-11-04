@@ -8,6 +8,7 @@ import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/choose_network.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
+import 'package:danawallet/screens/pin/pin_setup_screen.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -63,7 +64,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
           if (context.mounted) {
             Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                MaterialPageRoute(
+                    builder: (context) => PinSetupScreen(
+                          onPinSet: () {
+                            Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const HomeScreen()),
+                                (Route<dynamic> route) => false);
+                          },
+                        )),
                 (Route<dynamic> route) => false);
           }
         }
@@ -111,7 +121,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(
+                builder: (context) => PinSetupScreen(
+                      onPinSet: () {
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                            (Route<dynamic> route) => false);
+                      },
+                    )),
             (Route<dynamic> route) => false);
       }
     } else {

@@ -5,6 +5,7 @@ import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/home/home.dart';
+import 'package:danawallet/screens/pin/pin_setup_screen.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -60,7 +61,16 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(
+                builder: (context) => PinSetupScreen(
+                      onPinSet: () {
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                            (Route<dynamic> route) => false);
+                      },
+                    )),
             (Route<dynamic> route) => false);
       }
     } catch (e) {
