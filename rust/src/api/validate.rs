@@ -1,5 +1,5 @@
 use flutter_rust_bridge::frb;
-use sp_client::RecipientAddress;
+use spdk::RecipientAddress;
 
 #[frb(sync)]
 pub fn validate_address(address: String) -> bool {

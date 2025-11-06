@@ -5,7 +5,7 @@ use std::{
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
-use sp_client::{
+use spdk::{
     bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
     OutputSpendStatus, OwnedOutput,
 };
