@@ -7,7 +7,7 @@ use crate::wallet::WalletFingerprint;
 use anyhow::Result;
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
-use sp_client::{
+use spdk::{
     bitcoin::{absolute::Height, secp256k1::SecretKey, Network},
     SpClient, SpendKey,
 };

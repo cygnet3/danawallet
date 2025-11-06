@@ -5,8 +5,8 @@ use crate::api::structs::ApiRecipient;
 use crate::api::structs::ApiSilentPaymentUnsignedTransaction;
 use anyhow::Result;
 use bip39::rand::{thread_rng, RngCore};
-use sp_client::BlindbitClient;
-use sp_client::{
+use spdk::BlindbitClient;
+use spdk::{
     bitcoin::{consensus::serialize, hex::DisplayHex, Network, OutPoint},
     OwnedOutput, Recipient, RecipientAddress, SpClient,
 };
