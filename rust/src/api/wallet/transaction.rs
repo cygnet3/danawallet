@@ -35,6 +35,7 @@ impl SpWallet {
             .map(|r| r.try_into().unwrap())
             .collect();
         let core_network = Network::from_core_arg(&network)?;
+        let feerate = spdk::FeeRate::from_sat_per_vb(feerate);
         let res =
             client.create_new_transaction(available_utxos?, recipients, feerate, core_network)?;
 
