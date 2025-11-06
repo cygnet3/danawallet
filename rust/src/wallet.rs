@@ -3,10 +3,10 @@ use std::sync::atomic::AtomicBool;
 
 use anyhow::Result;
 use lazy_static::lazy_static;
-use sp_client::bitcoin::bip32::{DerivationPath, Xpriv};
-use sp_client::bitcoin::key::Secp256k1;
-use sp_client::bitcoin::secp256k1::SecretKey;
-use sp_client::bitcoin::{self, Network};
+use spdk::bitcoin::bip32::{DerivationPath, Xpriv};
+use spdk::bitcoin::key::Secp256k1;
+use spdk::bitcoin::secp256k1::SecretKey;
+use spdk::bitcoin::{self, Network};
 
 lazy_static! {
     pub static ref KEEP_SCANNING: AtomicBool = AtomicBool::new(true);

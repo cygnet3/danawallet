@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
-use sp_client::{
+use spdk::{
     bitcoin::{absolute::Height, Amount, OutPoint, Txid},
     Recipient,
 };

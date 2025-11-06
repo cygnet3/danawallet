@@ -5,7 +5,7 @@ use std::{
 
 use crate::frb_generated::StreamSink;
 use lazy_static::lazy_static;
-use sp_client::{
+use spdk::{
     bitcoin::{absolute::Height, BlockHash, OutPoint},
     OwnedOutput,
 };
