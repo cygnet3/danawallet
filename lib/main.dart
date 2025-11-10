@@ -2,6 +2,7 @@ import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
@@ -62,6 +63,18 @@ void main() async {
     chainState.startSyncService(walletState, scanNotifier, true);
   }
 
+  // Create NameServerRepository instance
+  final nameServerRepository = NameServerRepository(baseUrl: defaultNameServer, domain: defaultDomain, apiVersion: nameServerApiVersion);
+  
+  // Load the dana address from storage if it exists
+  if (walletLoaded) {
+    final storedDanaAddress = await SettingsRepository.instance.getDanaAddress();
+    if (storedDanaAddress != null) {
+      nameServerRepository.userDanaAddress = storedDanaAddress;
+      Logger().i('Loaded dana address from storage: $storedDanaAddress');
+    }
+  }
+
   runApp(
     MultiProvider(
       providers: [
@@ -70,6 +83,7 @@ void main() async {
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
         ChangeNotifierProvider.value(value: fiatExchangeRate),
+        Provider<NameServerRepository>.value(value: nameServerRepository),
       ],
       child: SilentPaymentApp(walletLoaded: walletLoaded),
     ),

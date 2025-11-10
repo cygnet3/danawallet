@@ -5,6 +5,7 @@ import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -13,6 +14,7 @@ import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 const String mainnetWarning =
@@ -66,6 +68,55 @@ class WalletScreenState extends State<WalletScreen> {
           color: Bitcoin.neutral7,
         )
       ],
+    );
+  }
+
+  Widget buildDanaAddressBanner(String danaAddress) {
+    return GestureDetector(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: danaAddress));
+        HapticFeedback.lightImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Bitcoin.white, size: 16),
+                const SizedBox(width: 8),
+                const Text('Dana address copied to clipboard'),
+              ],
+            ),
+            backgroundColor: Bitcoin.green.withValues(alpha: 0.8),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Bitcoin.blue.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Bitcoin.blue.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    'Your Dana Address',
+                    style: BitcoinTextStyle.body4(Bitcoin.neutral7)
+                        .copyWith(fontFamily: 'Inter', fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 8),
+                  danaAddressAsRichText(danaAddress, 15.0),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.copy, size: 16, color: Bitcoin.blue.withOpacity(0.6)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -349,13 +400,6 @@ class WalletScreenState extends State<WalletScreen> {
                       builder: (context) => const ChooseRecipientScreen())),
             ),
           ),
-          const SizedBox(width: 10),
-          ReceiveWidget(
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ShowAddressScreen(address: address))),
-          )
         ],
       ),
     );
@@ -387,6 +431,7 @@ class WalletScreenState extends State<WalletScreen> {
     final exchangeRate = Provider.of<FiatExchangeRateState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
     final chainState = Provider.of<ChainState>(context);
+    final nameServerRepository = Provider.of<NameServerRepository>(context);
 
     ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
 
@@ -419,6 +464,10 @@ class WalletScreenState extends State<WalletScreen> {
                       amount,
                       exchangeRate,
                     ),
+                    const SizedBox(height: 20.0),
+                    // Show Dana address banner if available
+                    if (nameServerRepository.userDanaAddress != null)
+                      buildDanaAddressBanner(nameServerRepository.userDanaAddress!),
                     const Spacer(),
                     buildTransactionHistory(
                       walletState.txHistory.toApiTransactions(),

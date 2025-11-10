@@ -3,15 +3,16 @@ import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
-import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class ChooseRecipientScreen extends StatefulWidget {
@@ -37,17 +38,47 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
     final network = Provider.of<ChainState>(context, listen: false).network;
     try {
       String address = addressController.text.trim();
+      
       if (address.contains('@')) {
-        // we interpret the address as a bip353 address
+        // we interpret the address as a dana address (BIP353)
         try {
-          final data = await Bip353.getAdressResolve(address);
-          if (data.silentpayment != null) {
-            form.recipientBip353 = address;
-            address = data.silentpayment!;
+          final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
+          Logger().d('Resolving dana address: "$address"');
+          
+          final data = await nameServerRepository.getAddressResolve(address);
+          
+          if (data == null) {
+            // DNS resolution returned null - address not registered
+            Logger().w('Dana address "$address" not found in DNS');
+            throw Exception('Dana address not found or not registered');
           }
+          
+          Logger().d('DNS resolution successful. Silent payment address: ${data.silentpayment != null ? "present" : "null"}');
+          
+          if (data.silentpayment == null || data.silentpayment!.isEmpty) {
+            // DNS record exists but has no silent payment address
+            Logger().w('Dana address "$address" found but has no silent payment address');
+            throw Exception('Dana address found but has no payment address configured');
+          }
+          
+          // Store the original dana address for the form
+          // Note: getAddressResolve cleans the address internally, but we store the original
+          // as entered by the user for display purposes
+          form.recipientBip353 = address;
+          address = data.silentpayment!;
+          
+          Logger().d('Successfully resolved dana address to SP address: ${address.substring(0, 20)}...');
         } catch (e) {
-          // todo wrap bip353 logic in a separate class that throws custom errors
-          throw Exception('Failed to look up address');
+          // Log the error for debugging
+          Logger().e('Failed to resolve dana address "$address": $e');
+          // Re-throw with a user-friendly message
+          if (e is ArgumentError) {
+            throw Exception('Invalid dana address format: ${e.message}');
+          } else if (e is Exception) {
+            rethrow;
+          } else {
+            throw Exception('Failed to look up dana address: $e');
+          }
         }
       }
 
