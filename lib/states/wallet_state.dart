@@ -99,6 +99,10 @@ class WalletState extends ChangeNotifier {
     await walletRepository.reset();
   }
 
+  List<String> getEnglishWordlist() {
+    return SpWallet.getEnglishWordlist();
+  }
+
   Future<void> restoreWallet(Network network, String mnemonic) async {
     // set birthday to default wallet
     final birthday = network.defaultBirthday;
