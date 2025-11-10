@@ -68,6 +68,9 @@ abstract class SpWallet implements RustOpaqueInterface {
 
   String getChangeAddress();
 
+  static List<String> getEnglishWordlist() =>
+      RustLib.instance.api.crateApiWalletSpWalletGetEnglishWordlist();
+
   String getNetwork();
 
   String getReceivingAddress();
