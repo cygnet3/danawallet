@@ -16,7 +16,6 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/info_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -135,14 +134,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
       return;
     }
 
-    // load bip39 words from asset file
-    final String wordsText =
-        await rootBundle.loadString('assets/mnemonic/english.txt');
-    final bip39Words = wordsText
-        .split('\n')
-        .map((word) => word.trim())
-        .where((word) => word.isNotEmpty)
-        .toList();
+    // load bip39 words
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final bip39Words = walletState.getEnglishWordlist();
 
     // go to input seed phrase screen
     if (context.mounted) {
