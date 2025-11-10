@@ -37,3 +37,7 @@ const String exampleMnemonic =
 const int bitcoinUnits = 100000000;
 // String that displays when amount is hidden
 const String hideAmountFormat = "*****";
+
+const String defaultNameServer = "https://silentpayments.dev";
+const String defaultDomain = 'danawallet.app';
+const String nameServerApiVersion = 'v1';
