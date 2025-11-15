@@ -4,17 +4,16 @@ use std::{
 };
 
 use crate::frb_generated::StreamSink;
-use lazy_static::lazy_static;
-use spdk::{
+use once_cell::sync::Lazy;
+use spdk_core::{
     bitcoin::{absolute::Height, BlockHash, OutPoint},
     OwnedOutput,
 };
 
-lazy_static! {
-    static ref SCAN_PROGRESS_STREAM_SINK: Mutex<Option<StreamSink<ScanProgress>>> =
-        Mutex::new(None);
-    static ref STATE_UPDATE_STREAM_SINK: Mutex<Option<StreamSink<StateUpdate>>> = Mutex::new(None);
-}
+static SCAN_PROGRESS_STREAM_SINK: Lazy<Mutex<Option<StreamSink<ScanProgress>>>> =
+    Lazy::new(|| Mutex::new(None));
+static STATE_UPDATE_STREAM_SINK: Lazy<Mutex<Option<StreamSink<StateUpdate>>>> =
+    Lazy::new(|| Mutex::new(None));
 
 #[derive(Debug)]
 pub enum StateUpdate {

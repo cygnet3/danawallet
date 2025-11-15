@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
-use spdk::{
+use spdk_core::{
     bitcoin::{
         self,
         absolute::Height,
