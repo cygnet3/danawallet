@@ -2,15 +2,13 @@ use std::str::FromStr;
 use std::sync::atomic::AtomicBool;
 
 use anyhow::Result;
-use lazy_static::lazy_static;
-use spdk::bitcoin::bip32::{DerivationPath, Xpriv};
-use spdk::bitcoin::key::Secp256k1;
-use spdk::bitcoin::secp256k1::SecretKey;
-use spdk::bitcoin::{self, Network};
+use once_cell::sync::Lazy;
+use spdk_core::bitcoin::bip32::{DerivationPath, Xpriv};
+use spdk_core::bitcoin::key::Secp256k1;
+use spdk_core::bitcoin::secp256k1::SecretKey;
+use spdk_core::bitcoin::{self, Network};
 
-lazy_static! {
-    pub static ref KEEP_SCANNING: AtomicBool = AtomicBool::new(true);
-}
+pub static KEEP_SCANNING: Lazy<AtomicBool> = Lazy::new(|| AtomicBool::new(true));
 
 pub type WalletFingerprint = [u8; 8];
 
