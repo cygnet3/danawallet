@@ -5,13 +5,11 @@ use std::{
 
 use crate::frb_generated::StreamSink;
 use log::{warn, LevelFilter, Log, Metadata, Record};
-
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use simplelog::{CombinedLogger, Config, SharedLogger};
 
-lazy_static! {
-    static ref FLUTTER_LOGGER_STREAM_SINK: RwLock<Option<StreamSink<LogEntry>>> = RwLock::new(None);
-}
+static FLUTTER_LOGGER_STREAM_SINK: Lazy<RwLock<Option<StreamSink<LogEntry>>>> =
+    Lazy::new(|| RwLock::new(None));
 
 static INIT_LOGGER_ONCE: Once = Once::new();
 
