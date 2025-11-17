@@ -37,7 +37,15 @@ impl OwnedOutputs {
 
     #[flutter_rust_bridge::frb(sync)]
     pub fn decode(encoded_outputs: String) -> Self {
-        serde_json::from_str(&encoded_outputs).unwrap()
+        let owned_outputs: HashMap<OutPoint, ApiOwnedOutput> =
+            serde_json::from_str(&encoded_outputs).unwrap();
+
+        let inner: HashMap<OutPoint, OwnedOutput> = owned_outputs
+            .into_iter()
+            .map(|(x, y)| (x, y.into()))
+            .collect();
+
+        Self(inner)
     }
 
     #[flutter_rust_bridge::frb(sync)]
