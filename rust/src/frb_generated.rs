@@ -592,12 +592,12 @@ fn wire__crate__api__outputs__OwnedOutputs_decode_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_encoded_outputs = <String>::sse_decode(&mut deserializer);
             deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Result::<_, ()>::Ok(crate::api::outputs::OwnedOutputs::decode(
-                    api_encoded_outputs,
-                ))?;
-                Ok(output_ok)
-            })())
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::outputs::OwnedOutputs::decode(api_encoded_outputs)?;
+                    Ok(output_ok)
+                })(),
+            )
         },
     )
 }
@@ -655,26 +655,26 @@ fn wire__crate__api__outputs__OwnedOutputs_encode_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OwnedOutputs>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
                     }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok = Result::<_, ()>::Ok(crate::api::outputs::OwnedOutputs::encode(
-                    &*api_that_guard,
-                ))?;
-                Ok(output_ok)
-            })())
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok = crate::api::outputs::OwnedOutputs::encode(&*api_that_guard)?;
+                    Ok(output_ok)
+                })(),
+            )
         },
     )
 }
@@ -2099,12 +2099,12 @@ fn wire__crate__api__history__TxHistory_decode_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_encoded_history = <String>::sse_decode(&mut deserializer);
             deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let output_ok = Result::<_, ()>::Ok(crate::api::history::TxHistory::decode(
-                    api_encoded_history,
-                ))?;
-                Ok(output_ok)
-            })())
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::history::TxHistory::decode(api_encoded_history)?;
+                    Ok(output_ok)
+                })(),
+            )
         },
     )
 }
@@ -2162,25 +2162,26 @@ fn wire__crate__api__history__TxHistory_encode_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TxHistory>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
-            transform_result_sse::<_, ()>((move || {
-                let mut api_that_guard = None;
-                let decode_indices_ =
-                    flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
-                        flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                            &api_that, 0, false,
-                        ),
-                    ]);
-                for i in decode_indices_ {
-                    match i {
-                        0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
-                        _ => unreachable!(),
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let mut api_that_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_that, 0, false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_that_guard = Some(api_that.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
                     }
-                }
-                let api_that_guard = api_that_guard.unwrap();
-                let output_ok =
-                    Result::<_, ()>::Ok(crate::api::history::TxHistory::encode(&*api_that_guard))?;
-                Ok(output_ok)
-            })())
+                    let api_that_guard = api_that_guard.unwrap();
+                    let output_ok = crate::api::history::TxHistory::encode(&*api_that_guard)?;
+                    Ok(output_ok)
+                })(),
+            )
         },
     )
 }

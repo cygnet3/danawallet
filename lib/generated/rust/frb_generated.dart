@@ -807,7 +807,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       codec: SseCodec(
         decodeSuccessData:
             sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOwnedOutputs,
-        decodeErrorData: null,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiOutputsOwnedOutputsDecodeConstMeta,
       argValues: [encodedOutputs],
@@ -856,7 +856,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: null,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiOutputsOwnedOutputsEncodeConstMeta,
       argValues: [that],
@@ -1699,7 +1699,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       codec: SseCodec(
         decodeSuccessData:
             sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTxHistory,
-        decodeErrorData: null,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiHistoryTxHistoryDecodeConstMeta,
       argValues: [encodedHistory],
@@ -1748,7 +1748,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_String,
-        decodeErrorData: null,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiHistoryTxHistoryEncodeConstMeta,
       argValues: [that],
