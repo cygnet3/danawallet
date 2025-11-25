@@ -572,10 +572,15 @@ class WalletScreenState extends State<WalletScreen> {
     
     // Check if balance is zero
     bool isBalanceZero = amount.field0 == BigInt.zero;
+    // Check if there's transaction history
+    bool hasTransactionHistory = walletState.txHistory.toApiTransactions().isNotEmpty;
+    
+    // Show funding screen only if balance is zero AND there's no transaction history
+    bool showFundingScreen = isBalanceZero && !hasTransactionHistory;
 
     return Scaffold(
         appBar: buildAppBar(scanProgress.scanning, walletState.network.toColor),
-        body: isBalanceZero
+        body: showFundingScreen
             ? buildFundingScreen(
                 walletState.address,
                 nameServerRepository.userDanaAddress,
