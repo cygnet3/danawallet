@@ -70,12 +70,31 @@ void main() async {
       apiVersion: nameServerApiVersion);
 
   // Load the dana address from storage if it exists
+  bool danaAddressCreated = false;
+  String? suggestedUsername;
   if (walletLoaded) {
     final storedDanaAddress =
         await SettingsRepository.instance.getDanaAddress();
     if (storedDanaAddress != null) {
       nameServerRepository.userDanaAddress = storedDanaAddress;
       Logger().i('Loaded dana address from storage: $storedDanaAddress');
+      danaAddressCreated = true;
+    } else {
+      // Wallet exists but no dana address - generate a suggested username
+      // This matches the first-time wallet creation flow
+      try {
+        suggestedUsername = await walletState.generateAvailableDanaAddress(
+          nameServerRepository: nameServerRepository,
+          maxRetries: 5,
+        );
+        if (suggestedUsername == null) {
+          Logger().e('Failed to generate available danaAddress after 5 attempts');
+          // Very unlikely, but still proceed to setup screen, user can define their own
+        }
+      } catch (e) {
+        Logger().e('Error generating suggested dana address: $e');
+        // Continue without suggested username - user can create their own
+      }
     }
   }
 
@@ -89,7 +108,10 @@ void main() async {
         ChangeNotifierProvider.value(value: fiatExchangeRate),
         Provider<NameServerRepository>.value(value: nameServerRepository),
       ],
-      child: SilentPaymentApp(walletLoaded: walletLoaded),
+      child: SilentPaymentApp(
+          walletLoaded: walletLoaded,
+          danaAddressCreated: danaAddressCreated,
+          suggestedUsername: suggestedUsername),
     ),
   );
 }
