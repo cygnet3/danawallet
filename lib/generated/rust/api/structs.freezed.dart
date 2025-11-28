@@ -79,6 +79,9 @@ class _$ApiOutputSpendStatusCopyWithImpl<$Res,
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
+
+  /// Create a copy of ApiOutputSpendStatus
+  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -98,6 +101,9 @@ class __$$ApiOutputSpendStatus_UnspentImplCopyWithImpl<$Res>
       _$ApiOutputSpendStatus_UnspentImpl _value,
       $Res Function(_$ApiOutputSpendStatus_UnspentImpl) _then)
       : super(_value, _then);
+
+  /// Create a copy of ApiOutputSpendStatus
+  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -215,6 +221,8 @@ class __$$ApiOutputSpendStatus_SpentImplCopyWithImpl<$Res>
       $Res Function(_$ApiOutputSpendStatus_SpentImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ApiOutputSpendStatus
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -253,7 +261,9 @@ class _$ApiOutputSpendStatus_SpentImpl extends ApiOutputSpendStatus_Spent {
   @override
   int get hashCode => Object.hash(runtimeType, field0);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ApiOutputSpendStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ApiOutputSpendStatus_SpentImplCopyWith<_$ApiOutputSpendStatus_SpentImpl>
@@ -335,7 +345,10 @@ abstract class ApiOutputSpendStatus_Spent extends ApiOutputSpendStatus {
   const ApiOutputSpendStatus_Spent._() : super._();
 
   String get field0;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ApiOutputSpendStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ApiOutputSpendStatus_SpentImplCopyWith<_$ApiOutputSpendStatus_SpentImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -360,6 +373,8 @@ class __$$ApiOutputSpendStatus_MinedImplCopyWithImpl<$Res>
       $Res Function(_$ApiOutputSpendStatus_MinedImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ApiOutputSpendStatus
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -398,7 +413,9 @@ class _$ApiOutputSpendStatus_MinedImpl extends ApiOutputSpendStatus_Mined {
   @override
   int get hashCode => Object.hash(runtimeType, field0);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ApiOutputSpendStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ApiOutputSpendStatus_MinedImplCopyWith<_$ApiOutputSpendStatus_MinedImpl>
@@ -480,7 +497,10 @@ abstract class ApiOutputSpendStatus_Mined extends ApiOutputSpendStatus {
   const ApiOutputSpendStatus_Mined._() : super._();
 
   String get field0;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ApiOutputSpendStatus
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ApiOutputSpendStatus_MinedImplCopyWith<_$ApiOutputSpendStatus_MinedImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -557,6 +577,9 @@ class _$ApiRecordedTransactionCopyWithImpl<$Res,
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
+
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -579,6 +602,8 @@ class __$$ApiRecordedTransaction_IncomingImplCopyWithImpl<$Res>
       $Res Function(_$ApiRecordedTransaction_IncomingImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -618,7 +643,9 @@ class _$ApiRecordedTransaction_IncomingImpl
   @override
   int get hashCode => Object.hash(runtimeType, field0);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ApiRecordedTransaction_IncomingImplCopyWith<
@@ -709,7 +736,10 @@ abstract class ApiRecordedTransaction_Incoming extends ApiRecordedTransaction {
 
   @override
   ApiRecordedTransactionIncoming get field0;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ApiRecordedTransaction_IncomingImplCopyWith<
           _$ApiRecordedTransaction_IncomingImpl>
       get copyWith => throw _privateConstructorUsedError;
@@ -735,6 +765,8 @@ class __$$ApiRecordedTransaction_OutgoingImplCopyWithImpl<$Res>
       $Res Function(_$ApiRecordedTransaction_OutgoingImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -774,7 +806,9 @@ class _$ApiRecordedTransaction_OutgoingImpl
   @override
   int get hashCode => Object.hash(runtimeType, field0);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ApiRecordedTransaction_OutgoingImplCopyWith<
@@ -865,7 +899,10 @@ abstract class ApiRecordedTransaction_Outgoing extends ApiRecordedTransaction {
 
   @override
   ApiRecordedTransactionOutgoing get field0;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ApiRecordedTransaction_OutgoingImplCopyWith<
           _$ApiRecordedTransaction_OutgoingImpl>
       get copyWith => throw _privateConstructorUsedError;
@@ -891,6 +928,8 @@ class __$$ApiRecordedTransaction_UnknownOutgoingImplCopyWithImpl<$Res>
       $Res Function(_$ApiRecordedTransaction_UnknownOutgoingImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -930,7 +969,9 @@ class _$ApiRecordedTransaction_UnknownOutgoingImpl
   @override
   int get hashCode => Object.hash(runtimeType, field0);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ApiRecordedTransaction_UnknownOutgoingImplCopyWith<
@@ -1023,7 +1064,10 @@ abstract class ApiRecordedTransaction_UnknownOutgoing
 
   @override
   ApiRecordedTransactionUnknownOutgoing get field0;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ApiRecordedTransaction
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ApiRecordedTransaction_UnknownOutgoingImplCopyWith<
           _$ApiRecordedTransaction_UnknownOutgoingImpl>
       get copyWith => throw _privateConstructorUsedError;
