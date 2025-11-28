@@ -1,12 +1,12 @@
 class Contact {
   int? id;
-  final String nym; // user defined user name
+  final String? nym; // user defined user name
   final String danaAddress; // Eventually register more than one, for now keep it simple
   final String spAddress; // silent payment address of the contact
 
   Contact({
     this.id,
-    required this.nym,
+    this.nym,
     required this.danaAddress,
     required this.spAddress,
   });
