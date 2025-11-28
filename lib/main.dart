@@ -76,20 +76,23 @@ void main() async {
       Logger().i('Loaded dana address from storage: $storedDanaAddress');
       danaAddressCreated = true;
     } else {
-      // Wallet exists but no dana address - generate a suggested username
-      // This matches the first-time wallet creation flow
-      try {
-        suggestedUsername = await walletState.generateAvailableDanaAddress(
-          nameServerRepository: nameServerRepository,
-          maxRetries: 5,
-        );
-        if (suggestedUsername == null) {
-          Logger().e('Failed to generate available danaAddress after 5 attempts');
-          // Very unlikely, but still proceed to setup screen, user can define their own
+      // Wallet exists but no dana address - lookup dana addresses
+      final danaAddresses = await nameServerRepository.lookupDanaAddresses(walletState.address);
+      if (danaAddresses.isNotEmpty) {
+        nameServerRepository.userDanaAddress = danaAddresses.first; // use the first dana address found
+        Logger().i('Loaded dana address from lookup: ${nameServerRepository.userDanaAddress}'); // log the first dana address found
+        danaAddressCreated = true;
+      } else {
+        // Wallet exists but no dana address - generate a suggested username
+        try {
+          suggestedUsername = await walletState.generateAvailableDanaAddress(
+            nameServerRepository: nameServerRepository,
+            maxRetries: 5,
+          );
+        } catch (e) {
+          Logger().e('Error generating suggested dana address: $e');
+          // Continue without suggested username - user can create their own
         }
-      } catch (e) {
-        Logger().e('Error generating suggested dana address: $e');
-        // Continue without suggested username - user can create their own
       }
     }
   }

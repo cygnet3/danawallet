@@ -262,6 +262,109 @@ class NameServerRepository {
     }
   }
 
+  /// Looks up dana addresses associated with a silent payment address
+  /// 
+  /// [spAddress] - The Silent Payment address to lookup
+  /// 
+  /// Returns a list of dana addresses in the format `user_name@danawallet.app`
+  /// Returns an empty list if no addresses are found
+  /// Throws an exception for network errors, invalid responses, or malformed data
+  Future<List<String>> lookupDanaAddresses(String spAddress) async {
+    if (spAddress.isEmpty) {
+      throw ArgumentError("Silent payment address cannot be empty");
+    }
+
+    try {
+      final requestId = _generateUniqueId();
+      Logger().d('Looking up dana addresses for SP address: ${spAddress.substring(0, 20)}... (request ID: $requestId)');
+      final response = await _client.get(
+        Uri.parse('$baseUrl/name/$apiVersion/lookup').replace(queryParameters: {
+          'sp_address': spAddress,
+          'id': requestId,
+        }),
+      );
+
+      Logger().d('Lookup response status: ${response.statusCode}');
+      Logger().d('Lookup response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        try {
+          final decoded = jsonDecode(response.body);
+          List<String> addresses = [];
+          
+          // Handle response object: {"dana_address": ["...", ...], ...}
+          if (decoded is Map<String, dynamic> && decoded.containsKey('dana_address')) {
+            final danaAddressField = decoded['dana_address'];
+            if (danaAddressField is List) {
+              for (var addr in danaAddressField) {
+                if (addr is String && addr.isNotEmpty) {
+                  addresses.add(addr);
+                }
+              }
+            }
+          }
+
+          // Validate that addresses are in the correct format (user_name@domain)
+          final validAddressPattern = RegExp(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]+$', caseSensitive: false);
+          final validAddresses = addresses.where((addr) {
+            final isValid = validAddressPattern.hasMatch(addr);
+            if (!isValid) {
+              Logger().w('Invalid dana address format returned from lookup: "$addr"');
+            }
+            return isValid;
+          }).toList();
+
+          Logger().i('Found ${validAddresses.length} valid dana address(es) for SP address');
+          return validAddresses;
+        } catch (e, stackTrace) {
+          Logger().e('Failed to parse lookup response (${response.statusCode}): $e');
+          Logger().e('Response body: ${response.body}');
+          Logger().e('Stack trace: $stackTrace');
+          throw FormatException('Failed to parse lookup response: $e');
+        }
+      } else if (response.statusCode == 404) {
+        // No addresses found - return empty list
+        Logger().d('No dana addresses found for SP address (404)');
+        return [];
+      } else {
+        // Server returned an error status
+        Logger().e('Lookup failed with HTTP ${response.statusCode} ${response.reasonPhrase ?? "Unknown"}');
+        Logger().e('Request URL: $baseUrl/name/$apiVersion/lookup');
+        Logger().e('Response body: ${response.body}');
+        
+        // Try to parse as JSON error response
+        try {
+          final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+          final errorMessage = decoded['message'] as String? ?? 
+                             decoded['error'] as String? ?? 
+                             'HTTP ${response.statusCode}: ${response.reasonPhrase ?? "Unknown error"}';
+          throw Exception('Lookup failed: $errorMessage');
+        } catch (parseError) {
+          // Failed to parse error response
+          String errorMessage;
+          if (response.statusCode >= 500) {
+            errorMessage = 'Server error (${response.statusCode}): ${response.reasonPhrase ?? "Internal server error"}';
+          } else if (response.statusCode == 400) {
+            errorMessage = 'Bad request (400): Invalid silent payment address';
+          } else if (response.statusCode == 401 || response.statusCode == 403) {
+            errorMessage = 'Authentication error (${response.statusCode}): Unauthorized';
+          } else {
+            errorMessage = 'HTTP ${response.statusCode}: ${response.reasonPhrase ?? "Unknown error"}';
+          }
+          throw Exception('Lookup failed: $errorMessage');
+        }
+      }
+    } catch (e, stackTrace) {
+      if (e is FormatException || e is ArgumentError || e is Exception) {
+        rethrow;
+      }
+      // Request failed (network error, timeout, etc.)
+      Logger().e('Lookup request failed for SP address: $e');
+      Logger().e('Stack trace: $stackTrace');
+      throw Exception('Lookup request failed: $e');
+    }
+  }
+
   /// Resolves a dana address to its payment information via DNS
   /// 
   /// Returns [Bip353DnsResolveResponse] if the address exists and is valid

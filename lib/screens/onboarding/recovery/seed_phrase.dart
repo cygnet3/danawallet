@@ -3,6 +3,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -11,6 +12,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pills/mnemonic_input_pill_box.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -54,6 +56,16 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       await chainState.connect(blindbitUrl);
 
       chainState.startSyncService(walletState, scanProgress, true);
+
+      // Now we need to find out if the wallet has a dana address
+      if (context.mounted) {
+        final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
+        final danaAddresses = await nameServerRepository.lookupDanaAddresses(walletState.address);
+        if (danaAddresses.isNotEmpty) {
+          nameServerRepository.userDanaAddress = danaAddresses.first; // use the first dana address found
+          Logger().i('Loaded dana address from lookup: ${nameServerRepository.userDanaAddress}'); // log the first dana address found
+        }
+      }
 
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
