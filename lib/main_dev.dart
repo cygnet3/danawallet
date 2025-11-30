@@ -1,9 +1,12 @@
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/main.dart';
+import 'package:danawallet/repositories/contacts_repository.dart';
+import 'package:danawallet/repositories/database_helper.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
+import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -19,6 +22,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   await LoggingService.create();
+  
+  // Initialize contacts database
+  await DatabaseHelper.instance.database;
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
@@ -67,6 +73,24 @@ void main() async {
     if (await walletState.checkDanaAddressRegistrationNeeded()) {
       landingPage = const DanaAddressSetupScreen();
     } else {
+      // We have a dana address, ensure user contact exists
+      if (walletState.danaAddress != null) {
+        try {
+          final existingContact = await ContactsRepository.instance
+              .getContactByDanaAddress(walletState.danaAddress!);
+          if (existingContact == null) {
+            await ContactsService.instance.addContactByDanaAddress(
+              danaAddress: walletState.danaAddress!,
+              network: walletState.network,
+              nym: 'you',
+            );
+            Logger().i('Created user contact in database');
+          }
+        } catch (e) {
+          // Contact might already exist or network error - safe to ignore
+          Logger().w('Failed to create user contact: $e');
+        }
+      }
       landingPage = const PinGuard();
     }
   } else {
