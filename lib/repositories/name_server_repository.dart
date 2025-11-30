@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:danawallet/data/models/dana_address_creation_request.dart';
 import 'package:danawallet/data/models/dana_address_creation_response.dart';
+import 'package:danawallet/data/models/prefix_search_response.dart';
 import 'package:dart_bip353/dart_bip353.dart';
 import 'package:dart_bip353/src/response_model.dart';
 import 'package:http/http.dart' as http;
@@ -440,6 +441,99 @@ class NameServerRepository {
     } catch (e) {
       // Network errors, timeouts, etc.
       throw Exception('Failed to resolve address $address: $e');
+    }
+  }
+
+  /// Searches for dana addresses by prefix
+  /// 
+  /// [prefix] - The prefix to search for (e.g., "alice" to find "alice@domain.com")
+  /// 
+  /// Returns [PrefixSearchResponse] with matching dana addresses
+  /// Throws an exception for network errors, invalid responses, or malformed data
+  Future<PrefixSearchResponse> searchPrefix(String prefix) async {
+    if (prefix.isEmpty) {
+      throw ArgumentError("Prefix cannot be empty");
+    }
+
+    try {
+      final requestId = _generateUniqueId();
+
+      Logger().d('Searching for dana addresses with prefix: $prefix (request ID: $requestId)');
+      final response = await _client.get(
+        Uri.parse('$baseUrl/name/$apiVersion/search').replace(queryParameters: {
+          'prefix': prefix,
+          'id': requestId,
+        }),
+      );
+
+      Logger().d('Prefix search response status: ${response.statusCode}');
+      Logger().d('Prefix search response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        try {
+          final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+          final responseData = PrefixSearchResponse.fromJson(decoded);
+          
+          Logger().i('Found ${responseData.count} dana address(es) matching prefix "$prefix" (total: ${responseData.totalCount})');
+          return responseData;
+        } catch (e, stackTrace) {
+          Logger().e('Failed to parse prefix search response (${response.statusCode}): $e');
+          Logger().e('Response body: ${response.body}');
+          Logger().e('Stack trace: $stackTrace');
+          throw FormatException('Failed to parse prefix search response: $e');
+        }
+      } else if (response.statusCode == 404) {
+        // No addresses found - return empty response
+        Logger().d('No dana addresses found for prefix "$prefix" (404)');
+        return PrefixSearchResponse(
+          id: requestId,
+          message: 'No addresses found',
+          danaAddress: [],
+          count: 0,
+          totalCount: 0,
+        );
+      } else {
+        // Server returned an error status
+        Logger().e('Prefix search failed with HTTP ${response.statusCode} ${response.reasonPhrase ?? "Unknown"}');
+        Logger().e('Request URL: $baseUrl/name/$apiVersion/search');
+        Logger().e('Response body: ${response.body}');
+        
+        // Try to parse as JSON error response
+        try {
+          final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+          final responseData = PrefixSearchResponse.fromJson(decoded);
+          
+          // If we got a valid error response with a message, use it
+          if (responseData.message.isNotEmpty) {
+            Logger().e('Server error message: ${responseData.message}');
+            return responseData;
+          } else {
+            // Parsed but no message - create our own
+            throw Exception('Prefix search failed: HTTP ${response.statusCode}: ${response.reasonPhrase ?? "Unknown error"}');
+          }
+        } catch (parseError) {
+          // Failed to parse error response
+          String errorMessage;
+          if (response.statusCode >= 500) {
+            errorMessage = 'Server error (${response.statusCode}): ${response.reasonPhrase ?? "Internal server error"}';
+          } else if (response.statusCode == 400) {
+            errorMessage = 'Bad request (400): Invalid prefix';
+          } else if (response.statusCode == 401 || response.statusCode == 403) {
+            errorMessage = 'Authentication error (${response.statusCode}): Unauthorized';
+          } else {
+            errorMessage = 'HTTP ${response.statusCode}: ${response.reasonPhrase ?? "Unknown error"}';
+          }
+          throw Exception('Prefix search failed: $errorMessage');
+        }
+      }
+    } catch (e, stackTrace) {
+      if (e is FormatException || e is ArgumentError || e is Exception) {
+        rethrow;
+      }
+      // Request failed (network error, timeout, etc.)
+      Logger().e('Prefix search request failed for prefix "$prefix": $e');
+      Logger().e('Stack trace: $stackTrace');
+      throw Exception('Prefix search request failed: $e');
     }
   }
 
