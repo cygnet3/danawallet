@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/prefix_search_response.dart';
 import 'package:danawallet/generated/rust/api/bip39.dart';
 import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
@@ -184,6 +185,26 @@ class DanaAddressService {
       // If we can't resolve due to network error, assume it's taken to be safe
       Logger().e('Error checking address availability: $e');
       return false;
+    }
+  }
+
+  /// Searches for dana addresses by prefix
+  /// 
+  /// [prefix] - The prefix to search for (e.g., "alice" to find "alice@domain.com")
+  /// 
+  /// Returns [PrefixSearchResponse] with matching dana addresses
+  /// Throws an exception for network errors, invalid responses, or malformed data
+  Future<PrefixSearchResponse> searchPrefix(String prefix) async {
+    if (prefix.isEmpty) {
+      throw ArgumentError("Prefix cannot be empty");
+    }
+
+    try {
+      final requestId = _generateUniqueId();
+      return await nameServerRepository.searchDanaAddressesWithPrefix(prefix, requestId);
+    } catch (e) {
+      Logger().e('Prefix search request failed for prefix "$prefix": $e');
+      throw Exception('Prefix search request failed: $e');
     }
   }
 }
