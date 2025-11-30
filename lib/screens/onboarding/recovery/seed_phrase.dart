@@ -1,13 +1,12 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
-import 'package:danawallet/repositories/contacts_repository.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
-import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/services/contacts_service.dart';
+import 'package:danawallet/repositories/wallet_repository.dart';
+import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -16,6 +15,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pills/mnemonic_input_pill_box.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -64,51 +64,41 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
           await walletState.checkDanaAddressRegistrationNeeded();
       // Now we need to find out if the wallet has a dana address and create "you" contact
       if (context.mounted) {
-        final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
-        
         // Check if dana address is stored
-        final storedDanaAddress = await SettingsRepository.instance.getDanaAddress();
+        final storedDanaAddress = await WalletRepository.instance.readDanaAddress();
         if (storedDanaAddress != null) {
-          nameServerRepository.userDanaAddress = storedDanaAddress;
+          WalletRepository.instance.saveDanaAddress(storedDanaAddress);
           Logger().i('Loaded dana address from storage: $storedDanaAddress');
           
           // Create user contact if it doesn't exist
           try {
-            final existingContact = await ContactsRepository.instance
-                .getContactByDanaAddress(storedDanaAddress);
-            if (existingContact == null) {
-              final userContact = Contact(
-                nym: 'you',
-                danaAddress: storedDanaAddress,
-                spAddress: walletState.address,
-              );
-              await ContactsRepository.instance.insertContact(userContact);
-              Logger().i('Created user contact in database');
-            }
+            await ContactsService.instance.addContactByDanaAddress(
+              danaAddress: storedDanaAddress,
+              network: walletState.network,
+              nym: 'you',
+            );
+            Logger().i('Created user contact in database');
           } catch (e) {
+            // Contact might already exist, that's fine
             Logger().w('Failed to create user contact: $e');
           }
         } else {
           // Lookup dana addresses
-          final danaAddresses = await nameServerRepository.lookupDanaAddresses(walletState.address);
-          if (danaAddresses.isNotEmpty) {
-            nameServerRepository.userDanaAddress = danaAddresses.first;
-            Logger().i('Loaded dana address from lookup: ${nameServerRepository.userDanaAddress}');
+          final danaAddresses = await DanaAddressService().lookupDanaAddress(walletState.receiveAddress, walletState.network);
+          if (danaAddresses != null) {
+            WalletRepository.instance.saveDanaAddress(danaAddresses);
+            Logger().i('Loaded dana address from lookup: $danaAddresses');
             
             // Create user contact if it doesn't exist
             try {
-              final existingContact = await ContactsRepository.instance
-                  .getContactByDanaAddress(danaAddresses.first);
-              if (existingContact == null) {
-                final userContact = Contact(
-                  nym: 'you',
-                  danaAddress: danaAddresses.first,
-                  spAddress: walletState.address,
-                );
-                await ContactsRepository.instance.insertContact(userContact);
-                Logger().i('Created user contact in database');
-              }
+              await ContactsService.instance.addContactByDanaAddress(
+                danaAddress: danaAddresses,
+                network: walletState.network,
+                nym: 'you',
+              );
+              Logger().i('Created user contact in database');
             } catch (e) {
+              // Contact might already exist, that's fine
               Logger().w('Failed to create user contact: $e');
             }
           }

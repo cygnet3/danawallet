@@ -2,12 +2,10 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
-import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/contacts_repository.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
-import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
+import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -312,28 +310,24 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
 
       if (!mounted) return;
 
-      if (response.danaAddress != null && response.spAddress != null) {
-        // Registration successful
-        Logger().i('Registration successful: ${response.danaAddress}');
-        nameServerRepository.userDanaAddress = response.danaAddress;
+      // Registration successful - address is already saved by registerDanaAddress
+      final registeredAddress = walletState.danaAddress;
+      if (registeredAddress != null) {
+        Logger().i('Registration successful: $registeredAddress');
         
-        // Persist the dana address to storage
-        await SettingsRepository.instance.setDanaAddress(response.danaAddress!);
+        // Persist the dana address to storage (already done by registerDanaAddress, but ensure consistency)
+        await WalletRepository.instance.saveDanaAddress(registeredAddress);
         
         // Create a contact for the user
         try {
-          final existingContact = await ContactsRepository.instance
-              .getContactByDanaAddress(response.danaAddress!);
-          if (existingContact == null) {
-            final userContact = Contact(
-              nym: 'you',
-              danaAddress: response.danaAddress!,
-              spAddress: walletState.address,
-            );
-            await ContactsRepository.instance.insertContact(userContact);
-            Logger().i('Created user contact in database');
-          }
+          await ContactsService.instance.addContactByDanaAddress(
+            danaAddress: registeredAddress,
+            network: walletState.network,
+            nym: 'you',
+          );
+          Logger().i('Created user contact in database');
         } catch (e) {
+          // Contact might already exist, that's fine
           Logger().w('Failed to create user contact: $e');
           // Don't block navigation if contact creation fails
         }
@@ -343,6 +337,8 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
           MaterialPageRoute(builder: (context) => const PinGuard()),
           (Route<dynamic> route) => false,
         );
+      } else {
+        throw Exception('Registration succeeded but dana address is null');
       }
     } catch (e) {
       displayError('Failed to register username', e);

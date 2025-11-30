@@ -1,7 +1,9 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contacts_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
@@ -32,6 +34,10 @@ class SettingsScreen extends StatelessWidget {
       await walletState.reset();
 
       await SettingsRepository.instance.resetAll();
+      // Reset dana address from memory
+      WalletRepository.instance.saveDanaAddress(null);
+      // Clear all contacts
+      await ContactsRepository.instance.deleteAllContacts();
       homeState.reset();
     } catch (e) {
       rethrow;

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/contacts.dart';
-import 'package:danawallet/repositories/contacts_repository.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
+import 'package:danawallet/services/bip353_resolver.dart';
+import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
 import 'package:danawallet/screens/home/contacts/contact_details.dart';
+import 'package:danawallet/services/dana_address_service.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -40,7 +42,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   Future<void> _loadContacts() async {
     try {
-      final contacts = await ContactsRepository.instance.getAllContacts();
+      final contacts = await ContactsService.instance.getAllContactsSortedByName();
       setState(() {
         _allContacts = contacts;
         _isLoading = false;
@@ -99,8 +101,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     });
     
     try {
-      final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
-      final response = await nameServerRepository.searchPrefix(prefix);
+      final response = await DanaAddressService().searchPrefix(prefix);
       
       if (mounted) {
         // Get set of existing dana addresses from our contacts
@@ -190,13 +191,17 @@ class _ContactsScreenState extends State<ContactsScreen> {
         displayName,
         style: BitcoinTextStyle.body3(Bitcoin.black).apply(fontWeightDelta: 2),
       ),
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ContactDetailsScreen(contact: contact),
           ),
         );
+        // Reload contacts if contact was updated
+        if (result == true) {
+          _loadContacts();
+        }
       },
     );
   }
@@ -227,10 +232,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
         // Resolve SP address and open add contact sheet
         String? spAddress;
         try {
-          final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
-          final resolved = await nameServerRepository.getAddressResolve(danaAddress);
-          if (resolved != null && resolved.silentpayment != null) {
-            spAddress = resolved.silentpayment!;
+          final network = Provider.of<ChainState>(context, listen: false).network;
+          final resolved = await Bip353Resolver.resolveFromAddress(danaAddress, network);
+          if (resolved != null) {
+            spAddress = resolved;
           }
         } catch (e) {
           Logger().w('Failed to resolve SP address for $danaAddress: $e');
@@ -304,11 +309,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
             TextField(
               controller: _searchController,
               style: BitcoinTextStyle.body4(Bitcoin.black),
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Search contacts',
                 hintText: 'Search by name or address',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search),
               ),
               onChanged: (value) {
                 _filterContacts();
@@ -396,7 +401,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     
     // Show loading indicator if searching remote
     if (_isSearchingRemote && !hasLocalResults && !hasRemoteResults) {
-      return Center(
+    return Center(
         child: Text(
           'Searching...',
           style: BitcoinTextStyle.body3(Bitcoin.neutral6),
