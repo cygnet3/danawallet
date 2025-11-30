@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contacts_repository.dart';
 import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
@@ -272,6 +274,24 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
         
         // Persist the dana address to storage
         await SettingsRepository.instance.setDanaAddress(response.danaAddress!);
+        
+        // Create a contact for the user
+        try {
+          final existingContact = await ContactsRepository.instance
+              .getContactByDanaAddress(response.danaAddress!);
+          if (existingContact == null) {
+            final userContact = Contact(
+              nym: 'you',
+              danaAddress: response.danaAddress!,
+              spAddress: walletState.address,
+            );
+            await ContactsRepository.instance.insertContact(userContact);
+            Logger().i('Created user contact in database');
+          }
+        } catch (e) {
+          Logger().w('Failed to create user contact: $e');
+          // Don't block navigation if contact creation fails
+        }
         
         Navigator.pushAndRemoveUntil(
           context,
