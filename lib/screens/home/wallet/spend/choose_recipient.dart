@@ -16,15 +16,31 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class ChooseRecipientScreen extends StatefulWidget {
-  const ChooseRecipientScreen({super.key});
+  final String? initialAddress;
+  
+  const ChooseRecipientScreen({super.key, this.initialAddress});
 
   @override
   ChooseRecipientScreenState createState() => ChooseRecipientScreenState();
 }
 
 class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
-  final TextEditingController addressController = TextEditingController();
+  late final TextEditingController addressController;
   String? _addressErrorText;
+
+  @override
+  void initState() {
+    super.initState();
+    addressController = TextEditingController(
+      text: widget.initialAddress ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    addressController.dispose();
+    super.dispose();
+  }
 
   Future<void> onContinue() async {
     RecipientForm form = RecipientForm();
