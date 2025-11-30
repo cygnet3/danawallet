@@ -1,4 +1,5 @@
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/contact_field.dart';
 import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/repositories/contacts_repository.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
@@ -176,22 +177,73 @@ class ContactsService {
     return deleted;
   }
 
-  /// Gets a contact by id
+  /// Gets a contact by id (without custom fields for performance)
+  /// Use getContactWithFields() if you need custom fields loaded
   Future<Contact?> getContact(int id) async {
-    return await _repository.getContact(id);
+    return await _repository.getContact(id, loadCustomFields: false);
   }
 
-  /// Gets a contact by dana address
+  /// Gets a contact by id with custom fields loaded
+  /// Use this when you need the complete contact information (e.g., detail view)
+  Future<Contact?> getContactWithFields(int id) async {
+    final contact = await _repository.getContact(id, loadCustomFields: false);
+    if (contact == null) return null;
+
+    final fields = await _repository.getContactFields(id);
+    return Contact(
+      id: contact.id,
+      nym: contact.nym,
+      danaAddress: contact.danaAddress,
+      spAddress: contact.spAddress,
+      customFields: fields.isNotEmpty ? fields : null,
+    );
+  }
+
+  /// Gets a contact by dana address (without custom fields for performance)
+  /// Use getContactByDanaAddressWithFields() if you need custom fields loaded
   Future<Contact?> getContactByDanaAddress(String danaAddress) async {
     return await _repository.getContactByDanaAddress(danaAddress);
   }
 
-  /// Gets a contact by silent payment address
+  /// Gets a contact by dana address with custom fields loaded
+  Future<Contact?> getContactByDanaAddressWithFields(String danaAddress) async {
+    final contact = await _repository.getContactByDanaAddress(danaAddress);
+    if (contact == null || contact.id == null) return contact;
+
+    final fields = await _repository.getContactFields(contact.id!);
+    return Contact(
+      id: contact.id,
+      nym: contact.nym,
+      danaAddress: contact.danaAddress,
+      spAddress: contact.spAddress,
+      customFields: fields.isNotEmpty ? fields : null,
+    );
+  }
+
+  /// Gets a contact by silent payment address (without custom fields for performance)
+  /// Use getContactBySpAddressWithFields() if you need custom fields loaded
   Future<Contact?> getContactBySpAddress(String spAddress) async {
     return await _repository.getContactBySpAddress(spAddress);
   }
 
+  /// Gets a contact by silent payment address with custom fields loaded
+  Future<Contact?> getContactBySpAddressWithFields(String spAddress) async {
+    final contact = await _repository.getContactBySpAddress(spAddress);
+    if (contact == null || contact.id == null) return contact;
+
+    final fields = await _repository.getContactFields(contact.id!);
+    return Contact(
+      id: contact.id,
+      nym: contact.nym,
+      danaAddress: contact.danaAddress,
+      spAddress: contact.spAddress,
+      customFields: fields.isNotEmpty ? fields : null,
+    );
+  }
+
   /// Gets all contacts, sorted by name (nym if available, otherwise dana address)
+  /// Note: Custom fields are NOT loaded for performance (avoid N+1 queries)
+  /// Use getContactFields() separately if needed for specific contacts
   Future<List<Contact>> getAllContactsSortedByName() async {
     final contacts = await _repository.getAllContacts();
     
@@ -206,6 +258,8 @@ class ContactsService {
   }
 
   /// Gets all contacts in the order they were added (most recent first)
+  /// Note: Custom fields are NOT loaded for performance (avoid N+1 queries)
+  /// Use getContactFields() separately if needed for specific contacts
   Future<List<Contact>> getAllContactsByRecent() async {
     final contacts = await _repository.getAllContacts();
     // Reverse to get most recent first (highest id first)
@@ -214,6 +268,7 @@ class ContactsService {
 
   /// Searches contacts by name or dana address
   /// Returns contacts where nym or danaAddress contains the query (case-insensitive)
+  /// Note: Custom fields are NOT loaded for performance
   Future<List<Contact>> searchContacts(String query) async {
     if (query.isEmpty) {
       return await getAllContactsSortedByName();
@@ -241,5 +296,118 @@ class ContactsService {
   /// Gets the total number of contacts
   Future<int> getContactCount() async {
     return await _repository.getContactCount();
+  }
+
+  // Contact Fields Management
+
+  /// Adds a new custom field to a contact
+  /// 
+  /// Throws [ArgumentError] if field type or value is empty
+  /// Throws [Exception] if contact doesn't exist
+  Future<ContactField> addContactField({
+    required int contactId,
+    required String fieldType,
+    required String fieldValue,
+  }) async {
+    // Validate inputs
+    if (fieldType.trim().isEmpty) {
+      throw ArgumentError('Field type cannot be empty');
+    }
+
+    if (fieldValue.trim().isEmpty) {
+      throw ArgumentError('Field value cannot be empty');
+    }
+
+    // Verify contact exists
+    final contact = await _repository.getContact(contactId);
+    if (contact == null) {
+      throw Exception('Contact with id $contactId not found');
+    }
+
+    final field = ContactField(
+      contactId: contactId,
+      fieldType: fieldType.trim(),
+      fieldValue: fieldValue.trim(),
+    );
+
+    final id = await _repository.insertContactField(field);
+    field.id = id;
+
+    Logger().i('Contact field added: $fieldType for contact $contactId');
+    return field;
+  }
+
+  /// Updates an existing contact field
+  /// 
+  /// Throws [ArgumentError] if field id is null or values are empty
+  /// Throws [Exception] if field doesn't exist
+  Future<void> updateContactField(ContactField field) async {
+    if (field.id == null) {
+      throw ArgumentError('Cannot update contact field without id');
+    }
+
+    if (field.fieldType.trim().isEmpty) {
+      throw ArgumentError('Field type cannot be empty');
+    }
+
+    if (field.fieldValue.trim().isEmpty) {
+      throw ArgumentError('Field value cannot be empty');
+    }
+
+    // Verify field exists
+    final existing = await _repository.getContactField(field.id!);
+    if (existing == null) {
+      throw Exception('Contact field with id ${field.id} not found');
+    }
+
+    final rowsUpdated = await _repository.updateContactField(field);
+    if (rowsUpdated == 0) {
+      throw Exception('Failed to update contact field');
+    }
+
+    Logger().i('Contact field updated: ${field.fieldType} (id=${field.id})');
+  }
+
+  /// Deletes a contact field by id
+  /// 
+  /// Returns true if field was deleted, false if not found
+  Future<bool> deleteContactField(int id) async {
+    final rowsDeleted = await _repository.deleteContactField(id);
+    final deleted = rowsDeleted > 0;
+
+    if (deleted) {
+      Logger().i('Contact field deleted: id=$id');
+    } else {
+      Logger().w('Contact field not found for deletion: id=$id');
+    }
+
+    return deleted;
+  }
+
+  /// Gets all custom fields for a contact
+  Future<List<ContactField>> getContactFields(int contactId) async {
+    return await _repository.getContactFields(contactId);
+  }
+
+  /// Gets a specific contact field by id
+  Future<ContactField?> getContactField(int id) async {
+    return await _repository.getContactField(id);
+  }
+
+  /// Gets contact fields of a specific type
+  Future<List<ContactField>> getContactFieldsByType(
+    int contactId,
+    String fieldType,
+  ) async {
+    return await _repository.getContactFieldsByType(contactId, fieldType);
+  }
+
+  /// Deletes all custom fields for a contact
+  /// 
+  /// Returns the number of fields deleted
+  Future<int> deleteContactFields(int contactId) async {
+    final count = await _repository.deleteContactFields(contactId);
+    Logger().i('Deleted $count custom fields for contact $contactId');
+    return count;
   }
 }

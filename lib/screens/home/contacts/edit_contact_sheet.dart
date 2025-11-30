@@ -1,31 +1,31 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/states/chain_state.dart';
-import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
-class AddContactSheet extends StatefulWidget {
-  final String? initialDanaAddress;
-  final String? initialSpAddress;
+class EditContactSheet extends StatefulWidget {
+  final Contact contact;
+  final VoidCallback onContactUpdated;
 
-  const AddContactSheet({
+  const EditContactSheet({
     super.key,
-    this.initialDanaAddress,
-    this.initialSpAddress,
+    required this.contact,
+    required this.onContactUpdated,
   });
 
   @override
-  State<AddContactSheet> createState() => _AddContactSheetState();
+  State<EditContactSheet> createState() => _EditContactSheetState();
 }
 
-class _AddContactSheetState extends State<AddContactSheet> {
-  final TextEditingController _nymController = TextEditingController();
-  final TextEditingController _danaAddressController = TextEditingController();
-  final TextEditingController _spAddressController = TextEditingController();
+class _EditContactSheetState extends State<EditContactSheet> {
+  late TextEditingController _nymController;
+  late TextEditingController _danaAddressController;
+  late TextEditingController _spAddressController;
   final _formKey = GlobalKey<FormState>();
   bool _isSaving = false;
   bool _isResolving = false;
@@ -35,13 +35,11 @@ class _AddContactSheetState extends State<AddContactSheet> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialDanaAddress != null) {
-      _danaAddressController.text = widget.initialDanaAddress!;
-      _hasDanaAddress = widget.initialDanaAddress!.isNotEmpty;
-    }
-    if (widget.initialSpAddress != null) {
-      _spAddressController.text = widget.initialSpAddress!;
-    }
+    _nymController = TextEditingController(text: widget.contact.nym ?? '');
+    _danaAddressController = TextEditingController(text: widget.contact.danaAddress);
+    _spAddressController = TextEditingController(text: widget.contact.spAddress);
+    _hasDanaAddress = widget.contact.danaAddress.isNotEmpty;
+    
     _danaAddressController.addListener(() {
       final hasDanaAddress = _danaAddressController.text.trim().isNotEmpty;
       setState(() {
@@ -49,20 +47,11 @@ class _AddContactSheetState extends State<AddContactSheet> {
       });
       
       // If dana address is filled, clear and resolve SP address
-      if (hasDanaAddress) {
+      if (hasDanaAddress && _danaAddressController.text.trim() != widget.contact.danaAddress) {
         _spAddressController.clear();
         _resolveDanaAddress();
       }
     });
-    
-    // Automatically resolve SP address if dana address is provided but SP address is not
-    if (widget.initialDanaAddress != null && 
-        widget.initialDanaAddress!.isNotEmpty && 
-        (widget.initialSpAddress == null || widget.initialSpAddress!.isEmpty)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _resolveDanaAddress();
-      });
-    }
   }
 
   @override
@@ -108,7 +97,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
     }
   }
 
-  Future<void> _saveContact() async {
+  Future<void> _updateContact() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -138,37 +127,93 @@ class _AddContactSheetState extends State<AddContactSheet> {
     });
 
     try {
-      final walletState = Provider.of<WalletState>(context, listen: false);
-      final network = walletState.network;
-      
-      // Use ContactsService to handle validation and DNS resolution
-      if (danaAddress.isNotEmpty) {
-        // If dana address is provided, use it (service will resolve to SP)
-        await ContactsService.instance.addContactByDanaAddress(
-          danaAddress: danaAddress,
-          network: network,
-          nym: nym.isNotEmpty ? nym : null,
-        );
-      } else {
-        // Otherwise use SP address directly
-        await ContactsService.instance.addContactBySpAddress(
-          spAddress: spAddress,
-          network: network,
-          nym: nym.isNotEmpty ? nym : null,
-          lookupDanaAddress: true,
-        );
+      // If we have dana address but no SP address, try to resolve it
+      String finalSpAddress = spAddress;
+      if (danaAddress.isNotEmpty && spAddress.isEmpty) {
+        try {
+          final network = Provider.of<ChainState>(context, listen: false).network;
+          final resolved = await Bip353Resolver.resolveFromAddress(danaAddress, network);
+          if (resolved != null) {
+            finalSpAddress = resolved;
+          } else {
+            setState(() {
+              _isSaving = false;
+              _errorMessage = 'Could not resolve SP address for this dana address';
+            });
+            return;
+          }
+        } catch (e) {
+          setState(() {
+            _isSaving = false;
+            _errorMessage = 'Failed to resolve SP address: $e';
+          });
+          return;
+        }
       }
 
+      // Update the contact
+      final updatedContact = Contact(
+        id: widget.contact.id,
+        nym: nym,
+        danaAddress: danaAddress,
+        spAddress: finalSpAddress,
+      );
+
+      await ContactsService.instance.updateContact(updatedContact);
+
       if (mounted) {
-        Navigator.pop(context, true); // Return true to indicate success
+        widget.onContactUpdated(); // This already pops with 'updated'
       }
     } catch (e) {
-      Logger().e('Failed to save contact: $e');
+      Logger().e('Failed to update contact: $e');
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _errorMessage = 'Failed to save contact: $e';
+          _errorMessage = 'Failed to update contact: $e';
         });
+      }
+    }
+  }
+
+  Future<void> _deleteContact() async {
+    if (widget.contact.id == null) return;
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Contact'),
+        content: Text('Are you sure you want to delete "${widget.contact.nym ?? widget.contact.danaAddress}"? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ContactsService.instance.deleteContact(widget.contact.id!);
+        if (mounted) {
+          // Return 'deleted' to indicate contact was deleted
+          Navigator.pop(context, 'deleted');
+        }
+      } catch (e) {
+        Logger().e('Failed to delete contact: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete contact: $e'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }
     }
   }
@@ -201,7 +246,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
             ),
             // Title
             Text(
-              'Add Contact',
+              'Edit Contact',
               style: BitcoinTextStyle.title4(Bitcoin.black),
             ),
             const SizedBox(height: 20),
@@ -209,8 +254,8 @@ class _AddContactSheetState extends State<AddContactSheet> {
             TextField(
               controller: _nymController,
               style: BitcoinTextStyle.body4(Bitcoin.black),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
                 labelText: 'Nym',
                 hintText: 'Contact name',
               ),
@@ -270,7 +315,14 @@ class _AddContactSheetState extends State<AddContactSheet> {
             // Save button
             FooterButton(
               title: _isSaving ? 'Saving...' : 'Save',
-              onPressed: _isSaving ? null : _saveContact,
+              onPressed: _isSaving ? null : _updateContact,
+            ),
+            const SizedBox(height: 12),
+            // Delete button
+            FooterButton(
+              title: 'Delete Contact',
+              onPressed: _deleteContact,
+              color: Colors.red,
             ),
             SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
           ],

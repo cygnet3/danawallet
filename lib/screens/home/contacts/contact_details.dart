@@ -7,11 +7,15 @@ import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
+import 'package:danawallet/data/models/contact_field.dart';
+import 'package:danawallet/services/bip353_resolver.dart';
+import 'package:danawallet/services/contacts_service.dart';
+import 'package:danawallet/screens/home/contacts/add_edit_field_sheet.dart';
+import 'package:danawallet/screens/home/contacts/edit_contact_sheet.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
-import 'package:danawallet/widgets/back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
@@ -27,6 +31,40 @@ class ContactDetailsScreen extends StatefulWidget {
 }
 
 class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
+  late Contact _currentContact;
+  bool _contactWasUpdated = false;
+  List<ContactField> _customFields = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentContact = widget.contact;
+    _loadCustomFields();
+  }
+
+  Future<void> _loadCustomFields() async {
+    if (_currentContact.id != null) {
+      final fields = await ContactsService.instance.getContactFields(_currentContact.id!);
+      if (mounted) {
+        setState(() {
+          _customFields = fields;
+        });
+      }
+    }
+  }
+
+
+  Future<void> _reloadContact() async {
+    if (_currentContact.id != null) {
+      final updatedContact = await ContactsService.instance.getContact(_currentContact.id!);
+      if (updatedContact != null && mounted) {
+        setState(() {
+          _currentContact = updatedContact;
+        });
+        await _loadCustomFields();
+      }
+    }
+  }
 
   String _getDisplayName(Contact contact) {
     return contact.nym ?? contact.danaAddress;
@@ -80,7 +118,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   }
 
   Future<void> _copyDanaAddress() async {
-    await Clipboard.setData(ClipboardData(text: widget.contact.danaAddress));
+    await Clipboard.setData(ClipboardData(text: _currentContact.danaAddress));
     HapticFeedback.lightImpact();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,34 +130,218 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
     }
   }
 
+  void _showEditContactSheet() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => EditContactSheet(
+        contact: _currentContact,
+        onContactUpdated: () {
+          Navigator.pop(context, 'updated');
+        },
+      ),
+    );
+    
+    if (result == 'deleted' && mounted) {
+      // Contact was deleted, close contact details and return true to refresh list
+      Navigator.pop(context, true);
+    } else if (result == 'updated' && mounted) {
+      await _reloadContact();
+      setState(() {
+        _contactWasUpdated = true;
+      });
+    }
+  }
+
+  Widget _buildCustomFieldItem(ContactField field) {
+    return ListTile(
+      title: Text(
+        field.fieldType,
+        style: BitcoinTextStyle.body3(Bitcoin.black)
+            .apply(fontWeightDelta: 1),
+      ),
+      subtitle: Text(
+        field.fieldValue,
+        style: BitcoinTextStyle.body5(Bitcoin.neutral7),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: PopupMenuButton<String>(
+        icon: Icon(Icons.more_vert, color: Bitcoin.neutral7),
+        onSelected: (value) async {
+          if (value == 'edit') {
+            _showEditFieldSheet(field);
+          } else if (value == 'delete') {
+            _deleteField(field);
+          } else if (value == 'copy') {
+            await Clipboard.setData(ClipboardData(text: field.fieldValue));
+            HapticFeedback.lightImpact();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${field.fieldType} copied to clipboard'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          }
+        },
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 'copy',
+            child: Row(
+              children: [
+                Icon(Icons.copy, size: 20),
+                SizedBox(width: 8),
+                Text('Copy'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [
+                Icon(Icons.edit, size: 20),
+                SizedBox(width: 8),
+                Text('Edit'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete, size: 20, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Delete', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+        ],
+      ),
+      onTap: () {
+        _showEditFieldSheet(field);
+      },
+    );
+  }
+
+  void _showAddFieldSheet() async {
+    if (_currentContact.id == null) return;
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddEditFieldSheet(
+        contactId: _currentContact.id!,
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _loadCustomFields();
+      setState(() {
+        _contactWasUpdated = true;
+      });
+    }
+  }
+
+  void _showEditFieldSheet(ContactField field) async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddEditFieldSheet(
+        field: field,
+        contactId: _currentContact.id!,
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _loadCustomFields();
+      setState(() {
+        _contactWasUpdated = true;
+      });
+    }
+  }
+
+  Future<void> _deleteField(ContactField field) async {
+    if (field.id == null) return;
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Field'),
+        content: Text('Are you sure you want to delete "${field.fieldType}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ContactsService.instance.deleteContactField(field.id!);
+        if (mounted) {
+          await _loadCustomFields();
+          setState(() {
+            _contactWasUpdated = true;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Field deleted'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete field: $e'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> _navigateToSendFlow() async {
     try {
       final form = RecipientForm();
       form.reset();
 
       // Use dana address if available, otherwise use SP address
-      String address = widget.contact.danaAddress.isNotEmpty
-          ? widget.contact.danaAddress
-          : widget.contact.spAddress;
+      String address = _currentContact.danaAddress.isNotEmpty
+          ? _currentContact.danaAddress
+          : _currentContact.spAddress;
 
       if (address.contains('@')) {
         // Resolve dana address to SP address
         try {
-          final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
           Logger().d('Resolving dana address: "$address"');
+
+          final network = Provider.of<ChainState>(context, listen: false).network;
           
-          final data = await nameServerRepository.getAddressResolve(address);
+          final resolvedAddress = await Bip353Resolver.resolveFromAddress(address, network);
           
-          if (data == null) {
+          if (resolvedAddress == null) {
             throw Exception('Dana address not found or not registered');
           }
-          
-          if (data.silentpayment == null || data.silentpayment!.isEmpty) {
-            throw Exception('Dana address found but has no payment address configured');
-          }
-          
+           
           form.recipientBip353 = address;
-          address = data.silentpayment!;
+          address = resolvedAddress;
           
           Logger().d('Successfully resolved dana address to SP address');
         } catch (e) {
@@ -172,7 +394,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   }
 
   Future<void> _copyStaticAddress() async {
-    await Clipboard.setData(ClipboardData(text: widget.contact.spAddress));
+    await Clipboard.setData(ClipboardData(text: _currentContact.spAddress));
     HapticFeedback.lightImpact();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -226,7 +448,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: BarcodeWidget(
-                  data: widget.contact.spAddress,
+                  data: _currentContact.spAddress,
                   barcode: Barcode.qrCode(),
                 ),
               ),
@@ -248,7 +470,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                       style: BitcoinTextStyle.body5(Bitcoin.neutral5),
                     ),
                     const SizedBox(height: 8),
-                    addressAsRichText(widget.contact.spAddress, 14.0),
+                    addressAsRichText(_currentContact.spAddress, 14.0),
                   ],
                 ),
               ),
@@ -262,16 +484,48 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = _getDisplayName(widget.contact);
+    final displayName = _getDisplayName(_currentContact);
     final initial = _getInitial(displayName);
     final avatarColor = _getAvatarColor(displayName);
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const BackButtonWidget(),
-      ),
-      body: Padding(
+        title: InkResponse(
+          onTap: () {
+            Navigator.of(context).pop(_contactWasUpdated);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  const WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: Image(
+                      image: AssetImage("icons/caret_left.png", package: "bitcoin_ui"),
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Back',
+                    style: BitcoinTextStyle.title5(Bitcoin.black)
+                        .apply(fontFamily: 'Space Grotesk'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.edit, color: Bitcoin.black),
+              onPressed: () {
+                _showEditContactSheet();
+              },
+            ),
+          ],
+        ),
+        body: Padding(
         padding: const EdgeInsets.all(25.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -289,13 +543,13 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
             ),
             const SizedBox(height: 20),
             // Nym in bold (if any)
-            if (widget.contact.nym != null)
+            if (_currentContact.nym != null)
               Text(
-                widget.contact.nym!,
+                _currentContact.nym!,
                 style: BitcoinTextStyle.body2(Bitcoin.black)
                     .apply(fontWeightDelta: 2),
               ),
-            if (widget.contact.nym != null) const SizedBox(height: 8),
+            if (_currentContact.nym != null) const SizedBox(height: 8),
             // Dana address slightly smaller - tappable to copy
             GestureDetector(
               onTap: _copyDanaAddress,
@@ -304,7 +558,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    widget.contact.danaAddress,
+                    _currentContact.danaAddress,
                     style: BitcoinTextStyle.body4(Bitcoin.neutral7),
                   ),
                   const SizedBox(width: 8),
@@ -354,7 +608,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                           .apply(fontWeightDelta: 1),
                     ),
                     subtitle: Text(
-                      _formatAddress(widget.contact.spAddress),
+                      _formatAddress(_currentContact.spAddress),
                       style: BitcoinTextStyle.body5(Bitcoin.neutral7),
                     ),
                     trailing: Icon(Icons.chevron_right, color: Bitcoin.neutral7),
@@ -375,6 +629,23 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                       _showSentTransactionsSheet();
                     },
                   ),
+                  const Divider(),
+                  // Custom Fields Section
+                  if (_customFields.isNotEmpty || _currentContact.id != null) ...[
+                    ..._customFields.map((field) => _buildCustomFieldItem(field)),
+                    if (_currentContact.id != null)
+                      ListTile(
+                        leading: Icon(Icons.add, color: Bitcoin.blue),
+                        title: Text(
+                          'Add Field',
+                          style: BitcoinTextStyle.body3(Bitcoin.blue)
+                              .apply(fontWeightDelta: 1),
+                        ),
+                        onTap: () {
+                          _showAddFieldSheet();
+                        },
+                      ),
+                  ],
                 ],
               ),
             ),
@@ -387,7 +658,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   List<ApiRecordedTransaction> _getSentTransactions() {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final allTransactions = walletState.txHistory.toApiTransactions();
-    final contactSpAddress = widget.contact.spAddress;
+    final contactSpAddress = _currentContact.spAddress;
 
     // Filter to only outgoing transactions where recipient matches this contact's SP address
     return allTransactions.where((tx) {
@@ -408,7 +679,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
     }
 
     final field0 = tx.field0;
-    final recipient = widget.contact.nym ?? widget.contact.danaAddress;
+    final recipient = _currentContact.nym ?? _currentContact.danaAddress;
     final date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
     final color = field0.confirmedAt == null ? Bitcoin.neutral4 : Bitcoin.red;
     final amount = field0.totalOutgoing().displayBtc();
@@ -483,7 +754,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
             ),
             // Title
             Text(
-              'Sent to ${widget.contact.nym ?? widget.contact.danaAddress}',
+              'Sent to ${_currentContact.nym ?? _currentContact.danaAddress}',
               style: BitcoinTextStyle.title4(Bitcoin.black),
             ),
             const SizedBox(height: 20),
