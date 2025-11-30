@@ -190,13 +190,17 @@ class _ContactsScreenState extends State<ContactsScreen> {
         displayName,
         style: BitcoinTextStyle.body3(Bitcoin.black).apply(fontWeightDelta: 2),
       ),
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ContactDetailsScreen(contact: contact),
           ),
         );
+        // Reload contacts if contact was updated
+        if (result == true) {
+          _loadContacts();
+        }
       },
     );
   }
@@ -396,7 +400,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     
     // Show loading indicator if searching remote
     if (_isSearchingRemote && !hasLocalResults && !hasRemoteResults) {
-      return Center(
+    return Center(
         child: Text(
           'Searching...',
           style: BitcoinTextStyle.body3(Bitcoin.neutral6),
