@@ -35,8 +35,8 @@ class DatabaseHelper {
     CREATE TABLE contacts (
       id $idType,
       nym $textTypeNullable,
-      danaAddress $textType,
-      spAddress $textType
+      danaAddress $textType UNIQUE,
+      spAddress $textType UNIQUE
     )
     ''');
 
