@@ -60,6 +60,8 @@ dev_dependencies:
   freezed: ^2.4.2
 
 flutter:
+  # if no build flavor is provided, use the dev flavor as default
+  default-flavor: dev
   uses-material-design: true
 
   assets:
