@@ -196,6 +196,8 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
         const Divider(),
         toListTile(SelectedFee.slow, exchangeRate),
         const Divider(),
+        toListTile(SelectedFee.custom, exchangeRate),
+        const Divider(),
       ]),
       footer: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
