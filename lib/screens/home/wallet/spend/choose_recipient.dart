@@ -106,6 +106,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                     height: 20.0,
                   ),
                   TextField(
+                    onTap: () => setState(() => _addressErrorText = null),
                     style: BitcoinTextStyle.body4(Bitcoin.black),
                     controller: addressController,
                     keyboardType: TextInputType.emailAddress,
