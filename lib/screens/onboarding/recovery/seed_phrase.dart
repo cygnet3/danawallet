@@ -12,6 +12,7 @@ import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/back_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pills/mnemonic_input_pill_box.dart';
+import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
@@ -61,16 +62,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-                builder: (context) => PinSetupScreen(
-                      onPinSet: () {
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
-                            (Route<dynamic> route) => false);
-                      },
-                    )),
+            MaterialPageRoute(builder: (context) => const PinGuard()),
             (Route<dynamic> route) => false);
       }
     } catch (e) {

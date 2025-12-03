@@ -3,6 +3,8 @@ import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/screens/home/home.dart';
+import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -89,7 +91,7 @@ class SilentPaymentApp extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'Space Grotesk',
         ),
-        home: PinGuard(walletLoaded: walletLoaded),
+        home: walletLoaded ? const PinGuard() : const IntroductionScreen(),
       );
     });
   }
