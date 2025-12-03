@@ -1,14 +1,15 @@
 import 'package:danawallet/screens/home/home.dart';
-import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/pin/pin_setup_screen.dart';
 import 'package:danawallet/screens/pin/pin_verification_screen.dart';
 import 'package:danawallet/services/pin_service.dart';
 import 'package:flutter/material.dart';
 
-class PinGuard extends StatefulWidget {
-  final bool walletLoaded;
+// In our current setup, the home screen is always the protected screen.
+// In the future, we can make this adjustable by passing the protected screen in the constructor.
+const Widget _protectedScreen = HomeScreen();
 
-  const PinGuard({super.key, required this.walletLoaded});
+class PinGuard extends StatefulWidget {
+  const PinGuard({super.key});
 
   @override
   State<PinGuard> createState() => _PinGuardState();
@@ -17,7 +18,7 @@ class PinGuard extends StatefulWidget {
 class _PinGuardState extends State<PinGuard> {
   bool _isPinSet = false;
   bool _isLoading = true;
-  bool _pinVerified = false;
+  bool _isPinVerified = false;
 
   @override
   void initState() {
@@ -26,28 +27,23 @@ class _PinGuardState extends State<PinGuard> {
   }
 
   Future<void> _checkPinStatus() async {
-    if (widget.walletLoaded) {
-      final pinSet = await PinService.isPinSet();
-      setState(() {
-        _isPinSet = pinSet;
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    final isPinSet = await PinService.isPinSet();
+    setState(() {
+      _isPinSet = isPinSet;
+      _isLoading = false;
+    });
   }
 
   void _onPinSet() {
     setState(() {
       _isPinSet = true;
+      _isPinVerified = true; // we just set the pin, so it's verified
     });
   }
 
   void _onPinVerified() {
     setState(() {
-      _pinVerified = true;
+      _isPinVerified = true;
     });
   }
 
@@ -61,22 +57,17 @@ class _PinGuardState extends State<PinGuard> {
       );
     }
 
-    // If no wallet is loaded, show introduction
-    if (!widget.walletLoaded) {
-      return const IntroductionScreen();
+    // If PIN is verified, return the protected screen
+    if (_isPinVerified) {
+      return _protectedScreen;
     }
 
-    // If wallet is loaded and PIN is verified, show home screen
-    if (_pinVerified) {
-      return const HomeScreen();
-    }
-
-    // If wallet is loaded but no PIN is set, show PIN setup
+    // If no PIN is set, show PIN setup
     if (!_isPinSet) {
       return PinSetupScreen(onPinSet: _onPinSet);
     }
 
-    // If wallet is loaded and PIN is set, show PIN verification
+    // if PIN is set but not verfied, show PIN verification screen
     return PinVerificationScreen(
       onPinVerified: _onPinVerified,
     );
