@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/mempool_block_timestamp_response.dart';
 import 'package:danawallet/data/models/mempool_blocks.dart';
 import 'package:danawallet/data/models/mempool_prices_response.dart';
 import 'package:danawallet/services/fee_api_converter.dart';
@@ -81,5 +82,26 @@ class MempoolApiRepository {
     
     // Then get the full block data using the hash
     return hashResponse.body.trim();
+  }
+
+  /// Converts a Unix timestamp to block info using mempool API.
+  /// Returns the block closest to the given timestamp.
+  Future<MempoolBlockTimestampResponse> getBlockFromTimestamp(int timestamp) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/v1/mining/blocks/timestamp/$timestamp'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to get block from timestamp: ${response.statusCode}',
+      );
+    }
+
+    try {
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return MempoolBlockTimestampResponse.fromJson(json);
+    } catch (e) {
+      throw Exception('Failed to parse block timestamp response: $e');
+    }
   }
 }
