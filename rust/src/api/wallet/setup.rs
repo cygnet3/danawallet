@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use spdk::{
+use spdk_core::{
     bitcoin::{
         secp256k1::{PublicKey, SecretKey},
         Network,
