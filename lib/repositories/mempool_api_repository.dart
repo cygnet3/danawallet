@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/mempool_blocks.dart';
 import 'package:danawallet/data/models/mempool_prices_response.dart';
 import 'package:danawallet/services/fee_api_converter.dart';
 import 'package:http/http.dart' as http;
@@ -60,5 +61,25 @@ class MempoolApiRepository {
     } else {
       throw Exception("Unexpected status code: ${response.statusCode}");
     }
+  }
+
+  Future<MempoolGetBlockResponse> getBlockForHash(String blockHash) async {
+    final response = await http.get(Uri.parse('$baseUrl/block/$blockHash'));
+    if (response.statusCode == 200) {
+      return MempoolGetBlockResponse.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Unexpected status code: ${response.statusCode}');
+    }
+  }
+
+  Future<String> getBlockHashForHeight(int height) async {
+    // First get the block hash from height
+    final hashResponse = await http.get(Uri.parse('$baseUrl/block-height/$height'));
+    if (hashResponse.statusCode != 200) {
+      throw Exception('Unexpected status code: ${hashResponse.statusCode}');
+    }
+    
+    // Then get the full block data using the hash
+    return hashResponse.body.trim();
   }
 }
