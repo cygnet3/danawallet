@@ -64,4 +64,25 @@ class MempoolApiRepository {
     return hashResponse.body.trim();
   }
 
+  /// Converts a Unix timestamp to block height using mempool API
+  /// Returns the block height of the block closest to the given timestamp
+  Future<int> getBlockHeightFromTimestamp(int timestamp) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/v1/mining/blocks/timestamp/$timestamp'),
+    );
+    
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to get block height from timestamp: ${response.statusCode}',
+      );
+    }
+    
+    try {
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return json['height'] as int;
+    } catch (e) {
+      throw Exception('Failed to parse block height response: $e');
+    }
+  }
+
 }

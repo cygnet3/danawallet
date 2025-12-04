@@ -99,16 +99,16 @@ class WalletState extends ChangeNotifier {
     await walletRepository.reset();
   }
 
-  Future<void> restoreWallet(Network network, String mnemonic) async {
-    // set birthday to default wallet
-    final birthday = network.defaultBirthday;
+  Future<void> restoreWallet(Network network, String mnemonic, {int? birthday}) async {
+    // set birthday to provided value or default
+    final birthdayToUse = birthday ?? network.defaultBirthday;
 
     final args = WalletSetupArgs(
         setupType: WalletSetupType.mnemonic(mnemonic),
         network: network.toCoreArg);
     final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
-        await walletRepository.setupWallet(setupResult, network, birthday);
+        await walletRepository.setupWallet(setupResult, network, birthdayToUse);
 
     // fill current state variables
     address = wallet.getReceivingAddress();
