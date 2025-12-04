@@ -4,13 +4,16 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pills/mnemonic_pill_box.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 class ViewMnemonicScreen extends StatelessWidget {
   final String mnemonic;
+  final int birthdayTimestamp;
   const ViewMnemonicScreen({
     super.key,
     required this.mnemonic,
+    required this.birthdayTimestamp,
   });
 
   @override
@@ -23,12 +26,24 @@ class ViewMnemonicScreen extends StatelessWidget {
     );
 
     final text = AutoSizeText(
-      "Make sure to write it down as shown here, including both numbers and words.",
+      "Make sure to write it down as shown here, including birthday, all words and their number.",
       style: BitcoinTextStyle.body3(Bitcoin.neutral7).copyWith(
         fontFamily: 'Inter',
       ),
       textAlign: TextAlign.center,
       maxLines: 3,
+    );
+
+    final birthdayDate = timestampToDate(birthdayTimestamp);
+    final locale = Localizations.localeOf(context);
+    final birthdayDateString = DateFormat('d MMM yyyy', locale.toString()).format(birthdayDate);
+    final birthdayText = AutoSizeText(
+      "Wallet birthday: $birthdayDateString",
+      style: BitcoinTextStyle.body3(Bitcoin.neutral1Dark).copyWith(
+        fontFamily: 'Inter',
+      ), 
+      textAlign: TextAlign.center,
+      maxLines: 1,
     );
 
     final pills = MnemonicPillBox(mnemonic: mnemonic);
@@ -57,6 +72,11 @@ class ViewMnemonicScreen extends StatelessWidget {
                               vertical: Adaptive.h(3),
                               horizontal: Adaptive.w(2)),
                           child: text),
+                      Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: Adaptive.h(1),
+                              horizontal: Adaptive.w(2)),
+                          child: birthdayText),
                     ],
                   ),
                   Expanded(child: pills),

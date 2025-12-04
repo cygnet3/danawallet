@@ -21,7 +21,7 @@ class WalletState extends ChangeNotifier {
   late Network network;
   late String address;
   late String changeAddress;
-  late int birthday;
+  late int birthday; // in block height
 
   // variables that change
   late ApiAmount amount;
