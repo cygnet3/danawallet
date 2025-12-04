@@ -139,11 +139,6 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
             const SizedBox(
               height: 10.0,
             ),
-            if (isDevEnv)
-              FooterButtonOutlined(title: 'See details', onPressed: () => ()),
-            const SizedBox(
-              height: 10.0,
-            ),
             FooterButton(
               title: 'Send',
               onPressed: onPressSend,
