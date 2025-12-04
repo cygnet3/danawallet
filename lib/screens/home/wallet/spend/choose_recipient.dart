@@ -129,15 +129,6 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   const SizedBox(
                     height: 10.0,
                   ),
-                  if (isDevEnv)
-                    FooterButtonOutlined(
-                      title: "Choose from Contacts",
-                      onPressed: () => (),
-                      enabled: false,
-                    ),
-                  const SizedBox(
-                    height: 10.0,
-                  ),
                   FooterButtonOutlined(
                       title: "Scan QR Code", onPressed: onScanWithCamera)
                 ],
