@@ -273,7 +273,7 @@ class WalletState extends ChangeNotifier {
     }
   }
 
-  Future<void> signAndBroadcastUnsignedTx(
+  Future<String> signAndBroadcastUnsignedTx(
       ApiSilentPaymentUnsignedTransaction unsignedTx) async {
     final selectedOutputs = unsignedTx.selectedUtxos;
 
@@ -331,6 +331,6 @@ class WalletState extends ChangeNotifier {
     await _updateWalletState();
     notifyListeners();
 
-    return;
+    return txid;
   }
 }
