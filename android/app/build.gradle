@@ -25,6 +25,12 @@ android {
         jvmTarget = JavaVersion.VERSION_17
     }
 
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+
     defaultConfig {
         applicationId = "dev.silentpayments.danawallet"
         minSdk = flutter.minSdkVersion
