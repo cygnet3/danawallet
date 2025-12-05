@@ -5,6 +5,8 @@ import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contacts_repository.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -245,6 +247,37 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
+  /// Resolves the display name for a recipient address
+  /// Priority: contact name (nym) > contact dana address > looked up dana address > SP address
+  /// Returns a String that can be either a contact name, dana address, or the raw SP address
+  Future<String> _resolveRecipientDisplay(String spAddress, NameServerRepository nameServerRepository) async {
+    // First, check if the SP address is in contacts
+    final contact = await ContactsRepository.instance.getContactBySpAddress(spAddress);
+    if (contact != null) {
+      // If contact has a name, use it
+      if (contact.nym != null && contact.nym!.isNotEmpty) {
+        return contact.nym!;
+      }
+      // Otherwise, use the contact's dana address if available
+      if (contact.danaAddress.isNotEmpty) {
+        return contact.danaAddress;
+      }
+    }
+
+    // If not in contacts, try to look up dana address from name server
+    try {
+      final danaAddresses = await nameServerRepository.lookupDanaAddresses(spAddress);
+      if (danaAddresses.isNotEmpty) {
+        return danaAddresses.first;
+      }
+    } catch (e) {
+      // If lookup fails, fall back to SP address
+    }
+
+    // Fall back to returning the raw SP address (will be formatted in the FutureBuilder)
+    return spAddress;
+  }
+
   ListTile toListTile(
       ApiRecordedTransaction tx, FiatExchangeRateState exchangeRate) {
     Color? color;
@@ -254,12 +287,15 @@ class WalletScreenState extends State<WalletScreen> {
     String title;
     String text;
     Image image;
-    String recipient;
+    Widget recipientWidget;
     String date;
 
     switch (tx) {
       case ApiRecordedTransaction_Incoming(:final field0):
-        recipient = 'Incoming';
+        recipientWidget = Text(
+          'Incoming',
+          style: BitcoinTextStyle.body4(Bitcoin.black),
+        );
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         color = Bitcoin.green;
         amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
@@ -273,8 +309,48 @@ class WalletScreenState extends State<WalletScreen> {
             image: const AssetImage("icons/receive.png", package: "bitcoin_ui"),
             color: Bitcoin.neutral3Dark);
       case ApiRecordedTransaction_Outgoing(:final field0):
-        recipient = displayAddress(context, field0.recipients[0].address,
-            BitcoinTextStyle.body4(Bitcoin.black), 0.53);
+        final spAddress = field0.recipients[0].address;
+        final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
+        recipientWidget = FutureBuilder<String>(
+          future: _resolveRecipientDisplay(spAddress, nameServerRepository),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show SP address while loading
+              return Text(
+                displayAddress(context, spAddress,
+                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+                style: BitcoinTextStyle.body4(Bitcoin.black),
+              );
+            }
+            if (snapshot.hasError) {
+              // On error, show SP address
+              return Text(
+                displayAddress(context, spAddress,
+                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+                style: BitcoinTextStyle.body4(Bitcoin.black),
+              );
+            }
+            final displayName = snapshot.data ?? spAddress;
+            // Check if it's a dana address (contains @)
+            if (displayName.contains('@')) {
+              // It's a dana address, use rich text formatting
+              return danaAddressAsRichText(displayName, 15.0);
+            } else if (displayName == spAddress) {
+              // It's the raw SP address, format it
+              return Text(
+                displayAddress(context, spAddress,
+                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+                style: BitcoinTextStyle.body4(Bitcoin.black),
+              );
+            } else {
+              // It's a contact name
+              return Text(
+                displayName,
+                style: BitcoinTextStyle.body4(Bitcoin.black),
+              );
+            }
+          },
+        );
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         if (field0.confirmedAt == null) {
           color = Bitcoin.neutral4;
@@ -294,7 +370,10 @@ class WalletScreenState extends State<WalletScreen> {
             color: Bitcoin.neutral3Dark);
 
       case ApiRecordedTransaction_UnknownOutgoing(:final field0):
-        recipient = "Unknown";
+        recipientWidget = Text(
+          'Unknown',
+          style: BitcoinTextStyle.body4(Bitcoin.black),
+        );
         date = field0.confirmedAt.toString();
         color = Bitcoin.red;
         amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
@@ -313,10 +392,7 @@ class WalletScreenState extends State<WalletScreen> {
       leading: image,
       title: Row(
         children: [
-          Text(
-            recipient,
-            style: BitcoinTextStyle.body4(Bitcoin.black),
-          ),
+          Expanded(child: recipientWidget),
           const Spacer(),
           Text('$amountprefix $amount', style: BitcoinTextStyle.body4(color)),
         ],
