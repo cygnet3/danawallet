@@ -59,6 +59,18 @@ class ContactsRepository {
     return Contact.fromMap(maps.first);
   }
 
+  Future<Contact?> getContactBySpAddress(String spAddress) async {
+    final db = await _dbHelper.database;
+    final maps = await db.query(
+      'contacts',
+      where: 'spAddress = ?',
+      whereArgs: [spAddress],
+    );
+
+    if (maps.isEmpty) return null;
+    return Contact.fromMap(maps.first);
+  }
+
   Future<List<Contact>> getAllContacts({bool loadCustomFields = false}) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
