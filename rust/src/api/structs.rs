@@ -2,12 +2,12 @@ use std::str::FromStr;
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
-use sp_client::{
+use spdk::{
     bitcoin::{
         self,
         absolute::Height,
         consensus::{deserialize, serialize},
-        hex::{DisplayHex, FromHex},
+        hex::{self, DisplayHex, FromHex},
         secp256k1::SecretKey,
         Network, OutPoint, ScriptBuf, Txid,
     },
@@ -32,8 +32,12 @@ impl From<OutputSpendStatus> for ApiOutputSpendStatus {
     fn from(value: OutputSpendStatus) -> Self {
         match value {
             OutputSpendStatus::Unspent => ApiOutputSpendStatus::Unspent,
-            OutputSpendStatus::Spent(txid) => ApiOutputSpendStatus::Spent(txid),
-            OutputSpendStatus::Mined(block) => ApiOutputSpendStatus::Mined(block),
+            OutputSpendStatus::Spent(txid) => {
+                ApiOutputSpendStatus::Spent(txid.to_lower_hex_string())
+            }
+            OutputSpendStatus::Mined(block) => {
+                ApiOutputSpendStatus::Mined(block.to_lower_hex_string())
+            }
         }
     }
 }
@@ -42,8 +46,12 @@ impl From<ApiOutputSpendStatus> for OutputSpendStatus {
     fn from(value: ApiOutputSpendStatus) -> Self {
         match value {
             ApiOutputSpendStatus::Unspent => OutputSpendStatus::Unspent,
-            ApiOutputSpendStatus::Spent(txid) => OutputSpendStatus::Spent(txid),
-            ApiOutputSpendStatus::Mined(block) => OutputSpendStatus::Mined(block),
+            ApiOutputSpendStatus::Spent(txid) => {
+                OutputSpendStatus::Spent(hex::FromHex::from_hex(&txid).unwrap())
+            }
+            ApiOutputSpendStatus::Mined(block) => {
+                OutputSpendStatus::Mined(hex::FromHex::from_hex(&block).unwrap())
+            }
         }
     }
 }

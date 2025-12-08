@@ -30,13 +30,16 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final unsignedTx = RecipientForm().unsignedTx!;
 
-      await walletState.signAndBroadcastUnsignedTx(unsignedTx);
+      final txid = await walletState.signAndBroadcastUnsignedTx(unsignedTx);
 
       if (mounted) {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-                builder: (context) => const TransactionSentScreen()),
+                builder: (context) => TransactionSentScreen(
+                      txid: txid,
+                      network: walletState.network,
+                    )),
             (Route<dynamic> route) => route.isFirst);
       }
     } catch (e) {
@@ -136,11 +139,6 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
         footer: Column(
           children: [
             if (_sendErrorText != null) Text(_sendErrorText!),
-            const SizedBox(
-              height: 10.0,
-            ),
-            if (isDevEnv)
-              FooterButtonOutlined(title: 'See details', onPressed: () => ()),
             const SizedBox(
               height: 10.0,
             ),

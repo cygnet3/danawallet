@@ -5,8 +5,8 @@ use std::{
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
-use sp_client::{
-    bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
+use spdk::{
+    bitcoin::{absolute::Height, hashes::Hash, hex::DisplayHex, Amount, BlockHash, OutPoint, Txid},
     OutputSpendStatus, OwnedOutput,
 };
 
@@ -36,13 +36,27 @@ impl OwnedOutputs {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn decode(encoded_outputs: String) -> Self {
-        serde_json::from_str(&encoded_outputs).unwrap()
+    pub fn decode(encoded_outputs: String) -> Result<Self> {
+        let decoded: HashMap<String, ApiOwnedOutput> = serde_json::from_str(&encoded_outputs)?;
+
+        let mut res: HashMap<OutPoint, OwnedOutput> = HashMap::new();
+
+        for (outpoint, output) in decoded.into_iter() {
+            res.insert(OutPoint::from_str(&outpoint)?, output.into());
+        }
+
+        Ok(Self(res))
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn encode(&self) -> String {
-        serde_json::to_string(&self).unwrap()
+    pub fn encode(&self) -> Result<String> {
+        let mut encoded: HashMap<String, ApiOwnedOutput> = HashMap::new();
+
+        for (outpoint, output) in self.0.iter() {
+            encoded.insert(outpoint.to_string(), output.clone().into());
+        }
+
+        Ok(serde_json::to_string(&encoded)?)
     }
 
     #[flutter_rust_bridge::frb(sync)]
@@ -132,8 +146,8 @@ impl OwnedOutputs {
             .get_mut(&outpoint)
             .ok_or(Error::msg("Outpoint not in list"))?;
 
-        let block_hex = mined_in_block.to_string();
-        output.spend_status = OutputSpendStatus::Mined(block_hex);
+        output.spend_status =
+            OutputSpendStatus::Mined(mined_in_block.as_raw_hash().to_byte_array());
         Ok(())
     }
 
@@ -164,28 +178,27 @@ impl OwnedOutputs {
 
         match &output.spend_status {
             OutputSpendStatus::Unspent => {
-                let tx_hex = spending_tx.to_string();
-                output.spend_status = OutputSpendStatus::Spent(tx_hex);
+                output.spend_status =
+                    OutputSpendStatus::Spent(spending_tx.as_raw_hash().to_byte_array());
                 //self.outputs.insert(outpoint, output);
                 Ok(())
             }
-            OutputSpendStatus::Spent(tx_hex) => {
+            OutputSpendStatus::Spent(spending_tx) => {
                 // We may want to fail if that's the case, or force update if we know what we're doing
                 if force_update {
-                    let tx_hex = spending_tx.to_string();
-                    output.spend_status = OutputSpendStatus::Spent(tx_hex);
+                    output.spend_status = OutputSpendStatus::Spent(*spending_tx);
                     //self.outputs.insert(outpoint, output);
                     Ok(())
                 } else {
                     Err(Error::msg(format!(
                         "Output already spent by transaction {}",
-                        tx_hex
+                        spending_tx.to_lower_hex_string()
                     )))
                 }
             }
             OutputSpendStatus::Mined(block) => Err(Error::msg(format!(
                 "Output already mined in block {}",
-                block
+                block.to_lower_hex_string()
             ))),
         }
     }

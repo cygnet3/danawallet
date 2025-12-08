@@ -3,25 +3,44 @@ import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
-import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class ChooseRecipientScreen extends StatefulWidget {
-  const ChooseRecipientScreen({super.key});
+  final String? initialAddress;
+  
+  const ChooseRecipientScreen({super.key, this.initialAddress});
 
   @override
   ChooseRecipientScreenState createState() => ChooseRecipientScreenState();
 }
 
 class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
-  final TextEditingController addressController = TextEditingController();
+  late final TextEditingController addressController;
   String? _addressErrorText;
+
+  @override
+  void initState() {
+    super.initState();
+    addressController = TextEditingController(
+      text: widget.initialAddress ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    addressController.dispose();
+    super.dispose();
+  }
 
   Future<void> onContinue() async {
     RecipientForm form = RecipientForm();
@@ -34,22 +53,61 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
 
     try {
       String address = addressController.text.trim();
+      
       if (address.contains('@')) {
-        // we interpret the address as a bip353 address
+        // we interpret the address as a dana address (BIP353)
         try {
-          final data = await Bip353.getAdressResolve(address);
-          if (data.silentpayment != null) {
-            form.recipientBip353 = address;
-            address = data.silentpayment!;
+          final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
+          Logger().d('Resolving dana address: "$address"');
+          
+          final data = await nameServerRepository.getAddressResolve(address);
+          
+          if (data == null) {
+            // DNS resolution returned null - address not registered
+            Logger().w('Dana address "$address" not found in DNS');
+            throw Exception('Dana address not found or not registered');
           }
+          
+          Logger().d('DNS resolution successful. Silent payment address: ${data.silentpayment != null ? "present" : "null"}');
+          
+          if (data.silentpayment == null || data.silentpayment!.isEmpty) {
+            // DNS record exists but has no silent payment address
+            Logger().w('Dana address "$address" found but has no silent payment address');
+            throw Exception('Dana address found but has no payment address configured');
+          }
+          
+          // Store the original dana address for the form
+          // Note: getAddressResolve cleans the address internally, but we store the original
+          // as entered by the user for display purposes
+          form.recipientBip353 = address;
+          address = data.silentpayment!;
+          
+          Logger().d('Successfully resolved dana address to SP address: ${address.substring(0, 20)}...');
         } catch (e) {
-          // todo wrap bip353 logic in a separate class that throws custom errors
-          throw Exception('Failed to look up address');
+          // Log the error for debugging
+          Logger().e('Failed to resolve dana address "$address": $e');
+          // Re-throw with a user-friendly message
+          if (e is ArgumentError) {
+            throw Exception('Invalid dana address format: ${e.message}');
+          } else if (e is Exception) {
+            rethrow;
+          } else {
+            throw Exception('Failed to look up dana address: $e');
+          }
         }
       }
 
-      if (!validateAddress(address: address)) {
-        throw InvalidAddressException();
+      try {
+        if (context.mounted) {
+          final network = Provider.of<WalletState>(context, listen: false).network;
+          validateAddressWithNetwork(address: address, network: network.toCoreArg);
+        }
+      } catch (e) {
+        if (e.toString().contains('network')) {
+          throw InvalidNetworkException();
+        } else {
+          throw InvalidAddressException();
+        }
       }
 
       form.recipientAddress = address;
@@ -106,6 +164,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                     height: 20.0,
                   ),
                   TextField(
+                    onTap: () => setState(() => _addressErrorText = null),
                     style: BitcoinTextStyle.body4(Bitcoin.black),
                     controller: addressController,
                     keyboardType: TextInputType.emailAddress,
@@ -125,15 +184,6 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   FooterButtonOutlined(
                       title: "Paste from clipboard",
                       onPressed: onPasteFromClipboard),
-                  const SizedBox(
-                    height: 10.0,
-                  ),
-                  if (isDevEnv)
-                    FooterButtonOutlined(
-                      title: "Choose from Contacts",
-                      onPressed: () => (),
-                      enabled: false,
-                    ),
                   const SizedBox(
                     height: 10.0,
                   ),
