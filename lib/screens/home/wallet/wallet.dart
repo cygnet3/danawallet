@@ -5,14 +5,14 @@ import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
-import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 const String mainnetWarning =
@@ -69,13 +69,62 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
+  Widget buildDanaAddressBanner(String danaAddress) {
+    return GestureDetector(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: danaAddress));
+        HapticFeedback.lightImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Bitcoin.white, size: 16),
+                const SizedBox(width: 8),
+                const Text('Dana address copied to clipboard'),
+              ],
+            ),
+            backgroundColor: Bitcoin.green.withValues(alpha: 0.8),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Bitcoin.blue.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Bitcoin.blue.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    'Your Dana Address',
+                    style: BitcoinTextStyle.body4(Bitcoin.neutral7)
+                        .copyWith(fontFamily: 'Inter', fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 8),
+                  danaAddressAsRichText(danaAddress, 15.0),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.copy, size: 16, color: Bitcoin.blue.withValues(alpha: 0.6)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget buildOfflineStatus(ChainState chainState) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Bitcoin.orange.withOpacity(0.1),
+        color: Bitcoin.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Bitcoin.orange.withOpacity(0.3)),
+        border: Border.all(color: Bitcoin.orange.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -127,7 +176,7 @@ class WalletScreenState extends State<WalletScreen> {
                           const Text('Successfully reconnected!'),
                         ],
                       ),
-                      backgroundColor: Bitcoin.green.withOpacity(0.1),
+                      backgroundColor: Bitcoin.green.withValues(alpha: 0.1),
                       duration: const Duration(seconds: 3),
                     ),
                   );
@@ -334,13 +383,143 @@ class WalletScreenState extends State<WalletScreen> {
                       builder: (context) => const ChooseRecipientScreen())),
             ),
           ),
-          const SizedBox(width: 10),
-          ReceiveWidget(
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ShowAddressScreen(address: address))),
-          )
+        ],
+      ),
+    );
+  }
+
+  Widget buildAddressBox(String label, String address, bool isDanaAddress) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: BitcoinTextStyle.body4(Bitcoin.neutral7),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: address));
+            HapticFeedback.lightImpact();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Bitcoin.white, size: 16),
+                    const SizedBox(width: 8),
+                    const Text('Address copied to clipboard'),
+                  ],
+                ),
+                backgroundColor: Bitcoin.green.withValues(alpha: 0.8),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Bitcoin.neutral3,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: isDanaAddress
+                      ? danaAddressAsRichText(address, 15.0)
+                      : addressAsRichText(address, 14.0),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.copy, size: 16, color: Bitcoin.neutral7),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildFundingScreen(
+      String silentPaymentAddress,
+      String? danaAddress,
+      ScanProgressNotifier scanProgress,
+      ChainState chainState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: [
+          // Show sync progress when actively scanning
+          Visibility(
+              visible: scanProgress.scanning,
+              maintainAnimation: true,
+              maintainSize: true,
+              maintainState: true,
+              child: buildScanProgress(scanProgress.progress)),
+          // Show offline status when chain sync has connection issues
+          Visibility(
+              visible: !chainState.available,
+              maintainAnimation: true,
+              maintainSize: true,
+              maintainState: true,
+              child: buildOfflineStatus(chainState)),
+          const SizedBox(height: 20.0),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Icon: arrow down in a box, blue
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Bitcoin.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: Image(
+                          width: 40,
+                          height: 40,
+                          image: const AssetImage("icons/receive.png",
+                              package: "bitcoin_ui"),
+                          color: Bitcoin.blue,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Title
+                    Text(
+                      'Fund your wallet',
+                      style: BitcoinTextStyle.body1(Bitcoin.neutral8).apply(
+                        fontSizeDelta: 2,
+                        fontWeightDelta: 2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    // Subtitle
+                    Text(
+                      'Your balance is 0 at the moment. Share your Dana address and get donations or fund your wallet to donate to others',
+                      style: BitcoinTextStyle.body3(Bitcoin.neutral7),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    // Dana address box (if available)
+                    if (danaAddress != null) ...[
+                      buildAddressBox('Your Dana Address', danaAddress, true),
+                      const SizedBox(height: 20),
+                    ],
+                    // Silent payment address box
+                    buildAddressBox(
+                        'Your Silent Payment Address', silentPaymentAddress, false),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -372,52 +551,73 @@ class WalletScreenState extends State<WalletScreen> {
     final exchangeRate = Provider.of<FiatExchangeRateState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
     final chainState = Provider.of<ChainState>(context);
+    final nameServerRepository = Provider.of<NameServerRepository>(context);
 
     ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
+    
+    // Check if balance is zero
+    bool isBalanceZero = amount.field0 == BigInt.zero;
+    // Check if there's transaction history
+    bool hasTransactionHistory = walletState.txHistory.toApiTransactions().isNotEmpty;
+    
+    // Show funding screen only if balance is zero AND there's no transaction history
+    bool showFundingScreen = isBalanceZero && !hasTransactionHistory;
 
     return Scaffold(
         appBar: buildAppBar(scanProgress.scanning, walletState.network.toColor),
-        body: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Show sync progress when actively scanning
-                    Visibility(
-                        visible: scanProgress.scanning,
-                        maintainAnimation: true,
-                        maintainSize: true,
-                        maintainState: true,
-                        child: buildScanProgress(scanProgress.progress)),
-                    // Show offline status when chain sync has connection issues
-                    Visibility(
-                        visible: !chainState.available,
-                        maintainAnimation: true,
-                        maintainSize: true,
-                        maintainState: true,
-                        child: buildOfflineStatus(chainState)),
-                    const SizedBox(height: 20.0),
-                    buildAmountDisplay(
-                      amount,
-                      exchangeRate,
+        body: showFundingScreen
+            ? buildFundingScreen(
+                walletState.address,
+                nameServerRepository.userDanaAddress,
+                scanProgress,
+                chainState,
+              )
+            : Column(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Show sync progress when actively scanning
+                          Visibility(
+                              visible: scanProgress.scanning,
+                              maintainAnimation: true,
+                              maintainSize: true,
+                              maintainState: true,
+                              child: buildScanProgress(scanProgress.progress)),
+                          // Show offline status when chain sync has connection issues
+                          Visibility(
+                              visible: !chainState.available,
+                              maintainAnimation: true,
+                              maintainSize: true,
+                              maintainState: true,
+                              child: buildOfflineStatus(chainState)),
+                          const SizedBox(height: 20.0),
+                          buildAmountDisplay(
+                            amount,
+                            exchangeRate,
+                          ),
+                          const SizedBox(height: 20.0),
+                          // Show Dana address banner if available
+                          if (nameServerRepository.userDanaAddress != null)
+                            buildDanaAddressBanner(
+                                nameServerRepository.userDanaAddress!),
+                          const Spacer(),
+                          buildTransactionHistory(
+                            walletState.txHistory.toApiTransactions(),
+                            exchangeRate,
+                          ),
+                          buildBottomButtons(walletState.address),
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
-                    buildTransactionHistory(
-                      walletState.txHistory.toApiTransactions(),
-                      exchangeRate,
-                    ),
-                    buildBottomButtons(walletState.address),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ));
+                  ),
+                ],
+              ));
   }
 }
