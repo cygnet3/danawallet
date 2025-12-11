@@ -15,7 +15,7 @@ In the meantime, there are three ways to try out Dana wallet:
 
 - Using Obtanium, download the latest release from GitHub
 - Manually download the latest Dana wallet APK from the [releases page](https://github.com/cygnet3/danawallet/releases)
-- Using F-Droid, download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.silentpayments.dev/fdroid/repo)
+- Using F-Droid, download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.danawallet.app/fdroid/repo)
 
 Downloading the APK from the releases page is probably the easiest option.
 However, for some extra options (e.g. if you want to test using Signet), you'll need to use the F-droid repository option. More info below.
