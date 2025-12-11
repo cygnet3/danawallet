@@ -52,12 +52,6 @@ class TransactionSentScreen extends StatelessWidget {
           ]),
       footer: Column(
         children: [
-          if (isDevEnv)
-            FooterButtonOutlined(
-                title: 'View transaction', onPressed: () => ()),
-          const SizedBox(
-            height: 10.0,
-          ),
           FooterButton(
               title: 'Done',
               onPressed: () {

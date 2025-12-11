@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
-use sp_client::{
+use spdk::{
     bitcoin::{absolute::Height, Amount, OutPoint, Txid},
     Recipient,
 };
@@ -28,13 +28,17 @@ impl TxHistory {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn decode(encoded_history: String) -> Self {
-        serde_json::from_str(&encoded_history).unwrap()
+    pub fn decode(encoded_history: String) -> Result<Self> {
+        let decoded: Vec<ApiRecordedTransaction> = serde_json::from_str(&encoded_history)?;
+
+        Ok(Self(decoded.into_iter().map(Into::into).collect()))
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn encode(&self) -> String {
-        serde_json::to_string(&self).unwrap()
+    pub fn encode(&self) -> Result<String> {
+        let encoded = self.to_api_transactions();
+
+        Ok(serde_json::to_string(&encoded)?)
     }
 
     #[flutter_rust_bridge::frb(sync)]

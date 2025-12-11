@@ -15,7 +15,7 @@ In the meantime, there are three ways to try out Dana wallet:
 
 - Using Obtanium, download the latest release from GitHub
 - Manually download the latest Dana wallet APK from the [releases page](https://github.com/cygnet3/danawallet/releases)
-- Using F-Droid, download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.silentpayments.dev/fdroid/repo)
+- Using F-Droid, download Dana wallet using our [self-hosted F-Droid repository](https://fdroid.danawallet.app/fdroid/repo)
 
 Downloading the APK from the releases page is probably the easiest option.
 However, for some extra options (e.g. if you want to test using Signet), you'll need to use the F-droid repository option. More info below.
@@ -66,7 +66,7 @@ Below are some instructions to build Dana wallet from souce. This is only recomm
 Building for linux should require no extra effort, simply execute
 
 ```
-flutter run --flavor dev
+fvm flutter run
 ```
 
 This may also work on other platforms (macOS, Windows), but we have not tested this.
@@ -86,10 +86,9 @@ rustup target add \
     i686-linux-android
 ```
 
-After these are installed, go in to the rust directory and run `just build-android`.
+After these are installed, you can generate the binaries using
 
 ```
-cd rust
 just build-android
 ```
 
@@ -100,7 +99,7 @@ Next, connect your phone and enable debugging mode.
 Check if you phone is connected by running
 
 ```
-flutter devices
+fvm flutter devices
 ```
 
 Finally, to build and install the app for your android device:

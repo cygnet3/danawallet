@@ -1,9 +1,30 @@
-use sp_client::{bitcoin::Network, BlindbitBackend, BlindbitClient, ChainBackend};
+use std::time::Duration;
+
+use log::warn;
+use spdk::{bitcoin::Network, BlindbitBackend, BlindbitClient, ChainBackend};
+use tokio::time::sleep;
 
 pub async fn get_chain_height(blindbit_url: String) -> anyhow::Result<u32> {
     let backend = BlindbitBackend::new(blindbit_url)?;
 
-    Ok(backend.block_height().await?.to_consensus_u32())
+    match backend.block_height().await {
+        Ok(res) => Ok(res.to_consensus_u32()),
+        Err(e) => {
+            if e.root_cause()
+                .to_string()
+                .starts_with("operation timed out")
+            {
+                warn!("Got timeout fetching block height, retrying");
+
+                // sleep for 1 second
+                sleep(Duration::from_millis(1000)).await;
+
+                Ok(backend.block_height().await?.to_consensus_u32())
+            } else {
+                Err(e)
+            }
+        }
+    }
 }
 
 pub async fn check_network(blindbit_url: String, network: String) -> anyhow::Result<bool> {

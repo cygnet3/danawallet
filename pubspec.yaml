@@ -1,7 +1,7 @@
 name: danawallet
 description: A silent payments wallet built in flutter.
 publish_to: 'none'
-version: 0.6.2+15
+version: 0.6.3+17
 
 environment:
   sdk: ^3.5.2
@@ -41,7 +41,6 @@ dependencies:
   share_plus: ^11.0.0
   auto_size_text: ^3.0.0
 
-
 # temporary fix, see: https://github.com/juliansteenbakker/flutter_secure_storage/issues/920
 dependency_overrides:
   flutter_secure_storage_linux:
@@ -60,6 +59,8 @@ dev_dependencies:
   freezed: ^2.4.2
 
 flutter:
+  # if no build flavor is provided, use the dev flavor as default
+  default-flavor: dev
   uses-material-design: true
 
   assets:

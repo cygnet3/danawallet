@@ -106,6 +106,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                     height: 20.0,
                   ),
                   TextField(
+                    onTap: () => setState(() => _addressErrorText = null),
                     style: BitcoinTextStyle.body4(Bitcoin.black),
                     controller: addressController,
                     keyboardType: TextInputType.emailAddress,
@@ -125,15 +126,6 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   FooterButtonOutlined(
                       title: "Paste from clipboard",
                       onPressed: onPasteFromClipboard),
-                  const SizedBox(
-                    height: 10.0,
-                  ),
-                  if (isDevEnv)
-                    FooterButtonOutlined(
-                      title: "Choose from Contacts",
-                      onPressed: () => (),
-                      enabled: false,
-                    ),
                   const SizedBox(
                     height: 10.0,
                   ),
