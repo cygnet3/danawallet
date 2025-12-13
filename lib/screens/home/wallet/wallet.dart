@@ -12,6 +12,7 @@ import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/receive_widget.dart';
+import 'package:danawallet/widgets/connection_status_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -392,6 +393,7 @@ class WalletScreenState extends State<WalletScreen> {
                         maintainSize: true,
                         maintainState: true,
                         child: buildScanProgress(scanProgress.progress)),
+                    const ConnectionStatusIndicator(),
                     // Show offline status when chain sync has connection issues
                     Visibility(
                         visible: !chainState.available,
