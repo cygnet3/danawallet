@@ -1,5 +1,4 @@
 import 'package:danawallet/data/models/recommended_fee_model.dart';
-import 'package:danawallet/generated/rust/api/structs.dart';
 
 enum SelectedFee {
   fast,
@@ -33,20 +32,6 @@ enum SelectedFee {
     }
   }
 
-  ApiAmount getEstimatedFee(RecommendedFeeResponse currentFeeRates) {
-    // 1 in, 1 out has size 111 vbytes
-    // 1 in, 2 out has size 154 vbytes
-    // 2 in, 1 out has size 168.6 vbytes
-    // 2 in, 2 out has size 211.5 vbytes
-    // 3 in, 1 out has size 226 vbytes
-    int estimatedSize = 200;
-    int feeRate = getFeeRate(currentFeeRates);
-
-    int estimatedFee = estimatedSize * feeRate;
-
-    return ApiAmount(field0: BigInt.from(estimatedFee));
-  }
-
   int getFeeRate(RecommendedFeeResponse response) {
     switch (this) {
       case SelectedFee.fast:
@@ -56,8 +41,7 @@ enum SelectedFee {
       case SelectedFee.slow:
         return response.hourFee;
       case SelectedFee.custom:
-        // todo change
-        return response.dayFee;
+        throw Exception('Can\'t get fee rate for custom fee');
     }
   }
 }

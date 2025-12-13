@@ -5,6 +5,7 @@ import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
@@ -48,8 +49,17 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
         }
       }
 
-      if (!validateAddress(address: address)) {
-        throw InvalidAddressException();
+      try {
+        if (context.mounted) {
+          final network = Provider.of<WalletState>(context, listen: false).network;
+          validateAddressWithNetwork(address: address, network: network.toCoreArg);
+        }
+      } catch (e) {
+        if (e.toString().contains('network')) {
+          throw InvalidNetworkException();
+        } else {
+          throw InvalidAddressException();
+        }
       }
 
       form.recipientAddress = address;
