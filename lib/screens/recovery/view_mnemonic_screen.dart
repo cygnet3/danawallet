@@ -19,14 +19,14 @@ class ViewMnemonicScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = AutoSizeText(
-      "This is your recovery phrase",
+      "This is your wallet backup phrase",
       style: BitcoinTextStyle.title2(Colors.black)
           .copyWith(height: 1.8, fontFamily: 'Inter'),
       maxLines: 1,
     );
 
     final text = AutoSizeText(
-      "Make sure to write it down as shown here, including birthday, all words and their number.",
+      "You can recover this wallet by using this backup phrase.",
       style: BitcoinTextStyle.body3(Bitcoin.neutral7).copyWith(
         fontFamily: 'Inter',
       ),
