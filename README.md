@@ -47,7 +47,7 @@ as this may imply there's an issue with the faucet.
 - Go to 'Settings'
 - In the 'My Apps' section, click on 'Repositories'
 - Add a new repository by clicking the '+' icon
-- Scan the QR code found on this page: https://fdroid.silentpayments.dev/fdroid/repo
+- Scan the QR code found on this page: https://fdroid.danawallet.app/fdroid/repo
 
 #### App flavors
 
