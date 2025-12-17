@@ -33,8 +33,13 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
   }
 
   void _computeFeeAmounts() async {
-    final walletState = Provider.of<WalletState>(context, listen: false);
     RecipientForm form = RecipientForm();
+
+    final walletState = Provider.of<WalletState>(context, listen: false);
+
+    // fetch fee rates from mempool
+    final currentFeeRates = await walletState.getCurrentFeeRates();
+    form.currentFeeRates = currentFeeRates;
 
     for (SelectedFee fee in [
       SelectedFee.fast,
@@ -101,33 +106,20 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
       case SelectedFee.fast:
       case SelectedFee.normal:
       case SelectedFee.slow:
+        String subtitleBtc;
+        String subtitleFiat;
         if (_isLoadingFees) {
-          return ListTile(
-            title: Row(
-              children: [
-                Text(
-                  fee.toName,
-                  style: BitcoinTextStyle.body3(Bitcoin.black),
-                ),
-                const Spacer(),
-                Text(fee.toEstimatedTime,
-                    style: BitcoinTextStyle.body3(Bitcoin.black)),
-              ],
-            ),
-            subtitle: Text('Loading...',
-                style: BitcoinTextStyle.body3(Bitcoin.black)),
-            leading: Radio<SelectedFee>(
-              groupValue: _selected,
-              value: fee,
-              onChanged: null, // Disabled while loading
-            ),
-          );
+          subtitleBtc = 'Loading...';
+          subtitleFiat = 'Loading...';
+        } else {
+          final estimatedFee = _feeAmounts[fee];
+          if (estimatedFee == null) {
+            throw Exception('Fee amount not computed for $fee');
+          }
+          subtitleBtc = estimatedFee.displaySats();
+          subtitleFiat = exchangeRate.displayFiat(estimatedFee);
         }
 
-        final estimatedFee = _feeAmounts[fee];
-        if (estimatedFee == null) {
-          throw Exception('Fee amount not computed for $fee');
-        }
         return ListTile(
           title: Row(
             children: [
@@ -142,10 +134,10 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
           ),
           subtitle: Row(
             children: [
-              Text(estimatedFee.displaySats(),
+              Text(subtitleBtc,
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
               const Spacer(),
-              Text(exchangeRate.displayFiat(estimatedFee),
+              Text(subtitleFiat,
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
             ],
           ),
