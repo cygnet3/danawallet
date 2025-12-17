@@ -197,7 +197,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
           const SizedBox(
             height: 10.0,
           ),
-          FooterButton(title: 'Continue', onPressed: onContinue)
+          FooterButton(title: 'Continue', onPressed: onContinue, enabled: !_isLoadingFees,)
         ],
       ),
     );
