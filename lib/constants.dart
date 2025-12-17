@@ -17,7 +17,7 @@ const int defaultRegtestBirthday = 80000;
 // default dust limit. this is used in syncing, as well as sending
 // for syncing, amounts < dust limit will be ignored
 // for sending, the user needs to send a minimum of >= dust
-const int defaultDustLimit = 1000;
+const int defaultDustLimit = 600;
 
 // default fiat currency
 const FiatCurrency defaultCurrency = FiatCurrency.usd;
