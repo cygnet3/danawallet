@@ -8,6 +8,7 @@ use spdk::{
 pub enum RecordedTransaction {
     Incoming(RecordedTransactionIncoming),
     Outgoing(RecordedTransactionOutgoing),
+    UnknownOutgoing(RecordedTransactionUnknownOutgoing),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -26,4 +27,11 @@ pub struct RecordedTransactionOutgoing {
     pub change: Amount,
     #[serde(default)]
     pub fee: Amount,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct RecordedTransactionUnknownOutgoing {
+    pub spent_outpoints: Vec<OutPoint>,
+    pub amount: Amount,
+    pub confirmed_at: Height,
 }

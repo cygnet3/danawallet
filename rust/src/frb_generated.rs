@@ -2260,11 +2260,15 @@ fn wire__crate__api__history__TxHistory_process_state_update_impl(
             let api_update = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StateUpdate>,
             >>::sse_decode(&mut deserializer);
+            let api_owned_outputs = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OwnedOutputs>,
+            >>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                 (move || {
                     let mut api_that_guard = None;
                     let mut api_update_guard = None;
+                    let mut api_owned_outputs_guard = None;
                     let decode_indices_ =
                         flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
                             flutter_rust_bridge::for_generated::LockableOrderInfo::new(
@@ -2275,19 +2279,30 @@ fn wire__crate__api__history__TxHistory_process_state_update_impl(
                                 1,
                                 false,
                             ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_owned_outputs,
+                                2,
+                                false,
+                            ),
                         ]);
                     for i in decode_indices_ {
                         match i {
                             0 => api_that_guard = Some(api_that.lockable_decode_sync_ref_mut()),
                             1 => api_update_guard = Some(api_update.lockable_decode_sync_ref()),
+                            2 => {
+                                api_owned_outputs_guard =
+                                    Some(api_owned_outputs.lockable_decode_sync_ref())
+                            }
                             _ => unreachable!(),
                         }
                     }
                     let mut api_that_guard = api_that_guard.unwrap();
                     let api_update_guard = api_update_guard.unwrap();
+                    let api_owned_outputs_guard = api_owned_outputs_guard.unwrap();
                     let output_ok = crate::api::history::TxHistory::process_state_update(
                         &mut *api_that_guard,
                         &*api_update_guard,
+                        &*api_owned_outputs_guard,
                     )?;
                     Ok(output_ok)
                 })(),
@@ -4761,6 +4776,13 @@ impl SseDecode for crate::api::structs::ApiRecordedTransaction {
                     <crate::api::structs::ApiRecordedTransactionOutgoing>::sse_decode(deserializer);
                 return crate::api::structs::ApiRecordedTransaction::Outgoing(var_field0);
             }
+            2 => {
+                let mut var_field0 =
+                    <crate::api::structs::ApiRecordedTransactionUnknownOutgoing>::sse_decode(
+                        deserializer,
+                    );
+                return crate::api::structs::ApiRecordedTransaction::UnknownOutgoing(var_field0);
+            }
             _ => {
                 unimplemented!("");
             }
@@ -4798,6 +4820,20 @@ impl SseDecode for crate::api::structs::ApiRecordedTransactionOutgoing {
             confirmed_at: var_confirmedAt,
             change: var_change,
             fee: var_fee,
+        };
+    }
+}
+
+impl SseDecode for crate::api::structs::ApiRecordedTransactionUnknownOutgoing {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_amount = <crate::api::structs::ApiAmount>::sse_decode(deserializer);
+        let mut var_confirmedAt = <u32>::sse_decode(deserializer);
+        let mut var_spentOutpoints = <Vec<String>>::sse_decode(deserializer);
+        return crate::api::structs::ApiRecordedTransactionUnknownOutgoing {
+            amount: var_amount,
+            confirmed_at: var_confirmedAt,
+            spent_outpoints: var_spentOutpoints,
         };
     }
 }
@@ -5526,6 +5562,9 @@ impl flutter_rust_bridge::IntoDart for crate::api::structs::ApiRecordedTransacti
             crate::api::structs::ApiRecordedTransaction::Outgoing(field0) => {
                 [1.into_dart(), field0.into_into_dart().into_dart()].into_dart()
             }
+            crate::api::structs::ApiRecordedTransaction::UnknownOutgoing(field0) => {
+                [2.into_dart(), field0.into_into_dart().into_dart()].into_dart()
+            }
             _ => {
                 unimplemented!("");
             }
@@ -5587,6 +5626,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::structs::ApiRecordedTransacti
     for crate::api::structs::ApiRecordedTransactionOutgoing
 {
     fn into_into_dart(self) -> crate::api::structs::ApiRecordedTransactionOutgoing {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::structs::ApiRecordedTransactionUnknownOutgoing {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.amount.into_into_dart().into_dart(),
+            self.confirmed_at.into_into_dart().into_dart(),
+            self.spent_outpoints.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::structs::ApiRecordedTransactionUnknownOutgoing
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::structs::ApiRecordedTransactionUnknownOutgoing>
+    for crate::api::structs::ApiRecordedTransactionUnknownOutgoing
+{
+    fn into_into_dart(self) -> crate::api::structs::ApiRecordedTransactionUnknownOutgoing {
         self
     }
 }
@@ -6091,6 +6152,12 @@ impl SseEncode for crate::api::structs::ApiRecordedTransaction {
                     field0, serializer,
                 );
             }
+            crate::api::structs::ApiRecordedTransaction::UnknownOutgoing(field0) => {
+                <i32>::sse_encode(2, serializer);
+                <crate::api::structs::ApiRecordedTransactionUnknownOutgoing>::sse_encode(
+                    field0, serializer,
+                );
+            }
             _ => {
                 unimplemented!("");
             }
@@ -6116,6 +6183,15 @@ impl SseEncode for crate::api::structs::ApiRecordedTransactionOutgoing {
         <Option<u32>>::sse_encode(self.confirmed_at, serializer);
         <crate::api::structs::ApiAmount>::sse_encode(self.change, serializer);
         <crate::api::structs::ApiAmount>::sse_encode(self.fee, serializer);
+    }
+}
+
+impl SseEncode for crate::api::structs::ApiRecordedTransactionUnknownOutgoing {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::structs::ApiAmount>::sse_encode(self.amount, serializer);
+        <u32>::sse_encode(self.confirmed_at, serializer);
+        <Vec<String>>::sse_encode(self.spent_outpoints, serializer);
     }
 }
 
