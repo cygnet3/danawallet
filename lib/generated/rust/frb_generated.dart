@@ -239,7 +239,9 @@ abstract class RustLibApi extends BaseApi {
       {required TxHistory that});
 
   void crateApiHistoryTxHistoryProcessStateUpdate(
-      {required TxHistory that, required StateUpdate update});
+      {required TxHistory that,
+      required StateUpdate update,
+      required OwnedOutputs ownedOutputs});
 
   void crateApiHistoryTxHistoryResetToHeight(
       {required TxHistory that, required int height});
@@ -1791,7 +1793,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   void crateApiHistoryTxHistoryProcessStateUpdate(
-      {required TxHistory that, required StateUpdate update}) {
+      {required TxHistory that,
+      required StateUpdate update,
+      required OwnedOutputs ownedOutputs}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -1799,6 +1803,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that, serializer);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStateUpdate(
             update, serializer);
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOwnedOutputs(
+            ownedOutputs, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
       },
       codec: SseCodec(
@@ -1806,7 +1812,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeErrorData: sse_decode_AnyhowException,
       ),
       constMeta: kCrateApiHistoryTxHistoryProcessStateUpdateConstMeta,
-      argValues: [that, update],
+      argValues: [that, update, ownedOutputs],
       apiImpl: this,
     ));
   }
@@ -1814,7 +1820,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiHistoryTxHistoryProcessStateUpdateConstMeta =>
       const TaskConstMeta(
         debugName: "TxHistory_process_state_update",
-        argNames: ["that", "update"],
+        argNames: ["that", "update", "ownedOutputs"],
       );
 
   @override
@@ -3695,6 +3701,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         return ApiRecordedTransaction_Outgoing(
           dco_decode_box_autoadd_api_recorded_transaction_outgoing(raw[1]),
         );
+      case 2:
+        return ApiRecordedTransaction_UnknownOutgoing(
+          dco_decode_box_autoadd_api_recorded_transaction_unknown_outgoing(
+              raw[1]),
+        );
       default:
         throw Exception("unreachable");
     }
@@ -3728,6 +3739,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       confirmedAt: dco_decode_opt_box_autoadd_u_32(arr[3]),
       change: dco_decode_api_amount(arr[4]),
       fee: dco_decode_api_amount(arr[5]),
+    );
+  }
+
+  @protected
+  ApiRecordedTransactionUnknownOutgoing
+      dco_decode_api_recorded_transaction_unknown_outgoing(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ApiRecordedTransactionUnknownOutgoing(
+      amount: dco_decode_api_amount(arr[0]),
+      confirmedAt: dco_decode_u_32(arr[1]),
+      spentOutpoints: dco_decode_list_String(arr[2]),
     );
   }
 
@@ -3789,6 +3814,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       dco_decode_box_autoadd_api_recorded_transaction_outgoing(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_api_recorded_transaction_outgoing(raw);
+  }
+
+  @protected
+  ApiRecordedTransactionUnknownOutgoing
+      dco_decode_box_autoadd_api_recorded_transaction_unknown_outgoing(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_api_recorded_transaction_unknown_outgoing(raw);
   }
 
   @protected
@@ -4482,6 +4515,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             sse_decode_box_autoadd_api_recorded_transaction_outgoing(
                 deserializer);
         return ApiRecordedTransaction_Outgoing(var_field0);
+      case 2:
+        var var_field0 =
+            sse_decode_box_autoadd_api_recorded_transaction_unknown_outgoing(
+                deserializer);
+        return ApiRecordedTransaction_UnknownOutgoing(var_field0);
       default:
         throw UnimplementedError('');
     }
@@ -4515,6 +4553,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         confirmedAt: var_confirmedAt,
         change: var_change,
         fee: var_fee);
+  }
+
+  @protected
+  ApiRecordedTransactionUnknownOutgoing
+      sse_decode_api_recorded_transaction_unknown_outgoing(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_amount = sse_decode_api_amount(deserializer);
+    var var_confirmedAt = sse_decode_u_32(deserializer);
+    var var_spentOutpoints = sse_decode_list_String(deserializer);
+    return ApiRecordedTransactionUnknownOutgoing(
+        amount: var_amount,
+        confirmedAt: var_confirmedAt,
+        spentOutpoints: var_spentOutpoints);
   }
 
   @protected
@@ -4580,6 +4632,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_api_recorded_transaction_outgoing(deserializer));
+  }
+
+  @protected
+  ApiRecordedTransactionUnknownOutgoing
+      sse_decode_box_autoadd_api_recorded_transaction_unknown_outgoing(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_api_recorded_transaction_unknown_outgoing(deserializer));
   }
 
   @protected
@@ -5314,6 +5374,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_i_32(1, serializer);
         sse_encode_box_autoadd_api_recorded_transaction_outgoing(
             field0, serializer);
+      case ApiRecordedTransaction_UnknownOutgoing(field0: final field0):
+        sse_encode_i_32(2, serializer);
+        sse_encode_box_autoadd_api_recorded_transaction_unknown_outgoing(
+            field0, serializer);
     }
   }
 
@@ -5336,6 +5400,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_u_32(self.confirmedAt, serializer);
     sse_encode_api_amount(self.change, serializer);
     sse_encode_api_amount(self.fee, serializer);
+  }
+
+  @protected
+  void sse_encode_api_recorded_transaction_unknown_outgoing(
+      ApiRecordedTransactionUnknownOutgoing self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_api_amount(self.amount, serializer);
+    sse_encode_u_32(self.confirmedAt, serializer);
+    sse_encode_list_String(self.spentOutpoints, serializer);
   }
 
   @protected
@@ -5393,6 +5466,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ApiRecordedTransactionOutgoing self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_api_recorded_transaction_outgoing(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_api_recorded_transaction_unknown_outgoing(
+      ApiRecordedTransactionUnknownOutgoing self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_api_recorded_transaction_unknown_outgoing(self, serializer);
   }
 
   @protected
@@ -6003,8 +6083,10 @@ class TxHistoryImpl extends RustOpaque implements TxHistory {
         that: this,
       );
 
-  void processStateUpdate({required StateUpdate update}) => RustLib.instance.api
-      .crateApiHistoryTxHistoryProcessStateUpdate(that: this, update: update);
+  void processStateUpdate(
+          {required StateUpdate update, required OwnedOutputs ownedOutputs}) =>
+      RustLib.instance.api.crateApiHistoryTxHistoryProcessStateUpdate(
+          that: this, update: update, ownedOutputs: ownedOutputs);
 
   void resetToHeight({required int height}) => RustLib.instance.api
       .crateApiHistoryTxHistoryResetToHeight(that: this, height: height);
