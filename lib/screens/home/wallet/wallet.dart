@@ -243,6 +243,21 @@ class WalletScreenState extends State<WalletScreen> {
         image = Image(
             image: const AssetImage("icons/send.png", package: "bitcoin_ui"),
             color: Bitcoin.neutral3Dark);
+
+      case ApiRecordedTransaction_UnknownOutgoing(:final field0):
+        recipient = "Unknown";
+        date = field0.confirmedAt.toString();
+        color = Bitcoin.red;
+        amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
+        amountprefix = '-';
+        amountFiat = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayFiat(field0.amount);
+        title = 'Parially recovered outgoing transaction';
+        text = field0.toString();
+        image = Image(
+            image: const AssetImage("icons/send.png", package: "bitcoin_ui"),
+            color: Bitcoin.neutral3Dark);
     }
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),

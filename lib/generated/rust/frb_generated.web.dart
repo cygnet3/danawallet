@@ -283,6 +283,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
+  ApiRecordedTransactionUnknownOutgoing
+      dco_decode_api_recorded_transaction_unknown_outgoing(dynamic raw);
+
+  @protected
   ApiSilentPaymentUnsignedTransaction
       dco_decode_api_silent_payment_unsigned_transaction(dynamic raw);
 
@@ -309,6 +313,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ApiRecordedTransactionOutgoing
       dco_decode_box_autoadd_api_recorded_transaction_outgoing(dynamic raw);
+
+  @protected
+  ApiRecordedTransactionUnknownOutgoing
+      dco_decode_box_autoadd_api_recorded_transaction_unknown_outgoing(
+          dynamic raw);
 
   @protected
   ApiSilentPaymentUnsignedTransaction
@@ -634,6 +643,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       SseDeserializer deserializer);
 
   @protected
+  ApiRecordedTransactionUnknownOutgoing
+      sse_decode_api_recorded_transaction_unknown_outgoing(
+          SseDeserializer deserializer);
+
+  @protected
   ApiSilentPaymentUnsignedTransaction
       sse_decode_api_silent_payment_unsigned_transaction(
           SseDeserializer deserializer);
@@ -662,6 +676,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ApiRecordedTransactionOutgoing
       sse_decode_box_autoadd_api_recorded_transaction_outgoing(
+          SseDeserializer deserializer);
+
+  @protected
+  ApiRecordedTransactionUnknownOutgoing
+      sse_decode_box_autoadd_api_recorded_transaction_unknown_outgoing(
           SseDeserializer deserializer);
 
   @protected
@@ -995,6 +1014,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ApiRecordedTransactionOutgoing self, SseSerializer serializer);
 
   @protected
+  void sse_encode_api_recorded_transaction_unknown_outgoing(
+      ApiRecordedTransactionUnknownOutgoing self, SseSerializer serializer);
+
+  @protected
   void sse_encode_api_silent_payment_unsigned_transaction(
       ApiSilentPaymentUnsignedTransaction self, SseSerializer serializer);
 
@@ -1022,6 +1045,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_api_recorded_transaction_outgoing(
       ApiRecordedTransactionOutgoing self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_api_recorded_transaction_unknown_outgoing(
+      ApiRecordedTransactionUnknownOutgoing self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_api_silent_payment_unsigned_transaction(

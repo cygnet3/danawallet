@@ -492,18 +492,24 @@ mixin _$ApiRecordedTransaction {
   TResult when<TResult extends Object?>({
     required TResult Function(ApiRecordedTransactionIncoming field0) incoming,
     required TResult Function(ApiRecordedTransactionOutgoing field0) outgoing,
+    required TResult Function(ApiRecordedTransactionUnknownOutgoing field0)
+        unknownOutgoing,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(ApiRecordedTransactionIncoming field0)? incoming,
     TResult? Function(ApiRecordedTransactionOutgoing field0)? outgoing,
+    TResult? Function(ApiRecordedTransactionUnknownOutgoing field0)?
+        unknownOutgoing,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(ApiRecordedTransactionIncoming field0)? incoming,
     TResult Function(ApiRecordedTransactionOutgoing field0)? outgoing,
+    TResult Function(ApiRecordedTransactionUnknownOutgoing field0)?
+        unknownOutgoing,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -511,18 +517,24 @@ mixin _$ApiRecordedTransaction {
   TResult map<TResult extends Object?>({
     required TResult Function(ApiRecordedTransaction_Incoming value) incoming,
     required TResult Function(ApiRecordedTransaction_Outgoing value) outgoing,
+    required TResult Function(ApiRecordedTransaction_UnknownOutgoing value)
+        unknownOutgoing,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(ApiRecordedTransaction_Incoming value)? incoming,
     TResult? Function(ApiRecordedTransaction_Outgoing value)? outgoing,
+    TResult? Function(ApiRecordedTransaction_UnknownOutgoing value)?
+        unknownOutgoing,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(ApiRecordedTransaction_Incoming value)? incoming,
     TResult Function(ApiRecordedTransaction_Outgoing value)? outgoing,
+    TResult Function(ApiRecordedTransaction_UnknownOutgoing value)?
+        unknownOutgoing,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -619,6 +631,8 @@ class _$ApiRecordedTransaction_IncomingImpl
   TResult when<TResult extends Object?>({
     required TResult Function(ApiRecordedTransactionIncoming field0) incoming,
     required TResult Function(ApiRecordedTransactionOutgoing field0) outgoing,
+    required TResult Function(ApiRecordedTransactionUnknownOutgoing field0)
+        unknownOutgoing,
   }) {
     return incoming(field0);
   }
@@ -628,6 +642,8 @@ class _$ApiRecordedTransaction_IncomingImpl
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(ApiRecordedTransactionIncoming field0)? incoming,
     TResult? Function(ApiRecordedTransactionOutgoing field0)? outgoing,
+    TResult? Function(ApiRecordedTransactionUnknownOutgoing field0)?
+        unknownOutgoing,
   }) {
     return incoming?.call(field0);
   }
@@ -637,6 +653,8 @@ class _$ApiRecordedTransaction_IncomingImpl
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(ApiRecordedTransactionIncoming field0)? incoming,
     TResult Function(ApiRecordedTransactionOutgoing field0)? outgoing,
+    TResult Function(ApiRecordedTransactionUnknownOutgoing field0)?
+        unknownOutgoing,
     required TResult orElse(),
   }) {
     if (incoming != null) {
@@ -650,6 +668,8 @@ class _$ApiRecordedTransaction_IncomingImpl
   TResult map<TResult extends Object?>({
     required TResult Function(ApiRecordedTransaction_Incoming value) incoming,
     required TResult Function(ApiRecordedTransaction_Outgoing value) outgoing,
+    required TResult Function(ApiRecordedTransaction_UnknownOutgoing value)
+        unknownOutgoing,
   }) {
     return incoming(this);
   }
@@ -659,6 +679,8 @@ class _$ApiRecordedTransaction_IncomingImpl
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(ApiRecordedTransaction_Incoming value)? incoming,
     TResult? Function(ApiRecordedTransaction_Outgoing value)? outgoing,
+    TResult? Function(ApiRecordedTransaction_UnknownOutgoing value)?
+        unknownOutgoing,
   }) {
     return incoming?.call(this);
   }
@@ -668,6 +690,8 @@ class _$ApiRecordedTransaction_IncomingImpl
   TResult maybeMap<TResult extends Object?>({
     TResult Function(ApiRecordedTransaction_Incoming value)? incoming,
     TResult Function(ApiRecordedTransaction_Outgoing value)? outgoing,
+    TResult Function(ApiRecordedTransaction_UnknownOutgoing value)?
+        unknownOutgoing,
     required TResult orElse(),
   }) {
     if (incoming != null) {
@@ -763,6 +787,8 @@ class _$ApiRecordedTransaction_OutgoingImpl
   TResult when<TResult extends Object?>({
     required TResult Function(ApiRecordedTransactionIncoming field0) incoming,
     required TResult Function(ApiRecordedTransactionOutgoing field0) outgoing,
+    required TResult Function(ApiRecordedTransactionUnknownOutgoing field0)
+        unknownOutgoing,
   }) {
     return outgoing(field0);
   }
@@ -772,6 +798,8 @@ class _$ApiRecordedTransaction_OutgoingImpl
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(ApiRecordedTransactionIncoming field0)? incoming,
     TResult? Function(ApiRecordedTransactionOutgoing field0)? outgoing,
+    TResult? Function(ApiRecordedTransactionUnknownOutgoing field0)?
+        unknownOutgoing,
   }) {
     return outgoing?.call(field0);
   }
@@ -781,6 +809,8 @@ class _$ApiRecordedTransaction_OutgoingImpl
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(ApiRecordedTransactionIncoming field0)? incoming,
     TResult Function(ApiRecordedTransactionOutgoing field0)? outgoing,
+    TResult Function(ApiRecordedTransactionUnknownOutgoing field0)?
+        unknownOutgoing,
     required TResult orElse(),
   }) {
     if (outgoing != null) {
@@ -794,6 +824,8 @@ class _$ApiRecordedTransaction_OutgoingImpl
   TResult map<TResult extends Object?>({
     required TResult Function(ApiRecordedTransaction_Incoming value) incoming,
     required TResult Function(ApiRecordedTransaction_Outgoing value) outgoing,
+    required TResult Function(ApiRecordedTransaction_UnknownOutgoing value)
+        unknownOutgoing,
   }) {
     return outgoing(this);
   }
@@ -803,6 +835,8 @@ class _$ApiRecordedTransaction_OutgoingImpl
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(ApiRecordedTransaction_Incoming value)? incoming,
     TResult? Function(ApiRecordedTransaction_Outgoing value)? outgoing,
+    TResult? Function(ApiRecordedTransaction_UnknownOutgoing value)?
+        unknownOutgoing,
   }) {
     return outgoing?.call(this);
   }
@@ -812,6 +846,8 @@ class _$ApiRecordedTransaction_OutgoingImpl
   TResult maybeMap<TResult extends Object?>({
     TResult Function(ApiRecordedTransaction_Incoming value)? incoming,
     TResult Function(ApiRecordedTransaction_Outgoing value)? outgoing,
+    TResult Function(ApiRecordedTransaction_UnknownOutgoing value)?
+        unknownOutgoing,
     required TResult orElse(),
   }) {
     if (outgoing != null) {
@@ -832,5 +868,163 @@ abstract class ApiRecordedTransaction_Outgoing extends ApiRecordedTransaction {
   @JsonKey(ignore: true)
   _$$ApiRecordedTransaction_OutgoingImplCopyWith<
           _$ApiRecordedTransaction_OutgoingImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ApiRecordedTransaction_UnknownOutgoingImplCopyWith<$Res> {
+  factory _$$ApiRecordedTransaction_UnknownOutgoingImplCopyWith(
+          _$ApiRecordedTransaction_UnknownOutgoingImpl value,
+          $Res Function(_$ApiRecordedTransaction_UnknownOutgoingImpl) then) =
+      __$$ApiRecordedTransaction_UnknownOutgoingImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({ApiRecordedTransactionUnknownOutgoing field0});
+}
+
+/// @nodoc
+class __$$ApiRecordedTransaction_UnknownOutgoingImplCopyWithImpl<$Res>
+    extends _$ApiRecordedTransactionCopyWithImpl<$Res,
+        _$ApiRecordedTransaction_UnknownOutgoingImpl>
+    implements _$$ApiRecordedTransaction_UnknownOutgoingImplCopyWith<$Res> {
+  __$$ApiRecordedTransaction_UnknownOutgoingImplCopyWithImpl(
+      _$ApiRecordedTransaction_UnknownOutgoingImpl _value,
+      $Res Function(_$ApiRecordedTransaction_UnknownOutgoingImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? field0 = null,
+  }) {
+    return _then(_$ApiRecordedTransaction_UnknownOutgoingImpl(
+      null == field0
+          ? _value.field0
+          : field0 // ignore: cast_nullable_to_non_nullable
+              as ApiRecordedTransactionUnknownOutgoing,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ApiRecordedTransaction_UnknownOutgoingImpl
+    extends ApiRecordedTransaction_UnknownOutgoing {
+  const _$ApiRecordedTransaction_UnknownOutgoingImpl(this.field0) : super._();
+
+  @override
+  final ApiRecordedTransactionUnknownOutgoing field0;
+
+  @override
+  String toString() {
+    return 'ApiRecordedTransaction.unknownOutgoing(field0: $field0)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ApiRecordedTransaction_UnknownOutgoingImpl &&
+            (identical(other.field0, field0) || other.field0 == field0));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, field0);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ApiRecordedTransaction_UnknownOutgoingImplCopyWith<
+          _$ApiRecordedTransaction_UnknownOutgoingImpl>
+      get copyWith =>
+          __$$ApiRecordedTransaction_UnknownOutgoingImplCopyWithImpl<
+              _$ApiRecordedTransaction_UnknownOutgoingImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(ApiRecordedTransactionIncoming field0) incoming,
+    required TResult Function(ApiRecordedTransactionOutgoing field0) outgoing,
+    required TResult Function(ApiRecordedTransactionUnknownOutgoing field0)
+        unknownOutgoing,
+  }) {
+    return unknownOutgoing(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(ApiRecordedTransactionIncoming field0)? incoming,
+    TResult? Function(ApiRecordedTransactionOutgoing field0)? outgoing,
+    TResult? Function(ApiRecordedTransactionUnknownOutgoing field0)?
+        unknownOutgoing,
+  }) {
+    return unknownOutgoing?.call(field0);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(ApiRecordedTransactionIncoming field0)? incoming,
+    TResult Function(ApiRecordedTransactionOutgoing field0)? outgoing,
+    TResult Function(ApiRecordedTransactionUnknownOutgoing field0)?
+        unknownOutgoing,
+    required TResult orElse(),
+  }) {
+    if (unknownOutgoing != null) {
+      return unknownOutgoing(field0);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(ApiRecordedTransaction_Incoming value) incoming,
+    required TResult Function(ApiRecordedTransaction_Outgoing value) outgoing,
+    required TResult Function(ApiRecordedTransaction_UnknownOutgoing value)
+        unknownOutgoing,
+  }) {
+    return unknownOutgoing(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(ApiRecordedTransaction_Incoming value)? incoming,
+    TResult? Function(ApiRecordedTransaction_Outgoing value)? outgoing,
+    TResult? Function(ApiRecordedTransaction_UnknownOutgoing value)?
+        unknownOutgoing,
+  }) {
+    return unknownOutgoing?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(ApiRecordedTransaction_Incoming value)? incoming,
+    TResult Function(ApiRecordedTransaction_Outgoing value)? outgoing,
+    TResult Function(ApiRecordedTransaction_UnknownOutgoing value)?
+        unknownOutgoing,
+    required TResult orElse(),
+  }) {
+    if (unknownOutgoing != null) {
+      return unknownOutgoing(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class ApiRecordedTransaction_UnknownOutgoing
+    extends ApiRecordedTransaction {
+  const factory ApiRecordedTransaction_UnknownOutgoing(
+          final ApiRecordedTransactionUnknownOutgoing field0) =
+      _$ApiRecordedTransaction_UnknownOutgoingImpl;
+  const ApiRecordedTransaction_UnknownOutgoing._() : super._();
+
+  @override
+  ApiRecordedTransactionUnknownOutgoing get field0;
+  @JsonKey(ignore: true)
+  _$$ApiRecordedTransaction_UnknownOutgoingImplCopyWith<
+          _$ApiRecordedTransaction_UnknownOutgoingImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
