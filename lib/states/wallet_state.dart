@@ -46,7 +46,7 @@ class WalletState extends ChangeNotifier {
     scanResultSubscription = createScanResultStream().listen(((event) async {
       // process update
       lastScan = event.getHeight();
-      txHistory.processStateUpdate(update: event);
+      txHistory.processStateUpdate(update: event, ownedOutputs: ownedOutputs);
       ownedOutputs.processStateUpdate(update: event);
 
       // save updates to storage

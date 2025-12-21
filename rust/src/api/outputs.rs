@@ -205,4 +205,8 @@ impl OwnedOutputs {
             ))),
         }
     }
+
+    pub(crate) fn get(&self, key: &OutPoint) -> Option<&OwnedOutput> {
+        self.0.get(key)
+    }
 }
