@@ -30,13 +30,16 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final unsignedTx = RecipientForm().unsignedTx!;
 
-      await walletState.signAndBroadcastUnsignedTx(unsignedTx);
+      final txid = await walletState.signAndBroadcastUnsignedTx(unsignedTx);
 
       if (mounted) {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-                builder: (context) => const TransactionSentScreen()),
+                builder: (context) => TransactionSentScreen(
+                      txid: txid,
+                      network: walletState.network,
+                    )),
             (Route<dynamic> route) => route.isFirst);
       }
     } catch (e) {
@@ -62,7 +65,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
 
     String displayAmount = recipient.amount!.displayBtc();
 
-    String displayArrivalTime = recipient.fee!.toEstimatedTime;
+    String displayArrivalTime = recipient.selectedFee!.toEstimatedTime;
 
     String displayEstimatedFee =
         recipient.unsignedTx!.getFeeAmount().displayBtc();
