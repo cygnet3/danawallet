@@ -63,14 +63,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        final userFriendlyMessage = exceptionToString(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(userFriendlyMessage),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        displayError(e);
       }
     }
   }

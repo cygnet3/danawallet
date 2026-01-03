@@ -71,9 +71,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
       }
     } catch (e) {
       if (e is InvalidNetworkException) {
-        displayNotification("Backup file is for a different network");
+        displayWarning("Backup file is for a different network");
       } else {
-        displayNotification("restore failed, wrong password?");
+        displayWarning("restore failed, wrong password?");
       }
     }
   }
@@ -115,7 +115,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
             (Route<dynamic> route) => false);
       }
     } else {
-      displayNotification(
+      displayWarning(
           "Unable to create a new wallet; internet access required");
     }
   }

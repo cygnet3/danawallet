@@ -10,14 +10,41 @@ import 'package:danawallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:logger/logger.dart';
 
 final globalNavigatorKey = GlobalKey<NavigatorState>();
 
 void displayNotification(String text) {
-  // ignore: avoid_print
-  print(text);
+  Logger().i(text);
   if (globalNavigatorKey.currentContext != null) {
     final snackBar = SnackBar(
+      content: Text(text),
+    );
+    ScaffoldMessenger.of(globalNavigatorKey.currentContext!)
+        .showSnackBar(snackBar);
+  }
+}
+
+void displayWarning(String text) {
+  Logger().w(text);
+  if (globalNavigatorKey.currentContext != null) {
+    final snackBar = SnackBar(
+      backgroundColor: Colors.deepOrangeAccent,
+      duration: const Duration(seconds: 5),
+      content: Text(text),
+    );
+    ScaffoldMessenger.of(globalNavigatorKey.currentContext!)
+        .showSnackBar(snackBar);
+  }
+}
+
+void displayError(Object error) {
+  final text = exceptionToString(error);
+  Logger().e(text);
+  if (globalNavigatorKey.currentContext != null) {
+    final snackBar = SnackBar(
+      backgroundColor: Colors.red,
+      duration: const Duration(seconds: 5),
       content: Text(text),
     );
     ScaffoldMessenger.of(globalNavigatorKey.currentContext!)
@@ -92,7 +119,9 @@ Future<bool> showConfirmationAlertDialog(
 
 String exceptionToString(Object e) {
   String message;
-  if (e is AnyhowException) {
+  if (e is String) {
+    message = e;
+  } else if (e is AnyhowException) {
     // remove stack trace from anyhow exception
     message = e.message.split('\n').first;
   } else if (e is InvalidAddressException) {
