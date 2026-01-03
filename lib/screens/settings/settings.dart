@@ -85,7 +85,7 @@ class SettingsScreen extends StatelessWidget {
           displayNotification("Wrong network for blindbit server");
         }
       } catch (e) {
-        displayNotification(exceptionToString(e));
+        displayError(e);
       }
     }
   }
