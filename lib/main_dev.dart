@@ -1,6 +1,8 @@
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/main.dart';
+import 'package:danawallet/constants.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -61,6 +63,47 @@ void main() async {
     chainState.startSyncService(walletState, scanNotifier, true);
   }
 
+  // Create NameServerRepository instance
+  final nameServerRepository = NameServerRepository(
+      baseUrl: defaultNameServer,
+      domain: defaultDomain,
+      apiVersion: nameServerApiVersion);
+
+  // Load the dana address from storage if it exists
+  bool danaAddressCreated = false;
+  String? suggestedUsername;
+  if (walletLoaded) {
+    final storedDanaAddress =
+        await SettingsRepository.instance.getDanaAddress();
+    if (storedDanaAddress != null) {
+      nameServerRepository.userDanaAddress = storedDanaAddress;
+      Logger().i('Loaded dana address from storage: $storedDanaAddress');
+      danaAddressCreated = true;
+    } else {
+      // Wallet exists but no dana address - lookup dana addresses
+      final danaAddresses =
+          await nameServerRepository.lookupDanaAddresses(walletState.address);
+      if (danaAddresses.isNotEmpty) {
+        nameServerRepository.userDanaAddress =
+            danaAddresses.first; // use the first dana address found
+        Logger().i(
+            'Loaded dana address from lookup: ${nameServerRepository.userDanaAddress}'); // log the first dana address found
+        danaAddressCreated = true;
+      } else {
+        // Wallet exists but no dana address - generate a suggested username
+        try {
+          suggestedUsername = await walletState.generateAvailableDanaAddress(
+            nameServerRepository: nameServerRepository,
+            maxRetries: 5,
+          );
+        } catch (e) {
+          Logger().e('Error generating suggested dana address: $e');
+          // Continue without suggested username - user can create their own
+        }
+      }
+    }
+  }
+
   runApp(
     MultiProvider(
       providers: [
@@ -69,8 +112,12 @@ void main() async {
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
         ChangeNotifierProvider.value(value: fiatExchangeRate),
+        Provider<NameServerRepository>.value(value: nameServerRepository),
       ],
-      child: SilentPaymentApp(walletLoaded: walletLoaded),
+      child: SilentPaymentApp(
+          walletLoaded: walletLoaded,
+          danaAddressCreated: danaAddressCreated,
+          suggestedUsername: suggestedUsername),
     ),
   );
 }
