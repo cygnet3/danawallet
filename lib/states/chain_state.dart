@@ -47,32 +47,35 @@ class ChainState extends ChangeNotifier {
     }
 
     Logger().i('Connecting to blindbit: $blindbitUrl');
-    _blindbitUrl = blindbitUrl;
-
     try {
       final correctNetwork = await checkNetwork(
           blindbitUrl: blindbitUrl, network: _network!.toCoreArg);
 
-      if (!correctNetwork) {
+      if (correctNetwork) {
+        Logger().i('Network correct');
+        final tip = await getChainHeight(blindbitUrl: blindbitUrl);
+
+        Logger().i('Successfully connected to blindbit, current tip: $tip');
+        _blindbitUrl = blindbitUrl;
+        _tip = tip;
+        notifyListeners();
+        return true;
+      } else {
         Logger().w('Wrong network');
         return false;
       }
-
-      _tip = await getChainHeight(blindbitUrl: blindbitUrl);
-      Logger().i('Successfully connected to blindbit, current tip: $_tip');
     } catch (e) {
       Logger().w('Connection to blindbit failed: $e');
+      return false;
     }
-    notifyListeners();
-    return available;
   }
 
   Future<bool> reconnect() async {
-    if (_blindbitUrl == null) {
+    if (_blindbitUrl != null) {
+      return await connect(_blindbitUrl!);
+    } else {
       Logger().w("Attempted to reconnect, but no blindbit url is known");
       return false;
-    } else {
-      return await connect(_blindbitUrl!);
     }
   }
 
@@ -116,6 +119,12 @@ class ChainState extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  Future<bool> resetBlindbitUrl() async {
+    Logger().i('Resetting blindbit url');
+    _blindbitUrl = network.defaultBlindbitUrl;
+    return await reconnect();
   }
 
   Future<bool> updateBlindbitUrl(String newUrl) async {

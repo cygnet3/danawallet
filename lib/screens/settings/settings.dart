@@ -12,6 +12,7 @@ import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -67,18 +68,18 @@ class SettingsScreen extends StatelessWidget {
         'Set blindbit url', 'Only blindbit is currently supported');
 
     if (value is String) {
-      try {
-        final success = await chainState.updateBlindbitUrl(value);
-        if (success) {
-          await settings.setBlindbitUrl(value);
-        } else {
-          displayNotification("Wrong network for blindbit server");
-        }
-      } catch (e) {
-        displayError(e);
+      final success = await chainState.updateBlindbitUrl(value);
+      if (success) {
+        displayNotification("Setting blindbit url to $value");
+        await settings.setBlindbitUrl(value);
+      } else {
+        displayWarning("Failed to update blindbit url");
       }
     } else if (value is bool && value) {
+      Logger().i("resetting blindbit url to default");
       await settings.setBlindbitUrl(null);
+      // we don't await the result here, since it's the default
+      await chainState.resetBlindbitUrl();
     }
   }
 
@@ -96,8 +97,10 @@ class SettingsScreen extends StatelessWidget {
         'Set dust limit', 'Payments below this value are ignored');
 
     if (value is int) {
+      Logger().i("setting dust limit to $value");
       await settings.setDustLimit(value);
     } else if (value is bool && value) {
+      Logger().i("resetting dust limit to default");
       await settings.setDustLimit(null);
     }
   }
