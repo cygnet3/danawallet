@@ -71,7 +71,7 @@ class SettingsScreen extends StatelessWidget {
 
     String? url;
     if (value is bool && value) {
-      url = network.getDefaultBlindbitUrl();
+      url = network.defaultBlindbitUrl;
     } else if (value is String) {
       url = value;
     }
@@ -167,7 +167,9 @@ class SettingsScreen extends StatelessWidget {
     final homeState = Provider.of<HomeState>(context, listen: false);
     final fiatExchangeRate =
         Provider.of<FiatExchangeRateState>(context, listen: false);
-    final currentCurrency = await SettingsRepository.instance.getFiatCurrency();
+    final currentCurrency =
+        (await SettingsRepository.instance.getFiatCurrency()) ??
+            defaultCurrency;
     if (context.mounted) {
       goToScreen(
           context,

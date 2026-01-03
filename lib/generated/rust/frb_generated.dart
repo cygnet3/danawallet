@@ -387,7 +387,7 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiSimpleInitApp();
 
   SettingsBackup crateApiBackupSettingsBackupNew(
-      {required String blindbitUrl, required int dustLimit});
+      {String? blindbitUrl, int? dustLimit});
 
   void crateApiValidateValidateAddressWithNetwork(
       {required String address, required String network});
@@ -3182,12 +3182,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   SettingsBackup crateApiBackupSettingsBackupNew(
-      {required String blindbitUrl, required int dustLimit}) {
+      {String? blindbitUrl, int? dustLimit}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(blindbitUrl, serializer);
-        sse_encode_u_32(dustLimit, serializer);
+        sse_encode_opt_String(blindbitUrl, serializer);
+        sse_encode_opt_box_autoadd_u_32(dustLimit, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 99)!;
       },
       codec: SseCodec(
@@ -3984,8 +3984,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     if (arr.length != 2)
       throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
     return SettingsBackup.raw(
-      blindbitUrl: dco_decode_String(arr[0]),
-      dustLimit: dco_decode_u_32(arr[1]),
+      blindbitUrl: dco_decode_opt_String(arr[0]),
+      dustLimit: dco_decode_opt_box_autoadd_u_32(arr[1]),
     );
   }
 
@@ -4802,8 +4802,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   SettingsBackup sse_decode_settings_backup(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_blindbitUrl = sse_decode_String(deserializer);
-    var var_dustLimit = sse_decode_u_32(deserializer);
+    var var_blindbitUrl = sse_decode_opt_String(deserializer);
+    var var_dustLimit = sse_decode_opt_box_autoadd_u_32(deserializer);
     return SettingsBackup.raw(
         blindbitUrl: var_blindbitUrl, dustLimit: var_dustLimit);
   }
@@ -5589,8 +5589,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_settings_backup(
       SettingsBackup self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.blindbitUrl, serializer);
-    sse_encode_u_32(self.dustLimit, serializer);
+    sse_encode_opt_String(self.blindbitUrl, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.dustLimit, serializer);
   }
 
   @protected

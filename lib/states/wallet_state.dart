@@ -241,9 +241,11 @@ class WalletState extends ChangeNotifier {
       if (unsignedTx.network == Network.regtest.toCoreArg) {
         // if we are currently on regtest, it's not possible to use our normal broadcasting flow
         // instead, we will forward the transaction to blindbit
-        final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
+        final blindbitUrl =
+            await SettingsRepository.instance.getBlindbitUrl() ??
+                Network.regtest.defaultBlindbitUrl;
         txid = await SpWallet.broadcastUsingBlindbit(
-            blindbitUrl: blindbitUrl!, tx: signedTx);
+            blindbitUrl: blindbitUrl, tx: signedTx);
       } else {
         txid = await SpWallet.broadcastTx(
             tx: signedTx, network: network.toCoreArg);

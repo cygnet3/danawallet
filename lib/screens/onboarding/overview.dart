@@ -4,11 +4,9 @@ import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/choose_network.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
-import 'package:danawallet/screens/pin/pin_setup_screen.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -55,11 +53,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
           await walletState.initialize();
           final network = walletState.network;
           final blindbitUrl =
-              await SettingsRepository.instance.getBlindbitUrl();
+              await SettingsRepository.instance.getBlindbitUrl() ??
+                  network.defaultBlindbitUrl;
           chainState.initialize(network);
 
           // we can safely ignore the result of connecting, since we get the birthday from the backup
-          await chainState.connect(blindbitUrl!);
+          await chainState.connect(blindbitUrl);
 
           chainState.startSyncService(walletState, scanProgress, true);
           if (context.mounted) {
@@ -99,8 +98,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
 
-    await SettingsRepository.instance.defaultSettings(network);
-    final blindbitUrl = network.getDefaultBlindbitUrl();
+    final blindbitUrl = network.defaultBlindbitUrl;
 
     chainState.initialize(network);
     final connected = await chainState.connect(blindbitUrl);

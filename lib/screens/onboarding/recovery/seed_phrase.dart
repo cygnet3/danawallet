@@ -3,9 +3,6 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/home/home.dart';
-import 'package:danawallet/screens/pin/pin_setup_screen.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -48,8 +45,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
-      await SettingsRepository.instance.defaultSettings(widget.network);
-      final blindbitUrl = widget.network.getDefaultBlindbitUrl();
+      final blindbitUrl = widget.network.defaultBlindbitUrl;
 
       await walletState.restoreWallet(widget.network, mnemonic);
 

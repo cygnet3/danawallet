@@ -24,7 +24,7 @@ enum Network {
     }
   }
 
-  String getDefaultBlindbitUrl() {
+  String get defaultBlindbitUrl {
     switch (this) {
       case Network.mainnet:
         if (isDevEnv && const String.fromEnvironment("MAINNET_URL") != "") {
