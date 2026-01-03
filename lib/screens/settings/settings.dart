@@ -58,7 +58,6 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _setBlindbitUrl(BuildContext context) async {
-    final wallet = Provider.of<WalletState>(context, listen: false);
     SettingsRepository settings = SettingsRepository.instance;
     final chainState = Provider.of<ChainState>(context, listen: false);
     final controller = TextEditingController();
@@ -67,26 +66,19 @@ class SettingsScreen extends StatelessWidget {
     final value = await showInputAlertDialog(controller, TextInputType.url,
         'Set blindbit url', 'Only blindbit is currently supported');
 
-    final network = wallet.network;
-
-    String? url;
-    if (value is bool && value) {
-      url = network.defaultBlindbitUrl;
-    } else if (value is String) {
-      url = value;
-    }
-
-    if (url != null) {
+    if (value is String) {
       try {
-        final success = await chainState.updateBlindbitUrl(url);
+        final success = await chainState.updateBlindbitUrl(value);
         if (success) {
-          await settings.setBlindbitUrl(url);
+          await settings.setBlindbitUrl(value);
         } else {
           displayNotification("Wrong network for blindbit server");
         }
       } catch (e) {
         displayError(e);
       }
+    } else if (value is bool && value) {
+      await settings.setBlindbitUrl(null);
     }
   }
 
@@ -106,7 +98,7 @@ class SettingsScreen extends StatelessWidget {
     if (value is int) {
       await settings.setDustLimit(value);
     } else if (value is bool && value) {
-      await settings.setDustLimit(defaultDustLimit);
+      await settings.setDustLimit(null);
     }
   }
 
