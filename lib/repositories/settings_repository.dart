@@ -1,8 +1,5 @@
-import 'package:danawallet/constants.dart';
-import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/backup.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
-import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _keyBlindbitUrl = "blindbiturl";
@@ -17,12 +14,6 @@ class SettingsRepository {
 
   // singleton instance
   static final instance = SettingsRepository._();
-
-  Future<void> defaultSettings(Network network) async {
-    final String blindbitUrl = network.getDefaultBlindbitUrl();
-    await setBlindbitUrl(blindbitUrl);
-    await setDustLimit(defaultDustLimit);
-  }
 
   Future<void> resetAll() async {
     await prefs
@@ -49,27 +40,26 @@ class SettingsRepository {
     return await prefs.setString(_keyFiatCurrency, currency.name);
   }
 
-  Future<FiatCurrency> getFiatCurrency() async {
+  Future<FiatCurrency?> getFiatCurrency() async {
     final currency = await prefs.getString(_keyFiatCurrency);
 
-    if (currency != null) {
-      return FiatCurrency.values.byName(currency);
-    } else {
-      Logger().w("No fiat currency set, picking default");
-      return defaultCurrency;
-    }
+    return currency != null ? FiatCurrency.values.byName(currency) : null;
   }
 
   Future<SettingsBackup> createSettingsBackup() async {
     final blindbitUrl = await getBlindbitUrl();
     final dustLimit = await getDustLimit();
 
-    return SettingsBackup(blindbitUrl: blindbitUrl!, dustLimit: dustLimit!);
+    return SettingsBackup(blindbitUrl: blindbitUrl, dustLimit: dustLimit);
   }
 
   Future<void> restoreSettingsBackup(SettingsBackup backup) async {
     await resetAll();
-    await setBlindbitUrl(backup.blindbitUrl);
-    await setDustLimit(backup.dustLimit);
+    if (backup.blindbitUrl != null) {
+      await setBlindbitUrl(backup.blindbitUrl!);
+    }
+    if (backup.dustLimit != null) {
+      await setDustLimit(backup.dustLimit!);
+    }
   }
 }

@@ -124,16 +124,15 @@ class EncryptedDanaBackup {
 }
 
 class SettingsBackup {
-  final String blindbitUrl;
-  final int dustLimit;
+  final String? blindbitUrl;
+  final int? dustLimit;
 
   const SettingsBackup.raw({
-    required this.blindbitUrl,
-    required this.dustLimit,
+    this.blindbitUrl,
+    this.dustLimit,
   });
 
-  factory SettingsBackup(
-          {required String blindbitUrl, required int dustLimit}) =>
+  factory SettingsBackup({String? blindbitUrl, int? dustLimit}) =>
       RustLib.instance.api.crateApiBackupSettingsBackupNew(
           blindbitUrl: blindbitUrl, dustLimit: dustLimit);
 

@@ -4344,8 +4344,8 @@ fn wire__crate__api__backup__settings_backup_new_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_blindbit_url = <String>::sse_decode(&mut deserializer);
-            let api_dust_limit = <u32>::sse_decode(&mut deserializer);
+            let api_blindbit_url = <Option<String>>::sse_decode(&mut deserializer);
+            let api_dust_limit = <Option<u32>>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let output_ok = Result::<_, ()>::Ok(crate::api::backup::SettingsBackup::new(
@@ -5045,8 +5045,8 @@ impl SseDecode for crate::stream::ScanProgress {
 impl SseDecode for crate::api::backup::SettingsBackup {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_blindbitUrl = <String>::sse_decode(deserializer);
-        let mut var_dustLimit = <u32>::sse_decode(deserializer);
+        let mut var_blindbitUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_dustLimit = <Option<u32>>::sse_decode(deserializer);
         return crate::api::backup::SettingsBackup {
             blindbit_url: var_blindbitUrl,
             dust_limit: var_dustLimit,
@@ -6329,8 +6329,8 @@ impl SseEncode for crate::stream::ScanProgress {
 impl SseEncode for crate::api::backup::SettingsBackup {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.blindbit_url, serializer);
-        <u32>::sse_encode(self.dust_limit, serializer);
+        <Option<String>>::sse_encode(self.blindbit_url, serializer);
+        <Option<u32>>::sse_encode(self.dust_limit, serializer);
     }
 }
 
