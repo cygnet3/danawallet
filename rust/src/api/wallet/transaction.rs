@@ -3,10 +3,11 @@ use std::{collections::HashMap, str::FromStr};
 use crate::api::structs::ApiOwnedOutput;
 use crate::api::structs::ApiRecipient;
 use crate::api::structs::ApiSilentPaymentUnsignedTransaction;
+use crate::http_client::ReqwestClient;
 use anyhow::Result;
+use backend_blindbit_native::BlindbitClient;
 use bip39::rand::{thread_rng, RngCore};
-use spdk::BlindbitClient;
-use spdk::{
+use spdk_core::{
     bitcoin::{consensus::serialize, hex::DisplayHex, Network, OutPoint},
     FeeRate, OwnedOutput, Recipient, RecipientAddress, SpClient,
 };
@@ -99,7 +100,8 @@ impl SpWallet {
 
     // note: should only be used when using regtest, else there is privacy loss!
     pub async fn broadcast_using_blindbit(blindbit_url: String, tx: String) -> Result<String> {
-        let blindbit_client = BlindbitClient::new(blindbit_url)?;
+        let http_client = ReqwestClient::new()?;
+        let blindbit_client = BlindbitClient::new(blindbit_url, http_client)?;
 
         let res = blindbit_client.forward_tx(tx).await?;
 
