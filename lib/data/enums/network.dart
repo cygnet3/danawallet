@@ -24,7 +24,7 @@ enum Network {
     }
   }
 
-  String getDefaultBlindbitUrl() {
+  String get defaultBlindbitUrl {
     switch (this) {
       case Network.mainnet:
         if (isDevEnv && const String.fromEnvironment("MAINNET_URL") != "") {
@@ -53,7 +53,7 @@ enum Network {
     }
   }
 
-  String get toBitcoinNetwork {
+  String get toCoreArg {
     switch (this) {
       case Network.mainnet:
         return 'main';
@@ -92,7 +92,7 @@ enum Network {
     }
   }
 
-  static Network fromBitcoinNetwork(String network) {
+  static Network fromCoreArg(String network) {
     switch (network) {
       case 'main':
         return Network.mainnet;

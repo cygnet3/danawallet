@@ -1,11 +1,15 @@
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contacts_repository.dart';
+import 'package:danawallet/repositories/database_helper.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
-import 'package:danawallet/widgets/pin_guard.dart';
+import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
+import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -22,6 +26,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   await LoggingService.create();
+  
+  // Initialize contacts database
+  await DatabaseHelper.instance.database;
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
@@ -47,11 +54,12 @@ void main() async {
 
   if (walletLoaded) {
     final network = walletState.network;
-    final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
+    final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl() ??
+        network.defaultBlindbitUrl;
 
     chainState.initialize(network);
 
-    final connected = await chainState.connect(blindbitUrl!);
+    final connected = await chainState.connect(blindbitUrl);
     if (!connected) {
       Logger().w("Failed to connect");
       // Continue without chain sync - wallet still usable for local operations
@@ -59,6 +67,74 @@ void main() async {
     }
 
     chainState.startSyncService(walletState, scanNotifier, true);
+  }
+
+  // Create NameServerRepository instance
+  final nameServerRepository = NameServerRepository(baseUrl: defaultNameServer, domain: defaultDomain, apiVersion: nameServerApiVersion);
+  
+  // Load the dana address from storage if it exists
+  bool danaAddressCreated = false;
+  String? suggestedUsername;
+  if (walletLoaded) {
+    final storedDanaAddress = await SettingsRepository.instance.getDanaAddress();
+    if (storedDanaAddress != null) {
+      nameServerRepository.userDanaAddress = storedDanaAddress;
+      Logger().i('Loaded dana address from storage: $storedDanaAddress');
+      danaAddressCreated = true;
+      
+      // Create user contact if it doesn't exist
+      try {
+        final existingContact = await ContactsRepository.instance
+            .getContactByDanaAddress(storedDanaAddress);
+        if (existingContact == null) {
+          final userContact = Contact(
+            nym: 'you',
+            danaAddress: storedDanaAddress,
+            spAddress: walletState.address,
+          );
+          await ContactsRepository.instance.insertContact(userContact);
+          Logger().i('Created user contact in database');
+        }
+      } catch (e) {
+        Logger().w('Failed to create user contact: $e');
+      }
+    } else {
+      // Wallet exists but no dana address - lookup dana addresses
+      final danaAddresses = await nameServerRepository.lookupDanaAddresses(walletState.address);
+      if (danaAddresses.isNotEmpty) {
+        nameServerRepository.userDanaAddress = danaAddresses.first; // use the first dana address found
+        Logger().i('Loaded dana address from lookup: ${nameServerRepository.userDanaAddress}'); // log the first dana address found
+        danaAddressCreated = true;
+        
+        // Create user contact if it doesn't exist
+        try {
+          final existingContact = await ContactsRepository.instance
+              .getContactByDanaAddress(danaAddresses.first);
+          if (existingContact == null) {
+            final userContact = Contact(
+              nym: 'you',
+              danaAddress: danaAddresses.first,
+              spAddress: walletState.address,
+            );
+            await ContactsRepository.instance.insertContact(userContact);
+            Logger().i('Created user contact in database');
+          }
+        } catch (e) {
+          Logger().w('Failed to create user contact: $e');
+        }
+      } else {
+        // Wallet exists but no dana address - generate a suggested username
+        try {
+          suggestedUsername = await walletState.generateAvailableDanaAddress(
+            nameServerRepository: nameServerRepository,
+            maxRetries: 5,
+          );
+        } catch (e) {
+          Logger().e('Error generating suggested dana address: $e');
+          // Continue without suggested username - user can create their own
+        }
+      }
+    }
   }
 
   runApp(
@@ -69,16 +145,19 @@ void main() async {
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
         ChangeNotifierProvider.value(value: fiatExchangeRate),
+        Provider<NameServerRepository>.value(value: nameServerRepository),
       ],
-      child: SilentPaymentApp(walletLoaded: walletLoaded),
+      child: SilentPaymentApp(walletLoaded: walletLoaded, danaAddressCreated: danaAddressCreated, suggestedUsername: suggestedUsername),
     ),
   );
 }
 
 class SilentPaymentApp extends StatelessWidget {
   final bool walletLoaded;
+  final bool danaAddressCreated;
+  final String? suggestedUsername;
 
-  const SilentPaymentApp({super.key, required this.walletLoaded});
+  const SilentPaymentApp({super.key, required this.walletLoaded, required this.danaAddressCreated, this.suggestedUsername});
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +170,11 @@ class SilentPaymentApp extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'Space Grotesk',
         ),
-        home: walletLoaded ? const PinGuard() : const IntroductionScreen(),
+        home: walletLoaded && danaAddressCreated
+            ? const HomeScreen()
+            : walletLoaded
+                ? DanaAddressSetupScreen(suggestedUsername: suggestedUsername)
+                : const IntroductionScreen(),
       );
     });
   }

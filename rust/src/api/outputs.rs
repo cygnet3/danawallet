@@ -130,7 +130,10 @@ impl OwnedOutputs {
     pub fn get_unconfirmed_spent_outpoints(&self) -> OwnedOutPoints {
         let mut res = HashSet::new();
         for (outpoint, output) in self.0.iter() {
-            if matches!(output.spend_status, OutputSpendStatus::Spent(_)) {
+            if matches!(
+                output.spend_status,
+                OutputSpendStatus::Spent(_) | OutputSpendStatus::Unspent
+            ) {
                 res.insert(*outpoint);
             }
         }
@@ -201,5 +204,9 @@ impl OwnedOutputs {
                 block.to_lower_hex_string()
             ))),
         }
+    }
+
+    pub(crate) fn get(&self, key: &OutPoint) -> Option<&OwnedOutput> {
+        self.0.get(key)
     }
 }

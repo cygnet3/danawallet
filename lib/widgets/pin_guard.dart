@@ -16,9 +16,10 @@ class PinGuard extends StatefulWidget {
 }
 
 class _PinGuardState extends State<PinGuard> {
-  bool _isPinSet = false;
-  bool _isLoading = true;
-  bool _isPinVerified = false;
+  // We disable the PIN screen (for now), so we set to automatically verified
+  bool _isPinSet = true;
+  bool _isLoading = false;
+  bool _isPinVerified = true;
 
   @override
   void initState() {

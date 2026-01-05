@@ -3,12 +3,12 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/choose_network.dart';
+import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
-import 'package:danawallet/screens/pin/pin_setup_screen.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -18,7 +18,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/info_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -55,26 +55,41 @@ class _OverviewScreenState extends State<OverviewScreen> {
           await walletState.initialize();
           final network = walletState.network;
           final blindbitUrl =
-              await SettingsRepository.instance.getBlindbitUrl();
+              await SettingsRepository.instance.getBlindbitUrl() ??
+                  network.defaultBlindbitUrl;
           chainState.initialize(network);
 
           // we can safely ignore the result of connecting, since we get the birthday from the backup
-          await chainState.connect(blindbitUrl!);
+          await chainState.connect(blindbitUrl);
 
           chainState.startSyncService(walletState, scanProgress, true);
+          
+          // Generate an available dana address for restored wallet
+          final nameServerRepository =
+              Provider.of<NameServerRepository>(context, listen: false);
+          
+          final username = await walletState.generateAvailableDanaAddress(
+            nameServerRepository: nameServerRepository,
+            maxRetries: 5,
+          );
+          
           if (context.mounted) {
             Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const PinGuard()),
+                MaterialPageRoute(
+                  builder: (context) => DanaAddressSetupScreen(
+                    suggestedUsername: username,
+                  ),
+                ),
                 (Route<dynamic> route) => false);
           }
         }
       }
     } catch (e) {
       if (e is InvalidNetworkException) {
-        displayNotification("Backup file is for a different network");
+        displayWarning("Backup file is for a different network");
       } else {
-        displayNotification("restore failed, wrong password?");
+        displayWarning("restore failed, wrong password?");
       }
     }
   }
@@ -98,9 +113,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final chainState = Provider.of<ChainState>(context, listen: false);
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
+    final nameServerRepository =
+        Provider.of<NameServerRepository>(context, listen: false);
 
-    await SettingsRepository.instance.defaultSettings(network);
-    final blindbitUrl = network.getDefaultBlindbitUrl();
+    final blindbitUrl = network.defaultBlindbitUrl;
 
     chainState.initialize(network);
     final connected = await chainState.connect(blindbitUrl);
@@ -110,14 +126,31 @@ class _OverviewScreenState extends State<OverviewScreen> {
       chainState.startSyncService(walletState, scanProgress, false);
       final chainTip = chainState.tip;
       await walletState.createNewWallet(network, chainTip);
+      
+      // Generate an available dana address (without registering yet) 
+      final username = await walletState.generateAvailableDanaAddress(
+        nameServerRepository: nameServerRepository,
+        maxRetries: 5,
+      );
+
+      if (username == null) {
+        Logger().e('Failed to generate available danaAddress after 5 attempts');
+        // Very unlikely, but still proceed to setup screen, user can define their own
+      }
+
       if (context.mounted) {
+        // Navigate to dana address setup screen
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const PinGuard()),
+            MaterialPageRoute(
+              builder: (context) => DanaAddressSetupScreen(
+                suggestedUsername: username,
+              ),
+            ),
             (Route<dynamic> route) => false);
       }
     } else {
-      displayNotification(
+      displayWarning(
           "Unable to create a new wallet; internet access required");
     }
   }
@@ -137,14 +170,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
       return;
     }
 
-    // load bip39 words from asset file
-    final String wordsText =
-        await rootBundle.loadString('assets/mnemonic/english.txt');
-    final bip39Words = wordsText
-        .split('\n')
-        .map((word) => word.trim())
-        .where((word) => word.isNotEmpty)
-        .toList();
+    // load bip39 words
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final bip39Words = walletState.getEnglishWordlist();
 
     // go to input seed phrase screen
     if (context.mounted) {

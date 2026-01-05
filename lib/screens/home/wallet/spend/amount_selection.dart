@@ -22,7 +22,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
   final TextEditingController amountController = TextEditingController();
   String? _amountErrorText;
 
-  Future<void> onContinue(ApiAmount availableBalance) async {
+  void onContinue(ApiAmount availableBalance) {
     setState(() {
       _amountErrorText = null;
     });
@@ -30,9 +30,17 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     final BigInt amount;
     try {
       amount = BigInt.from(int.parse(amountController.text));
-    } on FormatException {
+      if (amount <= BigInt.from(0)) {
+        throw const FormatException('Amount must be positive');
+      }
+    } on FormatException catch (e) {
       setState(() {
-        _amountErrorText = 'Invalid amount';
+        _amountErrorText = 'Invalid amount: $e';
+      });
+      return;
+    } catch (e) {
+      setState(() {
+        _amountErrorText = 'Unknown error: $e';
       });
       return;
     }
@@ -53,24 +61,8 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
 
     RecipientForm().amount = ApiAmount(field0: amount);
 
-    // get fee rates, these are needed for the next screen
-    // todo: make a chainstate, get the fee rates from the chainstate instead
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final currentFeeRates = await walletState.getCurrentFeeRates();
-    
-    if (currentFeeRates == null) {
-      setState(() {
-        _amountErrorText = 'Unable to get current fee rates. Please check your connection and try again.';
-      });
-      return;
-    }
-    
-    RecipientForm().currentFeeRates = currentFeeRates;
-
-    if (mounted) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const FeeSelectionScreen()));
-    }
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const FeeSelectionScreen()));
   }
 
   @override

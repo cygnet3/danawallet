@@ -68,7 +68,7 @@ impl EncryptedDanaBackup {
             }
         }
 
-        Ok(DanaBackup::decode(String::from_utf8(final_result)?)?)
+        DanaBackup::decode(String::from_utf8(final_result)?)
     }
 
     #[frb(sync)]
@@ -199,13 +199,13 @@ impl WalletBackup {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SettingsBackup {
-    pub blindbit_url: String,
-    pub dust_limit: u32,
+    pub blindbit_url: Option<String>,
+    pub dust_limit: Option<u32>,
 }
 
 impl SettingsBackup {
     #[frb(sync)]
-    pub fn new(blindbit_url: String, dust_limit: u32) -> Self {
+    pub fn new(blindbit_url: Option<String>, dust_limit: Option<u32>) -> Self {
         Self {
             blindbit_url,
             dust_limit,

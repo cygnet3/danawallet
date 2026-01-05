@@ -16,7 +16,8 @@ class FiatExchangeRateState extends ChangeNotifier {
 
   static Future<FiatExchangeRateState> create() async {
     final instance = FiatExchangeRateState._();
-    final currency = await SettingsRepository.instance.getFiatCurrency();
+    final currency =
+        await SettingsRepository.instance.getFiatCurrency() ?? defaultCurrency;
     instance.currency = currency;
 
     try {

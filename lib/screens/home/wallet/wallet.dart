@@ -5,14 +5,15 @@ import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
+import 'package:danawallet/repositories/contacts_repository.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
-import 'package:danawallet/widgets/receive_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 const String mainnetWarning =
@@ -69,13 +70,62 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
+  Widget buildDanaAddressBanner(String danaAddress) {
+    return GestureDetector(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: danaAddress));
+        HapticFeedback.lightImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Bitcoin.white, size: 16),
+                const SizedBox(width: 8),
+                const Text('Dana address copied to clipboard'),
+              ],
+            ),
+            backgroundColor: Bitcoin.green.withValues(alpha: 0.8),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Bitcoin.blue.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Bitcoin.blue.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    'Your Dana Address',
+                    style: BitcoinTextStyle.body4(Bitcoin.neutral7)
+                        .copyWith(fontFamily: 'Inter', fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 8),
+                  danaAddressAsRichText(danaAddress, 15.0),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.copy, size: 16, color: Bitcoin.blue.withValues(alpha: 0.6)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget buildOfflineStatus(ChainState chainState) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Bitcoin.orange.withOpacity(0.1),
+        color: Bitcoin.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Bitcoin.orange.withOpacity(0.3)),
+        border: Border.all(color: Bitcoin.orange.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -127,7 +177,7 @@ class WalletScreenState extends State<WalletScreen> {
                           const Text('Successfully reconnected!'),
                         ],
                       ),
-                      backgroundColor: Bitcoin.green.withOpacity(0.1),
+                      backgroundColor: Bitcoin.green.withValues(alpha: 0.1),
                       duration: const Duration(seconds: 3),
                     ),
                   );
@@ -196,6 +246,37 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
+  /// Resolves the display name for a recipient address
+  /// Priority: contact name (nym) > contact dana address > looked up dana address > SP address
+  /// Returns a String that can be either a contact name, dana address, or the raw SP address
+  Future<String> _resolveRecipientDisplay(String spAddress, NameServerRepository nameServerRepository) async {
+    // First, check if the SP address is in contacts
+    final contact = await ContactsRepository.instance.getContactBySpAddress(spAddress);
+    if (contact != null) {
+      // If contact has a name, use it
+      if (contact.nym != null && contact.nym!.isNotEmpty) {
+        return contact.nym!;
+      }
+      // Otherwise, use the contact's dana address if available
+      if (contact.danaAddress.isNotEmpty) {
+        return contact.danaAddress;
+      }
+    }
+
+    // If not in contacts, try to look up dana address from name server
+    try {
+      final danaAddresses = await nameServerRepository.lookupDanaAddresses(spAddress);
+      if (danaAddresses.isNotEmpty) {
+        return danaAddresses.first;
+      }
+    } catch (e) {
+      // If lookup fails, fall back to SP address
+    }
+
+    // Fall back to returning the raw SP address (will be formatted in the FutureBuilder)
+    return spAddress;
+  }
+
   ListTile toListTile(
       ApiRecordedTransaction tx, FiatExchangeRateState exchangeRate) {
     Color? color;
@@ -205,12 +286,15 @@ class WalletScreenState extends State<WalletScreen> {
     String title;
     String text;
     Image image;
-    String recipient;
+    Widget recipientWidget;
     String date;
 
     switch (tx) {
       case ApiRecordedTransaction_Incoming(:final field0):
-        recipient = 'Incoming';
+        recipientWidget = Text(
+          'Incoming',
+          style: BitcoinTextStyle.body4(Bitcoin.black),
+        );
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         color = Bitcoin.green;
         amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
@@ -224,8 +308,48 @@ class WalletScreenState extends State<WalletScreen> {
             image: const AssetImage("icons/receive.png", package: "bitcoin_ui"),
             color: Bitcoin.neutral3Dark);
       case ApiRecordedTransaction_Outgoing(:final field0):
-        recipient = displayAddress(context, field0.recipients[0].address,
-            BitcoinTextStyle.body4(Bitcoin.black), 0.53);
+        final spAddress = field0.recipients[0].address;
+        final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
+        recipientWidget = FutureBuilder<String>(
+          future: _resolveRecipientDisplay(spAddress, nameServerRepository),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // Show SP address while loading
+              return Text(
+                displayAddress(context, spAddress,
+                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+                style: BitcoinTextStyle.body4(Bitcoin.black),
+              );
+            }
+            if (snapshot.hasError) {
+              // On error, show SP address
+              return Text(
+                displayAddress(context, spAddress,
+                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+                style: BitcoinTextStyle.body4(Bitcoin.black),
+              );
+            }
+            final displayName = snapshot.data ?? spAddress;
+            // Check if it's a dana address (contains @)
+            if (displayName.contains('@')) {
+              // It's a dana address, use rich text formatting
+              return danaAddressAsRichText(displayName, 15.0);
+            } else if (displayName == spAddress) {
+              // It's the raw SP address, format it
+              return Text(
+                displayAddress(context, spAddress,
+                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+                style: BitcoinTextStyle.body4(Bitcoin.black),
+              );
+            } else {
+              // It's a contact name
+              return Text(
+                displayName,
+                style: BitcoinTextStyle.body4(Bitcoin.black),
+              );
+            }
+          },
+        );
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         if (field0.confirmedAt == null) {
           color = Bitcoin.neutral4;
@@ -243,16 +367,31 @@ class WalletScreenState extends State<WalletScreen> {
         image = Image(
             image: const AssetImage("icons/send.png", package: "bitcoin_ui"),
             color: Bitcoin.neutral3Dark);
+
+      case ApiRecordedTransaction_UnknownOutgoing(:final field0):
+        recipientWidget = Text(
+          'Unknown',
+          style: BitcoinTextStyle.body4(Bitcoin.black),
+        );
+        date = field0.confirmedAt.toString();
+        color = Bitcoin.red;
+        amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
+        amountprefix = '-';
+        amountFiat = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayFiat(field0.amount);
+        title = 'Parially recovered outgoing transaction';
+        text = field0.toString();
+        image = Image(
+            image: const AssetImage("icons/send.png", package: "bitcoin_ui"),
+            color: Bitcoin.neutral3Dark);
     }
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       leading: image,
       title: Row(
         children: [
-          Text(
-            recipient,
-            style: BitcoinTextStyle.body4(Bitcoin.black),
-          ),
+          Expanded(child: recipientWidget),
           const Spacer(),
           Text('$amountprefix $amount', style: BitcoinTextStyle.body4(color)),
         ],
@@ -334,13 +473,143 @@ class WalletScreenState extends State<WalletScreen> {
                       builder: (context) => const ChooseRecipientScreen())),
             ),
           ),
-          const SizedBox(width: 10),
-          ReceiveWidget(
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ShowAddressScreen(address: address))),
-          )
+        ],
+      ),
+    );
+  }
+
+  Widget buildAddressBox(String label, String address, bool isDanaAddress) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: BitcoinTextStyle.body4(Bitcoin.neutral7),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: address));
+            HapticFeedback.lightImpact();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Bitcoin.white, size: 16),
+                    const SizedBox(width: 8),
+                    const Text('Address copied to clipboard'),
+                  ],
+                ),
+                backgroundColor: Bitcoin.green.withValues(alpha: 0.8),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Bitcoin.neutral3,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: isDanaAddress
+                      ? danaAddressAsRichText(address, 15.0)
+                      : addressAsRichText(address, 14.0),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.copy, size: 16, color: Bitcoin.neutral7),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildFundingScreen(
+      String silentPaymentAddress,
+      String? danaAddress,
+      ScanProgressNotifier scanProgress,
+      ChainState chainState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: [
+          // Show sync progress when actively scanning
+          Visibility(
+              visible: scanProgress.scanning,
+              maintainAnimation: true,
+              maintainSize: true,
+              maintainState: true,
+              child: buildScanProgress(scanProgress.progress)),
+          // Show offline status when chain sync has connection issues
+          Visibility(
+              visible: !chainState.available,
+              maintainAnimation: true,
+              maintainSize: true,
+              maintainState: true,
+              child: buildOfflineStatus(chainState)),
+          const SizedBox(height: 20.0),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Icon: arrow down in a box, blue
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Bitcoin.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: Image(
+                          width: 40,
+                          height: 40,
+                          image: const AssetImage("icons/receive.png",
+                              package: "bitcoin_ui"),
+                          color: Bitcoin.blue,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Title
+                    Text(
+                      'Fund your wallet',
+                      style: BitcoinTextStyle.body1(Bitcoin.neutral8).apply(
+                        fontSizeDelta: 2,
+                        fontWeightDelta: 2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    // Subtitle
+                    Text(
+                      'Your balance is 0 at the moment. Share your Dana address and get donations or fund your wallet to donate to others',
+                      style: BitcoinTextStyle.body3(Bitcoin.neutral7),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    // Dana address box (if available)
+                    if (danaAddress != null) ...[
+                      buildAddressBox('Your Dana Address', danaAddress, true),
+                      const SizedBox(height: 20),
+                    ],
+                    // Silent payment address box
+                    buildAddressBox(
+                        'Your Silent Payment Address', silentPaymentAddress, false),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -372,52 +641,73 @@ class WalletScreenState extends State<WalletScreen> {
     final exchangeRate = Provider.of<FiatExchangeRateState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
     final chainState = Provider.of<ChainState>(context);
+    final nameServerRepository = Provider.of<NameServerRepository>(context);
 
     ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
+    
+    // Check if balance is zero
+    bool isBalanceZero = amount.field0 == BigInt.zero;
+    // Check if there's transaction history
+    bool hasTransactionHistory = walletState.txHistory.toApiTransactions().isNotEmpty;
+    
+    // Show funding screen only if balance is zero AND there's no transaction history
+    bool showFundingScreen = isBalanceZero && !hasTransactionHistory;
 
     return Scaffold(
         appBar: buildAppBar(scanProgress.scanning, walletState.network.toColor),
-        body: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Show sync progress when actively scanning
-                    Visibility(
-                        visible: scanProgress.scanning,
-                        maintainAnimation: true,
-                        maintainSize: true,
-                        maintainState: true,
-                        child: buildScanProgress(scanProgress.progress)),
-                    // Show offline status when chain sync has connection issues
-                    Visibility(
-                        visible: !chainState.available,
-                        maintainAnimation: true,
-                        maintainSize: true,
-                        maintainState: true,
-                        child: buildOfflineStatus(chainState)),
-                    const SizedBox(height: 20.0),
-                    buildAmountDisplay(
-                      amount,
-                      exchangeRate,
+        body: showFundingScreen
+            ? buildFundingScreen(
+                walletState.address,
+                nameServerRepository.userDanaAddress,
+                scanProgress,
+                chainState,
+              )
+            : Column(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Show sync progress when actively scanning
+                          Visibility(
+                              visible: scanProgress.scanning,
+                              maintainAnimation: true,
+                              maintainSize: true,
+                              maintainState: true,
+                              child: buildScanProgress(scanProgress.progress)),
+                          // Show offline status when chain sync has connection issues
+                          Visibility(
+                              visible: !chainState.available,
+                              maintainAnimation: true,
+                              maintainSize: true,
+                              maintainState: true,
+                              child: buildOfflineStatus(chainState)),
+                          const SizedBox(height: 20.0),
+                          buildAmountDisplay(
+                            amount,
+                            exchangeRate,
+                          ),
+                          const SizedBox(height: 20.0),
+                          // Show Dana address banner if available
+                          if (nameServerRepository.userDanaAddress != null)
+                            buildDanaAddressBanner(
+                                nameServerRepository.userDanaAddress!),
+                          const Spacer(),
+                          buildTransactionHistory(
+                            walletState.txHistory.toApiTransactions(),
+                            exchangeRate,
+                          ),
+                          buildBottomButtons(walletState.address),
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
-                    buildTransactionHistory(
-                      walletState.txHistory.toApiTransactions(),
-                      exchangeRate,
-                    ),
-                    buildBottomButtons(walletState.address),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ));
+                  ),
+                ],
+              ));
   }
 }

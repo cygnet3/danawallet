@@ -8,14 +8,16 @@ use spdk::{
 };
 
 use crate::{
+    api::outputs::OwnedOutputs,
     state::constants::{
         RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
+        RecordedTransactionUnknownOutgoing,
     },
     stream::StateUpdate,
 };
 
 use super::structs::{ApiAmount, ApiRecipient, ApiRecordedTransaction};
-use anyhow::{Error, Result};
+use anyhow::Result;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[frb(opaque)]
@@ -47,7 +49,11 @@ impl TxHistory {
     }
 
     #[flutter_rust_bridge::frb(sync)]
-    pub fn process_state_update(&mut self, update: &StateUpdate) -> Result<()> {
+    pub fn process_state_update(
+        &mut self,
+        update: &StateUpdate,
+        owned_outputs: &OwnedOutputs,
+    ) -> Result<()> {
         match update {
             StateUpdate::Update {
                 blkheight,
@@ -55,9 +61,28 @@ impl TxHistory {
                 found_outputs,
                 found_inputs,
             } => {
+                let mut unknown_spent_outpoints = vec![];
                 for outpoint in found_inputs {
                     // this may confirm the same tx multiple times, but this shouldn't be a problem
-                    self.confirm_recorded_outgoing_transaction(*outpoint, *blkheight)?;
+                    if !self.confirm_recorded_outgoing_transaction(*outpoint, *blkheight) {
+                        // if we're unable to confirm the spent outpoint, it means we don't know
+                        // the spending transaction because of a history desync. To keep the
+                        // history consistent we make a new 'unknown' spent output for these.
+                        unknown_spent_outpoints.push(*outpoint);
+                    }
+                }
+
+                if !unknown_spent_outpoints.is_empty() {
+                    let unknown_sum = unknown_spent_outpoints
+                        .iter()
+                        .map(|outpoint| owned_outputs.get(outpoint).unwrap().amount)
+                        .sum();
+
+                    self.record_unknown_outgoing_transaction(
+                        unknown_spent_outpoints,
+                        unknown_sum,
+                        *blkheight,
+                    )?;
                 }
 
                 // add new incoming transactions
@@ -71,8 +96,8 @@ impl TxHistory {
                     // we should NOT exclude the change output, since we don't have the sending
                     // equivalent.
                     //
-                    // this is a lazy way of detecting whether this is a change output,
-                    // since we don't have any other labels yet.
+                    // since we're a label-less wallet, the only label we use is the change label,
+                    // so we simply check if an output is labelled.
                     if output.label.is_some() {
                         if self.check_is_self_send(outpoint.txid) {
                             // if this is both a change output, as well as a tx we sent ourselves,
@@ -135,6 +160,7 @@ impl TxHistory {
             RecordedTransaction::Outgoing(outgoing) => {
                 outgoing.confirmed_at.is_some_and(|x| x <= blkheight)
             }
+            RecordedTransaction::UnknownOutgoing(unknown) => unknown.confirmed_at <= blkheight,
         });
 
         Ok(())
@@ -177,23 +203,37 @@ impl TxHistory {
         &mut self,
         outpoint: OutPoint,
         blkheight: Height,
-    ) -> Result<()> {
+    ) -> bool {
         for recorded_tx in self.0.iter_mut() {
             match recorded_tx {
                 RecordedTransaction::Outgoing(outgoing)
                     if (outgoing.spent_outpoints.contains(&outpoint)) =>
                 {
                     outgoing.confirmed_at = Some(blkheight);
-                    return Ok(());
+                    return true;
                 }
                 _ => (),
             }
         }
 
-        Err(Error::msg(format!(
-            "No outgoing tx found for input: {}",
-            outpoint
-        )))
+        log::warn!("No outgoing tx found for input: {}", outpoint);
+        false
+    }
+
+    pub(crate) fn record_unknown_outgoing_transaction(
+        &mut self,
+        spent_outpoints: Vec<OutPoint>,
+        amount: Amount,
+        confirmed_at: Height,
+    ) -> Result<()> {
+        self.0.push(RecordedTransaction::UnknownOutgoing(
+            RecordedTransactionUnknownOutgoing {
+                spent_outpoints,
+                amount,
+                confirmed_at,
+            },
+        ));
+        Ok(())
     }
 
     fn record_incoming_transaction(&mut self, txid: Txid, amount: Amount, confirmed_at: Height) {

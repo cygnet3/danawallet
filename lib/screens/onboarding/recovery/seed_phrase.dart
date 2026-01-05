@@ -1,11 +1,12 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/contacts.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/repositories/contacts_repository.dart';
+import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/home/home.dart';
-import 'package:danawallet/screens/pin/pin_setup_screen.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -14,6 +15,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pills/mnemonic_input_pill_box.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -48,8 +50,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
-      await SettingsRepository.instance.defaultSettings(widget.network);
-      final blindbitUrl = widget.network.getDefaultBlindbitUrl();
+      final blindbitUrl = widget.network.defaultBlindbitUrl;
 
       await walletState.restoreWallet(widget.network, mnemonic);
 
@@ -59,6 +60,59 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
 
       chainState.startSyncService(walletState, scanProgress, true);
 
+      // Now we need to find out if the wallet has a dana address and create "you" contact
+      if (context.mounted) {
+        final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
+        
+        // Check if dana address is stored
+        final storedDanaAddress = await SettingsRepository.instance.getDanaAddress();
+        if (storedDanaAddress != null) {
+          nameServerRepository.userDanaAddress = storedDanaAddress;
+          Logger().i('Loaded dana address from storage: $storedDanaAddress');
+          
+          // Create user contact if it doesn't exist
+          try {
+            final existingContact = await ContactsRepository.instance
+                .getContactByDanaAddress(storedDanaAddress);
+            if (existingContact == null) {
+              final userContact = Contact(
+                nym: 'you',
+                danaAddress: storedDanaAddress,
+                spAddress: walletState.address,
+              );
+              await ContactsRepository.instance.insertContact(userContact);
+              Logger().i('Created user contact in database');
+            }
+          } catch (e) {
+            Logger().w('Failed to create user contact: $e');
+          }
+        } else {
+          // Lookup dana addresses
+          final danaAddresses = await nameServerRepository.lookupDanaAddresses(walletState.address);
+          if (danaAddresses.isNotEmpty) {
+            nameServerRepository.userDanaAddress = danaAddresses.first;
+            Logger().i('Loaded dana address from lookup: ${nameServerRepository.userDanaAddress}');
+            
+            // Create user contact if it doesn't exist
+            try {
+              final existingContact = await ContactsRepository.instance
+                  .getContactByDanaAddress(danaAddresses.first);
+              if (existingContact == null) {
+                final userContact = Contact(
+                  nym: 'you',
+                  danaAddress: danaAddresses.first,
+                  spAddress: walletState.address,
+                );
+                await ContactsRepository.instance.insertContact(userContact);
+                Logger().i('Created user contact in database');
+              }
+            } catch (e) {
+              Logger().w('Failed to create user contact: $e');
+            }
+          }
+        }
+      }
+
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
@@ -67,14 +121,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       }
     } catch (e) {
       if (context.mounted) {
-        final userFriendlyMessage = exceptionToString(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(userFriendlyMessage),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        displayError(e);
       }
     }
   }

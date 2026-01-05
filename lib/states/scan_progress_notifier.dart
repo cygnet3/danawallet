@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
 import 'package:danawallet/generated/rust/api/wallet.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
@@ -63,8 +64,9 @@ class ScanProgressNotifier extends ChangeNotifier {
     try {
       final wallet = await walletState.getWalletFromSecureStorage();
       final settings = SettingsRepository.instance;
-      final blindbitUrl = await settings.getBlindbitUrl();
-      final dustLimit = await settings.getDustLimit();
+      final blindbitUrl = await settings.getBlindbitUrl() ??
+          walletState.network.defaultBlindbitUrl;
+      final dustLimit = await settings.getDustLimit() ?? defaultDustLimit;
 
       final lastScan = walletState.lastScan;
 
@@ -73,8 +75,8 @@ class ScanProgressNotifier extends ChangeNotifier {
 
       activate(walletState.lastScan);
       await wallet.scanToTip(
-          blindbitUrl: blindbitUrl!,
-          dustLimit: BigInt.from(dustLimit!),
+          blindbitUrl: blindbitUrl,
+          dustLimit: BigInt.from(dustLimit),
           ownedOutpoints: ownedOutPoints,
           lastScan: lastScan);
     } catch (e) {
