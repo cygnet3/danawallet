@@ -38,8 +38,8 @@ void displayWarning(String text) {
   }
 }
 
-void displayError(Object error) {
-  final text = exceptionToString(error);
+void displayError(String message, Object error) {
+  final text = "$message: ${exceptionToString(error)}";
   Logger().e(text);
   if (globalNavigatorKey.currentContext != null) {
     final snackBar = SnackBar(
@@ -217,17 +217,18 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
   // Parse local part character by character to handle special characters
   String currentWord = '';
   bool inNumber = false;
-  
+
   for (int i = 0; i < localPart.length; i++) {
     final char = localPart[i];
-    
+
     // Check if character is a special separator (., -, _)
     if (char == '.' || char == '-' || char == '_') {
       // Add accumulated word first
       if (currentWord.isNotEmpty) {
         spans.add(TextSpan(
           text: currentWord,
-          style: BitcoinTextStyle.body5(inNumber ? Bitcoin.green : Bitcoin.blue).copyWith(
+          style: BitcoinTextStyle.body5(inNumber ? Bitcoin.green : Bitcoin.blue)
+              .copyWith(
             fontSize: fontSize,
             fontFamily: 'Inter',
             letterSpacing: 1,
@@ -237,7 +238,7 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
         ));
         currentWord = '';
       }
-      
+
       // Add special character in distinct grey color
       spans.add(TextSpan(
         text: char,
@@ -249,7 +250,7 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
           fontWeight: FontWeight.w400,
         ),
       ));
-      
+
       // Reset number flag after special character (next part could be text again)
       inNumber = false;
     } else {
@@ -275,12 +276,13 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
       currentWord += char;
     }
   }
-  
+
   // Add remaining local part
   if (currentWord.isNotEmpty) {
     spans.add(TextSpan(
       text: currentWord,
-      style: BitcoinTextStyle.body5(inNumber ? Bitcoin.green : Bitcoin.blue).copyWith(
+      style: BitcoinTextStyle.body5(inNumber ? Bitcoin.green : Bitcoin.blue)
+          .copyWith(
         fontSize: fontSize,
         fontFamily: 'Inter',
         letterSpacing: 1,
@@ -306,7 +308,7 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
   currentWord = '';
   for (int i = 0; i < domainPart.length; i++) {
     final char = domainPart[i];
-    
+
     // Check if character is a special separator (., -, _)
     if (char == '.' || char == '-' || char == '_') {
       // Add accumulated word first
@@ -323,7 +325,7 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
         ));
         currentWord = '';
       }
-      
+
       // Add special character in distinct grey color
       spans.add(TextSpan(
         text: char,
@@ -339,7 +341,7 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
       currentWord += char;
     }
   }
-  
+
   // Add remaining domain part
   if (currentWord.isNotEmpty) {
     spans.add(TextSpan(

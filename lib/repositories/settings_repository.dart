@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 const String _keyBlindbitUrl = "blindbiturl";
 const String _keyDustLimit = "dustlimit";
 const String _keyFiatCurrency = "fiatcurrency";
-const String _keyUserAlias = "useralias";
-const String _keyDanaAddress = "danaaddress";
 
 class SettingsRepository {
   final SharedPreferencesAsync prefs = SharedPreferencesAsync();
@@ -19,7 +17,7 @@ class SettingsRepository {
 
   Future<void> resetAll() async {
     await prefs
-        .clear(allowList: {_keyBlindbitUrl, _keyDustLimit, _keyFiatCurrency, _keyUserAlias, _keyDanaAddress});
+        .clear(allowList: {_keyBlindbitUrl, _keyDustLimit, _keyFiatCurrency});
   }
 
   Future<void> setBlindbitUrl(String? url) async {
@@ -58,30 +56,6 @@ class SettingsRepository {
     final currency = await prefs.getString(_keyFiatCurrency);
 
     return currency != null ? FiatCurrency.values.byName(currency) : null;
-  }
-
-  Future<void> setUserAlias(String alias) async {
-    return await prefs.setString(_keyUserAlias, alias);
-  }
-
-  Future<String?> getUserAlias() async {
-    return await prefs.getString(_keyUserAlias);
-  }
-
-  Future<void> clearUserAlias() async {
-    return await prefs.remove(_keyUserAlias);
-  }
-
-  Future<void> setDanaAddress(String danaAddress) async {
-    return await prefs.setString(_keyDanaAddress, danaAddress);
-  }
-
-  Future<String?> getDanaAddress() async {
-    return await prefs.getString(_keyDanaAddress);
-  }
-
-  Future<void> clearDanaAddress() async {
-    return await prefs.remove(_keyDanaAddress);
   }
 
   Future<SettingsBackup> createSettingsBackup() async {

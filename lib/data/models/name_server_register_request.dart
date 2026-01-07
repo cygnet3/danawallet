@@ -1,10 +1,10 @@
-class DanaAddressRegisterRequest {
+class NameServerRegisterRequest {
   final String id;
   final String userName;
   final String domain;
   final String spAddress;
 
-  const DanaAddressRegisterRequest({
+  const NameServerRegisterRequest({
     required this.id,
     required this.userName,
     required this.domain,
@@ -20,8 +20,8 @@ class DanaAddressRegisterRequest {
     };
   }
 
-  factory DanaAddressRegisterRequest.fromJson(Map<String, dynamic> json) {
-    return DanaAddressRegisterRequest(
+  factory NameServerRegisterRequest.fromJson(Map<String, dynamic> json) {
+    return NameServerRegisterRequest(
       id: json['id'] as String,
       userName: json['user_name'] as String,
       domain: json['domain'] as String,

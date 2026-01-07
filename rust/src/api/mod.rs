@@ -3,6 +3,7 @@
 //
 
 pub mod backup;
+pub mod bip39;
 pub mod chain;
 pub mod history;
 pub mod outputs;

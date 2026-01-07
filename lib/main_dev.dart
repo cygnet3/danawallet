@@ -1,15 +1,17 @@
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/main.dart';
-import 'package:danawallet/constants.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
+import 'package:danawallet/screens/onboarding/introduction.dart';
+import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +49,7 @@ void main() async {
     await SettingsRepository.instance.setBlindbitUrl(blindbitUrl);
   }
 
+  Widget landingPage;
   if (walletLoaded) {
     final network = walletState.network;
     final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl() ??
@@ -61,40 +64,20 @@ void main() async {
     }
 
     chainState.startSyncService(walletState, scanNotifier, true);
-  }
 
-  // Create NameServerRepository instance
-  final nameServerRepository = NameServerRepository(baseUrl: defaultNameServer, domain: defaultDomain, apiVersion: nameServerApiVersion);
- 
-  // Load the dana address from storage if it exists
-  bool danaAddressCreated = false;
-  String? suggestedUsername;
-  if (walletLoaded) {
-    final storedDanaAddress = await SettingsRepository.instance.getDanaAddress();
-    if (storedDanaAddress != null) {
-      nameServerRepository.userDanaAddress = storedDanaAddress;
-      Logger().i('Loaded dana address from storage: $storedDanaAddress');
-      danaAddressCreated = true;
+    if (await walletState.tryLoadingDanaAddress()) {
+      // succeeded in loading address, go to home page
+      landingPage = const PinGuard();
     } else {
-      // Wallet exists but no dana address - lookup dana addresses
-      final danaAddresses = await nameServerRepository.lookupDanaAddresses(walletState.address);
-      if (danaAddresses.isNotEmpty) {
-        nameServerRepository.userDanaAddress = danaAddresses.first; // use the first dana address found
-        Logger().i('Loaded dana address from lookup: ${nameServerRepository.userDanaAddress}'); // log the first dana address found
-        danaAddressCreated = true;
-      } else {
-        // Wallet exists but no dana address - generate a suggested username
-        try {
-          suggestedUsername = await walletState.generateAvailableDanaAddress(
-            nameServerRepository: nameServerRepository,
-            maxRetries: 5,
-          );
-        } catch (e) {
-          Logger().e('Error generating suggested dana address: $e');
-          // Continue without suggested username - user can create their own
-        }
-      }
+      final suggestedUsername = await walletState.createSuggestedUsername();
+      final danaAddressDomain = await DanaAddressService().danaAddressDomain;
+
+      landingPage = DanaAddressSetupScreen(
+          suggestedUsername: suggestedUsername, domain: danaAddressDomain);
     }
+  } else {
+    // no wallet is loaded, so we go to the introduction screen
+    landingPage = const IntroductionScreen();
   }
 
   runApp(
@@ -105,9 +88,8 @@ void main() async {
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
         ChangeNotifierProvider.value(value: fiatExchangeRate),
-        Provider<NameServerRepository>.value(value: nameServerRepository),
       ],
-      child: SilentPaymentApp(walletLoaded: walletLoaded, danaAddressCreated: danaAddressCreated, suggestedUsername: suggestedUsername),
+      child: SilentPaymentApp(landingPage: landingPage),
     ),
   );
 }

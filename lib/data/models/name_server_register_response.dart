@@ -1,11 +1,11 @@
-class DanaAddressCreationResponse {
+class NameServerRegisterResponse {
   final String id;
   final String message;
   final String? danaAddress;
   final String? spAddress;
   final String? dnsRecordId;
 
-  const DanaAddressCreationResponse({
+  const NameServerRegisterResponse({
     required this.id,
     required this.message,
     this.danaAddress,
@@ -23,8 +23,9 @@ class DanaAddressCreationResponse {
     };
   }
 
-  factory DanaAddressCreationResponse.fromJson(Map<String, dynamic> json) {
-    return DanaAddressCreationResponse(
+  factory NameServerRegisterResponse.fromJson(
+      Map<String, dynamic> json) {
+    return NameServerRegisterResponse(
       id: json['id'] as String,
       message: json['message'] as String,
       danaAddress: json['dana_address'] as String?,
@@ -38,4 +39,3 @@ class DanaAddressCreationResponse {
     return 'DanaAddressCreationResponse{id: $id, message: $message, danaAddress: $danaAddress, spAddress: $spAddress, dnsRecordId: $dnsRecordId}';
   }
 }
-

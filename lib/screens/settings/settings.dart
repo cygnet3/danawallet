@@ -1,7 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
@@ -24,7 +23,6 @@ class SettingsScreen extends StatelessWidget {
     ChainState chainState,
     ScanProgressNotifier scanProgress,
     HomeState homeState,
-    NameServerRepository nameServerRepository,
   ) async {
     try {
       await scanProgress.interruptScan();
@@ -33,8 +31,6 @@ class SettingsScreen extends StatelessWidget {
       await walletState.reset();
 
       await SettingsRepository.instance.resetAll();
-      // Reset dana address from memory
-      nameServerRepository.resetUserAddress();
       homeState.reset();
     } catch (e) {
       rethrow;
@@ -137,10 +133,8 @@ class SettingsScreen extends StatelessWidget {
       final chainState = Provider.of<ChainState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
-      final nameServerRepository =
-          Provider.of<NameServerRepository>(context, listen: false);
 
-      await _removeWallet(walletState, chainState, scanProgress, homeState, nameServerRepository);
+      await _removeWallet(walletState, chainState, scanProgress, homeState);
       if (context.mounted) {
         Navigator.pushReplacement(
             context,

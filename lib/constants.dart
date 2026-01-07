@@ -38,6 +38,7 @@ const int bitcoinUnits = 100000000;
 // String that displays when amount is hidden
 const String hideAmountFormat = "*****";
 
-const String defaultNameServer = "https://silentpayments.dev";
-const String defaultDomain = 'danawallet.app';
-const String nameServerApiVersion = 'v1';
+// the in-production name server, only used on live flavors
+const String nameServerLive = "https://nameserver.danawallet.app/v1";
+// name server for all other flavors (dev, signet)
+const String nameServerDev = "https://test.nameserver.danawallet.app/v1";
