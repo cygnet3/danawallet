@@ -3,9 +3,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
-import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
+import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
@@ -17,10 +16,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 class DanaAddressSetupScreen extends StatefulWidget {
   final String? suggestedUsername;
+  final String domain;
   
   const DanaAddressSetupScreen({
     super.key,
     this.suggestedUsername,
+    required this.domain,
   });
 
   @override
@@ -156,7 +157,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     return null; // Valid
   }
 
-  void _onUsernameChanged(String value, NameServerRepository nameServerRepository) {
+  void _onUsernameChanged(String value) {
     // Cancel any pending debounce timer
     _debounceTimer?.cancel();
     
@@ -197,17 +198,17 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     
     // Debounce: wait for user to stop typing before checking availability
     _debounceTimer = Timer(_debounceDuration, () {
-      _checkAvailability(normalized, nameServerRepository);
+      _checkAvailability(normalized);
     });
   }
 
-  Future<void> _checkAvailability(String username, NameServerRepository nameServerRepository) async {
+  Future<void> _checkAvailability(String username) async {
     setState(() {
       _isCheckingAvailability = true;
     });
 
     try {
-      final isAvailable = await nameServerRepository.isDanaAddressAvailable(username);
+      final isAvailable = await DanaAddressService().isDanaUsernameAvailable(username);
       if (mounted && _customUsername == username) {
         setState(() {
           _isCustomUsernameAvailable = isAvailable;
@@ -227,8 +228,6 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
 
   Future<void> _registerUsername(BuildContext context) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
-    final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
-
     // Determine which username to use (from the text field)
     final currentText = _customUsernameController.text.trim();
     final rawUsername = currentText.isNotEmpty ? currentText : widget.suggestedUsername;
@@ -257,60 +256,27 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     });
 
     try {
-      Logger().i('Registering dana address with username: $usernameToRegister');
-      final response = await nameServerRepository.registerDanaAddress(
-        username: usernameToRegister,
-        spAddress: walletState.address,
-      );
-
-      if (!mounted) return;
-
-      if (response.danaAddress != null && response.spAddress != null) {
-        // Registration successful
-        Logger().i('Registration successful: ${response.danaAddress}');
-        nameServerRepository.userDanaAddress = response.danaAddress;
-        
-        // Persist the dana address to storage
-        await SettingsRepository.instance.setDanaAddress(response.danaAddress!);
-        
+      await walletState.registerDanaAddress(usernameToRegister);
+      
+      if(context.mounted) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const PinGuard()),
           (Route<dynamic> route) => false,
         );
-      } else {
-        // Registration failed
-        Logger().e('Registration failed: ${response.message}');
-        Logger().e('Response: danaAddress=${response.danaAddress}, spAddress=${response.spAddress}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Registration failed: ${response.message}'),
-            duration: const Duration(seconds: 5),
-          ),
-        );
-        setState(() {
-          _isRegistering = false;
-        });
       }
     } catch (e) {
-      Logger().e('Error registering username: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed: $e')),
-        );
-        setState(() {
-          _isRegistering = false;
-        });
-      }
+      displayError('Failed to register username', e);
+      setState(() {
+        _isRegistering = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
-    
     final suggestedUsername = widget.suggestedUsername;
-    final domain = nameServerRepository.domain;
+    final domain = widget.domain;
     
     // Determine which username will be registered
     final finalUsername = _customUsername?.isNotEmpty == true 
@@ -397,7 +363,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
                       selection: selection,
                     );
                   }
-                  _onUsernameChanged(lowercase, nameServerRepository);
+                  _onUsernameChanged(lowercase);
                 },
               ),
               

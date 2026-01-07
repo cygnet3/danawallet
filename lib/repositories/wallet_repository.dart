@@ -19,6 +19,7 @@ const String _keyNetwork = "network";
 const String _keyTxHistory = "txhistory";
 const String _keyOwnedOutputs = "ownedoutputs";
 const String _keyLastScan = "lastscan";
+const String _keyDanaAddress = "danaaddress";
 
 class WalletRepository {
   final secureStorage = const FlutterSecureStorage();
@@ -40,7 +41,8 @@ class WalletRepository {
       _keyTxHistory,
       _keyLastScan,
       _keyOwnedOutputs,
-      _keyBirthday
+      _keyBirthday,
+      _keyDanaAddress,
     });
   }
 
@@ -150,6 +152,14 @@ class WalletRepository {
   Future<OwnedOutputs> readOwnedOutputs() async {
     final encodedOutputs = await nonSecureStorage.getString(_keyOwnedOutputs);
     return OwnedOutputs.decode(encodedOutputs: encodedOutputs!);
+  }
+
+  Future<void> saveDanaAddress(String danaAddress) async {
+    return await nonSecureStorage.setString(_keyDanaAddress, danaAddress);
+  }
+
+  Future<String?> readDanaAddress() async {
+    return await nonSecureStorage.getString(_keyDanaAddress);
   }
 
   Future<WalletBackup> createWalletBackup() async {

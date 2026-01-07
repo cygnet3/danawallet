@@ -5,7 +5,6 @@ import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -566,7 +565,7 @@ class WalletScreenState extends State<WalletScreen> {
     final exchangeRate = Provider.of<FiatExchangeRateState>(context);
     final scanProgress = Provider.of<ScanProgressNotifier>(context);
     final chainState = Provider.of<ChainState>(context);
-    final nameServerRepository = Provider.of<NameServerRepository>(context);
+    final danaAddress = walletState.danaAddress;
 
     ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
     
@@ -583,7 +582,7 @@ class WalletScreenState extends State<WalletScreen> {
         body: showFundingScreen
             ? buildFundingScreen(
                 walletState.address,
-                nameServerRepository.userDanaAddress,
+                danaAddress,
                 scanProgress,
                 chainState,
               )
@@ -616,9 +615,9 @@ class WalletScreenState extends State<WalletScreen> {
                           ),
                           const SizedBox(height: 20.0),
                           // Show Dana address banner if available
-                          if (nameServerRepository.userDanaAddress != null)
+                          if (danaAddress != null)
                             buildDanaAddressBanner(
-                                nameServerRepository.userDanaAddress!),
+                                danaAddress),
                           const Spacer(),
                           buildTransactionHistory(
                             walletState.txHistory.toApiTransactions(),

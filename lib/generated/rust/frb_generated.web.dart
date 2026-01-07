@@ -7,6 +7,7 @@
 // ignore_for_file: argument_type_not_assignable
 
 import 'api/backup.dart';
+import 'api/bip39.dart';
 import 'api/chain.dart';
 import 'api/history.dart';
 import 'api/outputs.dart';
