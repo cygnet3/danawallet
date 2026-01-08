@@ -1,4 +1,5 @@
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/global_functions.dart';
@@ -63,7 +64,8 @@ void main() async {
 
     chainState.startSyncService(walletState, scanNotifier, true);
 
-    if (await walletState.tryLoadingDanaAddress()) {
+    if (network == Network.regtest ||
+        await walletState.tryLoadingDanaAddress()) {
       // succeeded in loading address, go to home page
       landingPage = const PinGuard();
     } else {

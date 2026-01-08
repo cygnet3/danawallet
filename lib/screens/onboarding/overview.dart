@@ -67,7 +67,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
           // Now we need to find out if the wallet has a dana address
           final hasDanaAddress = await walletState.tryLoadingDanaAddress();
 
-          if (hasDanaAddress && context.mounted) {
+          if ((network == Network.regtest || hasDanaAddress) &&
+              context.mounted) {
             Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const PinGuard()),
@@ -131,19 +132,26 @@ class _OverviewScreenState extends State<OverviewScreen> {
       final chainTip = chainState.tip;
       await walletState.createNewWallet(network, chainTip);
 
-      // Generate an available dana address (without registering yet)
-      final suggestedUsername = await walletState.createSuggestedUsername();
-      final danaAddressDomain = await DanaAddressService().danaAddressDomain;
-
-      if (context.mounted) {
+      if (network == Network.regtest && context.mounted) {
+        // for regtest we bypass the dana address setup screen
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-                builder: (context) => DanaAddressSetupScreen(
-                    suggestedUsername: suggestedUsername,
-                    domain: danaAddressDomain,
-                    network: network)),
+            MaterialPageRoute(builder: (context) => const PinGuard()),
             (Route<dynamic> route) => false);
+      } else {
+        // Generate an available dana address (without registering yet)
+        final suggestedUsername = await walletState.createSuggestedUsername();
+        final danaAddressDomain = await DanaAddressService().danaAddressDomain;
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => DanaAddressSetupScreen(
+                      suggestedUsername: suggestedUsername,
+                      domain: danaAddressDomain,
+                      network: network)),
+              (Route<dynamic> route) => false);
+        }
       }
     } else {
       displayWarning("Unable to create a new wallet; internet access required");
