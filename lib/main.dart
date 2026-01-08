@@ -71,7 +71,9 @@ void main() async {
       final danaAddressDomain = await DanaAddressService().danaAddressDomain;
 
       landingPage = DanaAddressSetupScreen(
-          suggestedUsername: suggestedUsername, domain: danaAddressDomain);
+          suggestedUsername: suggestedUsername,
+          domain: danaAddressDomain,
+          network: network);
     }
   } else {
     // no wallet is loaded, so we go to the introduction screen

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:danawallet/data/enums/network.dart';
 import 'package:dart_bip353/dart_bip353.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -50,9 +51,9 @@ class Bip353Resolver {
   }
 
   static Future<bool> isBip353AddressPresent(
-      String username, String domain) async {
+      String username, String domain, Network network) async {
     try {
-      final spAddress = await resolve(username, domain);
+      final spAddress = await resolve(username, domain, network);
       // If null or no silent payment, address is available
       return spAddress == null;
     } catch (e) {
@@ -67,7 +68,12 @@ class Bip353Resolver {
   /// Returns [String] if the address exists and is valid
   /// Returns null if the DNS record doesn't exist (address not registered)
   /// Throws an exception for network errors, invalid responses, or malformed data
-  static Future<String?> resolve(String username, String domain) async {
+  static Future<String?> resolve(
+      String username, String domain, Network network) async {
+    if (network == Network.regtest) {
+      throw Exception("regtest not allowed");
+    }
+
     final query = Bip353.buildDnsQuery(username, domain);
     final url = "${Bip353.dnsResolver}?name=$query&type=TXT";
 
@@ -116,8 +122,11 @@ class Bip353Resolver {
       final data = firstRecord["data"] as String;
 
       final parsed = Bip353DnsResolveResponse.fromRawQueryData(data);
-      if (parsed.silentpayment != null) {
+      if (network == Network.mainnet && parsed.silentpayment != null) {
         return parsed.silentpayment;
+      } else if ((network == Network.testnet || network == Network.signet) &&
+          parsed.testsilentpayment != null) {
+        return parsed.testsilentpayment;
       } else {
         // if we have a dns entry but no silent payment record, throw an error
         throw Exception("Record exists, but no silent payment entry");
@@ -132,7 +141,8 @@ class Bip353Resolver {
     }
   }
 
-  static Future<String?> resolveFromAddress(String address) async {
+  static Future<String?> resolveFromAddress(
+      String address, Network network) async {
     final cleaned = cleanAndValidateBip353Address(address);
     final parts = cleaned.split('@');
     if (parts.length != 2) {
@@ -142,6 +152,6 @@ class Bip353Resolver {
     final username = parts[0];
     final domain = parts[1];
 
-    return await resolve(username, domain);
+    return await resolve(username, domain, network);
   }
 }

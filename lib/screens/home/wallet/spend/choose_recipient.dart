@@ -38,27 +38,29 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
     final network = Provider.of<ChainState>(context, listen: false).network;
     try {
       String address = addressController.text.trim();
-      
+
       if (address.contains('@')) {
         // we interpret the address as a bip353 address
         try {
           Logger().d('Resolving dana address: "$address"');
-          
-          final resolvedAddress = await Bip353Resolver.resolveFromAddress(address);
-          
+
+          final resolvedAddress =
+              await Bip353Resolver.resolveFromAddress(address, network);
+
           if (resolvedAddress == null) {
             // DNS resolution returned null - address not registered
             Logger().w('Dana address "$address" not found in DNS');
             throw Exception('Dana address not found or not registered');
           }
-          
+
           // Store the original dana address for the form
           // Note: getAddressResolve cleans the address internally, but we store the original
           // as entered by the user for display purposes
           form.recipientBip353 = address;
           address = resolvedAddress;
-          
-          Logger().d('Successfully resolved dana address to SP address: ${address.substring(0, 20)}...');
+
+          Logger().d(
+              'Successfully resolved dana address to SP address: ${address.substring(0, 20)}...');
         } catch (e) {
           displayError('Failed to resolve dana address "$address"' , e);
         }
