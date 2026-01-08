@@ -75,7 +75,8 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
               MaterialPageRoute(
                   builder: (context) => DanaAddressSetupScreen(
                       suggestedUsername: suggestedUsername,
-                      domain: danaAddressDomain)),
+                      domain: danaAddressDomain,
+                      network: widget.network)),
               (Route<dynamic> route) => false);
         }
       }

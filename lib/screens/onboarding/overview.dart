@@ -84,7 +84,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   MaterialPageRoute(
                       builder: (context) => DanaAddressSetupScreen(
                           suggestedUsername: suggestedUsername,
-                          domain: danaAddressDomain)),
+                          domain: danaAddressDomain,
+                          network: network)),
                   (Route<dynamic> route) => false);
             }
           }
@@ -140,7 +141,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
             MaterialPageRoute(
                 builder: (context) => DanaAddressSetupScreen(
                     suggestedUsername: suggestedUsername,
-                    domain: danaAddressDomain)),
+                    domain: danaAddressDomain,
+                    network: network)),
             (Route<dynamic> route) => false);
       }
     } else {

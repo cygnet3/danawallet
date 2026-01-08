@@ -287,6 +287,7 @@ class WalletState extends ChangeNotifier {
     return await DanaAddressService().generateAvailableDanaAddress(
       spAddress: address,
       maxRetries: 5,
+      network: network,
     );
   }
 
@@ -297,7 +298,7 @@ class WalletState extends ChangeNotifier {
 
     Logger().i('Registering dana address with username: $username');
     final registeredAddress = await DanaAddressService()
-        .registerUser(username: username, spAddress: address);
+        .registerUser(username: username, spAddress: address, network: network);
 
     // Registration successful
     Logger().i('Registration successful: $registeredAddress');

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/api/bip39.dart';
 import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
@@ -77,6 +78,7 @@ class DanaAddressService {
   Future<String?> generateAvailableDanaAddress({
     required String spAddress,
     required int maxRetries,
+    required Network network,
   }) async {
     for (int attempt = 0; attempt < maxRetries; attempt++) {
       final username = _generateRandomDanaAddress(
@@ -84,7 +86,7 @@ class DanaAddressService {
         offset:
             attempt * 6, // Each attempt uses 6 bytes (2 bytes per word/number)
       );
-      final isAvailable = await isDanaUsernameAvailable(username);
+      final isAvailable = await isDanaUsernameAvailable(username, network);
       if (isAvailable) {
         return username;
       }
@@ -101,13 +103,15 @@ class DanaAddressService {
   Future<String> registerUser({
     required String username,
     required String spAddress,
+    required Network network,
   }) async {
     final requestId = _generateUniqueId();
     final domain = await danaAddressDomain;
 
     // We try to resolve the address first to see if it already exists
     try {
-      final resolvedSpAddress = await Bip353Resolver.resolve(username, domain);
+      final resolvedSpAddress =
+          await Bip353Resolver.resolve(username, domain, network);
       if (resolvedSpAddress == null) {
         // Address not registered yet, proceed with registration
         Logger().i(
@@ -175,10 +179,11 @@ class DanaAddressService {
 
   /// Check if a dana address is available for registration
   /// Returns true if the dana address is not taken, false otherwise
-  Future<bool> isDanaUsernameAvailable(String username) async {
+  Future<bool> isDanaUsernameAvailable(String username, Network network) async {
     try {
       final domain = await danaAddressDomain;
-      return await Bip353Resolver.isBip353AddressPresent(username, domain);
+      return await Bip353Resolver.isBip353AddressPresent(
+          username, domain, network);
     } catch (e) {
       // If we can't resolve due to network error, assume it's taken to be safe
       Logger().e('Error checking address availability: $e');
