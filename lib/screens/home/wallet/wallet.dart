@@ -101,8 +101,8 @@ class WalletScreenState extends State<WalletScreen> {
                 children: [
                   Text(
                     'Your Dana Address',
-                    style: BitcoinTextStyle.body4(Bitcoin.neutral7)
-                        .copyWith(fontFamily: 'Inter', fontWeight: FontWeight.w500),
+                    style: BitcoinTextStyle.body4(Bitcoin.neutral7).copyWith(
+                        fontFamily: 'Inter', fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
                   danaAddressAsRichText(danaAddress, 15.0),
@@ -110,7 +110,8 @@ class WalletScreenState extends State<WalletScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.copy, size: 16, color: Bitcoin.blue.withValues(alpha: 0.6)),
+            Icon(Icons.copy,
+                size: 16, color: Bitcoin.blue.withValues(alpha: 0.6)),
           ],
         ),
       ),
@@ -453,11 +454,8 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget buildFundingScreen(
-      String silentPaymentAddress,
-      String? danaAddress,
-      ScanProgressNotifier scanProgress,
-      ChainState chainState) {
+  Widget buildFundingScreen(String silentPaymentAddress, String? danaAddress,
+      ScanProgressNotifier scanProgress, ChainState chainState) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Column(
@@ -526,8 +524,8 @@ class WalletScreenState extends State<WalletScreen> {
                       const SizedBox(height: 20),
                     ],
                     // Silent payment address box
-                    buildAddressBox(
-                        'Your Silent Payment Address', silentPaymentAddress, false),
+                    buildAddressBox('Your Silent Payment Address',
+                        silentPaymentAddress, false),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -568,12 +566,13 @@ class WalletScreenState extends State<WalletScreen> {
     final danaAddress = walletState.danaAddress;
 
     ApiAmount amount = walletState.amount + walletState.unconfirmedChange;
-    
+
     // Check if balance is zero
     bool isBalanceZero = amount.field0 == BigInt.zero;
     // Check if there's transaction history
-    bool hasTransactionHistory = walletState.txHistory.toApiTransactions().isNotEmpty;
-    
+    bool hasTransactionHistory =
+        walletState.txHistory.toApiTransactions().isNotEmpty;
+
     // Show funding screen only if balance is zero AND there's no transaction history
     bool showFundingScreen = isBalanceZero && !hasTransactionHistory;
 
@@ -616,8 +615,11 @@ class WalletScreenState extends State<WalletScreen> {
                           const SizedBox(height: 20.0),
                           // Show Dana address banner if available
                           if (danaAddress != null)
-                            buildDanaAddressBanner(
-                                danaAddress),
+                            buildDanaAddressBanner(danaAddress),
+                          // for retest, always show sp address
+                          if (walletState.network == Network.regtest)
+                            buildAddressBox('Your Silent Payment Address',
+                                walletState.address, false),
                           const Spacer(),
                           buildTransactionHistory(
                             walletState.txHistory.toApiTransactions(),

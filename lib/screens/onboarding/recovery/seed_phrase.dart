@@ -60,7 +60,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       // Now we need to find out if the wallet has a dana address
       final hasDanaAddress = await walletState.tryLoadingDanaAddress();
 
-      if (hasDanaAddress && context.mounted) {
+      if ((widget.network == Network.regtest || hasDanaAddress) && context.mounted) {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const PinGuard()),

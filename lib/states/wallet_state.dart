@@ -312,9 +312,12 @@ class WalletState extends ChangeNotifier {
 
   // boolean indicates whether a dana address exists
   Future<bool> tryLoadingDanaAddress() async {
-    if (danaAddress != null) {
-      return true;
-    }
+    // regtest networks have no dana address support
+    if (network == Network.regtest) return false;
+
+    // if address is already set, return early
+    if (danaAddress != null) return true;
+
     final lookupResult = await DanaAddressService().lookupDanaAddress(address);
     Logger().i("Attempting to look up dana address");
 
