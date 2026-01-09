@@ -322,12 +322,10 @@ class WalletState extends ChangeNotifier {
     Logger().i("Attempting to look up dana address");
     try {
       final lookupResult =
-          await DanaAddressService().lookupDanaAddress(address);
+          await DanaAddressService().lookupDanaAddress(address, network);
       if (lookupResult != null) {
         Logger().i("Found dana address: $lookupResult");
-        // dana address exists for this address,
         danaAddress = lookupResult;
-        // Persist the dana address to storage
         await walletRepository.saveDanaAddress(lookupResult);
         return false;
       } else {
@@ -335,9 +333,9 @@ class WalletState extends ChangeNotifier {
         return true;
       }
     } catch (e) {
-      // if we encounter an error while looking up the dana address,
-      // we currently probably don't have a working internet connection.
-      // So we skip address registration
+      // If we encounter an error while looking up the dana address,
+      // either we don't have a working internet connection or the name server has issues.
+      // For now, we skip registration.
       Logger().w("Received error while looking up dana address: $e");
       return false;
     }
