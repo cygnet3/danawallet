@@ -21,7 +21,7 @@ class WalletState extends ChangeNotifier {
 
   // variables that never change (unless wallet is reset)
   late Network network;
-  late String address;
+  late String receiveAddress;
   late String changeAddress;
   late int birthday;
 
@@ -83,7 +83,7 @@ class WalletState extends ChangeNotifier {
     // If we continue, we risk the user accidentally
     // deleting their seed phrase.
     try {
-      address = wallet.getReceivingAddress();
+      receiveAddress = wallet.getReceivingAddress();
       changeAddress = wallet.getChangeAddress();
       birthday = wallet.getBirthday();
 
@@ -118,7 +118,7 @@ class WalletState extends ChangeNotifier {
         await walletRepository.setupWallet(setupResult, network, birthday);
 
     // fill current state variables
-    address = wallet.getReceivingAddress();
+    receiveAddress = wallet.getReceivingAddress();
     changeAddress = wallet.getChangeAddress();
     this.birthday = wallet.getBirthday();
     this.network = network;
@@ -136,7 +136,7 @@ class WalletState extends ChangeNotifier {
         await walletRepository.setupWallet(setupResult, network, birthday);
 
     // fill current state variables
-    address = wallet.getReceivingAddress();
+    receiveAddress = wallet.getReceivingAddress();
     changeAddress = wallet.getChangeAddress();
     this.birthday = wallet.getBirthday();
     this.network = network;
@@ -286,7 +286,7 @@ class WalletState extends ChangeNotifier {
   Future<String?> createSuggestedUsername() async {
     // Generate an available dana address (without registering yet)
     return await DanaAddressService().generateAvailableDanaAddress(
-      spAddress: address,
+      spAddress: receiveAddress,
       maxRetries: 5,
       network: network,
     );
@@ -299,7 +299,7 @@ class WalletState extends ChangeNotifier {
 
     Logger().i('Registering dana address with username: $username');
     final registeredAddress = await DanaAddressService()
-        .registerUser(username: username, spAddress: address, network: network);
+        .registerUser(username: username, spAddress: receiveAddress, network: network);
 
     // Registration successful
     Logger().i('Registration successful: $registeredAddress');
@@ -322,7 +322,7 @@ class WalletState extends ChangeNotifier {
     Logger().i("Attempting to look up dana address");
     try {
       final lookupResult =
-          await DanaAddressService().lookupDanaAddress(address, network);
+          await DanaAddressService().lookupDanaAddress(receiveAddress, network);
       if (lookupResult != null) {
         Logger().i("Found dana address: $lookupResult");
         danaAddress = lookupResult;
@@ -345,7 +345,7 @@ class WalletState extends ChangeNotifier {
     if (danaAddress != null) {
       try {
         final verified =
-            await Bip353Resolver.verifyAddress(danaAddress!, address, network);
+            await Bip353Resolver.verifyAddress(danaAddress!, receiveAddress, network);
 
         if (!verified) {
           Logger()
