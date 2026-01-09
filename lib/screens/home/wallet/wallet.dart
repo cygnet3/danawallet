@@ -523,9 +523,10 @@ class WalletScreenState extends State<WalletScreen> {
                       buildAddressBox('Your Dana Address', danaAddress, true),
                       const SizedBox(height: 20),
                     ],
-                    // Silent payment address box
-                    buildAddressBox('Your Silent Payment Address',
-                        silentPaymentAddress, false),
+                    // Silent payment address box, only show this if dana address is not present
+                    if (danaAddress == null)
+                      buildAddressBox('Your Silent Payment Address',
+                          silentPaymentAddress, false),
                     const SizedBox(height: 24),
                   ],
                 ),
