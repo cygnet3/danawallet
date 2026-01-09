@@ -616,10 +616,6 @@ class WalletScreenState extends State<WalletScreen> {
                           // Show Dana address banner if available
                           if (danaAddress != null)
                             buildDanaAddressBanner(danaAddress),
-                          // for retest, always show sp address
-                          if (walletState.network == Network.regtest)
-                            buildAddressBox('Your Silent Payment Address',
-                                walletState.address, false),
                           const Spacer(),
                           buildTransactionHistory(
                             walletState.txHistory.toApiTransactions(),

@@ -2,6 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
 import 'package:danawallet/screens/settings/change_fiat.dart';
@@ -158,6 +159,15 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void onShowSpAddress(BuildContext context) {
+    final wallet = Provider.of<WalletState>(context, listen: false);
+    final address = wallet.address;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ShowAddressScreen(address: address)));
+  }
+
   void onChangeFiat(BuildContext context) async {
     final homeState = Provider.of<HomeState>(context, listen: false);
     final fiatExchangeRate =
@@ -189,6 +199,9 @@ class SettingsScreen extends StatelessWidget {
           BitcoinButtonOutlined(
               title: 'Show seed phrase',
               onPressed: () => onShowMnemonic(context)),
+          BitcoinButtonOutlined(
+              title: 'Show silent payment address',
+              onPressed: () => onShowSpAddress(context)),
           BitcoinButtonOutlined(
               title: "Change fiat currency",
               onPressed: () => onChangeFiat(context)),
