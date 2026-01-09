@@ -19,6 +19,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/info_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -65,17 +66,27 @@ class _OverviewScreenState extends State<OverviewScreen> {
           chainState.startSyncService(walletState, scanProgress, true);
 
           // Now we need to find out if the wallet has a dana address
-          final hasDanaAddress = await walletState.tryLoadingDanaAddress();
-
-          if ((network == Network.regtest || hasDanaAddress) &&
-              context.mounted) {
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const PinGuard()),
-                (Route<dynamic> route) => false);
+          bool skipDanaAddressCreation;
+          if (network == Network.regtest) {
+            // we skip address creation on regtest
+            skipDanaAddressCreation = true;
           } else {
-            // no dana address, so go to create dana address flow
-            if (context.mounted) {
+            try {
+              skipDanaAddressCreation =
+                  await walletState.tryLoadingDanaAddress();
+            } catch (e) {
+              Logger().w("Skipping dana address creation: $e");
+              skipDanaAddressCreation = true;
+            }
+          }
+
+          if (context.mounted) {
+            if (skipDanaAddressCreation) {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PinGuard()),
+                  (Route<dynamic> route) => false);
+            } else {
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
