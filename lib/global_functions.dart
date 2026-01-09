@@ -172,7 +172,7 @@ AutoSizeText addressAsRichText(String address, double? fontSize) {
             height: 2),
         children: spans),
     textAlign: TextAlign.justify,
-    maxLines: 5,
+    minFontSize: 12,
   );
 }
 
@@ -357,11 +357,16 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
   }
 
   return SizedBox(
-    width: double.infinity,
     child: AutoSizeText.rich(
       TextSpan(children: spans),
       textAlign: TextAlign.center,
-      maxLines: 2,
+      minFontSize: 10,
+      maxLines: 1,
+      // if we overflow, allow 2 lines
+      overflowReplacement: AutoSizeText.rich(
+        TextSpan(children: spans),
+        textAlign: TextAlign.center,
+      ),
     ),
   );
 }

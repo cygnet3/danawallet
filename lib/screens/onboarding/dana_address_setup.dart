@@ -544,7 +544,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
         (isUsingSuggested || _isCustomUsernameAvailable == true);
 
     final footer = FooterButton(
-      title: 'Register your Dana address',
+      title: 'Register',
       onPressed: () => _registerUsername(context),
       isLoading: _isRegistering,
       enabled: isButtonEnabled && !_isRegistering,
