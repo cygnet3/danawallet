@@ -161,7 +161,7 @@ class SettingsScreen extends StatelessWidget {
 
   void onShowSpAddress(BuildContext context) {
     final wallet = Provider.of<WalletState>(context, listen: false);
-    final address = wallet.address;
+    final address = wallet.receiveAddress;
     Navigator.push(
         context,
         MaterialPageRoute(

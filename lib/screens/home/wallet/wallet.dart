@@ -581,7 +581,7 @@ class WalletScreenState extends State<WalletScreen> {
         appBar: buildAppBar(scanProgress.scanning, walletState.network.toColor),
         body: showFundingScreen
             ? buildFundingScreen(
-                walletState.address,
+                walletState.receiveAddress,
                 danaAddress,
                 scanProgress,
                 chainState,
@@ -622,7 +622,7 @@ class WalletScreenState extends State<WalletScreen> {
                             walletState.txHistory.toApiTransactions(),
                             exchangeRate,
                           ),
-                          buildBottomButtons(walletState.address),
+                          buildBottomButtons(walletState.receiveAddress),
                           const SizedBox(
                             height: 20.0,
                           ),
