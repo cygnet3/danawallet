@@ -64,6 +64,9 @@ void main() async {
 
     chainState.startSyncService(walletState, scanNotifier, true);
 
+    // before continuing, check if dana address is still valid
+    await walletState.verifyDanaAddress();
+
     if (await walletState.checkDanaAddressRegistrationNeeded()) {
       landingPage = const DanaAddressSetupScreen();
     } else {

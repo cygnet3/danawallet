@@ -154,4 +154,14 @@ class Bip353Resolver {
 
     return await resolve(username, domain, network);
   }
+
+  static Future<bool> verifyAddress(
+      String danaAddress, String spAddress, Network network) async {
+    Logger().i("dana address to verify: $danaAddress");
+
+    final resolved = await resolveFromAddress(danaAddress, network);
+    Logger().i("resolved address from dana address: $resolved");
+
+    return resolved == spAddress;
+  }
 }

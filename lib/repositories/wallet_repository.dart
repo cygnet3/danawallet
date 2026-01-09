@@ -154,8 +154,12 @@ class WalletRepository {
     return OwnedOutputs.decode(encodedOutputs: encodedOutputs!);
   }
 
-  Future<void> saveDanaAddress(String danaAddress) async {
-    return await nonSecureStorage.setString(_keyDanaAddress, danaAddress);
+  Future<void> saveDanaAddress(String? danaAddress) async {
+    if (danaAddress != null) {
+      return await nonSecureStorage.setString(_keyDanaAddress, danaAddress);
+    } else {
+      return await nonSecureStorage.remove(_keyDanaAddress);
+    }
   }
 
   Future<String?> readDanaAddress() async {
