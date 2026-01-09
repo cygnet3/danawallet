@@ -311,25 +311,33 @@ class WalletState extends ChangeNotifier {
   }
 
   // boolean indicates whether a dana address exists
-  Future<bool> tryLoadingDanaAddress() async {
+  Future<bool> checkDanaAddressRegistrationNeeded() async {
     // regtest networks have no dana address support
     if (network == Network.regtest) return false;
 
     // if address is already set, return early
-    if (danaAddress != null) return true;
+    if (danaAddress != null) return false;
 
-    final lookupResult = await DanaAddressService().lookupDanaAddress(address);
     Logger().i("Attempting to look up dana address");
-
-    if (lookupResult != null) {
-      Logger().i("Found dana address: $lookupResult");
-      // dana address exists for this address,
-      danaAddress = lookupResult;
-      // Persist the dana address to storage
-      await walletRepository.saveDanaAddress(lookupResult);
-      return true;
-    } else {
-      Logger().i("Did not find dana address");
+    try {
+      final lookupResult =
+          await DanaAddressService().lookupDanaAddress(address);
+      if (lookupResult != null) {
+        Logger().i("Found dana address: $lookupResult");
+        // dana address exists for this address,
+        danaAddress = lookupResult;
+        // Persist the dana address to storage
+        await walletRepository.saveDanaAddress(lookupResult);
+        return false;
+      } else {
+        Logger().i("Did not find dana address");
+        return true;
+      }
+    } catch (e) {
+      // if we encounter an error while looking up the dana address,
+      // we currently probably don't have a working internet connection.
+      // So we skip address registration
+      Logger().w("Received error while looking up dana address: $e");
       return false;
     }
   }

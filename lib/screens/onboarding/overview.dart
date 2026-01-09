@@ -10,7 +10,6 @@ import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
 import 'package:danawallet/services/backup_service.dart';
-import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -19,7 +18,6 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/info_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -65,34 +63,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
           chainState.startSyncService(walletState, scanProgress, true);
 
-          // Now we need to find out if the wallet has a dana address
-          bool skipDanaAddressCreation;
-          if (network == Network.regtest) {
-            // we skip address creation on regtest
-            skipDanaAddressCreation = true;
-          } else {
-            try {
-              skipDanaAddressCreation =
-                  await walletState.tryLoadingDanaAddress();
-            } catch (e) {
-              Logger().w("Skipping dana address creation: $e");
-              skipDanaAddressCreation = true;
-            }
-          }
-
+          final goToDanaAddressSetup =
+              await walletState.checkDanaAddressRegistrationNeeded();
           if (context.mounted) {
-            if (skipDanaAddressCreation) {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PinGuard()),
-                  (Route<dynamic> route) => false);
-            } else {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const DanaAddressSetupScreen()),
-                  (Route<dynamic> route) => false);
-            }
+            Widget nextScreen = goToDanaAddressSetup
+                ? const DanaAddressSetupScreen()
+                : const PinGuard();
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => nextScreen),
+                (Route<dynamic> route) => false);
           }
         }
       }

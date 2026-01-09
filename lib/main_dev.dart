@@ -1,11 +1,9 @@
-import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/main.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
-import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -66,25 +64,10 @@ void main() async {
 
     chainState.startSyncService(walletState, scanNotifier, true);
 
-    bool skipDanaAddressCreation;
-    if (network == Network.regtest) {
-      // we skip address creation on regtest
-      skipDanaAddressCreation = true;
-    } else {
-      try {
-        skipDanaAddressCreation = await walletState.tryLoadingDanaAddress();
-      } catch (e) {
-        Logger().w("Skipping dana address creation: $e");
-        skipDanaAddressCreation = true;
-      }
-    }
-
-    if (skipDanaAddressCreation) {
-      // we don't need to create a dana address, go to home page
-      // succeeded in loading address, go to home page
-      landingPage = const PinGuard();
-    } else {
+    if (await walletState.checkDanaAddressRegistrationNeeded()) {
       landingPage = const DanaAddressSetupScreen();
+    } else {
+      landingPage = const PinGuard();
     }
   } else {
     // no wallet is loaded, so we go to the introduction screen
