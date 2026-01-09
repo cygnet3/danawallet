@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
-import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
+import 'package:danawallet/widgets/loading_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -16,15 +16,8 @@ import 'package:sizer/sizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DanaAddressSetupScreen extends StatefulWidget {
-  final String? suggestedUsername;
-  final String domain;
-  final Network network;
-
   const DanaAddressSetupScreen({
     super.key,
-    this.suggestedUsername,
-    required this.domain,
-    required this.network,
   });
 
   @override
@@ -73,33 +66,54 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
   String? _customUsername;
   String? _validationError;
   bool _hasUserEdited = false;
+  String? _suggestedUsername;
+  String? _domain;
 
   @override
   void initState() {
     super.initState();
 
-    // Pre-fill with suggested username if available
-    if (widget.suggestedUsername != null) {
-      _customUsernameController.text = widget.suggestedUsername!;
-    }
-
     // Add focus listener
     _focusNode.addListener(_onFocusChange);
+
+    // initialize username and domain
+    loadUsernameAndDomain();
+  }
+
+  Future<void> loadUsernameAndDomain() async {
+    final walletState = Provider.of<WalletState>(context, listen: false);
+
+    while (true) {
+      try {
+        final suggestedUsername = await walletState.createSuggestedUsername();
+        final domain = await DanaAddressService().danaAddressDomain;
+
+        setState(() {
+          _suggestedUsername = suggestedUsername;
+          _domain = domain;
+        });
+        return;
+      } catch (e) {
+        displayError("Failed to read domain", e);
+      }
+      // keep trying if we have no internet connection
+      await Future.delayed(const Duration(seconds: 5));
+    }
   }
 
   void _onFocusChange() {
     if (_focusNode.hasFocus) {
       // When field gains focus, clear it if it contains the suggested username
       if (!_hasUserEdited &&
-          widget.suggestedUsername != null &&
-          _customUsernameController.text == widget.suggestedUsername) {
+          _suggestedUsername != null &&
+          _customUsernameController.text == _suggestedUsername) {
         _customUsernameController.clear();
       }
     } else {
       // When field loses focus, restore suggested username if empty
       if (_customUsernameController.text.isEmpty &&
-          widget.suggestedUsername != null) {
-        _customUsernameController.text = widget.suggestedUsername!;
+          _suggestedUsername != null) {
+        _customUsernameController.text = _suggestedUsername!;
         _hasUserEdited = false;
         setState(() {
           _customUsername = null;
@@ -193,7 +207,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     final username = value.trim();
 
     // Handle empty input
-    if (username.isEmpty) {
+    if (username.isEmpty || _domain == null) {
       setState(() {
         _isCustomUsernameAvailable = null;
         _customUsername = null;
@@ -237,8 +251,10 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     });
 
     try {
+      final walletState = Provider.of<WalletState>(context, listen: false);
+
       final isAvailable = await DanaAddressService()
-          .isDanaUsernameAvailable(username, widget.network);
+          .isDanaUsernameAvailable(username, walletState.network);
       if (mounted && _customUsername == username) {
         setState(() {
           _isCustomUsernameAvailable = isAvailable;
@@ -261,7 +277,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     // Determine which username to use (from the text field)
     final currentText = _customUsernameController.text.trim();
     final rawUsername =
-        currentText.isNotEmpty ? currentText : widget.suggestedUsername;
+        currentText.isNotEmpty ? currentText : _suggestedUsername;
 
     if (rawUsername == null || rawUsername.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -306,15 +322,17 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final suggestedUsername = widget.suggestedUsername;
-    final domain = widget.domain;
+    // if we're still loading, show an indicator
+    if (_domain == null) {
+      return const LoadingWidget();
+    }
 
     // Determine which username will be registered
     final finalUsername = _customUsername?.isNotEmpty == true
         ? _customUsername
-        : suggestedUsername;
+        : _suggestedUsername;
     final finalDanaAddress =
-        finalUsername != null ? '$finalUsername@$domain' : null;
+        (finalUsername != null) ? '$finalUsername@$_domain' : null;
 
     final body = SingleChildScrollView(
       child: Column(
@@ -362,7 +380,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   labelText: 'Your Dana address',
-                  hintText: suggestedUsername ?? 'my.custom_address',
+                  hintText: _suggestedUsername ?? 'my.custom_address',
                   helperText:
                       'Letters, numbers, hyphens, periods, and underscores',
                   errorText: _validationError,
@@ -403,7 +421,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
               // Availability indicator below text field (only show if user has edited and it's different from suggested)
               if (_hasUserEdited &&
                   _customUsername?.isNotEmpty == true &&
-                  _customUsername != widget.suggestedUsername &&
+                  _customUsername != _suggestedUsername &&
                   _validationError == null) ...[
                 const SizedBox(height: 12),
                 Row(
@@ -539,8 +557,9 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     final currentText = _customUsernameController.text.trim();
     final isUsingSuggested = !_hasUserEdited ||
         currentText.isEmpty ||
-        currentText == widget.suggestedUsername;
+        currentText == _suggestedUsername;
     final isButtonEnabled = _validationError == null &&
+        _domain != null &&
         (isUsingSuggested || _isCustomUsernameAvailable == true);
 
     final footer = FooterButton(

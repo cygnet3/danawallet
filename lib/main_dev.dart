@@ -66,18 +66,13 @@ void main() async {
 
     chainState.startSyncService(walletState, scanNotifier, true);
 
-    if (network == Network.regtest ||
-        await walletState.tryLoadingDanaAddress()) {
+    if (await walletState.tryLoadingDanaAddress() ||
+        network == Network.regtest) {
+      // we don't need to create a dana address, go to home page
       // succeeded in loading address, go to home page
       landingPage = const PinGuard();
     } else {
-      final suggestedUsername = await walletState.createSuggestedUsername();
-      final danaAddressDomain = await DanaAddressService().danaAddressDomain;
-
-      landingPage = DanaAddressSetupScreen(
-          suggestedUsername: suggestedUsername,
-          domain: danaAddressDomain,
-          network: network);
+      landingPage = const DanaAddressSetupScreen();
     }
   } else {
     // no wallet is loaded, so we go to the introduction screen
