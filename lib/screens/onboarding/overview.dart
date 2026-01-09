@@ -75,18 +75,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 (Route<dynamic> route) => false);
           } else {
             // no dana address, so go to create dana address flow
-            final suggestedUsername =
-                await walletState.createSuggestedUsername();
-            final danaAddressDomain =
-                await DanaAddressService().danaAddressDomain;
             if (context.mounted) {
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => DanaAddressSetupScreen(
-                          suggestedUsername: suggestedUsername,
-                          domain: danaAddressDomain,
-                          network: network)),
+                      builder: (context) => const DanaAddressSetupScreen()),
                   (Route<dynamic> route) => false);
             }
           }
@@ -140,16 +133,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
             (Route<dynamic> route) => false);
       } else {
         // Generate an available dana address (without registering yet)
-        final suggestedUsername = await walletState.createSuggestedUsername();
-        final danaAddressDomain = await DanaAddressService().danaAddressDomain;
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                  builder: (context) => DanaAddressSetupScreen(
-                      suggestedUsername: suggestedUsername,
-                      domain: danaAddressDomain,
-                      network: network)),
+                  builder: (context) => const DanaAddressSetupScreen()),
               (Route<dynamic> route) => false);
         }
       }

@@ -60,23 +60,18 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       // Now we need to find out if the wallet has a dana address
       final hasDanaAddress = await walletState.tryLoadingDanaAddress();
 
-      if ((widget.network == Network.regtest || hasDanaAddress) && context.mounted) {
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const PinGuard()),
-            (Route<dynamic> route) => false);
-      } else {
-        // no dana address, so go to create dana address flow
-        final suggestedUsername = await walletState.createSuggestedUsername();
-        final danaAddressDomain = await DanaAddressService().danaAddressDomain;
-        if (context.mounted) {
+      if (context.mounted) {
+        if (widget.network == Network.regtest || hasDanaAddress) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const PinGuard()),
+              (Route<dynamic> route) => false);
+        } else {
+          // no dana address, so go to create dana address flow
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                  builder: (context) => DanaAddressSetupScreen(
-                      suggestedUsername: suggestedUsername,
-                      domain: danaAddressDomain,
-                      network: widget.network)),
+                  builder: (context) => const DanaAddressSetupScreen()),
               (Route<dynamic> route) => false);
         }
       }
