@@ -129,8 +129,6 @@ class DanaAddressService {
       rethrow;
     }
 
-    Logger()
-        .d('Registering dana username: $username with request ID: $requestId');
     return await nameServerRepository.registerDanaAddress(
         username: username,
         domain: domain,
@@ -153,8 +151,6 @@ class DanaAddressService {
     }
 
     final requestId = _generateUniqueId();
-    Logger().d(
-        'Looking up dana addresses for SP address: ${spAddress.substring(0, 20)}... (request ID: $requestId)');
     final addresses =
         await nameServerRepository.lookupDanaAddresses(spAddress, requestId);
 
