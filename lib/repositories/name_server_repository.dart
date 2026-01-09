@@ -114,15 +114,15 @@ class NameServerRepository {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final parsed =
           NameServerLookupResponse.fromJson(jsonDecode(response.body));
-      return parsed.danaAddress;
+      return parsed.danaAddresses;
     } else if (response.statusCode == 404) {
       // a 404 status code means that this sp address has no associated dana addresses
       // we still parse the response struct to avoid a generic 404 error
       final parsed =
           NameServerLookupResponse.fromJson(jsonDecode(response.body));
 
-      if (parsed.danaAddress.isEmpty) {
-        return parsed.danaAddress;
+      if (parsed.danaAddresses.isEmpty) {
+        return parsed.danaAddresses;
       } else {
         throw Exception("Unexpected lack of dana addresses for 404");
       }

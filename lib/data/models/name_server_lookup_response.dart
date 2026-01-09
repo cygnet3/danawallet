@@ -1,13 +1,13 @@
 class NameServerLookupResponse {
   final String id;
   final String message;
-  final List<String> danaAddress;
+  final List<String> danaAddresses;
   final String spAddress;
 
   const NameServerLookupResponse({
     required this.id,
     required this.message,
-    required this.danaAddress,
+    required this.danaAddresses,
     required this.spAddress,
   });
 
@@ -15,7 +15,7 @@ class NameServerLookupResponse {
     return NameServerLookupResponse(
       id: json['id'] as String,
       message: json['message'] as String,
-      danaAddress:  List<String>.from(json['dana_address']),
+      danaAddresses:  List<String>.from(json['dana_addresses']),
       spAddress: json['sp_address'] as String,
     );
   }
