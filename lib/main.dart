@@ -47,7 +47,6 @@ void main() async {
 
   Widget landingPage;
   if (walletLoaded) {
-
     final network = walletState.network;
     final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl() ??
         network.defaultBlindbitUrl;
@@ -63,9 +62,6 @@ void main() async {
 
     chainState.startSyncService(walletState, scanNotifier, true);
 
-    // before continuing, check if dana address is still valid
-    await walletState.verifyDanaAddress();
-
     if (await walletState.checkDanaAddressRegistrationNeeded()) {
       landingPage = const DanaAddressSetupScreen();
     } else {
@@ -75,6 +71,7 @@ void main() async {
     // no wallet is loaded, so we go to the introduction screen
     landingPage = const IntroductionScreen();
   }
+
   runApp(
     MultiProvider(
       providers: [

@@ -102,7 +102,6 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> reset() async {
-    danaAddress = null;
     await walletRepository.reset();
   }
 
@@ -298,8 +297,8 @@ class WalletState extends ChangeNotifier {
     }
 
     Logger().i('Registering dana address with username: $username');
-    final registeredAddress = await DanaAddressService()
-        .registerUser(username: username, spAddress: receiveAddress, network: network);
+    final registeredAddress = await DanaAddressService().registerUser(
+        username: username, spAddress: receiveAddress, network: network);
 
     // Registration successful
     Logger().i('Registration successful: $registeredAddress');
@@ -311,14 +310,44 @@ class WalletState extends ChangeNotifier {
     await walletRepository.saveDanaAddress(registeredAddress);
   }
 
-  // boolean indicates whether a dana address exists
+  // Return value indicates whether the caller should be directed to the dana registration screen
   Future<bool> checkDanaAddressRegistrationNeeded() async {
     // regtest networks have no dana address support
-    if (network == Network.regtest) return false;
+    if (network == Network.regtest) {
+      danaAddress = null;
+      return false;
+    }
 
-    // if address is already set, return early
-    if (danaAddress != null) return false;
+    // load dana address from storage
+    danaAddress = await walletRepository.readDanaAddress();
 
+    // if a stored dana address was present, verify if it's still valid
+    if (danaAddress != null) {
+      try {
+        final verified = await Bip353Resolver.verifyAddress(
+            danaAddress!, receiveAddress, network);
+
+        if (verified) {
+          // we have a stored address and it's valid, no need to register
+          Logger().i("Stored dana address is valid");
+          return false;
+        } else {
+          Logger()
+              .w("Dana address is not pointing to out sp address, removing");
+          danaAddress = null;
+          // note: because we haven't found a valid address in memory, we don't return here
+        }
+      } catch (e) {
+        // If we encounter an error while verifying the address,
+        // we probably don't have a working internet connection.
+        // We just assume the stored address is valid for now.
+        Logger().w("Received an error while verifying dana address: $e");
+        return false;
+      }
+    }
+
+    // no address present in storage, this may indicate we need to register a new address
+    // but first, we check if the name server already has an address for us
     Logger().i("Attempting to look up dana address");
     try {
       final lookupResult =
@@ -334,31 +363,11 @@ class WalletState extends ChangeNotifier {
       }
     } catch (e) {
       // If we encounter an error while looking up the dana address,
-      // either we don't have a working internet connection or the name server has issues.
-      // For now, we skip registration.
+      // either we don't have a working internet connection,
+      // or the DNS record changed and the name server is unaware.
+      // For now, we assume that the stored address is valid.
       Logger().w("Received error while looking up dana address: $e");
       return false;
-    }
-  }
-
-  Future<void> verifyDanaAddress() async {
-    if (danaAddress != null) {
-      try {
-        final verified =
-            await Bip353Resolver.verifyAddress(danaAddress!, receiveAddress, network);
-
-        if (!verified) {
-          Logger()
-              .w("Dana address is not pointing to out sp address, removing");
-          await walletRepository.saveDanaAddress(null);
-          danaAddress = null;
-
-          notifyListeners();
-        }
-      } catch (e) {
-        Logger().w("Received an error while verifying dana address: $e");
-        // if catching in error we probably don't have an internet connection, skip verifying
-      }
     }
   }
 }
