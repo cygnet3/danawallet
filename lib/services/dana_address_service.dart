@@ -138,14 +138,16 @@ class DanaAddressService {
         requestId: requestId);
   }
 
-  /// Looks up dana addresses associated with a silent payment address
+  /// Looks up dana addresses associated with a silent payment address.
+  /// Also verifies if the returned Dana address by doing a DNS query
   ///
   /// [spAddress] - The Silent Payment address to lookup
   ///
+  /// Returns the first valid dana address that is found.
   /// Returns a list of dana addresses in the format `user_name@danawallet.app`
   /// Returns an empty list if no addresses are found
   /// Throws an exception for network errors, invalid responses, or malformed data
-  Future<String?> lookupDanaAddress(String spAddress) async {
+  Future<String?> lookupDanaAddress(String spAddress, Network network) async {
     if (spAddress.isEmpty) {
       throw ArgumentError("Silent payment address cannot be empty");
     }
@@ -169,12 +171,17 @@ class DanaAddressService {
 
     Logger().i(
         'Found ${validAddresses.length} valid dana address(es) for SP address');
-    if (validAddresses.isNotEmpty) {
-      // return the first valid address
-      return validAddresses[0];
-    } else {
-      return null;
+
+    for (var candidate in validAddresses) {
+      if (await Bip353Resolver.verifyAddress(candidate, spAddress, network)) {
+        // we just return the first valid candidate
+        return candidate;
+      } else {
+        Logger()
+            .w("Name server returned an address that doesn't resolve to ours");
+      }
     }
+    return null;
   }
 
   /// Check if a dana address is available for registration
