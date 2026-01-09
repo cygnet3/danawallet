@@ -64,8 +64,20 @@ void main() async {
 
     chainState.startSyncService(walletState, scanNotifier, true);
 
-    if (await walletState.tryLoadingDanaAddress() ||
-        network == Network.regtest) {
+    bool skipDanaAddressCreation;
+    if (network == Network.regtest) {
+      // we skip address creation on regtest
+      skipDanaAddressCreation = true;
+    } else {
+      try {
+        skipDanaAddressCreation = await walletState.tryLoadingDanaAddress();
+      } catch (e) {
+        Logger().w("Skipping dana address creation: $e");
+        skipDanaAddressCreation = true;
+      }
+    }
+
+    if (skipDanaAddressCreation) {
       // we don't need to create a dana address, go to home page
       // succeeded in loading address, go to home page
       landingPage = const PinGuard();

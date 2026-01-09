@@ -13,6 +13,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pills/mnemonic_input_pill_box.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -58,10 +59,21 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       chainState.startSyncService(walletState, scanProgress, true);
 
       // Now we need to find out if the wallet has a dana address
-      final hasDanaAddress = await walletState.tryLoadingDanaAddress();
+      bool skipDanaAddressCreation;
+      if (widget.network == Network.regtest) {
+        // we skip address creation on regtest
+        skipDanaAddressCreation = true;
+      } else {
+        try {
+          skipDanaAddressCreation = await walletState.tryLoadingDanaAddress();
+        } catch (e) {
+          Logger().w("Skipping dana address creation: $e");
+          skipDanaAddressCreation = true;
+        }
+      }
 
       if (context.mounted) {
-        if (widget.network == Network.regtest || hasDanaAddress) {
+        if (skipDanaAddressCreation) {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const PinGuard()),
