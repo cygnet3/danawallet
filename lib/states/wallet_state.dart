@@ -11,6 +11,7 @@ import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
+import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/services/dana_address_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -339,6 +340,27 @@ class WalletState extends ChangeNotifier {
       // So we skip address registration
       Logger().w("Received error while looking up dana address: $e");
       return false;
+    }
+  }
+
+  Future<void> verifyDanaAddress() async {
+    if (danaAddress != null) {
+      try {
+        final verified =
+            await Bip353Resolver.verifyAddress(danaAddress!, address, network);
+
+        if (!verified) {
+          Logger()
+              .w("Dana address is not pointing to out sp address, removing");
+          await walletRepository.saveDanaAddress(null);
+          danaAddress = null;
+
+          notifyListeners();
+        }
+      } catch (e) {
+        Logger().w("Received an error while verifying dana address: $e");
+        // if catching in error we probably don't have an internet connection, skip verifying
+      }
     }
   }
 }
