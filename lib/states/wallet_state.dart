@@ -242,19 +242,28 @@ class WalletState extends ChangeNotifier {
 
     final signedTx = wallet.signTransaction(unsignedTransaction: finalizedTx);
 
+    Logger().d("signed tx: $signedTx");
+
     String txid;
     try {
-      if (unsignedTx.network == Network.regtest.toCoreArg) {
-        // if we are currently on regtest, it's not possible to use our normal broadcasting flow
-        // instead, we will forward the transaction to blindbit
-        final blindbitUrl =
-            await SettingsRepository.instance.getBlindbitUrl() ??
-                Network.regtest.defaultBlindbitUrl;
-        txid = await SpWallet.broadcastUsingBlindbit(
-            blindbitUrl: blindbitUrl, tx: signedTx);
-      } else {
-        txid = await SpWallet.broadcastTx(
-            tx: signedTx, network: network.toCoreArg);
+      switch (network) {
+        case Network.mainnet:
+          txid = await SpWallet.broadcastTx(
+              tx: signedTx, network: network.toCoreArg);
+          break;
+        case Network.signet:
+          txid = await MempoolApiRepository(network: network)
+              .postTransaction(signedTx);
+          break;
+        case Network.regtest:
+          final blindbitUrl =
+              await SettingsRepository.instance.getBlindbitUrl() ??
+                  Network.regtest.defaultBlindbitUrl;
+          txid = await SpWallet.broadcastUsingBlindbit(
+              blindbitUrl: blindbitUrl, tx: signedTx);
+          break;
+        default:
+          throw Exception("Unsupported network");
       }
     } catch (e) {
       Logger().e('Failed to broadcast transaction: $e');
