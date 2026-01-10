@@ -5,9 +5,9 @@ import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/screens/home/wallet/spend/transaction_sent.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
-import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:text_scroll/text_scroll.dart';
 
 class ReadyToSendScreen extends StatefulWidget {
   const ReadyToSendScreen({super.key});
@@ -76,61 +76,13 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
             const SizedBox(
               height: 50.0,
             ),
-            Row(
-              children: [
-                Text(
-                  'To',
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral7),
-                ),
-                const Spacer(),
-                Text(
-                  displayRecipient,
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral8),
-                )
-              ],
-            ),
+            entryRow('To', displayRecipient, true),
             const Divider(),
-            Row(
-              children: [
-                Text(
-                  'Amount',
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral7),
-                ),
-                const Spacer(),
-                Text(
-                  displayAmount,
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral8),
-                )
-              ],
-            ),
+            entryRow('Amount', displayAmount, false),
             const Divider(),
-            Row(
-              children: [
-                Text(
-                  'Arrival time',
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral7),
-                ),
-                const Spacer(),
-                Text(
-                  displayArrivalTime,
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral8),
-                )
-              ],
-            ),
+            entryRow('Arrival time', displayArrivalTime, false),
             const Divider(),
-            Row(
-              children: [
-                Text(
-                  'Fee',
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral7),
-                ),
-                const Spacer(),
-                Text(
-                  displayEstimatedFee,
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral8),
-                )
-              ],
-            ),
+            entryRow('Fee', displayEstimatedFee, false),
           ],
         ),
         footer: Column(
@@ -147,4 +99,30 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
           ],
         ));
   }
+}
+
+Widget entryRow(String left, String right, bool scrolling) {
+  return Row(
+    children: [
+      Text(
+        left,
+        style: BitcoinTextStyle.title5(Bitcoin.neutral7),
+      ),
+      const SizedBox(width: 30),
+      if (scrolling)
+        Expanded(
+            child: TextScroll(right,
+                mode: TextScrollMode.bouncing,
+                delayBefore: const Duration(milliseconds: 1500),
+                pauseOnBounce: const Duration(milliseconds: 1000),
+                pauseBetween: const Duration(milliseconds: 1000),
+                textAlign: TextAlign.end,
+                style: BitcoinTextStyle.title5(Bitcoin.neutral8))),
+      if (!scrolling)
+        Expanded(
+            child: Text(right,
+                textAlign: TextAlign.end,
+                style: BitcoinTextStyle.title5(Bitcoin.neutral8))),
+    ],
+  );
 }
