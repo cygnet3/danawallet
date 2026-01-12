@@ -102,6 +102,7 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> reset() async {
+    danaAddress = null;
     await walletRepository.reset();
   }
 
