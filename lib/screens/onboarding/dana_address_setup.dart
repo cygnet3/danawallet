@@ -68,6 +68,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
   bool _hasUserEdited = false;
   String? _suggestedUsername;
   String? _domain;
+  DanaAddressService? _danaAddressService;
 
   @override
   void initState() {
@@ -82,13 +83,15 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
 
   Future<void> loadUsernameAndDomain() async {
     final walletState = Provider.of<WalletState>(context, listen: false);
+    final addressService = DanaAddressService(network: walletState.network);
 
     while (true) {
       try {
         final suggestedUsername = await walletState.createSuggestedUsername();
-        final domain = await DanaAddressService().danaAddressDomain;
+        final domain = await addressService.danaAddressDomain;
 
         setState(() {
+          _danaAddressService = addressService;
           _suggestedUsername = suggestedUsername;
           _domain = domain;
         });
@@ -251,10 +254,8 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     });
 
     try {
-      final walletState = Provider.of<WalletState>(context, listen: false);
-
-      final isAvailable = await DanaAddressService()
-          .isDanaUsernameAvailable(username, walletState.network);
+      final isAvailable =
+          await _danaAddressService!.isDanaUsernameAvailable(username);
       if (mounted && _customUsername == username) {
         setState(() {
           _isCustomUsernameAvailable = isAvailable;

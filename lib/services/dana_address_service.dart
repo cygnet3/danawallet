@@ -8,18 +8,13 @@ import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:logger/logger.dart';
 
 class DanaAddressService {
-  final NameServerRepository nameServerRepository = NameServerRepository();
+  NameServerRepository nameServerRepository;
+  final Network network;
   final Random _random = Random.secure();
   String? _domain;
 
-  // private constructor
-  DanaAddressService._internal();
-
-  static final DanaAddressService _instance = DanaAddressService._internal();
-
-  factory DanaAddressService() {
-    return _instance;
-  }
+  DanaAddressService({required this.network})
+      : nameServerRepository = NameServerRepository(network: network);
 
   Future<String> get danaAddressDomain async {
     // lazy initialization of domain
@@ -78,7 +73,6 @@ class DanaAddressService {
   Future<String?> generateAvailableDanaAddress({
     required String spAddress,
     required int maxRetries,
-    required Network network,
   }) async {
     for (int attempt = 0; attempt < maxRetries; attempt++) {
       final username = _generateRandomDanaAddress(
@@ -86,7 +80,7 @@ class DanaAddressService {
         offset:
             attempt * 6, // Each attempt uses 6 bytes (2 bytes per word/number)
       );
-      final isAvailable = await isDanaUsernameAvailable(username, network);
+      final isAvailable = await isDanaUsernameAvailable(username);
       if (isAvailable) {
         return username;
       }
@@ -103,7 +97,6 @@ class DanaAddressService {
   Future<String> registerUser({
     required String username,
     required String spAddress,
-    required Network network,
   }) async {
     final requestId = _generateUniqueId();
     final domain = await danaAddressDomain;
@@ -145,7 +138,7 @@ class DanaAddressService {
   /// Returns a list of dana addresses in the format `user_name@danawallet.app`
   /// Returns an empty list if no addresses are found
   /// Throws an exception for network errors, invalid responses, or malformed data
-  Future<String?> lookupDanaAddress(String spAddress, Network network) async {
+  Future<String?> lookupDanaAddress(String spAddress) async {
     if (spAddress.isEmpty) {
       throw ArgumentError("Silent payment address cannot be empty");
     }
@@ -182,7 +175,7 @@ class DanaAddressService {
 
   /// Check if a dana address is available for registration
   /// Returns true if the dana address is not taken, false otherwise
-  Future<bool> isDanaUsernameAvailable(String username, Network network) async {
+  Future<bool> isDanaUsernameAvailable(String username) async {
     try {
       final domain = await danaAddressDomain;
       return await Bip353Resolver.isBip353AddressPresent(

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/name_server_info_response.dart';
 import 'package:danawallet/data/models/name_server_lookup_response.dart';
 import 'package:danawallet/data/models/name_server_register_request.dart';
@@ -9,10 +10,24 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 
 class NameServerRepository {
-  NameServerRepository();
+  String baseUrl;
 
-  // only live flavor should use the real domain, others use the test domain
-  String get baseUrl => (appFlavor == 'live') ? nameServerLive : nameServerDev;
+  NameServerRepository({required Network network})
+      : baseUrl = (() {
+          // live flavors only allow mainnet, so we don't need to separate based on the network
+          if (appFlavor == 'live') {
+            return nameServerLive;
+          } else {
+            // non-live flavors can have different networks
+            if (network == Network.mainnet) {
+              // used for mainnet
+              return nameServerDevMainnet;
+            } else {
+              // used for testnet/signet
+              return nameServerDevTestnet;
+            }
+          }
+        })();
 
   Future<NameServerInfoResponse> getInfo() async {
     Logger().d("Getting name server info");
