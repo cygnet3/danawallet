@@ -38,7 +38,9 @@ const int bitcoinUnits = 100000000;
 // String that displays when amount is hidden
 const String hideAmountFormat = "*****";
 
-// the in-production name server, only used on live flavors
+// the in-production name server, only used on live flavors with mainnet
 const String nameServerLive = "https://nameserver.danawallet.app/v1";
-// name server for all other flavors (dev, signet)
-const String nameServerDev = "https://test.nameserver.danawallet.app/v1";
+// name server for other flavors that use mainnet
+const String nameServerDevMainnet = "https://main.dev.nameserver.danawallet.app/v1";
+// name server for other flavors that user testnet/signet
+const String nameServerDevTestnet = "https://test.dev.nameserver.danawallet.app/v1";

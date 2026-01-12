@@ -294,10 +294,10 @@ class WalletState extends ChangeNotifier {
 
   Future<String?> createSuggestedUsername() async {
     // Generate an available dana address (without registering yet)
-    return await DanaAddressService().generateAvailableDanaAddress(
+    return await DanaAddressService(network: network)
+        .generateAvailableDanaAddress(
       spAddress: receiveAddress,
       maxRetries: 5,
-      network: network,
     );
   }
 
@@ -307,8 +307,8 @@ class WalletState extends ChangeNotifier {
     }
 
     Logger().i('Registering dana address with username: $username');
-    final registeredAddress = await DanaAddressService().registerUser(
-        username: username, spAddress: receiveAddress, network: network);
+    final registeredAddress = await DanaAddressService(network: network)
+        .registerUser(username: username, spAddress: receiveAddress);
 
     // Registration successful
     Logger().i('Registration successful: $registeredAddress');
@@ -360,8 +360,8 @@ class WalletState extends ChangeNotifier {
     // but first, we check if the name server already has an address for us
     Logger().i("Attempting to look up dana address");
     try {
-      final lookupResult =
-          await DanaAddressService().lookupDanaAddress(receiveAddress, network);
+      final lookupResult = await DanaAddressService(network: network)
+          .lookupDanaAddress(receiveAddress);
       if (lookupResult != null) {
         Logger().i("Found dana address: $lookupResult");
         danaAddress = lookupResult;
