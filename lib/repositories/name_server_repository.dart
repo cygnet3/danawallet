@@ -185,7 +185,7 @@ class NameServerRepository {
       return PrefixSearchResponse(
         id: requestId,
         message: 'No addresses found',
-        danaAddress: [],
+        danaAddresses: [],
         count: 0,
         totalCount: 0,
       );
