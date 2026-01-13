@@ -1,5 +1,5 @@
 import 'package:danawallet/data/models/contact_field.dart';
-import 'package:danawallet/data/models/contacts.dart';
+import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/repositories/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -106,8 +106,6 @@ class ContactsRepository {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'contacts',
-      where: 'spAddress = ?',
-      whereArgs: [],
     );
 
     if (!loadCustomFields) {

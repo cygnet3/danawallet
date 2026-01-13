@@ -1,9 +1,9 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/contact_field.dart';
-import 'package:danawallet/services/contacts_service.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class AddEditFieldSheet extends StatefulWidget {
   final ContactField?
@@ -103,10 +103,12 @@ class _AddEditFieldSheetState extends State<AddEditFieldSheet> {
           fieldType: fieldType,
           fieldValue: fieldValue,
         );
-        await ContactsService.instance.updateContactField(updatedField);
+        await Provider.of<ContactsState>(context, listen: false)
+            .updateContactField(updatedField);
       } else {
         // Create new field
-        await ContactsService.instance.addContactField(
+        await Provider.of<ContactsState>(context, listen: false)
+            .addContactField(
           contactId: widget.contactId,
           fieldType: fieldType,
           fieldValue: fieldValue,

@@ -3,14 +3,13 @@ import 'dart:io';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/main.dart';
-import 'package:danawallet/repositories/contacts_repository.dart';
 import 'package:danawallet/repositories/database_helper.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
-import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -36,6 +35,7 @@ void main() async {
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
+  final contactsState = ContactsState();
   final fiatExchangeRate = await FiatExchangeRateState.create();
 
   // Try to update exchange rate, but don't crash if it fails
@@ -81,24 +81,9 @@ void main() async {
     if (await walletState.checkDanaAddressRegistrationNeeded()) {
       landingPage = const DanaAddressSetupScreen();
     } else {
-      // We have a dana address, ensure user contact exists
-      if (walletState.danaAddress != null) {
-        try {
-          final existingContact = await ContactsRepository.instance
-              .getContactByDanaAddress(walletState.danaAddress!);
-          if (existingContact == null) {
-            await ContactsService.instance.addContactByDanaAddress(
-              danaAddress: walletState.danaAddress!,
-              network: walletState.network,
-              nym: 'you',
-            );
-            Logger().i('Created user contact in database');
-          }
-        } catch (e) {
-          // Contact might already exist or network error - safe to ignore
-          Logger().w('Failed to create user contact: $e');
-        }
-      }
+      // initialize contacts state with our receive & dana address, so that we can create the self contact
+      contactsState.initialize(
+          walletState.receiveAddress, walletState.danaAddress);
       landingPage = const PinGuard();
     }
   } else {
@@ -114,6 +99,7 @@ void main() async {
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
         ChangeNotifierProvider.value(value: fiatExchangeRate),
+        ChangeNotifierProvider.value(value: contactsState),
       ],
       child: SilentPaymentApp(landingPage: landingPage),
     ),

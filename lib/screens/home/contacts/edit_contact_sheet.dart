@@ -1,8 +1,8 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:danawallet/data/models/contacts.dart';
+import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
-import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -40,7 +40,8 @@ class _EditContactSheetState extends State<EditContactSheet> {
         TextEditingController(text: widget.contact.danaAddress);
     _spAddressController =
         TextEditingController(text: widget.contact.spAddress);
-    _hasDanaAddress = widget.contact.danaAddress.isNotEmpty;
+    _hasDanaAddress = widget.contact.danaAddress != null &&
+        widget.contact.danaAddress!.isNotEmpty;
 
     _danaAddressController.addListener(() {
       final hasDanaAddress = _danaAddressController.text.trim().isNotEmpty;
@@ -106,6 +107,7 @@ class _EditContactSheetState extends State<EditContactSheet> {
       return;
     }
 
+    final contacts = Provider.of<ContactsState>(context, listen: false);
     final nym = _nymController.text.trim();
     final danaAddress = _danaAddressController.text.trim();
     final spAddress = _spAddressController.text.trim();
@@ -167,7 +169,7 @@ class _EditContactSheetState extends State<EditContactSheet> {
         spAddress: finalSpAddress,
       );
 
-      await ContactsService.instance.updateContact(updatedContact);
+      await contacts.updateContact(updatedContact);
 
       if (mounted) {
         widget.onContactUpdated(); // This already pops with 'updated'
@@ -185,6 +187,8 @@ class _EditContactSheetState extends State<EditContactSheet> {
 
   Future<void> _deleteContact() async {
     if (widget.contact.id == null) return;
+
+    final contacts = Provider.of<ContactsState>(context, listen: false);
 
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
@@ -208,7 +212,7 @@ class _EditContactSheetState extends State<EditContactSheet> {
 
     if (confirmed == true) {
       try {
-        await ContactsService.instance.deleteContact(widget.contact.id!);
+        await contacts.deleteContact(widget.contact.id!);
         if (mounted) {
           // Return 'deleted' to indicate contact was deleted
           Navigator.pop(context, 'deleted');

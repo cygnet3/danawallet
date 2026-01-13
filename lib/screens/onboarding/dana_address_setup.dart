@@ -5,8 +5,8 @@ import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
-import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/services/dana_address_service.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/loading_widget.dart';
@@ -277,6 +277,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
 
   Future<void> _registerUsername(BuildContext context) async {
     final walletState = Provider.of<WalletState>(context, listen: false);
+    final contactsState = Provider.of<ContactsState>(context, listen: false);
     // Determine which username to use (from the text field)
     final currentText = _customUsernameController.text.trim();
     final rawUsername =
@@ -318,25 +319,16 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
         // Persist the dana address to storage (already done by registerDanaAddress, but ensure consistency)
         await WalletRepository.instance.saveDanaAddress(registeredAddress);
 
-        // Create a contact for the user
-        try {
-          await ContactsService.instance.addContactByDanaAddress(
-            danaAddress: registeredAddress,
-            network: walletState.network,
-            nym: 'you',
-          );
-          Logger().i('Created user contact in database');
-        } catch (e) {
-          // Contact might already exist, that's fine
-          Logger().w('Failed to create user contact: $e');
-          // Don't block navigation if contact creation fails
-        }
+        // Create a contact for the 'you' user
+        contactsState.initialize(walletState.receiveAddress, registeredAddress);
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const PinGuard()),
-          (Route<dynamic> route) => false,
-        );
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const PinGuard()),
+            (Route<dynamic> route) => false,
+          );
+        }
       } else {
         throw Exception('Registration succeeded but dana address is null');
       }

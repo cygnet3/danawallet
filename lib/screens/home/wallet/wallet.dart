@@ -6,8 +6,8 @@ import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
-import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -246,28 +246,6 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  /// Resolves the display name for a recipient address
-  /// Priority: contact name (nym) > contact dana address > looked up dana address > SP address
-  /// Returns a String that can be either a contact name, dana address, or the raw SP address
-  Future<String> _resolveRecipientDisplay(String spAddress) async {
-    // Check if the SP address is in contacts
-    final contact =
-        await ContactsService.instance.getContactBySpAddress(spAddress);
-    if (contact != null) {
-      // If contact has a name, use it
-      if (contact.nym != null && contact.nym!.isNotEmpty) {
-        return contact.nym!;
-      }
-      // Otherwise, use the contact's dana address if available
-      if (contact.danaAddress.isNotEmpty) {
-        return contact.danaAddress;
-      }
-    }
-
-    // Fall back to returning the raw SP address (will be formatted in the FutureBuilder)
-    return spAddress;
-  }
-
   ListTile toListTile(
       ApiRecordedTransaction tx, FiatExchangeRateState exchangeRate) {
     Color? color;
@@ -279,6 +257,8 @@ class WalletScreenState extends State<WalletScreen> {
     Image image;
     Widget recipientWidget;
     String date;
+
+    final contactsState = Provider.of<ContactsState>(context);
 
     switch (tx) {
       case ApiRecordedTransaction_Incoming(:final field0):
@@ -300,46 +280,8 @@ class WalletScreenState extends State<WalletScreen> {
             color: Bitcoin.neutral3Dark);
       case ApiRecordedTransaction_Outgoing(:final field0):
         final spAddress = field0.recipients[0].address;
-        recipientWidget = FutureBuilder<String>(
-          future: _resolveRecipientDisplay(spAddress),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              // Show SP address while loading
-              return Text(
-                displayAddress(context, spAddress,
-                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
-                style: BitcoinTextStyle.body4(Bitcoin.black),
-              );
-            }
-            if (snapshot.hasError) {
-              // On error, show SP address
-              return Text(
-                displayAddress(context, spAddress,
-                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
-                style: BitcoinTextStyle.body4(Bitcoin.black),
-              );
-            }
-            final displayName = snapshot.data ?? spAddress;
-            // Check if it's a dana address (contains @)
-            if (displayName.contains('@')) {
-              // It's a dana address, use rich text formatting
-              return danaAddressAsRichText(displayName, 15.0);
-            } else if (displayName == spAddress) {
-              // It's the raw SP address, format it
-              return Text(
-                displayAddress(context, spAddress,
-                    BitcoinTextStyle.body4(Bitcoin.black), 0.53),
-                style: BitcoinTextStyle.body4(Bitcoin.black),
-              );
-            } else {
-              // It's a contact name
-              return Text(
-                displayName,
-                style: BitcoinTextStyle.body4(Bitcoin.black),
-              );
-            }
-          },
-        );
+        recipientWidget =
+            contactsState.getDisplayNameWidget(context, spAddress);
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         if (field0.confirmedAt == null) {
           color = Bitcoin.neutral4;
