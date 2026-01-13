@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
@@ -20,11 +22,17 @@ import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   await LoggingService.create();
+
+  if (Platform.isLinux) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
 
   // Initialize contacts database
   await DatabaseHelper.instance.database;
