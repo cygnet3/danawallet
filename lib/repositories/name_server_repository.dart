@@ -150,8 +150,10 @@ class NameServerRepository {
     }
   }
 
-  Future<PrefixSearchResponse> searchDanaAddressesWithPrefix(String prefix, String requestId) async {
-    Logger().d('Searching for dana addresses with prefix: $prefix (request ID: $requestId)');
+  Future<PrefixSearchResponse> searchDanaAddressesWithPrefix(
+      String prefix, String requestId) async {
+    Logger().d(
+        'Searching for dana addresses with prefix: $prefix (request ID: $requestId)');
     final response = await http.Client().get(
       Uri.parse('$baseUrl/search').replace(queryParameters: {
         'prefix': prefix,
@@ -166,11 +168,13 @@ class NameServerRepository {
       try {
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
         final responseData = PrefixSearchResponse.fromJson(decoded);
-        
-        Logger().i('Found ${responseData.count} dana address(es) matching prefix "$prefix" (total: ${responseData.totalCount})');
+
+        Logger().i(
+            'Found ${responseData.count} dana address(es) matching prefix "$prefix" (total: ${responseData.totalCount})');
         return responseData;
       } catch (e, stackTrace) {
-        Logger().e('Failed to parse prefix search response (${response.statusCode}): $e');
+        Logger().e(
+            'Failed to parse prefix search response (${response.statusCode}): $e');
         Logger().e('Response body: ${response.body}');
         Logger().e('Stack trace: $stackTrace');
         throw FormatException('Failed to parse prefix search response: $e');
@@ -187,34 +191,39 @@ class NameServerRepository {
       );
     } else {
       // Server returned an error status
-      Logger().e('Prefix search failed with HTTP ${response.statusCode} ${response.reasonPhrase ?? "Unknown"}');
+      Logger().e(
+          'Prefix search failed with HTTP ${response.statusCode} ${response.reasonPhrase ?? "Unknown"}');
       Logger().e('Request URL: $baseUrl/search');
       Logger().e('Response body: ${response.body}');
-      
+
       // Try to parse as JSON error response
       try {
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
         final responseData = PrefixSearchResponse.fromJson(decoded);
-        
+
         // If we got a valid error response with a message, use it
         if (responseData.message.isNotEmpty) {
           Logger().e('Server error message: ${responseData.message}');
           return responseData;
         } else {
           // Parsed but no message - create our own
-          throw Exception('Prefix search failed: HTTP ${response.statusCode}: ${response.reasonPhrase ?? "Unknown error"}');
+          throw Exception(
+              'Prefix search failed: HTTP ${response.statusCode}: ${response.reasonPhrase ?? "Unknown error"}');
         }
       } catch (parseError) {
         // Failed to parse error response
         String errorMessage;
         if (response.statusCode >= 500) {
-          errorMessage = 'Server error (${response.statusCode}): ${response.reasonPhrase ?? "Internal server error"}';
+          errorMessage =
+              'Server error (${response.statusCode}): ${response.reasonPhrase ?? "Internal server error"}';
         } else if (response.statusCode == 400) {
           errorMessage = 'Bad request (400): Invalid prefix';
         } else if (response.statusCode == 401 || response.statusCode == 403) {
-          errorMessage = 'Authentication error (${response.statusCode}): Unauthorized';
+          errorMessage =
+              'Authentication error (${response.statusCode}): Unauthorized';
         } else {
-          errorMessage = 'HTTP ${response.statusCode}: ${response.reasonPhrase ?? "Unknown error"}';
+          errorMessage =
+              'HTTP ${response.statusCode}: ${response.reasonPhrase ?? "Unknown error"}';
         }
         throw Exception('Prefix search failed: $errorMessage');
       }

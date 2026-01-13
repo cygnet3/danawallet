@@ -23,8 +23,7 @@ class NameServerRegisterResponse {
     };
   }
 
-  factory NameServerRegisterResponse.fromJson(
-      Map<String, dynamic> json) {
+  factory NameServerRegisterResponse.fromJson(Map<String, dynamic> json) {
     return NameServerRegisterResponse(
       id: json['id'] as String,
       message: json['message'] as String,

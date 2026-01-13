@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class AddEditFieldSheet extends StatefulWidget {
-  final ContactField? field; // If null, we're adding; if not null, we're editing
+  final ContactField?
+      field; // If null, we're adding; if not null, we're editing
   final int contactId;
 
   const AddEditFieldSheet({
@@ -65,13 +66,13 @@ class _AddEditFieldSheetState extends State<AddEditFieldSheet> {
 
   Future<void> _saveField() async {
     String fieldType;
-    
+
     if (_isCustomType) {
       fieldType = _fieldTypeController.text.trim();
     } else {
       fieldType = _selectedFieldType ?? '';
     }
-    
+
     final fieldValue = _fieldValueController.text.trim();
 
     if (fieldType.isEmpty) {
@@ -239,4 +240,3 @@ class _AddEditFieldSheetState extends State<AddEditFieldSheet> {
     );
   }
 }
-

@@ -25,7 +25,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   await LoggingService.create();
-  
+
   // Initialize contacts database
   await DatabaseHelper.instance.database;
   final walletState = await WalletState.create();

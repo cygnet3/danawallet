@@ -42,7 +42,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   Future<void> _loadContacts() async {
     try {
-      final contacts = await ContactsService.instance.getAllContactsSortedByName();
+      final contacts =
+          await ContactsService.instance.getAllContactsSortedByName();
       setState(() {
         _allContacts = contacts;
         _isLoading = false;
@@ -70,10 +71,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   void _filterContacts() {
     final query = _searchController.text.trim();
-    
+
     // Cancel previous timer
     _searchDebounceTimer?.cancel();
-    
+
     // Clear remote results if query is empty
     if (query.isEmpty) {
       setState(() {
@@ -82,12 +83,12 @@ class _ContactsScreenState extends State<ContactsScreen> {
       });
       return;
     }
-    
+
     // Debounce remote search to avoid too many API calls
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       _searchRemoteAddresses(query);
     });
-    
+
     setState(() {
       // Trigger rebuild to update filtered list
     });
@@ -95,25 +96,26 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   Future<void> _searchRemoteAddresses(String prefix) async {
     if (prefix.isEmpty) return;
-    
+
     setState(() {
       _isSearchingRemote = true;
     });
-    
+
     try {
       final response = await DanaAddressService().searchPrefix(prefix);
-      
+
       if (mounted) {
         // Get set of existing dana addresses from our contacts
         final existingAddresses = _allContacts
             .map((contact) => contact.danaAddress.toLowerCase())
             .toSet();
-        
+
         // Filter out addresses that are already in our contacts
         final newAddresses = response.danaAddress
-            .where((address) => !existingAddresses.contains(address.toLowerCase()))
+            .where(
+                (address) => !existingAddresses.contains(address.toLowerCase()))
             .toList();
-        
+
         setState(() {
           _remoteDanaAddresses = newAddresses;
           _isSearchingRemote = false;
@@ -133,11 +135,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
   List<Contact> _getFilteredOtherContacts() {
     final query = _searchController.text.toLowerCase().trim();
     final otherContacts = _getOtherContacts();
-    
+
     if (query.isEmpty) {
       return otherContacts;
     }
-    
+
     return otherContacts.where((contact) {
       final displayName = (contact.nym ?? contact.danaAddress).toLowerCase();
       return displayName.contains(query) ||
@@ -183,8 +185,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
         backgroundColor: avatarColor,
         child: Text(
           initial,
-          style: BitcoinTextStyle.body3(Bitcoin.white)
-              .apply(fontWeightDelta: 2),
+          style:
+              BitcoinTextStyle.body3(Bitcoin.white).apply(fontWeightDelta: 2),
         ),
       ),
       title: Text(
@@ -216,8 +218,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
         backgroundColor: avatarColor,
         child: Text(
           initial,
-          style: BitcoinTextStyle.body3(Bitcoin.white)
-              .apply(fontWeightDelta: 2),
+          style:
+              BitcoinTextStyle.body3(Bitcoin.white).apply(fontWeightDelta: 2),
         ),
       ),
       title: Text(
@@ -232,8 +234,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
         // Resolve SP address and open add contact sheet
         String? spAddress;
         try {
-          final network = Provider.of<ChainState>(context, listen: false).network;
-          final resolved = await Bip353Resolver.resolveFromAddress(danaAddress, network);
+          final network =
+              Provider.of<ChainState>(context, listen: false).network;
+          final resolved =
+              await Bip353Resolver.resolveFromAddress(danaAddress, network);
           if (resolved != null) {
             spAddress = resolved;
           }
@@ -278,8 +282,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
   @override
   Widget build(BuildContext context) {
     final youContact = _getYouContact();
-    final hasYouContact = youContact != null && 
-        youContact.danaAddress.isNotEmpty && 
+    final hasYouContact = youContact != null &&
+        youContact.danaAddress.isNotEmpty &&
         youContact.spAddress.isNotEmpty;
     final filteredOtherContacts = _getFilteredOtherContacts();
 
@@ -342,7 +346,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     final hasLocalResults = filteredContacts.isNotEmpty;
     final hasRemoteResults = _remoteDanaAddresses.isNotEmpty;
     final hasAnyResults = hasLocalResults || hasRemoteResults;
-    
+
     if (query.isEmpty) {
       // No search query - show all contacts
       if (filteredContacts.isEmpty) {
@@ -355,7 +359,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
           ),
         );
       }
-      
+
       return ListView.separated(
         itemCount: filteredContacts.length,
         separatorBuilder: (context, index) => const Divider(),
@@ -364,7 +368,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         },
       );
     }
-    
+
     // Search query exists
     if (!hasAnyResults && !_isSearchingRemote) {
       return Center(
@@ -374,10 +378,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
         ),
       );
     }
-    
+
     // Build combined list: local contacts first, then remote addresses
     final List<Widget> items = [];
-    
+
     // Add local contacts
     if (hasLocalResults) {
       for (var contact in filteredContacts) {
@@ -385,7 +389,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         items.add(const Divider());
       }
     }
-    
+
     // Add remote addresses (not in contacts)
     if (hasRemoteResults) {
       for (var address in _remoteDanaAddresses) {
@@ -393,22 +397,22 @@ class _ContactsScreenState extends State<ContactsScreen> {
         items.add(const Divider());
       }
     }
-    
+
     // Remove last divider if exists
     if (items.isNotEmpty && items.last is Divider) {
       items.removeLast();
     }
-    
+
     // Show loading indicator if searching remote
     if (_isSearchingRemote && !hasLocalResults && !hasRemoteResults) {
-    return Center(
+      return Center(
         child: Text(
           'Searching...',
           style: BitcoinTextStyle.body3(Bitcoin.neutral6),
         ),
       );
     }
-    
+
     return ListView(
       children: items,
     );

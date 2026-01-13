@@ -15,7 +15,7 @@ class NameServerLookupResponse {
     return NameServerLookupResponse(
       id: json['id'] as String,
       message: json['message'] as String,
-      danaAddresses:  List<String>.from(json['dana_addresses']),
+      danaAddresses: List<String>.from(json['dana_addresses']),
       spAddress: json['sp_address'] as String,
     );
   }

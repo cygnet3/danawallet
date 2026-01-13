@@ -65,11 +65,12 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       // Now we need to find out if the wallet has a dana address and create "you" contact
       if (context.mounted) {
         // Check if dana address is stored
-        final storedDanaAddress = await WalletRepository.instance.readDanaAddress();
+        final storedDanaAddress =
+            await WalletRepository.instance.readDanaAddress();
         if (storedDanaAddress != null) {
           WalletRepository.instance.saveDanaAddress(storedDanaAddress);
           Logger().i('Loaded dana address from storage: $storedDanaAddress');
-          
+
           // Create user contact if it doesn't exist
           try {
             await ContactsService.instance.addContactByDanaAddress(
@@ -84,11 +85,12 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
           }
         } else {
           // Lookup dana addresses
-          final danaAddresses = await DanaAddressService().lookupDanaAddress(walletState.receiveAddress, walletState.network);
+          final danaAddresses = await DanaAddressService().lookupDanaAddress(
+              walletState.receiveAddress, walletState.network);
           if (danaAddresses != null) {
             WalletRepository.instance.saveDanaAddress(danaAddresses);
             Logger().i('Loaded dana address from lookup: $danaAddresses');
-            
+
             // Create user contact if it doesn't exist
             try {
               await ContactsService.instance.addContactByDanaAddress(

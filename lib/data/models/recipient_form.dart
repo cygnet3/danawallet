@@ -45,7 +45,7 @@ class RecipientForm {
       throw Exception('Custom fee rate should be set');
     }
 
-    final feerate = selectedFee == SelectedFee.custom 
+    final feerate = selectedFee == SelectedFee.custom
         ? customFeeRate!
         : selectedFee!.getFeeRate(currentFeeRates!);
 

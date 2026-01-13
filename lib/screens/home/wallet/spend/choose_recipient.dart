@@ -17,7 +17,7 @@ import 'package:provider/provider.dart';
 
 class ChooseRecipientScreen extends StatefulWidget {
   final String? initialAddress;
-  
+
   const ChooseRecipientScreen({super.key, this.initialAddress});
 
   @override
@@ -78,7 +78,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
           Logger().d(
               'Successfully resolved dana address to SP address: ${address.substring(0, 20)}...');
         } catch (e) {
-          displayError('Failed to resolve dana address "$address"' , e);
+          displayError('Failed to resolve dana address "$address"', e);
         }
       }
 
