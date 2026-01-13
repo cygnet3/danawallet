@@ -8,7 +8,6 @@ import 'package:logger/logger.dart';
 
 class ContactsService {
   final ContactsRepository _repository = ContactsRepository.instance;
-  final DanaAddressService _danaService = DanaAddressService();
 
   // private constructor
   ContactsService._();
@@ -109,7 +108,8 @@ class ContactsService {
     if (lookupDanaAddress) {
       try {
         Logger().i('Looking up dana address for SP address');
-        danaAddress = await _danaService.lookupDanaAddress(spAddress, network);
+        danaAddress = await DanaAddressService(network: network)
+            .lookupDanaAddress(spAddress);
         if (danaAddress != null) {
           // Check if dana address already exists
           final existingByDana =
