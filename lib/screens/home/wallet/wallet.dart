@@ -6,7 +6,6 @@ import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/contacts_repository.dart';
-import 'package:danawallet/repositories/name_server_repository.dart';
 import 'package:danawallet/screens/home/wallet/spend/choose_recipient.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -250,9 +249,8 @@ class WalletScreenState extends State<WalletScreen> {
   /// Resolves the display name for a recipient address
   /// Priority: contact name (nym) > contact dana address > looked up dana address > SP address
   /// Returns a String that can be either a contact name, dana address, or the raw SP address
-  Future<String> _resolveRecipientDisplay(
-      String spAddress, NameServerRepository nameServerRepository) async {
-    // First, check if the SP address is in contacts
+  Future<String> _resolveRecipientDisplay(String spAddress) async {
+    // Check if the SP address is in contacts
     final contact =
         await ContactsRepository.instance.getContactBySpAddress(spAddress);
     if (contact != null) {
@@ -264,17 +262,6 @@ class WalletScreenState extends State<WalletScreen> {
       if (contact.danaAddress.isNotEmpty) {
         return contact.danaAddress;
       }
-    }
-
-    // If not in contacts, try to look up dana address from name server
-    try {
-      final danaAddresses =
-          await nameServerRepository.lookupDanaAddresses(spAddress);
-      if (danaAddresses.isNotEmpty) {
-        return danaAddresses.first;
-      }
-    } catch (e) {
-      // If lookup fails, fall back to SP address
     }
 
     // Fall back to returning the raw SP address (will be formatted in the FutureBuilder)
@@ -313,10 +300,8 @@ class WalletScreenState extends State<WalletScreen> {
             color: Bitcoin.neutral3Dark);
       case ApiRecordedTransaction_Outgoing(:final field0):
         final spAddress = field0.recipients[0].address;
-        final nameServerRepository =
-            Provider.of<NameServerRepository>(context, listen: false);
         recipientWidget = FutureBuilder<String>(
-          future: _resolveRecipientDisplay(spAddress, nameServerRepository),
+          future: _resolveRecipientDisplay(spAddress),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               // Show SP address while loading
