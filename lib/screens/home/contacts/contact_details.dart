@@ -1,7 +1,7 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
-import 'package:danawallet/data/models/contacts.dart';
+import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
@@ -9,11 +9,11 @@ import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/data/models/contact_field.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
-import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/screens/home/contacts/add_edit_field_sheet.dart';
 import 'package:danawallet/screens/home/contacts/edit_contact_sheet.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
@@ -44,8 +44,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
 
   Future<void> _loadCustomFields() async {
     if (_currentContact.id != null) {
-      final fields =
-          await ContactsService.instance.getContactFields(_currentContact.id!);
+      final fields = await Provider.of<ContactsState>(context, listen: false)
+          .getContactFields(_currentContact.id!);
       if (mounted) {
         setState(() {
           _customFields = fields;
@@ -57,7 +57,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   Future<void> _reloadContact() async {
     if (_currentContact.id != null) {
       final updatedContact =
-          await ContactsService.instance.getContact(_currentContact.id!);
+          await Provider.of<ContactsState>(context, listen: false)
+              .getContact(_currentContact.id!);
       if (updatedContact != null && mounted) {
         setState(() {
           _currentContact = updatedContact;
@@ -68,7 +69,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   }
 
   String _getDisplayName(Contact contact) {
-    return contact.nym ?? contact.danaAddress;
+    return contact.nym ?? contact.danaAddress ?? contact.spAddress;
   }
 
   String _getInitial(String name) {
@@ -119,15 +120,18 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   }
 
   Future<void> _copyDanaAddress() async {
-    await Clipboard.setData(ClipboardData(text: _currentContact.danaAddress));
-    HapticFeedback.lightImpact();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dana address copied to clipboard'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+    if (_currentContact.danaAddress != null) {
+      await Clipboard.setData(
+          ClipboardData(text: _currentContact.danaAddress!));
+      HapticFeedback.lightImpact();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Dana address copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -289,7 +293,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
 
     if (confirmed == true) {
       try {
-        await ContactsService.instance.deleteContactField(field.id!);
+        await Provider.of<ContactsState>(context, listen: false)
+            .deleteContactField(field.id!);
         if (mounted) {
           await _loadCustomFields();
           setState(() {
@@ -323,8 +328,9 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
       form.reset();
 
       // Use dana address if available, otherwise use SP address
-      String address = _currentContact.danaAddress.isNotEmpty
-          ? _currentContact.danaAddress
+      String address = (_currentContact.danaAddress != null &&
+              _currentContact.danaAddress!.isNotEmpty)
+          ? _currentContact.danaAddress!
           : _currentContact.spAddress;
 
       if (address.contains('@')) {
@@ -563,7 +569,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _currentContact.danaAddress,
+                    _currentContact.danaAddress ?? '',
                     style: BitcoinTextStyle.body4(Bitcoin.neutral7),
                   ),
                   const SizedBox(width: 8),
@@ -689,13 +695,15 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
     }
 
     final field0 = tx.field0;
-    final recipient = _currentContact.nym ?? _currentContact.danaAddress;
+    final recipient = _currentContact.nym ??
+        _currentContact.danaAddress ??
+        _currentContact.spAddress;
     final date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
     final color = field0.confirmedAt == null ? Bitcoin.neutral4 : Bitcoin.red;
     final amount = field0.totalOutgoing().displayBtc();
-    final amountprefix = '-';
+    const amountprefix = '-';
     final amountFiat = exchangeRate.displayFiat(field0.totalOutgoing());
-    final title = 'Outgoing transaction';
+    const title = 'Outgoing transaction';
     final text = field0.toString();
     final image = Image(
         image: const AssetImage("icons/send.png", package: "bitcoin_ui"),

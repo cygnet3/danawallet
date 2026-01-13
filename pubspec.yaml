@@ -45,6 +45,7 @@ dependencies:
   sqflite: ^2.4.1
   sqflite_common_ffi: any
   path: ^1.9.1
+  collection: ^1.19.1
 
 # temporary fix, see: https://github.com/juliansteenbakker/flutter_secure_storage/issues/920
 dependency_overrides:

@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:danawallet/data/models/contacts.dart';
+import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
-import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
 import 'package:danawallet/screens/home/contacts/contact_details.dart';
 import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -20,16 +20,13 @@ class ContactsScreen extends StatefulWidget {
 
 class _ContactsScreenState extends State<ContactsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Contact> _allContacts = [];
   List<String> _remoteDanaAddresses = []; // Dana addresses from server search
-  bool _isLoading = true;
   bool _isSearchingRemote = false;
   Timer? _searchDebounceTimer;
 
   @override
   void initState() {
     super.initState();
-    _loadContacts();
     _searchController.addListener(_filterContacts);
   }
 
@@ -38,35 +35,6 @@ class _ContactsScreenState extends State<ContactsScreen> {
     _searchController.dispose();
     _searchDebounceTimer?.cancel();
     super.dispose();
-  }
-
-  Future<void> _loadContacts() async {
-    try {
-      final contacts =
-          await ContactsService.instance.getAllContactsSortedByName();
-      setState(() {
-        _allContacts = contacts;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Contact? _getYouContact() {
-    try {
-      return _allContacts.firstWhere(
-        (contact) => contact.nym == 'you',
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  List<Contact> _getOtherContacts() {
-    return _allContacts.where((contact) => contact.nym != 'you').toList();
   }
 
   void _filterContacts() {
@@ -97,6 +65,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
   Future<void> _searchRemoteAddresses(String prefix) async {
     if (prefix.isEmpty) return;
 
+    // Get set of existing dana addresses from our contacts
+    final knownDanaAddresses =
+        Provider.of<ContactsState>(context, listen: false)
+            .getKnownDanaAddresses();
+
     setState(() {
       _isSearchingRemote = true;
     });
@@ -107,14 +80,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
           await DanaAddressService(network: network).searchPrefix(prefix);
 
       if (mounted) {
-        // Get set of existing dana addresses from our contacts
-        final knownAddresses = _allContacts
-            .map((contact) => contact.danaAddress.toLowerCase())
-            .toSet();
-
         // Filter out addresses that are already in our contacts
         final newAddresses = danaAddresses
-            .where((address) => !knownAddresses.contains(address.toLowerCase()))
+            .where((address) =>
+                !knownDanaAddresses.contains(address.toLowerCase()))
             .toList();
 
         setState(() {
@@ -133,23 +102,25 @@ class _ContactsScreenState extends State<ContactsScreen> {
     }
   }
 
-  List<Contact> _getFilteredOtherContacts() {
+  List<Contact> _getFilteredOtherContacts(List<Contact> otherContacts) {
     final query = _searchController.text.toLowerCase().trim();
-    final otherContacts = _getOtherContacts();
 
     if (query.isEmpty) {
       return otherContacts;
     }
 
     return otherContacts.where((contact) {
-      final displayName = (contact.nym ?? contact.danaAddress).toLowerCase();
+      final displayName =
+          (contact.nym ?? contact.danaAddress ?? contact.spAddress)
+              .toLowerCase();
       return displayName.contains(query) ||
-          contact.danaAddress.toLowerCase().contains(query);
+          contact.danaAddress != null &&
+              contact.danaAddress!.toLowerCase().contains(query);
     }).toList();
   }
 
   String _getDisplayName(Contact contact) {
-    return contact.nym ?? contact.danaAddress;
+    return contact.nym ?? contact.danaAddress ?? contact.spAddress;
   }
 
   String _getInitial(String name) {
@@ -195,16 +166,12 @@ class _ContactsScreenState extends State<ContactsScreen> {
         style: BitcoinTextStyle.body3(Bitcoin.black).apply(fontWeightDelta: 2),
       ),
       onTap: () async {
-        final result = await Navigator.push(
+        await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ContactDetailsScreen(contact: contact),
           ),
         );
-        // Reload contacts if contact was updated
-        if (result == true) {
-          _loadContacts();
-        }
       },
     );
   }
@@ -247,7 +214,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         }
 
         if (mounted) {
-          final result = await showModalBottomSheet<bool>(
+          await showModalBottomSheet<bool>(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
@@ -256,37 +223,23 @@ class _ContactsScreenState extends State<ContactsScreen> {
               initialSpAddress: spAddress,
             ),
           );
-
-          if (result == true) {
-            // Reload contacts if contact was added
-            await _loadContacts();
-          }
         }
       },
     );
   }
 
   void _openAddContactSheet() async {
-    final result = await showModalBottomSheet<bool>(
+    await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddContactSheet(),
     );
-
-    if (result == true) {
-      // Reload contacts if contact was added
-      await _loadContacts();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final youContact = _getYouContact();
-    final hasYouContact = youContact != null &&
-        youContact.danaAddress.isNotEmpty &&
-        youContact.spAddress.isNotEmpty;
-    final filteredOtherContacts = _getFilteredOtherContacts();
+    final contactsState = Provider.of<ContactsState>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -306,10 +259,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
         child: Column(
           children: [
             // 'You' contact at the top
-            if (hasYouContact) ...[
-              _buildContactItem(youContact),
-              const SizedBox(height: 20),
-            ],
+            _buildContactItem(contactsState.getYouContact()),
+            const SizedBox(height: 20),
             // Search bar
             TextField(
               controller: _searchController,
@@ -327,14 +278,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             const SizedBox(height: 20),
             // List of contacts and remote addresses
             Expanded(
-              child: _isLoading
-                  ? Center(
-                      child: Text(
-                        'Loading contacts...',
-                        style: BitcoinTextStyle.body3(Bitcoin.neutral6),
-                      ),
-                    )
-                  : _buildSearchResults(filteredOtherContacts),
+              child: _buildSearchResults(contactsState.getOtherContacts()),
             ),
           ],
         ),
@@ -342,7 +286,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
     );
   }
 
-  Widget _buildSearchResults(List<Contact> filteredContacts) {
+  Widget _buildSearchResults(List<Contact> otherContacts) {
+    final filteredContacts = _getFilteredOtherContacts(otherContacts);
+
     final query = _searchController.text.trim();
     final hasLocalResults = filteredContacts.isNotEmpty;
     final hasRemoteResults = _remoteDanaAddresses.isNotEmpty;
@@ -353,9 +299,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
       if (filteredContacts.isEmpty) {
         return Center(
           child: Text(
-            _getOtherContacts().isEmpty
-                ? 'No contacts yet'
-                : 'No contacts found',
+            otherContacts.isEmpty ? 'No contacts yet' : 'No contacts found',
             style: BitcoinTextStyle.body3(Bitcoin.neutral6),
           ),
         );

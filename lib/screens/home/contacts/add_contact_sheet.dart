@@ -1,7 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
-import 'package:danawallet/services/contacts_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
@@ -141,28 +141,18 @@ class _AddContactSheetState extends State<AddContactSheet> {
 
     try {
       final walletState = Provider.of<WalletState>(context, listen: false);
+      final contactsState = Provider.of<ContactsState>(context, listen: false);
       final network = walletState.network;
 
-      // Use ContactsService to handle validation and DNS resolution
-      if (danaAddress.isNotEmpty) {
-        // If dana address is provided, use it (service will resolve to SP)
-        await ContactsService.instance.addContactByDanaAddress(
-          danaAddress: danaAddress,
-          network: network,
-          nym: nym.isNotEmpty ? nym : null,
-        );
-      } else {
-        // Otherwise use SP address directly
-        await ContactsService.instance.addContactBySpAddress(
-          spAddress: spAddress,
-          network: network,
-          nym: nym.isNotEmpty ? nym : null,
-          lookupDanaAddress: true,
-        );
-      }
+      await contactsState.addContact(
+        spAddress: spAddress,
+        danaAddress: danaAddress,
+        network: network,
+        nym: nym.isNotEmpty ? nym : null,
+      );
 
       if (mounted) {
-        Navigator.pop(context, true); // Return true to indicate success
+        Navigator.pop(context);
       }
     } catch (e) {
       Logger().e('Failed to save contact: $e');
