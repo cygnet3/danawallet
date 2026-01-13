@@ -111,7 +111,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             .toSet();
 
         // Filter out addresses that are already in our contacts
-        final newAddresses = response.danaAddress
+        final newAddresses = response.danaAddresses
             .where(
                 (address) => !existingAddresses.contains(address.toLowerCase()))
             .toList();

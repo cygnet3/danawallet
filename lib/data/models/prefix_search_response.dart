@@ -1,14 +1,14 @@
 class PrefixSearchResponse {
   final String id;
   final String message;
-  final List<String> danaAddress;
+  final List<String> danaAddresses;
   final int count;
   final int totalCount;
 
   const PrefixSearchResponse({
     required this.id,
     required this.message,
-    required this.danaAddress,
+    required this.danaAddresses,
     required this.count,
     required this.totalCount,
   });
@@ -17,18 +17,18 @@ class PrefixSearchResponse {
     return {
       'id': id,
       'message': message,
-      'dana_address': danaAddress,
+      'dana_addresses': danaAddresses,
       'count': count,
       'total_count': totalCount,
     };
   }
 
   factory PrefixSearchResponse.fromJson(Map<String, dynamic> json) {
-    final danaAddressList = json['dana_address'] as List<dynamic>?;
+    final danaAddressList = json['dana_addresses'] as List<dynamic>?;
     return PrefixSearchResponse(
       id: json['id'] as String,
       message: json['message'] as String,
-      danaAddress: danaAddressList != null
+      danaAddresses: danaAddressList != null
           ? danaAddressList.map((e) => e as String).toList()
           : [],
       count: json['count'] as int? ?? 0,
