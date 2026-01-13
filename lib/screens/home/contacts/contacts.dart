@@ -102,18 +102,19 @@ class _ContactsScreenState extends State<ContactsScreen> {
     });
 
     try {
-      final response = await DanaAddressService().searchPrefix(prefix);
+      final network = Provider.of<ChainState>(context, listen: false).network;
+      final danaAddresses =
+          await DanaAddressService(network: network).searchPrefix(prefix);
 
       if (mounted) {
         // Get set of existing dana addresses from our contacts
-        final existingAddresses = _allContacts
+        final knownAddresses = _allContacts
             .map((contact) => contact.danaAddress.toLowerCase())
             .toSet();
 
         // Filter out addresses that are already in our contacts
-        final newAddresses = response.danaAddresses
-            .where(
-                (address) => !existingAddresses.contains(address.toLowerCase()))
+        final newAddresses = danaAddresses
+            .where((address) => !knownAddresses.contains(address.toLowerCase()))
             .toList();
 
         setState(() {
