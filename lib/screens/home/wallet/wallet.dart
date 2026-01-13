@@ -250,9 +250,11 @@ class WalletScreenState extends State<WalletScreen> {
   /// Resolves the display name for a recipient address
   /// Priority: contact name (nym) > contact dana address > looked up dana address > SP address
   /// Returns a String that can be either a contact name, dana address, or the raw SP address
-  Future<String> _resolveRecipientDisplay(String spAddress, NameServerRepository nameServerRepository) async {
+  Future<String> _resolveRecipientDisplay(
+      String spAddress, NameServerRepository nameServerRepository) async {
     // First, check if the SP address is in contacts
-    final contact = await ContactsRepository.instance.getContactBySpAddress(spAddress);
+    final contact =
+        await ContactsRepository.instance.getContactBySpAddress(spAddress);
     if (contact != null) {
       // If contact has a name, use it
       if (contact.nym != null && contact.nym!.isNotEmpty) {
@@ -266,7 +268,8 @@ class WalletScreenState extends State<WalletScreen> {
 
     // If not in contacts, try to look up dana address from name server
     try {
-      final danaAddresses = await nameServerRepository.lookupDanaAddresses(spAddress);
+      final danaAddresses =
+          await nameServerRepository.lookupDanaAddresses(spAddress);
       if (danaAddresses.isNotEmpty) {
         return danaAddresses.first;
       }
@@ -310,7 +313,8 @@ class WalletScreenState extends State<WalletScreen> {
             color: Bitcoin.neutral3Dark);
       case ApiRecordedTransaction_Outgoing(:final field0):
         final spAddress = field0.recipients[0].address;
-        final nameServerRepository = Provider.of<NameServerRepository>(context, listen: false);
+        final nameServerRepository =
+            Provider.of<NameServerRepository>(context, listen: false);
         recipientWidget = FutureBuilder<String>(
           future: _resolveRecipientDisplay(spAddress, nameServerRepository),
           builder: (context, snapshot) {

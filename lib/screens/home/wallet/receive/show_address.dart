@@ -57,7 +57,8 @@ class ShowAddressScreenState extends State<ShowAddressScreen> {
             const SizedBox(
               height: 20,
             ),
-            Text("This is your receive address. You can use this if the sender doesn't support Dana addresses yet.",
+            Text(
+                "This is your receive address. You can use this if the sender doesn't support Dana addresses yet.",
                 style: BitcoinTextStyle.body3(Bitcoin.neutral8)),
           ],
         ),

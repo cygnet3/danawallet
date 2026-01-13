@@ -44,7 +44,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
 
   Future<void> _loadCustomFields() async {
     if (_currentContact.id != null) {
-      final fields = await ContactsService.instance.getContactFields(_currentContact.id!);
+      final fields =
+          await ContactsService.instance.getContactFields(_currentContact.id!);
       if (mounted) {
         setState(() {
           _customFields = fields;
@@ -53,10 +54,10 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
     }
   }
 
-
   Future<void> _reloadContact() async {
     if (_currentContact.id != null) {
-      final updatedContact = await ContactsService.instance.getContact(_currentContact.id!);
+      final updatedContact =
+          await ContactsService.instance.getContact(_currentContact.id!);
       if (updatedContact != null && mounted) {
         setState(() {
           _currentContact = updatedContact;
@@ -98,12 +99,12 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
       // If address is short, just group by 4
       return _groupByFour(address);
     }
-    
+
     // First 12 characters grouped by 4
     final firstPart = _groupByFour(address.substring(0, 12));
     // Last 8 characters grouped by 4
     final lastPart = _groupByFour(address.substring(address.length - 8));
-    
+
     return '$firstPart ... $lastPart';
   }
 
@@ -142,7 +143,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
         },
       ),
     );
-    
+
     if (result == 'deleted' && mounted) {
       // Contact was deleted, close contact details and return true to refresh list
       Navigator.pop(context, true);
@@ -158,8 +159,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
     return ListTile(
       title: Text(
         field.fieldType,
-        style: BitcoinTextStyle.body3(Bitcoin.black)
-            .apply(fontWeightDelta: 1),
+        style: BitcoinTextStyle.body3(Bitcoin.black).apply(fontWeightDelta: 1),
       ),
       subtitle: Text(
         field.fieldValue,
@@ -332,17 +332,19 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
         try {
           Logger().d('Resolving dana address: "$address"');
 
-          final network = Provider.of<ChainState>(context, listen: false).network;
-          
-          final resolvedAddress = await Bip353Resolver.resolveFromAddress(address, network);
-          
+          final network =
+              Provider.of<ChainState>(context, listen: false).network;
+
+          final resolvedAddress =
+              await Bip353Resolver.resolveFromAddress(address, network);
+
           if (resolvedAddress == null) {
             throw Exception('Dana address not found or not registered');
           }
-           
+
           form.recipientBip353 = address;
           address = resolvedAddress;
-          
+
           Logger().d('Successfully resolved dana address to SP address');
         } catch (e) {
           Logger().e('Failed to resolve dana address "$address": $e');
@@ -360,8 +362,10 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
 
       // Validate address
       try {
-        final network = Provider.of<WalletState>(context, listen: false).network;
-        validateAddressWithNetwork(address: address, network: network.toCoreArg);
+        final network =
+            Provider.of<WalletState>(context, listen: false).network;
+        validateAddressWithNetwork(
+            address: address, network: network.toCoreArg);
       } catch (e) {
         if (e.toString().contains('network')) {
           throw InvalidNetworkException();
@@ -503,7 +507,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                   const WidgetSpan(
                     alignment: PlaceholderAlignment.middle,
                     child: Image(
-                      image: AssetImage("icons/caret_left.png", package: "bitcoin_ui"),
+                      image: AssetImage("icons/caret_left.png",
+                          package: "bitcoin_ui"),
                     ),
                   ),
                   TextSpan(
@@ -516,16 +521,16 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
             ),
           ),
         ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.edit, color: Bitcoin.black),
-              onPressed: () {
-                _showEditContactSheet();
-              },
-            ),
-          ],
-        ),
-        body: Padding(
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit, color: Bitcoin.black),
+            onPressed: () {
+              _showEditContactSheet();
+            },
+          ),
+        ],
+      ),
+      body: Padding(
         padding: const EdgeInsets.all(25.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -584,7 +589,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                       style: BitcoinTextStyle.body3(Bitcoin.white),
                     ),
                     Image(
-                      image: const AssetImage("icons/send.png", package: "bitcoin_ui"),
+                      image: const AssetImage("icons/send.png",
+                          package: "bitcoin_ui"),
                       color: Bitcoin.white,
                     ),
                   ],
@@ -611,7 +617,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                       _formatAddress(_currentContact.spAddress),
                       style: BitcoinTextStyle.body5(Bitcoin.neutral7),
                     ),
-                    trailing: Icon(Icons.chevron_right, color: Bitcoin.neutral7),
+                    trailing:
+                        Icon(Icons.chevron_right, color: Bitcoin.neutral7),
                     onTap: () {
                       _showStaticAddressSheet();
                     },
@@ -624,15 +631,18 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                       style: BitcoinTextStyle.body3(Bitcoin.black)
                           .apply(fontWeightDelta: 1),
                     ),
-                    trailing: Icon(Icons.chevron_right, color: Bitcoin.neutral7),
+                    trailing:
+                        Icon(Icons.chevron_right, color: Bitcoin.neutral7),
                     onTap: () {
                       _showSentTransactionsSheet();
                     },
                   ),
                   const Divider(),
                   // Custom Fields Section
-                  if (_customFields.isNotEmpty || _currentContact.id != null) ...[
-                    ..._customFields.map((field) => _buildCustomFieldItem(field)),
+                  if (_customFields.isNotEmpty ||
+                      _currentContact.id != null) ...[
+                    ..._customFields
+                        .map((field) => _buildCustomFieldItem(field)),
                     if (_currentContact.id != null)
                       ListTile(
                         leading: Icon(Icons.add, color: Bitcoin.blue),
@@ -664,8 +674,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
     return allTransactions.where((tx) {
       if (tx is ApiRecordedTransaction_Outgoing) {
         // Check if any recipient matches the contact's SP address
-        return tx.field0.recipients.any((recipient) => 
-          recipient.address == contactSpAddress);
+        return tx.field0.recipients
+            .any((recipient) => recipient.address == contactSpAddress);
       }
       return false;
     }).toList();
@@ -724,7 +734,8 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   }
 
   void _showSentTransactionsSheet() {
-    final exchangeRate = Provider.of<FiatExchangeRateState>(context, listen: false);
+    final exchangeRate =
+        Provider.of<FiatExchangeRateState>(context, listen: false);
     final sentTransactions = _getSentTransactions();
 
     showModalBottomSheet(
@@ -787,4 +798,3 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
     );
   }
 }
-

@@ -172,14 +172,12 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
             const SizedBox(
               height: 10.0,
             ),
-          if (!_isCheckingContacts &&
-              _isRecipientInContacts == false)
+          if (!_isCheckingContacts && _isRecipientInContacts == false)
             FooterButtonOutlined(
               title: 'Add to contact',
               onPressed: _openAddContactSheet,
             ),
-          if (!_isCheckingContacts &&
-              _isRecipientInContacts == false)
+          if (!_isCheckingContacts && _isRecipientInContacts == false)
             const SizedBox(
               height: 10.0,
             ),

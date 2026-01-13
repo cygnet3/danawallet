@@ -1,7 +1,8 @@
 class ContactField {
   int? id;
   final int contactId;
-  final String fieldType; // e.g., 'email', 'twitter', 'telegram', 'github', etc.
+  final String
+      fieldType; // e.g., 'email', 'twitter', 'telegram', 'github', etc.
   final String fieldValue;
 
   ContactField({
@@ -29,4 +30,3 @@ class ContactField {
     );
   }
 }
-

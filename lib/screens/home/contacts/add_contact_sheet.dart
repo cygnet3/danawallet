@@ -47,17 +47,17 @@ class _AddContactSheetState extends State<AddContactSheet> {
       setState(() {
         _hasDanaAddress = hasDanaAddress;
       });
-      
+
       // If dana address is filled, clear and resolve SP address
       if (hasDanaAddress) {
         _spAddressController.clear();
         _resolveDanaAddress();
       }
     });
-    
+
     // Automatically resolve SP address if dana address is provided but SP address is not
-    if (widget.initialDanaAddress != null && 
-        widget.initialDanaAddress!.isNotEmpty && 
+    if (widget.initialDanaAddress != null &&
+        widget.initialDanaAddress!.isNotEmpty &&
         (widget.initialSpAddress == null || widget.initialSpAddress!.isEmpty)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _resolveDanaAddress();
@@ -84,8 +84,9 @@ class _AddContactSheetState extends State<AddContactSheet> {
 
     try {
       final network = Provider.of<ChainState>(context, listen: false).network;
-      final resolved = await Bip353Resolver.resolveFromAddress(danaAddress, network);
-      
+      final resolved =
+          await Bip353Resolver.resolveFromAddress(danaAddress, network);
+
       if (mounted && resolved != null) {
         setState(() {
           _spAddressController.text = resolved;
@@ -127,7 +128,8 @@ class _AddContactSheetState extends State<AddContactSheet> {
 
     if (danaAddress.isEmpty && spAddress.isEmpty) {
       setState(() {
-        _errorMessage = 'Either dana address or static address must be provided';
+        _errorMessage =
+            'Either dana address or static address must be provided';
       });
       return;
     }
@@ -140,7 +142,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
     try {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final network = walletState.network;
-      
+
       // Use ContactsService to handle validation and DNS resolution
       if (danaAddress.isNotEmpty) {
         // If dana address is provided, use it (service will resolve to SP)
@@ -238,12 +240,15 @@ class _AddContactSheetState extends State<AddContactSheet> {
             TextField(
               controller: _spAddressController,
               style: BitcoinTextStyle.body4(
-                (_hasDanaAddress || _isResolving) ? Bitcoin.neutral6 : Bitcoin.black,
+                (_hasDanaAddress || _isResolving)
+                    ? Bitcoin.neutral6
+                    : Bitcoin.black,
               ),
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 labelText: 'Static Address (SP)',
-                hintText: _hasDanaAddress ? 'Resolved from dana address' : 'sp1q...',
+                hintText:
+                    _hasDanaAddress ? 'Resolved from dana address' : 'sp1q...',
                 suffixIcon: _isResolving
                     ? const Padding(
                         padding: EdgeInsets.all(12.0),
@@ -279,4 +284,3 @@ class _AddContactSheetState extends State<AddContactSheet> {
     );
   }
 }
-

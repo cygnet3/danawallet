@@ -18,7 +18,8 @@ class ContactsService {
 
   /// Validates dana address format (username@domain)
   bool _isValidDanaAddress(String danaAddress) {
-    final pattern = RegExp(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]+$', caseSensitive: false);
+    final pattern =
+        RegExp(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]+$', caseSensitive: false);
     return pattern.hasMatch(danaAddress);
   }
 
@@ -31,7 +32,7 @@ class ContactsService {
 
   /// Adds a new contact by dana address
   /// Resolves the dana address to SP address via DNS before saving
-  /// 
+  ///
   /// Throws [ArgumentError] if dana address format is invalid
   /// Throws [Exception] if dana address cannot be resolved or contact already exists
   Future<Contact> addContactByDanaAddress({
@@ -59,7 +60,7 @@ class ContactsService {
 
     final username = parts[0];
     final domain = parts[1];
-    
+
     final spAddress = await Bip353Resolver.resolve(username, domain, network);
     if (spAddress == null) {
       throw Exception('Dana address not found: $danaAddress');
@@ -74,14 +75,14 @@ class ContactsService {
 
     final id = await _repository.insertContact(contact);
     contact.id = id;
-    
+
     Logger().i('Contact added successfully: $danaAddress -> $spAddress');
     return contact;
   }
 
   /// Adds a new contact by silent payment address
   /// Optionally looks up the dana address from the name server
-  /// 
+  ///
   /// Throws [ArgumentError] if SP address format is invalid
   /// Throws [Exception] if contact already exists
   Future<Contact> addContactBySpAddress({
@@ -98,11 +99,12 @@ class ContactsService {
     // 2. Check for duplicates by SP address
     final existing = await _repository.getContactBySpAddress(spAddress);
     if (existing != null) {
-      throw Exception('Contact with this silent payment address already exists');
+      throw Exception(
+          'Contact with this silent payment address already exists');
     }
 
     String? danaAddress;
-    
+
     // 3. Optionally lookup dana address
     if (lookupDanaAddress) {
       try {
@@ -110,9 +112,11 @@ class ContactsService {
         danaAddress = await _danaService.lookupDanaAddress(spAddress, network);
         if (danaAddress != null) {
           // Check if dana address already exists
-          final existingByDana = await _repository.getContactByDanaAddress(danaAddress);
+          final existingByDana =
+              await _repository.getContactByDanaAddress(danaAddress);
           if (existingByDana != null) {
-            throw Exception('Contact with dana address $danaAddress already exists');
+            throw Exception(
+                'Contact with dana address $danaAddress already exists');
           }
         }
       } catch (e) {
@@ -133,13 +137,13 @@ class ContactsService {
 
     final id = await _repository.insertContact(contact);
     contact.id = id;
-    
+
     Logger().i('Contact added successfully: ${contact.danaAddress}');
     return contact;
   }
 
   /// Updates an existing contact
-  /// 
+  ///
   /// Throws [ArgumentError] if contact id is null
   /// Throws [Exception] if contact doesn't exist or update fails
   Future<void> updateContact(Contact contact) async {
@@ -157,23 +161,23 @@ class ContactsService {
     if (rowsUpdated == 0) {
       throw Exception('Failed to update contact');
     }
-    
+
     Logger().i('Contact updated successfully: ${contact.danaAddress}');
   }
 
   /// Deletes a contact by id
-  /// 
+  ///
   /// Returns true if contact was deleted, false if not found
   Future<bool> deleteContact(int id) async {
     final rowsDeleted = await _repository.deleteContact(id);
     final deleted = rowsDeleted > 0;
-    
+
     if (deleted) {
       Logger().i('Contact deleted successfully: id=$id');
     } else {
       Logger().w('Contact not found for deletion: id=$id');
     }
-    
+
     return deleted;
   }
 
@@ -246,14 +250,14 @@ class ContactsService {
   /// Use getContactFields() separately if needed for specific contacts
   Future<List<Contact>> getAllContactsSortedByName() async {
     final contacts = await _repository.getAllContacts();
-    
+
     // Sort by nym if available, otherwise by dana address
     contacts.sort((a, b) {
       final aName = (a.nym?.isNotEmpty ?? false) ? a.nym! : a.danaAddress;
       final bName = (b.nym?.isNotEmpty ?? false) ? b.nym! : b.danaAddress;
       return aName.toLowerCase().compareTo(bName.toLowerCase());
     });
-    
+
     return contacts;
   }
 
@@ -276,7 +280,7 @@ class ContactsService {
 
     final allContacts = await _repository.getAllContacts();
     final lowerQuery = query.toLowerCase();
-    
+
     return allContacts.where((contact) {
       final nym = contact.nym?.toLowerCase() ?? '';
       final danaAddress = contact.danaAddress.toLowerCase();
@@ -285,7 +289,7 @@ class ContactsService {
   }
 
   /// Deletes all contacts
-  /// 
+  ///
   /// Returns the number of contacts deleted
   Future<int> deleteAllContacts() async {
     final count = await _repository.deleteAllContacts();
@@ -301,7 +305,7 @@ class ContactsService {
   // Contact Fields Management
 
   /// Adds a new custom field to a contact
-  /// 
+  ///
   /// Throws [ArgumentError] if field type or value is empty
   /// Throws [Exception] if contact doesn't exist
   Future<ContactField> addContactField({
@@ -338,7 +342,7 @@ class ContactsService {
   }
 
   /// Updates an existing contact field
-  /// 
+  ///
   /// Throws [ArgumentError] if field id is null or values are empty
   /// Throws [Exception] if field doesn't exist
   Future<void> updateContactField(ContactField field) async {
@@ -369,7 +373,7 @@ class ContactsService {
   }
 
   /// Deletes a contact field by id
-  /// 
+  ///
   /// Returns true if field was deleted, false if not found
   Future<bool> deleteContactField(int id) async {
     final rowsDeleted = await _repository.deleteContactField(id);
@@ -403,7 +407,7 @@ class ContactsService {
   }
 
   /// Deletes all custom fields for a contact
-  /// 
+  ///
   /// Returns the number of fields deleted
   Future<int> deleteContactFields(int contactId) async {
     final count = await _repository.deleteContactFields(contactId);

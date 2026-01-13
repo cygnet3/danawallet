@@ -3,7 +3,8 @@ import 'package:danawallet/data/models/contact_field.dart';
 class Contact {
   int? id;
   final String? nym; // user defined user name
-  final String danaAddress; // Eventually register more than one, for now keep it simple
+  final String
+      danaAddress; // Eventually register more than one, for now keep it simple
   final String spAddress; // silent payment address of the contact
   final List<ContactField>? customFields; // Optional custom fields
 

@@ -189,9 +189,9 @@ class DanaAddressService {
   }
 
   /// Searches for dana addresses by prefix
-  /// 
+  ///
   /// [prefix] - The prefix to search for (e.g., "alice" to find "alice@domain.com")
-  /// 
+  ///
   /// Returns [PrefixSearchResponse] with matching dana addresses
   /// Throws an exception for network errors, invalid responses, or malformed data
   Future<PrefixSearchResponse> searchPrefix(String prefix) async {
@@ -201,7 +201,8 @@ class DanaAddressService {
 
     try {
       final requestId = _generateUniqueId();
-      return await nameServerRepository.searchDanaAddressesWithPrefix(prefix, requestId);
+      return await nameServerRepository.searchDanaAddressesWithPrefix(
+          prefix, requestId);
     } catch (e) {
       Logger().e('Prefix search request failed for prefix "$prefix": $e');
       throw Exception('Prefix search request failed: $e');

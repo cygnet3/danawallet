@@ -15,7 +15,7 @@ class ContactsRepository {
   // Helper method to load custom fields for a contact
   Future<Contact> _loadCustomFields(Contact contact) async {
     if (contact.id == null) return contact;
-    
+
     final customFields = await getContactFields(contact.id!);
     return Contact(
       id: contact.id,
@@ -36,7 +36,8 @@ class ContactsRepository {
       );
     } on DatabaseException catch (e) {
       if (e.isUniqueConstraintError()) {
-        throw Exception('Contact already exists with this dana address or silent payment address');
+        throw Exception(
+            'Contact already exists with this dana address or silent payment address');
       }
       rethrow;
     }
@@ -51,17 +52,18 @@ class ContactsRepository {
     );
 
     if (maps.isEmpty) return null;
-    
+
     final contact = Contact.fromMap(maps.first);
-    
+
     if (loadCustomFields) {
       return await _loadCustomFields(contact);
     }
-    
+
     return contact;
   }
 
-  Future<Contact?> getContactByDanaAddress(String danaAddress, {bool loadCustomFields = false}) async {
+  Future<Contact?> getContactByDanaAddress(String danaAddress,
+      {bool loadCustomFields = false}) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'contacts',
@@ -70,17 +72,18 @@ class ContactsRepository {
     );
 
     if (maps.isEmpty) return null;
-    
+
     final contact = Contact.fromMap(maps.first);
-    
+
     if (loadCustomFields) {
       return await _loadCustomFields(contact);
     }
-    
+
     return contact;
   }
 
-  Future<Contact?> getContactBySpAddress(String spAddress, {bool loadCustomFields = false}) async {
+  Future<Contact?> getContactBySpAddress(String spAddress,
+      {bool loadCustomFields = false}) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'contacts',
@@ -89,13 +92,13 @@ class ContactsRepository {
     );
 
     if (maps.isEmpty) return null;
-    
+
     final contact = Contact.fromMap(maps.first);
-    
+
     if (loadCustomFields) {
       return await _loadCustomFields(contact);
     }
-    
+
     return contact;
   }
 
@@ -110,14 +113,14 @@ class ContactsRepository {
     if (!loadCustomFields) {
       return maps.map((map) => Contact.fromMap(map)).toList();
     }
-    
+
     // Load custom fields for all contacts
     final contacts = <Contact>[];
     for (var map in maps) {
       final contact = Contact.fromMap(map);
       contacts.add(await _loadCustomFields(contact));
     }
-    
+
     return contacts;
   }
 
@@ -132,7 +135,8 @@ class ContactsRepository {
       );
     } on DatabaseException catch (e) {
       if (e.isUniqueConstraintError()) {
-        throw Exception('Another contact already exists with this dana address or silent payment address');
+        throw Exception(
+            'Another contact already exists with this dana address or silent payment address');
       }
       rethrow;
     }
@@ -237,4 +241,3 @@ class ContactsRepository {
     );
   }
 }
-

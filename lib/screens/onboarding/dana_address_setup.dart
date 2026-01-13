@@ -314,10 +314,10 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
       final registeredAddress = walletState.danaAddress;
       if (registeredAddress != null) {
         Logger().i('Registration successful: $registeredAddress');
-        
+
         // Persist the dana address to storage (already done by registerDanaAddress, but ensure consistency)
         await WalletRepository.instance.saveDanaAddress(registeredAddress);
-        
+
         // Create a contact for the user
         try {
           await ContactsService.instance.addContactByDanaAddress(
@@ -331,7 +331,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
           Logger().w('Failed to create user contact: $e');
           // Don't block navigation if contact creation fails
         }
-        
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const PinGuard()),

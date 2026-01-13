@@ -36,18 +36,21 @@ class _EditContactSheetState extends State<EditContactSheet> {
   void initState() {
     super.initState();
     _nymController = TextEditingController(text: widget.contact.nym ?? '');
-    _danaAddressController = TextEditingController(text: widget.contact.danaAddress);
-    _spAddressController = TextEditingController(text: widget.contact.spAddress);
+    _danaAddressController =
+        TextEditingController(text: widget.contact.danaAddress);
+    _spAddressController =
+        TextEditingController(text: widget.contact.spAddress);
     _hasDanaAddress = widget.contact.danaAddress.isNotEmpty;
-    
+
     _danaAddressController.addListener(() {
       final hasDanaAddress = _danaAddressController.text.trim().isNotEmpty;
       setState(() {
         _hasDanaAddress = hasDanaAddress;
       });
-      
+
       // If dana address is filled, clear and resolve SP address
-      if (hasDanaAddress && _danaAddressController.text.trim() != widget.contact.danaAddress) {
+      if (hasDanaAddress &&
+          _danaAddressController.text.trim() != widget.contact.danaAddress) {
         _spAddressController.clear();
         _resolveDanaAddress();
       }
@@ -73,8 +76,9 @@ class _EditContactSheetState extends State<EditContactSheet> {
 
     try {
       final network = Provider.of<ChainState>(context, listen: false).network;
-      final resolved = await Bip353Resolver.resolveFromAddress(danaAddress, network);
-      
+      final resolved =
+          await Bip353Resolver.resolveFromAddress(danaAddress, network);
+
       if (mounted && resolved != null) {
         setState(() {
           _spAddressController.text = resolved;
@@ -116,7 +120,8 @@ class _EditContactSheetState extends State<EditContactSheet> {
 
     if (danaAddress.isEmpty && spAddress.isEmpty) {
       setState(() {
-        _errorMessage = 'Either dana address or static address must be provided';
+        _errorMessage =
+            'Either dana address or static address must be provided';
       });
       return;
     }
@@ -131,14 +136,17 @@ class _EditContactSheetState extends State<EditContactSheet> {
       String finalSpAddress = spAddress;
       if (danaAddress.isNotEmpty && spAddress.isEmpty) {
         try {
-          final network = Provider.of<ChainState>(context, listen: false).network;
-          final resolved = await Bip353Resolver.resolveFromAddress(danaAddress, network);
+          final network =
+              Provider.of<ChainState>(context, listen: false).network;
+          final resolved =
+              await Bip353Resolver.resolveFromAddress(danaAddress, network);
           if (resolved != null) {
             finalSpAddress = resolved;
           } else {
             setState(() {
               _isSaving = false;
-              _errorMessage = 'Could not resolve SP address for this dana address';
+              _errorMessage =
+                  'Could not resolve SP address for this dana address';
             });
             return;
           }
@@ -183,7 +191,8 @@ class _EditContactSheetState extends State<EditContactSheet> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Contact'),
-        content: Text('Are you sure you want to delete "${widget.contact.nym ?? widget.contact.danaAddress}"? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete "${widget.contact.nym ?? widget.contact.danaAddress}"? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -283,12 +292,15 @@ class _EditContactSheetState extends State<EditContactSheet> {
             TextField(
               controller: _spAddressController,
               style: BitcoinTextStyle.body4(
-                (_hasDanaAddress || _isResolving) ? Bitcoin.neutral6 : Bitcoin.black,
+                (_hasDanaAddress || _isResolving)
+                    ? Bitcoin.neutral6
+                    : Bitcoin.black,
               ),
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
                 labelText: 'Static Address (SP)',
-                hintText: _hasDanaAddress ? 'Resolved from dana address' : 'sp1q...',
+                hintText:
+                    _hasDanaAddress ? 'Resolved from dana address' : 'sp1q...',
                 suffixIcon: _isResolving
                     ? const Padding(
                         padding: EdgeInsets.all(12.0),
@@ -331,4 +343,3 @@ class _EditContactSheetState extends State<EditContactSheet> {
     );
   }
 }
-
