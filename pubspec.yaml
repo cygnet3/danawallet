@@ -43,6 +43,7 @@ dependencies:
   auto_size_text: ^3.0.0
   text_scroll: ^0.2.1
   sqflite: ^2.4.1
+  sqflite_common_ffi: any
   path: ^1.9.1
 
 # temporary fix, see: https://github.com/juliansteenbakker/flutter_secure_storage/issues/920
