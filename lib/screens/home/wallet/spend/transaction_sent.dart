@@ -1,12 +1,13 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
-import 'package:danawallet/repositories/contacts_repository.dart';
 import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TransactionSentScreen extends StatefulWidget {
@@ -35,27 +36,19 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
 
   Future<void> _checkIfRecipientInContacts() async {
     final form = RecipientForm();
-    bool isInContacts = false;
+    final contacts = Provider.of<ContactsState>(context, listen: false);
 
-    // Check by dana address if available
-    if (form.recipientBip353 != null && form.recipientBip353!.isNotEmpty) {
-      final contact = await ContactsRepository.instance
-          .getContactByDanaAddress(form.recipientBip353!);
-      if (contact != null) {
-        isInContacts = true;
-      }
-    }
+    // We check by SP-address, which is always set.
+    // By checking the SP-address, we avoid conflicts; e.g.:
+    // A user has 2 domains pointing to the same underlying sp-address
+    // aaa@domain and bbb@domain
+    // If we already have aaa@domain in our contact list,
+    // and we send to bbb@domain, we should still recognize that
+    // we already have this recipient in our contact list.
+    final contact =
+        await contacts.getContactBySpAddress(form.recipientAddress!);
 
-    // Check by SP address if not found and SP address is available
-    if (!isInContacts &&
-        form.recipientAddress != null &&
-        form.recipientAddress!.isNotEmpty) {
-      final contact = await ContactsRepository.instance
-          .getContactBySpAddress(form.recipientAddress!);
-      if (contact != null) {
-        isInContacts = true;
-      }
-    }
+    final isInContacts = contact != null;
 
     if (mounted) {
       setState(() {
