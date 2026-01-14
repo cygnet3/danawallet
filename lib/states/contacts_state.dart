@@ -10,23 +10,30 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class ContactsState extends ChangeNotifier {
+  Contact? _youContact;
   final List<Contact> _contacts = List.empty(growable: true);
   final ContactsRepository _repository = ContactsRepository.instance;
 
   ContactsState();
 
   Future<void> initialize(String spAddress, String? danaAddress) async {
-    // make sure we save no old state
-    _contacts.clear();
-    // first, insert the 'self' contact
-    _contacts.add(Contact(
+    // Initialize the 'you' contact
+    _youContact = Contact(
       nym: 'you',
       spAddress: spAddress,
       danaAddress: danaAddress,
-    ));
+    );
+
+    await refreshContacts();
+  }
+
+  Future<void> refreshContacts() async {
+    // make sure we save no old state
+    _contacts.clear();
 
     // then populate the rest of the contacts
     _contacts.addAll(await _repository.getAllContacts());
+
     notifyListeners();
   }
 
@@ -41,7 +48,7 @@ class ContactsState extends ChangeNotifier {
     String? danaAddress,
     String? nym,
   }) async {
-    if (spAddress == getYouContact().spAddress) {
+    if (spAddress == _youContact!.spAddress) {
       throw Exception("Adding yourself is not allowed");
     }
     // First check for duplicates
@@ -77,11 +84,18 @@ class ContactsState extends ChangeNotifier {
     _contacts.add(contact);
 
     Logger().i('Contact added successfully: $danaAddress -> $spAddress');
-    notifyListeners();
+
+    await refreshContacts();
   }
 
   Set<String> getKnownDanaAddresses() {
     Set<String> result = {};
+    // add your own dana address
+    if (_youContact?.danaAddress != null) {
+      result.add(_youContact!.danaAddress!);
+    }
+
+    // add contacts dana address
     for (var contact in _contacts) {
       if (contact.danaAddress != null) {
         result.add(contact.danaAddress!.toLowerCase());
@@ -91,11 +105,11 @@ class ContactsState extends ChangeNotifier {
   }
 
   Contact getYouContact() {
-    return _contacts.first;
+    return _youContact!;
   }
 
   List<Contact> getOtherContacts() {
-    return _contacts.sublist(1);
+    return _contacts;
   }
 
   /// Creates the appropriate display widget for a given silent payment address, using data from the contact list
@@ -144,7 +158,8 @@ class ContactsState extends ChangeNotifier {
     }
 
     Logger().i('Contact updated successfully: ${contact.danaAddress}');
-    notifyListeners();
+
+    await refreshContacts();
   }
 
   /// Deletes a contact by id
@@ -158,7 +173,7 @@ class ContactsState extends ChangeNotifier {
       Logger().w('Contact not found for deletion: id=$id');
     }
 
-    notifyListeners();
+    await refreshContacts();
   }
 
   // Contact Fields Management
@@ -197,6 +212,8 @@ class ContactsState extends ChangeNotifier {
     field.id = id;
 
     Logger().i('Contact field added: $fieldType for contact $contactId');
+
+    await refreshContacts();
     return field;
   }
 
@@ -229,6 +246,8 @@ class ContactsState extends ChangeNotifier {
     }
 
     Logger().i('Contact field updated: ${field.fieldType} (id=${field.id})');
+
+    await refreshContacts();
   }
 
   /// Deletes a contact field by id
@@ -244,6 +263,7 @@ class ContactsState extends ChangeNotifier {
       Logger().w('Contact field not found for deletion: id=$id');
     }
 
+    await refreshContacts();
     return deleted;
   }
 
@@ -263,6 +283,8 @@ class ContactsState extends ChangeNotifier {
   Future<void> reset() async {
     await _repository.deleteAllContacts();
 
-    notifyListeners();
+    // extra precaution, shouldn't be needed
+    _youContact = null;
+    _contacts.clear();
   }
 }
