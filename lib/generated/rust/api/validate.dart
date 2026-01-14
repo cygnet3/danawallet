@@ -10,3 +10,6 @@ void validateAddressWithNetwork(
         {required String address, required String network}) =>
     RustLib.instance.api.crateApiValidateValidateAddressWithNetwork(
         address: address, network: network);
+
+bool isSpAddress({required String address}) =>
+    RustLib.instance.api.crateApiValidateIsSpAddress(address: address);

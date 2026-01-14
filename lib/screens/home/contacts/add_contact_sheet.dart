@@ -152,7 +152,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
       );
 
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (e) {
       Logger().e('Failed to save contact: $e');
