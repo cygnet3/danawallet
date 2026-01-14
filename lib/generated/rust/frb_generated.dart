@@ -82,7 +82,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1609483597;
+  int get rustContentHash => 604699654;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -393,6 +393,8 @@ abstract class RustLibApi extends BaseApi {
   List<String> crateApiBip39GetEnglishWordlist();
 
   Future<void> crateApiSimpleInitApp();
+
+  bool crateApiValidateIsSpAddress({required String address});
 
   SettingsBackup crateApiBackupSettingsBackupNew(
       {String? blindbitUrl, int? dustLimit});
@@ -3244,6 +3246,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  bool crateApiValidateIsSpAddress({required String address}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(address, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 101)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiValidateIsSpAddressConstMeta,
+      argValues: [address],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiValidateIsSpAddressConstMeta =>
+      const TaskConstMeta(
+        debugName: "is_sp_address",
+        argNames: ["address"],
+      );
+
+  @override
   SettingsBackup crateApiBackupSettingsBackupNew(
       {String? blindbitUrl, int? dustLimit}) {
     return handler.executeSync(SyncTask(
@@ -3251,7 +3277,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_opt_String(blindbitUrl, serializer);
         sse_encode_opt_box_autoadd_u_32(dustLimit, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 101)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 102)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_settings_backup,
@@ -3277,7 +3303,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(address, serializer);
         sse_encode_String(network, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 102)!;
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 103)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,

@@ -1,12 +1,14 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
+import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,18 +27,23 @@ class TransactionSentScreen extends StatefulWidget {
 }
 
 class _TransactionSentScreenState extends State<TransactionSentScreen> {
-  bool? _isRecipientInContacts;
-  bool _isCheckingContacts = true;
+  bool? _isEligible;
+  bool _isCheckingEligible = true;
 
   @override
   void initState() {
     super.initState();
-    _checkIfRecipientInContacts();
+    _checkEligibleToSaveContact();
   }
 
-  Future<void> _checkIfRecipientInContacts() async {
+  Future<void> _checkEligibleToSaveContact() async {
     final form = RecipientForm();
     final contacts = Provider.of<ContactsState>(context, listen: false);
+
+    final address = form.recipientAddress!;
+
+    // only sp-addresses are eligible to be added as a contact
+    final isSp = isSpAddress(address: address);
 
     // We check by SP-address, which is always set.
     // By checking the SP-address, we avoid conflicts; e.g.:
@@ -45,15 +52,15 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
     // If we already have aaa@domain in our contact list,
     // and we send to bbb@domain, we should still recognize that
     // we already have this recipient in our contact list.
-    final contact =
-        await contacts.getContactBySpAddress(form.recipientAddress!);
+    final contact = await contacts.getContactBySpAddress(address);
 
     final isInContacts = contact != null;
+    Logger().i("is in contacts: $isInContacts");
 
     if (mounted) {
       setState(() {
-        _isRecipientInContacts = isInContacts;
-        _isCheckingContacts = false;
+        _isEligible = isSp && !isInContacts;
+        _isCheckingEligible = false;
       });
     }
   }
@@ -69,10 +76,10 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
         initialSpAddress: form.recipientAddress,
       ),
     );
-
-    if (result == true && mounted) {
-      // Recheck if contact was added
-      await _checkIfRecipientInContacts();
+    if (result == true) {
+      setState(() {
+        _isEligible = false;
+      });
     }
   }
 
@@ -165,12 +172,12 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
             const SizedBox(
               height: 10.0,
             ),
-          if (!_isCheckingContacts && _isRecipientInContacts == false)
+          if (!_isCheckingEligible && _isEligible!)
             FooterButtonOutlined(
               title: 'Add to contact',
               onPressed: _openAddContactSheet,
             ),
-          if (!_isCheckingContacts && _isRecipientInContacts == false)
+          if (!_isCheckingEligible && _isEligible!)
             const SizedBox(
               height: 10.0,
             ),

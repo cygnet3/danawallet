@@ -37,3 +37,11 @@ pub fn validate_address_with_network(address: String, network: String) -> Result
         Err(e) => Err(e),
     }
 }
+
+#[frb(sync)]
+pub fn is_sp_address(address: String) -> bool {
+    matches!(
+        RecipientAddress::try_from(address),
+        Ok(RecipientAddress::SpAddress(_))
+    )
+}
