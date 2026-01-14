@@ -251,6 +251,10 @@ class ContactsState extends ChangeNotifier {
     return await _repository.getContact(id, loadCustomFields: false);
   }
 
+  Future<Contact?> getContactBySpAddress(String spAddress) async {
+    return await _repository.getContactBySpAddress(spAddress);
+  }
+
   /// Gets all custom fields for a contact
   Future<List<ContactField>> getContactFields(int contactId) async {
     return await _repository.getContactFields(contactId);
