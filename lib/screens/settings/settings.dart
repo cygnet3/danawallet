@@ -1,15 +1,14 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/contacts_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
 import 'package:danawallet/screens/settings/change_fiat.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -26,6 +25,7 @@ class SettingsScreen extends StatelessWidget {
     ChainState chainState,
     ScanProgressNotifier scanProgress,
     HomeState homeState,
+    ContactsState contacts,
   ) async {
     try {
       await scanProgress.interruptScan();
@@ -34,10 +34,8 @@ class SettingsScreen extends StatelessWidget {
       await walletState.reset();
 
       await SettingsRepository.instance.resetAll();
-      // Reset dana address from memory
-      WalletRepository.instance.saveDanaAddress(null);
       // Clear all contacts
-      await ContactsRepository.instance.deleteAllContacts();
+      contacts.reset();
       homeState.reset();
     } catch (e) {
       rethrow;
@@ -140,8 +138,10 @@ class SettingsScreen extends StatelessWidget {
       final chainState = Provider.of<ChainState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
+      final contacts = Provider.of<ContactsState>(context, listen: false);
 
-      await _removeWallet(walletState, chainState, scanProgress, homeState);
+      await _removeWallet(
+          walletState, chainState, scanProgress, homeState, contacts);
       if (context.mounted) {
         Navigator.pushReplacement(
             context,

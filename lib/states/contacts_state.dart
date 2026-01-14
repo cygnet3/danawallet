@@ -255,4 +255,10 @@ class ContactsState extends ChangeNotifier {
   Future<List<ContactField>> getContactFields(int contactId) async {
     return await _repository.getContactFields(contactId);
   }
+
+  Future<void> reset() async {
+    await _repository.deleteAllContacts();
+
+    notifyListeners();
+  }
 }
