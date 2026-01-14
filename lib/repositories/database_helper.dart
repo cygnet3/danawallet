@@ -1,3 +1,4 @@
+import 'package:logger/logger.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -26,6 +27,7 @@ class DatabaseHelper {
   }
 
   Future _createDB(Database db, int version) async {
+    Logger().i("Creating Database");
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     const textType = 'TEXT NOT NULL';
     const textTypeNullable = 'TEXT';
@@ -35,7 +37,7 @@ class DatabaseHelper {
     CREATE TABLE contacts (
       id $idType,
       nym $textTypeNullable,
-      danaAddress $textType UNIQUE,
+      danaAddress $textTypeNullable UNIQUE,
       spAddress $textType UNIQUE
     )
     ''');

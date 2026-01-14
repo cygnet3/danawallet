@@ -11,7 +11,7 @@ class Contact {
   Contact({
     this.id,
     this.nym,
-    required this.danaAddress,
+    this.danaAddress,
     required this.spAddress,
     this.customFields,
   });
