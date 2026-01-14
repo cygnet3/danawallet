@@ -47,12 +47,17 @@ class ContactsState extends ChangeNotifier {
       throw Exception('Contact with sp address $spAddress already exists');
     }
 
+    if (danaAddress != null && danaAddress.isEmpty) {
+      // set dana address to null if empty
+      danaAddress = null;
+    }
+
     // Resolve the SP address via DNS
     // Verify that the address is correct
     if (danaAddress != null) {
       if (!await Bip353Resolver.verifyAddress(
           danaAddress, spAddress, network)) {
-        throw Exception("Dana address does not point to exppected sp address");
+        throw Exception("Dana address does not point to eppected sp address");
       }
     }
 
