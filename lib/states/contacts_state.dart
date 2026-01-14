@@ -41,6 +41,9 @@ class ContactsState extends ChangeNotifier {
     String? danaAddress,
     String? nym,
   }) async {
+    if (spAddress == getYouContact().spAddress) {
+      throw Exception("Adding yourself is not allowed");
+    }
     // First check for duplicates
     final existing = await _repository.getContactBySpAddress(spAddress);
     if (existing != null) {
