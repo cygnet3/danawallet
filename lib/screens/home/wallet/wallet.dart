@@ -324,7 +324,6 @@ class WalletScreenState extends State<WalletScreen> {
       title: Row(
         children: [
           Expanded(child: recipientWidget),
-          const Spacer(),
           Text('$amountprefix $amount', style: BitcoinTextStyle.body4(color)),
         ],
       ),

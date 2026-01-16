@@ -128,12 +128,17 @@ class ContactsState extends ChangeNotifier {
       } else if (contact.danaAddress != null) {
         return danaAddressAsRichText(contact.danaAddress!, 15.0);
       } else {
-        return Text(displayAddress(
-            context, spAddress, BitcoinTextStyle.body4(Bitcoin.black), 0.53));
+        return Text(
+            displayAddress(context, spAddress,
+                BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+            style: BitcoinTextStyle.body4(Bitcoin.black));
       }
     } else {
-      return Text(displayAddress(
-          context, spAddress, BitcoinTextStyle.body4(Bitcoin.black), 0.53));
+      return Text(
+        displayAddress(
+            context, spAddress, BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+        style: BitcoinTextStyle.body4(Bitcoin.black),
+      );
     }
   }
 
