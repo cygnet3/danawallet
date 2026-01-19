@@ -52,9 +52,9 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
     // If we already have aaa@domain in our contact list,
     // and we send to bbb@domain, we should still recognize that
     // we already have this recipient in our contact list.
-    final contact = await contacts.getContactBySpAddress(address);
+    final knownSpAddresses = contacts.getKnownSpAddresses();
 
-    final isInContacts = contact != null;
+    final isInContacts = knownSpAddresses.contains(address);
     Logger().i("is in contacts: $isInContacts");
 
     if (mounted) {

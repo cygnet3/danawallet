@@ -70,7 +70,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     // Get set of existing dana addresses from our contacts
     final knownDanaAddresses =
         Provider.of<ContactsState>(context, listen: false)
-            .getKnownDanaAddresses();
+            .getKnownBip353Addresses();
 
     setState(() {
       _isSearchingRemote = true;
