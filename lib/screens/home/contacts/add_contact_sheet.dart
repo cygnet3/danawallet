@@ -38,6 +38,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
     super.initState();
     if (widget.initialDanaAddress != null) {
       _danaAddressController.text = widget.initialDanaAddress!.toString();
+      _nymController.text = widget.initialDanaAddress!.username;
       _hasDanaAddress = true;
     }
     if (widget.initialSpAddress != null) {
