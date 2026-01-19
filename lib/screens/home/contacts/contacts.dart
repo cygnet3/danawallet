@@ -214,7 +214,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         }
 
         if (mounted) {
-          await showModalBottomSheet<bool>(
+          final success = await showModalBottomSheet<bool>(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
@@ -223,6 +223,15 @@ class _ContactsScreenState extends State<ContactsScreen> {
               initialSpAddress: spAddress,
             ),
           );
+
+          if (success == true) {
+            Logger().d("Added contact: $danaAddress");
+            // clear search on success
+            setState(() {
+              _searchController.clear();
+              _remoteDanaAddresses = [];
+            });
+          }
         }
       },
     );
