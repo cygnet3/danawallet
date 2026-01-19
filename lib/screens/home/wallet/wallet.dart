@@ -2,6 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/extensions/api_amount.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
@@ -69,10 +70,10 @@ class WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget buildDanaAddressBanner(String danaAddress) {
+  Widget buildDanaAddressBanner(Bip353Address danaAddress) {
     return GestureDetector(
       onTap: () {
-        Clipboard.setData(ClipboardData(text: danaAddress));
+        Clipboard.setData(ClipboardData(text: danaAddress.toString()));
         HapticFeedback.lightImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -106,7 +107,7 @@ class WalletScreenState extends State<WalletScreen> {
                         fontFamily: 'Inter', fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
-                  danaAddressAsRichText(danaAddress, 15.0),
+                  danaAddressAsRichText(danaAddress.toString(), 15.0),
                 ],
               ),
             ),
@@ -588,7 +589,7 @@ class WalletScreenState extends State<WalletScreen> {
         body: showFundingScreen
             ? buildFundingScreen(
                 walletState.receiveAddress,
-                danaAddress,
+                danaAddress?.toString(),
                 scanProgress,
                 chainState,
               )

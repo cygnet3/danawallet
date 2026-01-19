@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
@@ -60,8 +61,9 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
         try {
           Logger().d('Resolving dana address: "$address"');
 
-          final resolvedAddress =
-              await Bip353Resolver.resolveFromAddress(address, network);
+          final parsed = Bip353Address.fromString(address);
+
+          final resolvedAddress = await Bip353Resolver.resolve(parsed, network);
 
           if (resolvedAddress == null) {
             // DNS resolution returned null - address not registered
@@ -70,9 +72,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
           }
 
           // Store the original dana address for the form
-          // Note: getAddressResolve cleans the address internally, but we store the original
-          // as entered by the user for display purposes
-          form.recipientBip353 = address;
+          form.recipientBip353 = parsed;
           address = resolvedAddress;
 
           Logger().d(

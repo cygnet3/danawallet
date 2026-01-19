@@ -1,4 +1,5 @@
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/generated/rust/api/backup.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
@@ -154,16 +155,22 @@ class WalletRepository {
     return OwnedOutputs.decode(encodedOutputs: encodedOutputs!);
   }
 
-  Future<void> saveDanaAddress(String? danaAddress) async {
+  Future<void> saveDanaAddress(Bip353Address? danaAddress) async {
     if (danaAddress != null) {
-      return await nonSecureStorage.setString(_keyDanaAddress, danaAddress);
+      return await nonSecureStorage.setString(
+          _keyDanaAddress, danaAddress.toString());
     } else {
       return await nonSecureStorage.remove(_keyDanaAddress);
     }
   }
 
-  Future<String?> readDanaAddress() async {
-    return await nonSecureStorage.getString(_keyDanaAddress);
+  Future<Bip353Address?> readDanaAddress() async {
+    final retrieved = await nonSecureStorage.getString(_keyDanaAddress);
+    if (retrieved != null) {
+      return Bip353Address.fromString(retrieved);
+    } else {
+      return null;
+    }
   }
 
   Future<WalletBackup> createWalletBackup() async {

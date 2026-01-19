@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/prefix_search_response.dart';
 import 'package:danawallet/generated/rust/api/bip39.dart';
 import 'package:danawallet/repositories/name_server_repository.dart';
@@ -95,24 +96,26 @@ class DanaAddressService {
   /// [requestId] - The unique id for this request, can be useful for tracking requests.
   ///
   /// Returns [DanaAddressCreationResponse] with the created address or error details
-  Future<String> registerUser({
+  Future<Bip353Address> registerUser({
     required String username,
     required String spAddress,
   }) async {
     final requestId = _generateUniqueId();
     final domain = await danaAddressDomain;
+    final Bip353Address danaAddress;
 
     // We try to resolve the address first to see if it already exists
     try {
+      danaAddress = Bip353Address(username: username, domain: domain);
       final resolvedSpAddress =
-          await Bip353Resolver.resolve(username, domain, network);
+          await Bip353Resolver.resolve(danaAddress, network);
       if (resolvedSpAddress == null) {
         // Address not registered yet, proceed with registration
         Logger().i(
             'Address $username@$domain not found, proceeding with registration');
       } else if (resolvedSpAddress == spAddress) {
         // If we find our address, return success there's nothing more to do
-        return "$username@$domain";
+        return danaAddress;
       } else if (resolvedSpAddress != spAddress) {
         // If we find another address, return error, user must try with a different username
         throw Exception("Dana address already in use");
@@ -124,10 +127,7 @@ class DanaAddressService {
     }
 
     return await nameServerRepository.registerDanaAddress(
-        username: username,
-        domain: domain,
-        spAddress: spAddress,
-        requestId: requestId);
+        danaAddress: danaAddress, spAddress: spAddress, requestId: requestId);
   }
 
   /// Looks up dana addresses associated with a silent payment address.
@@ -139,7 +139,7 @@ class DanaAddressService {
   /// Returns a list of dana addresses in the format `user_name@danawallet.app`
   /// Returns an empty list if no addresses are found
   /// Throws an exception for network errors, invalid responses, or malformed data
-  Future<String?> lookupDanaAddress(String spAddress) async {
+  Future<Bip353Address?> lookupDanaAddress(String spAddress) async {
     if (spAddress.isEmpty) {
       throw ArgumentError("Silent payment address cannot be empty");
     }
@@ -148,21 +148,9 @@ class DanaAddressService {
     final addresses =
         await nameServerRepository.lookupDanaAddresses(spAddress, requestId);
 
-    // Validate that addresses are in the correct format (user_name@domain)
-    final validAddressPattern =
-        RegExp(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]+$', caseSensitive: false);
-    final validAddresses = addresses.where((addr) {
-      final isValid = validAddressPattern.hasMatch(addr);
-      if (!isValid) {
-        Logger().w('Invalid dana address format returned from lookup: "$addr"');
-      }
-      return isValid;
-    }).toList();
+    Logger().i('Found ${addresses.length} dana address(es) for SP address');
 
-    Logger().i(
-        'Found ${validAddresses.length} valid dana address(es) for SP address');
-
-    for (var candidate in validAddresses) {
+    for (var candidate in addresses) {
       if (await Bip353Resolver.verifyAddress(candidate, spAddress, network)) {
         // we just return the first valid candidate
         return candidate;
@@ -179,8 +167,8 @@ class DanaAddressService {
   Future<bool> isDanaUsernameAvailable(String username) async {
     try {
       final domain = await danaAddressDomain;
-      return await Bip353Resolver.isBip353AddressPresent(
-          username, domain, network);
+      final parsed = Bip353Address(username: username, domain: domain);
+      return await Bip353Resolver.isBip353AddressPresent(parsed, network);
     } catch (e) {
       // If we can't resolve due to network error, assume it's taken to be safe
       Logger().e('Error checking address availability: $e');
@@ -194,7 +182,7 @@ class DanaAddressService {
   ///
   /// Returns [PrefixSearchResponse] with matching dana addresses
   /// Throws an exception for network errors, invalid responses, or malformed data
-  Future<List<String>> searchPrefix(String prefix) async {
+  Future<List<Bip353Address>> searchPrefix(String prefix) async {
     if (prefix.isEmpty) {
       throw ArgumentError("Prefix cannot be empty");
     }

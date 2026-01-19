@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:dart_bip353/dart_bip353.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -8,52 +9,10 @@ import 'package:logger/logger.dart';
 import 'package:dart_bip353/src/response_model.dart';
 
 class Bip353Resolver {
-  /// Cleans a dana address by removing invalid leading characters
-  /// A valid dana address should be in format: username@domain
-  /// Valid characters for username: lowercase letters, numbers, hyphens, periods, underscores
-  /// This method strips any leading characters that aren't valid until it finds a valid start
-  static String cleanAndValidateBip353Address(String address) {
-    if (address.isEmpty) {
-      throw Exception("empty address");
-    }
-
-    // Valid characters for the start of a dana address (alphanumeric)
-    final validStartChar = RegExp(r'^[a-z0-9]');
-    // Valid characters for dana address (username@domain format)
-    final validAddressPattern =
-        RegExp(r'^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]+$', caseSensitive: false);
-
-    // Find the first valid starting character
-    int startIndex = 0;
-    for (int i = 0; i < address.length; i++) {
-      final char = address[i];
-      if (validStartChar.hasMatch(char)) {
-        startIndex = i;
-        break;
-      }
-    }
-
-    // Extract the substring starting from the first valid character
-    String cleaned = address.substring(startIndex).trim();
-
-    // If we removed leading characters, log it
-    if (startIndex > 0) {
-      Logger().w(
-          'Removed $startIndex leading invalid character(s) from dana address: "$address" -> "$cleaned"');
-    }
-
-    // Validate the cleaned address format
-    if (validAddressPattern.hasMatch(cleaned)) {
-      return cleaned;
-    } else {
-      throw Exception("Invalid address format");
-    }
-  }
-
   static Future<bool> isBip353AddressPresent(
-      String username, String domain, Network network) async {
+      Bip353Address address, Network network) async {
     try {
-      final spAddress = await resolve(username, domain, network);
+      final spAddress = await resolve(address, network);
       // If null or no silent payment, address is available
       return spAddress == null;
     } catch (e) {
@@ -68,13 +27,12 @@ class Bip353Resolver {
   /// Returns [String] if the address exists and is valid
   /// Returns null if the DNS record doesn't exist (address not registered)
   /// Throws an exception for network errors, invalid responses, or malformed data
-  static Future<String?> resolve(
-      String username, String domain, Network network) async {
+  static Future<String?> resolve(Bip353Address address, Network network) async {
     if (network == Network.regtest) {
       throw Exception("regtest not allowed");
     }
 
-    final query = Bip353.buildDnsQuery(username, domain);
+    final query = Bip353.buildDnsQuery(address.username, address.domain);
     final url = "${Bip353.dnsResolver}?name=$query&type=TXT";
 
     try {
@@ -137,29 +95,15 @@ class Bip353Resolver {
       rethrow;
     } catch (e) {
       // Network errors, timeouts, etc.
-      throw Exception('Failed to resolve address $username@$domain: $e');
+      throw Exception('Failed to resolve address $address: $e');
     }
-  }
-
-  static Future<String?> resolveFromAddress(
-      String address, Network network) async {
-    final cleaned = cleanAndValidateBip353Address(address);
-    final parts = cleaned.split('@');
-    if (parts.length != 2) {
-      throw Exception("Invalid bip353: $address");
-    }
-
-    final username = parts[0];
-    final domain = parts[1];
-
-    return await resolve(username, domain, network);
   }
 
   static Future<bool> verifyAddress(
-      String danaAddress, String spAddress, Network network) async {
+      Bip353Address danaAddress, String spAddress, Network network) async {
     Logger().i("dana address to verify: $danaAddress");
 
-    final resolved = await resolveFromAddress(danaAddress, network);
+    final resolved = await resolve(danaAddress, network);
     Logger().i("resolved address from dana address: $resolved");
 
     return resolved == spAddress;

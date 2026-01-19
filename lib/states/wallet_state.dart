@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
@@ -33,7 +34,7 @@ class WalletState extends ChangeNotifier {
   late OwnedOutputs ownedOutputs;
 
   // this variable may change in some exceptional cases
-  String? danaAddress;
+  Bip353Address? danaAddress;
 
   // stream to receive updates while scanning
   late StreamSubscription scanResultSubscription;

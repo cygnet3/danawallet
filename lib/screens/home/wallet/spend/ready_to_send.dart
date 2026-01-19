@@ -57,7 +57,7 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
     String displayRecipient;
     TextStyle displayRecipientStyle = BitcoinTextStyle.title5(Bitcoin.neutral8);
     if (recipient.recipientBip353 != null) {
-      displayRecipient = recipient.recipientBip353!;
+      displayRecipient = recipient.recipientBip353!.toString();
     } else {
       displayRecipient = displayAddress(
           context, recipient.recipientAddress!, displayRecipientStyle, 0.85);

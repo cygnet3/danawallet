@@ -1,3 +1,4 @@
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
@@ -8,7 +9,7 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 // this is very similar to using Provider, but without NotifyListeners
 class RecipientForm {
   String? recipientAddress;
-  String? recipientBip353;
+  Bip353Address? recipientBip353;
   ApiAmount? amount;
   SelectedFee? selectedFee;
   int? customFeeRate;

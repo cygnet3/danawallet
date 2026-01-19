@@ -1,4 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -36,12 +37,11 @@ class _EditContactSheetState extends State<EditContactSheet> {
   void initState() {
     super.initState();
     _nymController = TextEditingController(text: widget.contact.nym ?? '');
-    _danaAddressController =
-        TextEditingController(text: widget.contact.danaAddress);
+    _danaAddressController = TextEditingController(
+        text: widget.contact.danaAddress?.toString() ?? '');
     _spAddressController =
         TextEditingController(text: widget.contact.spAddress);
-    _hasDanaAddress = widget.contact.danaAddress != null &&
-        widget.contact.danaAddress!.isNotEmpty;
+    _hasDanaAddress = widget.contact.danaAddress != null;
 
     _danaAddressController.addListener(() {
       final hasDanaAddress = _danaAddressController.text.trim().isNotEmpty;
@@ -77,8 +77,8 @@ class _EditContactSheetState extends State<EditContactSheet> {
 
     try {
       final network = Provider.of<ChainState>(context, listen: false).network;
-      final resolved =
-          await Bip353Resolver.resolveFromAddress(danaAddress, network);
+      final parsed = Bip353Address.fromString(danaAddress);
+      final resolved = await Bip353Resolver.resolve(parsed, network);
 
       if (mounted && resolved != null) {
         setState(() {
@@ -109,7 +109,7 @@ class _EditContactSheetState extends State<EditContactSheet> {
 
     final contacts = Provider.of<ContactsState>(context, listen: false);
     final nym = _nymController.text.trim();
-    final danaAddress = _danaAddressController.text.trim();
+    final danaAddressString = _danaAddressController.text.trim();
     final spAddress = _spAddressController.text.trim();
 
     // Validation: at least dana address OR static address must be filled, and nym must be filled
@@ -120,7 +120,7 @@ class _EditContactSheetState extends State<EditContactSheet> {
       return;
     }
 
-    if (danaAddress.isEmpty && spAddress.isEmpty) {
+    if (danaAddressString.isEmpty && spAddress.isEmpty) {
       setState(() {
         _errorMessage =
             'Either dana address or static address must be provided';
@@ -133,15 +133,29 @@ class _EditContactSheetState extends State<EditContactSheet> {
       _errorMessage = null;
     });
 
+    final Bip353Address? danaAddress;
+    if (danaAddressString.isNotEmpty) {
+      try {
+        danaAddress = Bip353Address.fromString(danaAddressString);
+      } catch (e) {
+        setState(() {
+          _isSaving = false;
+          _errorMessage = e.toString();
+        });
+        return;
+      }
+    } else {
+      danaAddress = null;
+    }
+
     try {
       // If we have dana address but no SP address, try to resolve it
       String finalSpAddress = spAddress;
-      if (danaAddress.isNotEmpty && spAddress.isEmpty) {
+      if (danaAddress != null && spAddress.isEmpty) {
         try {
           final network =
               Provider.of<ChainState>(context, listen: false).network;
-          final resolved =
-              await Bip353Resolver.resolveFromAddress(danaAddress, network);
+          final resolved = await Bip353Resolver.resolve(danaAddress, network);
           if (resolved != null) {
             finalSpAddress = resolved;
           } else {

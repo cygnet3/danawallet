@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/data/models/contact_field.dart';
 import 'package:danawallet/global_functions.dart';
@@ -16,7 +17,7 @@ class ContactsState extends ChangeNotifier {
 
   ContactsState();
 
-  Future<void> initialize(String spAddress, String? danaAddress) async {
+  Future<void> initialize(String spAddress, Bip353Address? danaAddress) async {
     // Initialize the 'you' contact
     _youContact = Contact(
       nym: 'you',
@@ -45,7 +46,7 @@ class ContactsState extends ChangeNotifier {
   Future<void> addContact({
     required String spAddress,
     required Network network,
-    String? danaAddress,
+    Bip353Address? danaAddress,
     String? nym,
   }) async {
     if (spAddress == _youContact!.spAddress) {
@@ -55,11 +56,6 @@ class ContactsState extends ChangeNotifier {
     final existing = await _repository.getContactBySpAddress(spAddress);
     if (existing != null) {
       throw Exception('Contact with sp address $spAddress already exists');
-    }
-
-    if (danaAddress != null && danaAddress.isEmpty) {
-      // set dana address to null if empty
-      danaAddress = null;
     }
 
     // Resolve the SP address via DNS
@@ -88,8 +84,8 @@ class ContactsState extends ChangeNotifier {
     await refreshContacts();
   }
 
-  Set<String> getKnownDanaAddresses() {
-    Set<String> result = {};
+  Set<Bip353Address> getKnownDanaAddresses() {
+    Set<Bip353Address> result = {};
     // add your own dana address
     if (_youContact?.danaAddress != null) {
       result.add(_youContact!.danaAddress!);
@@ -98,7 +94,7 @@ class ContactsState extends ChangeNotifier {
     // add contacts dana address
     for (var contact in _contacts) {
       if (contact.danaAddress != null) {
-        result.add(contact.danaAddress!.toLowerCase());
+        result.add(contact.danaAddress!);
       }
     }
     return result;
@@ -126,7 +122,7 @@ class ContactsState extends ChangeNotifier {
           style: BitcoinTextStyle.body4(Bitcoin.black),
         );
       } else if (contact.danaAddress != null) {
-        return danaAddressAsRichText(contact.danaAddress!, 15.0);
+        return danaAddressAsRichText(contact.danaAddress!.toString(), 15.0);
       } else {
         return Text(
             displayAddress(context, spAddress,

@@ -79,7 +79,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     TextStyle recipientTextStyle = BitcoinTextStyle.body4(Bitcoin.neutral7);
 
     if (form.recipientBip353 != null) {
-      recipientName = form.recipientBip353!;
+      recipientName = form.recipientBip353!.toString();
     } else {
       recipientName = displayAddress(
           context, form.recipientAddress!, recipientTextStyle, 0.86);

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
@@ -20,7 +21,8 @@ class ContactsScreen extends StatefulWidget {
 
 class _ContactsScreenState extends State<ContactsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<String> _remoteDanaAddresses = []; // Dana addresses from server search
+  List<Bip353Address> _remoteDanaAddresses =
+      []; // Dana addresses from server search
   bool _isSearchingRemote = false;
   Timer? _searchDebounceTimer;
 
@@ -82,8 +84,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
       if (mounted) {
         // Filter out addresses that are already in our contacts
         final newAddresses = danaAddresses
-            .where((address) =>
-                !knownDanaAddresses.contains(address.toLowerCase()))
+            .where((address) => !knownDanaAddresses.contains(address))
             .toList();
 
         setState(() {
@@ -111,16 +112,16 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
     return otherContacts.where((contact) {
       final displayName =
-          (contact.nym ?? contact.danaAddress ?? contact.spAddress)
+          (contact.nym ?? contact.danaAddress?.toString() ?? contact.spAddress)
               .toLowerCase();
       return displayName.contains(query) ||
           contact.danaAddress != null &&
-              contact.danaAddress!.toLowerCase().contains(query);
+              contact.danaAddress!.toString().toLowerCase().contains(query);
     }).toList();
   }
 
   String _getDisplayName(Contact contact) {
-    return contact.nym ?? contact.danaAddress ?? contact.spAddress;
+    return contact.nym ?? contact.danaAddress?.toString() ?? contact.spAddress;
   }
 
   String _getInitial(String name) {
@@ -176,9 +177,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
     );
   }
 
-  Widget _buildRemoteAddressItem(String danaAddress) {
-    final initial = _getInitial(danaAddress);
-    final avatarColor = _getAvatarColor(danaAddress);
+  Widget _buildRemoteAddressItem(Bip353Address danaAddress) {
+    final initial = _getInitial(danaAddress.toString());
+    final avatarColor = _getAvatarColor(danaAddress.toString());
 
     return ListTile(
       leading: CircleAvatar(
@@ -191,7 +192,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         ),
       ),
       title: Text(
-        danaAddress,
+        danaAddress.toString(),
         style: BitcoinTextStyle.body3(Bitcoin.black).apply(fontWeightDelta: 2),
       ),
       subtitle: Text(
@@ -204,8 +205,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         try {
           final network =
               Provider.of<ChainState>(context, listen: false).network;
-          final resolved =
-              await Bip353Resolver.resolveFromAddress(danaAddress, network);
+          final resolved = await Bip353Resolver.resolve(danaAddress, network);
           if (resolved != null) {
             spAddress = resolved;
           }
