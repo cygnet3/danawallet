@@ -48,10 +48,9 @@ class _AddContactSheetState extends State<AddContactSheet> {
         _hasDanaAddress = hasDanaAddress;
       });
 
-      // If dana address is filled, clear and resolve SP address
+      // If dana address is filled, clear SP address field
       if (hasDanaAddress) {
         _spAddressController.clear();
-        _resolveDanaAddress();
       }
     });
 
@@ -73,9 +72,9 @@ class _AddContactSheetState extends State<AddContactSheet> {
     super.dispose();
   }
 
-  Future<void> _resolveDanaAddress() async {
+  Future<String?> _resolveDanaAddress() async {
     final danaAddress = _danaAddressController.text.trim();
-    if (danaAddress.isEmpty) return;
+    if (danaAddress.isEmpty) return null;
 
     setState(() {
       _errorMessage = null;
@@ -92,6 +91,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
           _spAddressController.text = resolved;
           _isResolving = false;
         });
+        return resolved;
       } else if (mounted) {
         setState(() {
           _errorMessage = 'Could not resolve SP address for this dana address';
@@ -107,21 +107,31 @@ class _AddContactSheetState extends State<AddContactSheet> {
         });
       }
     }
+    return null;
   }
 
-  Future<void> _saveContact() async {
+  Future<void> _onSaveContact() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final contactsState = Provider.of<ContactsState>(context, listen: false);
+
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null;
+    });
+
     final nym = _nymController.text.trim();
     final danaAddress = _danaAddressController.text.trim();
-    final spAddress = _spAddressController.text.trim();
+    String spAddress = _spAddressController.text.trim();
 
     // Validation: at least dana address OR static address must be filled, and nym must be filled
     if (nym.isEmpty) {
       setState(() {
         _errorMessage = 'Nym is required';
+        _isSaving = false;
       });
       return;
     }
@@ -134,14 +144,21 @@ class _AddContactSheetState extends State<AddContactSheet> {
       return;
     }
 
-    setState(() {
-      _isSaving = true;
-      _errorMessage = null;
-    });
+    // user filled in a dana address, but did not press search
+    if (danaAddress.isNotEmpty && spAddress.isEmpty) {
+      final resolved = await _resolveDanaAddress();
+      if (resolved == null) {
+        setState(() {
+          _isSaving = false;
+        });
+        return;
+      }
+      spAddress = resolved;
+      // show the user that we've resolved the sp-address
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
 
     try {
-      final walletState = Provider.of<WalletState>(context, listen: false);
-      final contactsState = Provider.of<ContactsState>(context, listen: false);
       final network = walletState.network;
 
       await contactsState.addContact(
@@ -265,7 +282,9 @@ class _AddContactSheetState extends State<AddContactSheet> {
             // Save button
             FooterButton(
               title: _isSaving ? 'Saving...' : 'Save',
-              onPressed: _isSaving ? null : _saveContact,
+              onPressed: _isSaving ? null : _onSaveContact,
+              isLoading: _isSaving,
+              enabled: !_isSaving,
             ),
             SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
           ],
