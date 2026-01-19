@@ -67,7 +67,7 @@ class ContactsState extends ChangeNotifier {
     if (danaAddress != null) {
       if (!await Bip353Resolver.verifyAddress(
           danaAddress, spAddress, network)) {
-        throw Exception("Dana address does not point to eppected sp address");
+        throw Exception("Dana address does not point to expected sp address");
       }
     }
 
