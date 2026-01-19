@@ -24,81 +24,38 @@ class EditContactSheet extends StatefulWidget {
 }
 
 class _EditContactSheetState extends State<EditContactSheet> {
-  late TextEditingController _nymController;
-  late TextEditingController _danaAddressController;
-  late TextEditingController _spAddressController;
+  final TextEditingController _nymController = TextEditingController();
+  final TextEditingController _bip353Controller = TextEditingController();
+  final _nymFocusNode = FocusNode();
+  final _bip353FocusNode = FocusNode();
   final _formKey = GlobalKey<FormState>();
-  bool _isSaving = false;
-  bool _isResolving = false;
+  bool _isUpdating = false;
   String? _errorMessage;
-  bool _hasDanaAddress = false;
 
   @override
   void initState() {
     super.initState();
-    _nymController = TextEditingController(text: widget.contact.nym ?? '');
-    _danaAddressController = TextEditingController(
-        text: widget.contact.danaAddress?.toString() ?? '');
-    _spAddressController =
-        TextEditingController(text: widget.contact.spAddress);
-    _hasDanaAddress = widget.contact.danaAddress != null;
-
-    _danaAddressController.addListener(() {
-      final hasDanaAddress = _danaAddressController.text.trim().isNotEmpty;
-      setState(() {
-        _hasDanaAddress = hasDanaAddress;
-      });
-
-      // If dana address is filled, clear and resolve SP address
-      if (hasDanaAddress &&
-          _danaAddressController.text.trim() != widget.contact.danaAddress) {
-        _spAddressController.clear();
-        _resolveDanaAddress();
-      }
-    });
+    // nym must be present for existing contacts
+    _nymController.text = widget.contact.nym!;
+    _bip353Controller.text = widget.contact.danaAddress?.toString() ?? '';
+    _nymFocusNode.addListener(_clearError);
+    _bip353FocusNode.addListener(_clearError);
   }
 
   @override
   void dispose() {
+    _bip353FocusNode.dispose();
+    _nymFocusNode.dispose();
+    _bip353Controller.dispose();
     _nymController.dispose();
-    _danaAddressController.dispose();
-    _spAddressController.dispose();
     super.dispose();
   }
 
-  Future<void> _resolveDanaAddress() async {
-    final danaAddress = _danaAddressController.text.trim();
-    if (danaAddress.isEmpty) return;
-
-    setState(() {
-      _errorMessage = null;
-      _isResolving = true;
-    });
-
-    try {
-      final network = Provider.of<ChainState>(context, listen: false).network;
-      final parsed = Bip353Address.fromString(danaAddress);
-      final resolved = await Bip353Resolver.resolve(parsed, network);
-
-      if (mounted && resolved != null) {
-        setState(() {
-          _spAddressController.text = resolved;
-          _isResolving = false;
-        });
-      } else if (mounted) {
-        setState(() {
-          _errorMessage = 'Could not resolve SP address for this dana address';
-          _isResolving = false;
-        });
-      }
-    } catch (e) {
-      Logger().w('Failed to resolve dana address: $e');
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Failed to resolve dana address: $e';
-          _isResolving = false;
-        });
-      }
+  void _clearError() {
+    if (_errorMessage != null) {
+      setState(() {
+        _errorMessage = null;
+      });
     }
   }
 
@@ -108,68 +65,65 @@ class _EditContactSheetState extends State<EditContactSheet> {
     }
 
     final contacts = Provider.of<ContactsState>(context, listen: false);
-    final nym = _nymController.text.trim();
-    final danaAddressString = _danaAddressController.text.trim();
-    final spAddress = _spAddressController.text.trim();
+    final network = Provider.of<ChainState>(context, listen: false).network;
 
-    // Validation: at least dana address OR static address must be filled, and nym must be filled
-    if (nym.isEmpty) {
-      setState(() {
-        _errorMessage = 'Nym is required';
-      });
-      return;
-    }
-
-    if (danaAddressString.isEmpty && spAddress.isEmpty) {
-      setState(() {
-        _errorMessage =
-            'Either dana address or static address must be provided';
-      });
-      return;
-    }
+    final newNym = _nymController.text.trim();
+    final newBip353 = _bip353Controller.text.trim();
 
     setState(() {
-      _isSaving = true;
-      _errorMessage = null;
+      _isUpdating = true;
     });
 
-    final Bip353Address? danaAddress;
-    if (danaAddressString.isNotEmpty) {
+    // Validation: at least dana address OR static address must be filled, and nym must be filled
+    if (newNym.isEmpty) {
+      setState(() {
+        _errorMessage = 'Nym is required';
+        _isUpdating = false;
+      });
+      return;
+    }
+
+    final Bip353Address? newBip353Parsed;
+    if (newBip353.isNotEmpty) {
       try {
-        danaAddress = Bip353Address.fromString(danaAddressString);
+        newBip353Parsed = Bip353Address.fromString(newBip353);
       } catch (e) {
         setState(() {
-          _isSaving = false;
+          _isUpdating = false;
           _errorMessage = e.toString();
         });
         return;
       }
     } else {
-      danaAddress = null;
+      newBip353Parsed = null;
     }
 
     try {
       // If we have dana address but no SP address, try to resolve it
-      String finalSpAddress = spAddress;
-      if (danaAddress != null && spAddress.isEmpty) {
+      if (newBip353Parsed != null) {
         try {
-          final network =
-              Provider.of<ChainState>(context, listen: false).network;
-          final resolved = await Bip353Resolver.resolve(danaAddress, network);
-          if (resolved != null) {
-            finalSpAddress = resolved;
-          } else {
+          final resolved =
+              await Bip353Resolver.resolve(newBip353Parsed, network);
+          if (resolved == null) {
             setState(() {
-              _isSaving = false;
+              _isUpdating = false;
+              _errorMessage = 'Address not found';
+            });
+            return;
+          }
+          // updated bip353 address *must* point to same underlying spAddress
+          else if (resolved != widget.contact.spAddress) {
+            setState(() {
+              _isUpdating = false;
               _errorMessage =
-                  'Could not resolve SP address for this dana address';
+                  'Updated address points to different payment code, please make a new contact instead';
             });
             return;
           }
         } catch (e) {
           setState(() {
-            _isSaving = false;
-            _errorMessage = 'Failed to resolve SP address: $e';
+            _isUpdating = false;
+            _errorMessage = 'Failed to resolve payment code: $e';
           });
           return;
         }
@@ -178,21 +132,23 @@ class _EditContactSheetState extends State<EditContactSheet> {
       // Update the contact
       final updatedContact = Contact(
         id: widget.contact.id,
-        nym: nym,
-        danaAddress: danaAddress,
-        spAddress: finalSpAddress,
+        nym: newNym,
+        danaAddress: newBip353Parsed,
+        // these entries don't change
+        spAddress: widget.contact.spAddress,
+        customFields: widget.contact.customFields,
       );
 
       await contacts.updateContact(updatedContact);
 
       if (mounted) {
-        widget.onContactUpdated(); // This already pops with 'updated'
+        Navigator.pop(context);
       }
     } catch (e) {
       Logger().e('Failed to update contact: $e');
       if (mounted) {
         setState(() {
-          _isSaving = false;
+          _isUpdating = false;
           _errorMessage = 'Failed to update contact: $e';
         });
       }
@@ -228,8 +184,9 @@ class _EditContactSheetState extends State<EditContactSheet> {
       try {
         await contacts.deleteContact(widget.contact.id!);
         if (mounted) {
-          // Return 'deleted' to indicate contact was deleted
-          Navigator.pop(context, 'deleted');
+          // pop twice to get out of the contact details screen
+          Navigator.pop(context);
+          Navigator.pop(context);
         }
       } catch (e) {
         Logger().e('Failed to delete contact: $e');
@@ -280,9 +237,10 @@ class _EditContactSheetState extends State<EditContactSheet> {
             // Nym field
             TextField(
               controller: _nymController,
+              focusNode: _nymFocusNode,
               style: BitcoinTextStyle.body4(Bitcoin.black),
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Nym',
                 hintText: 'Contact name',
               ),
@@ -290,50 +248,16 @@ class _EditContactSheetState extends State<EditContactSheet> {
             const SizedBox(height: 16),
             // Dana address field
             TextField(
-              controller: _danaAddressController,
+              controller: _bip353Controller,
+              focusNode: _bip353FocusNode,
               style: BitcoinTextStyle.body4(Bitcoin.black),
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Dana Address',
                 hintText: 'user@domain.com',
-                suffixIcon: _hasDanaAddress
-                    ? IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: _resolveDanaAddress,
-                        tooltip: 'Resolve SP address',
-                      )
-                    : null,
               ),
             ),
             const SizedBox(height: 16),
-            // Static address field
-            TextField(
-              controller: _spAddressController,
-              style: BitcoinTextStyle.body4(
-                (_hasDanaAddress || _isResolving)
-                    ? Bitcoin.neutral6
-                    : Bitcoin.black,
-              ),
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                labelText: 'Static Address (SP)',
-                hintText:
-                    _hasDanaAddress ? 'Resolved from dana address' : 'sp1q...',
-                suffixIcon: _isResolving
-                    ? const Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : null,
-                filled: _hasDanaAddress,
-                fillColor: _hasDanaAddress ? Bitcoin.neutral2 : null,
-              ),
-              readOnly: _hasDanaAddress || _isResolving,
-            ),
             if (_errorMessage != null) ...[
               const SizedBox(height: 16),
               Text(
@@ -344,8 +268,9 @@ class _EditContactSheetState extends State<EditContactSheet> {
             const SizedBox(height: 20),
             // Save button
             FooterButton(
-              title: _isSaving ? 'Saving...' : 'Save',
-              onPressed: _isSaving ? null : _updateContact,
+              title: _isUpdating ? 'Updating...' : 'Update',
+              onPressed: _isUpdating ? null : _updateContact,
+              enabled: !_isUpdating,
             ),
             const SizedBox(height: 12),
             // Delete button
