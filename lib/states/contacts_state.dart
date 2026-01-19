@@ -84,7 +84,7 @@ class ContactsState extends ChangeNotifier {
     await refreshContacts();
   }
 
-  Set<Bip353Address> getKnownDanaAddresses() {
+  Set<Bip353Address> getKnownBip353Addresses() {
     Set<Bip353Address> result = {};
     // add your own dana address
     if (_youContact?.danaAddress != null) {
@@ -96,6 +96,18 @@ class ContactsState extends ChangeNotifier {
       if (contact.danaAddress != null) {
         result.add(contact.danaAddress!);
       }
+    }
+    return result;
+  }
+
+  Set<String> getKnownSpAddresses() {
+    Set<String> result = {};
+    // add your own address
+    result.add(_youContact!.spAddress);
+
+    // add contacts sp-addresses
+    for (var contact in _contacts) {
+      result.add(contact.spAddress);
     }
     return result;
   }
