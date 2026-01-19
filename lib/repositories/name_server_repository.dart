@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/name_server_info_response.dart';
 import 'package:danawallet/data/models/name_server_lookup_response.dart';
 import 'package:danawallet/data/models/name_server_register_request.dart';
@@ -51,21 +52,20 @@ class NameServerRepository {
   /// [requestId] - The unique id for this request, can be useful for tracking requests.
   ///
   /// Returns [NameServerRegisterResponse] with the created address or error details
-  Future<String> registerDanaAddress({
-    required String username,
-    required String domain,
+  Future<Bip353Address> registerDanaAddress({
+    required Bip353Address danaAddress,
     required String spAddress,
     required String requestId,
   }) async {
     final request = NameServerRegisterRequest(
       id: requestId,
-      userName: username,
-      domain: domain,
+      userName: danaAddress.username,
+      domain: danaAddress.domain,
       spAddress: spAddress,
     );
 
     Logger().d(
-        'Registering dana address: $username@$domain with request ID: $requestId');
+        'Registering dana address: $danaAddress with request ID: $requestId');
     final response = await http.Client().post(
       Uri.parse('$baseUrl/register'),
       headers: {
@@ -110,7 +110,7 @@ class NameServerRepository {
   /// Returns a list of dana addresses in the format `user_name@danawallet.app`
   /// Returns an empty list if no addresses are found
   /// Throws an exception for network errors, invalid responses, or malformed data
-  Future<List<String>> lookupDanaAddresses(
+  Future<List<Bip353Address>> lookupDanaAddresses(
       String spAddress, String requestId) async {
     if (spAddress.isEmpty) {
       throw ArgumentError("Silent payment address cannot be empty");

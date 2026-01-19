@@ -1,7 +1,9 @@
+import 'package:danawallet/data/models/bip353_address.dart';
+
 class PrefixSearchResponse {
   final String id;
   final String message;
-  final List<String> danaAddresses;
+  final List<Bip353Address> danaAddresses;
   final int count;
   final int totalCount;
 
@@ -29,7 +31,9 @@ class PrefixSearchResponse {
       id: json['id'] as String,
       message: json['message'] as String,
       danaAddresses: danaAddressList != null
-          ? danaAddressList.map((e) => e as String).toList()
+          ? danaAddressList
+              .map((e) => Bip353Address.fromString(e as String))
+              .toList()
           : [],
       count: json['count'] as int? ?? 0,
       totalCount: json['total_count'] as int? ?? 0,

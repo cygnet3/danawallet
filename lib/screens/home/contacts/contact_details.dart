@@ -1,6 +1,7 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/exceptions.dart';
@@ -69,7 +70,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   }
 
   String _getDisplayName(Contact contact) {
-    return contact.nym ?? contact.danaAddress ?? contact.spAddress;
+    return contact.nym ?? contact.danaAddress?.toString() ?? contact.spAddress;
   }
 
   String _getInitial(String name) {
@@ -122,7 +123,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
   Future<void> _copyDanaAddress() async {
     if (_currentContact.danaAddress != null) {
       await Clipboard.setData(
-          ClipboardData(text: _currentContact.danaAddress!));
+          ClipboardData(text: _currentContact.danaAddress!.toString()));
       HapticFeedback.lightImpact();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -291,7 +292,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       try {
         await Provider.of<ContactsState>(context, listen: false)
             .deleteContactField(field.id!);
@@ -328,32 +329,32 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
       form.reset();
 
       // Use dana address if available, otherwise use SP address
-      String address = (_currentContact.danaAddress != null &&
-              _currentContact.danaAddress!.isNotEmpty)
-          ? _currentContact.danaAddress!
-          : _currentContact.spAddress;
+      Bip353Address? bip353 = _currentContact.danaAddress;
+      String spAddress = _currentContact.spAddress;
 
-      if (address.contains('@')) {
+      if (bip353 != null) {
         // Resolve dana address to SP address
         try {
-          Logger().d('Resolving dana address: "$address"');
+          Logger().d('Resolving dana address: "$bip353"');
 
           final network =
               Provider.of<ChainState>(context, listen: false).network;
 
-          final resolvedAddress =
-              await Bip353Resolver.resolveFromAddress(address, network);
+          final resolvedAddress = await Bip353Resolver.resolve(bip353, network);
 
           if (resolvedAddress == null) {
             throw Exception('Dana address not found or not registered');
           }
 
-          form.recipientBip353 = address;
-          address = resolvedAddress;
+          if (resolvedAddress != spAddress) {
+            throw Exception("Underlying payment info has changed!");
+          }
+
+          form.recipientBip353 = bip353;
 
           Logger().d('Successfully resolved dana address to SP address');
         } catch (e) {
-          Logger().e('Failed to resolve dana address "$address": $e');
+          Logger().e('Failed to resolve dana address "$bip353": $e');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -365,13 +366,16 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
           return;
         }
       }
+      if (!mounted) {
+        return;
+      }
 
       // Validate address
       try {
         final network =
             Provider.of<WalletState>(context, listen: false).network;
         validateAddressWithNetwork(
-            address: address, network: network.toCoreArg);
+            address: spAddress, network: network.toCoreArg);
       } catch (e) {
         if (e.toString().contains('network')) {
           throw InvalidNetworkException();
@@ -380,7 +384,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
         }
       }
 
-      form.recipientAddress = address;
+      form.recipientAddress = spAddress;
 
       if (mounted) {
         Navigator.push(
@@ -569,7 +573,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _currentContact.danaAddress ?? '',
+                    _currentContact.danaAddress?.toString() ?? '',
                     style: BitcoinTextStyle.body4(Bitcoin.neutral7),
                   ),
                   const SizedBox(width: 8),
@@ -696,7 +700,7 @@ class _ContactDetailsScreenState extends State<ContactDetailsScreen> {
 
     final field0 = tx.field0;
     final recipient = _currentContact.nym ??
-        _currentContact.danaAddress ??
+        _currentContact.danaAddress?.toString() ??
         _currentContact.spAddress;
     final date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
     final color = field0.confirmedAt == null ? Bitcoin.neutral4 : Bitcoin.red;
