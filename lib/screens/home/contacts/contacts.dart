@@ -65,7 +65,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
   }
 
   Future<void> _searchRemoteAddresses(String prefix) async {
-    if (prefix.isEmpty) return;
+    if (prefix.length < 3) return;
 
     // Get set of existing dana addresses from our contacts
     final knownDanaAddresses =
