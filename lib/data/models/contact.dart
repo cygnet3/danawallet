@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 
 class Contact {
   int? id;
-  final String? nym; // user defined user name
+  final String? name; // user defined user name
   final Bip353Address?
-      danaAddress; // Eventually register more than one, for now keep it simple
+      bip353Address; // Eventually register more than one, for now keep it simple
   final String spAddress; // silent payment address of the contact
   final List<ContactField>? customFields; // Optional custom fields
 
   Contact({
     this.id,
-    this.nym,
-    this.danaAddress,
+    this.name,
+    this.bip353Address,
     required this.spAddress,
     this.customFields,
   });
@@ -21,26 +21,27 @@ class Contact {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'nym': nym,
-      'danaAddress': danaAddress?.toString(),
+      'name': name,
+      'bip353Address': bip353Address?.toString(),
       'spAddress': spAddress,
     };
   }
 
   factory Contact.fromMap(Map<String, dynamic> map) {
-    final String? danaAddress = map['danaAddress'];
+    final String? bip353Address = map['bip353Address'];
     return Contact(
       id: map['id'],
-      nym: map['nym'],
-      danaAddress:
-          danaAddress != null ? Bip353Address.fromString(danaAddress) : null,
+      name: map['name'],
+      bip353Address: bip353Address != null
+          ? Bip353Address.fromString(bip353Address)
+          : null,
       spAddress: map['spAddress'],
       customFields: null, // Custom fields loaded separately
     );
   }
 
   String get displayName {
-    return nym ?? danaAddress?.toString() ?? spAddress;
+    return name ?? bip353Address?.toString() ?? spAddress;
   }
 
   String get displayNameInitial {

@@ -36,15 +36,15 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE contacts (
       id $idType,
-      nym $textTypeNullable,
-      danaAddress $textTypeNullable UNIQUE,
+      name $textTypeNullable,
+      bip353Address $textTypeNullable UNIQUE,
       spAddress $textType UNIQUE
     )
     ''');
 
     // Create indexes for faster lookups on contacts table
     await db.execute('''
-    CREATE INDEX idx_contacts_dana_address ON contacts(danaAddress)
+    CREATE INDEX idx_contacts_bip353_address ON contacts(bip353Address)
     ''');
 
     await db.execute('''
