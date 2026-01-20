@@ -20,6 +20,7 @@ class ContactsState extends ChangeNotifier {
   Future<void> initialize(String spAddress, Bip353Address? danaAddress) async {
     // Initialize the 'you' contact
     _youContact = Contact(
+      id: -1,
       nym: 'you',
       spAddress: spAddress,
       danaAddress: danaAddress,
@@ -33,7 +34,7 @@ class ContactsState extends ChangeNotifier {
     _contacts.clear();
 
     // then populate the rest of the contacts
-    _contacts.addAll(await _repository.getAllContacts());
+    _contacts.addAll(await _repository.getAllContacts(loadCustomFields: true));
 
     notifyListeners();
   }
@@ -280,12 +281,21 @@ class ContactsState extends ChangeNotifier {
     return deleted;
   }
 
-  Future<Contact?> getContact(int id) async {
-    return await _repository.getContact(id, loadCustomFields: false);
+  Contact? getContact(int id) {
+    if (id == _youContact!.id) {
+      return _youContact;
+    } else {
+      return _contacts.firstWhereOrNull((contact) => contact.id == id);
+    }
   }
 
-  Future<Contact?> getContactBySpAddress(String spAddress) async {
-    return await _repository.getContactBySpAddress(spAddress);
+  Contact? getContactBySpAddress(String spAddress) {
+    if (spAddress == _youContact!.spAddress) {
+      return _youContact;
+    } else {
+      return _contacts
+          .firstWhereOrNull((contact) => contact.spAddress == spAddress);
+    }
   }
 
   /// Gets all custom fields for a contact

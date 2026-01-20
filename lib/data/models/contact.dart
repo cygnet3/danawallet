@@ -1,5 +1,6 @@
 import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact_field.dart';
+import 'package:flutter/material.dart';
 
 class Contact {
   int? id;
@@ -36,5 +37,31 @@ class Contact {
       spAddress: map['spAddress'],
       customFields: null, // Custom fields loaded separately
     );
+  }
+
+  String get displayName {
+    return nym ?? danaAddress?.toString() ?? spAddress;
+  }
+
+  String get displayNameInitial {
+    return displayName[0].toUpperCase();
+  }
+
+  Color get avatarColor {
+    // Generate a consistent color based on the static payment code
+    final hash = spAddress.hashCode;
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.red,
+      Colors.teal,
+      Colors.pink,
+      Colors.indigo,
+      Colors.cyan,
+      Colors.amber,
+    ];
+    return colors[hash.abs() % colors.length];
   }
 }

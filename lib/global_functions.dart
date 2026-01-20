@@ -18,6 +18,7 @@ void displayNotification(String text) {
   Logger().i(text);
   if (globalNavigatorKey.currentContext != null) {
     final snackBar = SnackBar(
+      duration: const Duration(seconds: 1),
       content: Text(text),
     );
     ScaffoldMessenger.of(globalNavigatorKey.currentContext!)
