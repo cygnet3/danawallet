@@ -463,17 +463,21 @@ class ContactDetailsScreen extends StatelessWidget {
       return const LoadingWidget();
     }
 
+    // if we're the 'you' contact, we don't show certain things
+    final isYouContact = contact == contacts.getYouContact();
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const BackButtonWidget(),
         actions: [
-          IconButton(
-            icon: Icon(Icons.edit, color: Bitcoin.black),
-            onPressed: () {
-              _showEditContactSheet(context, contact);
-            },
-          ),
+          if (!isYouContact)
+            IconButton(
+              icon: Icon(Icons.edit, color: Bitcoin.black),
+              onPressed: () {
+                _showEditContactSheet(context, contact);
+              },
+            ),
         ],
       ),
       body: Padding(
@@ -524,30 +528,31 @@ class ContactDetailsScreen extends StatelessWidget {
               ),
             const SizedBox(height: 30),
             // Send Bitcoin button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: BitcoinButtonFilled(
-                tintColor: danaBlue,
-                body: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Send Bitcoin  ',
-                      style: BitcoinTextStyle.body3(Bitcoin.white),
-                    ),
-                    Image(
-                      image: const AssetImage("icons/send.png",
-                          package: "bitcoin_ui"),
-                      color: Bitcoin.white,
-                    ),
-                  ],
+            if (!isYouContact)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: BitcoinButtonFilled(
+                  tintColor: danaBlue,
+                  body: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Send Bitcoin  ',
+                        style: BitcoinTextStyle.body3(Bitcoin.white),
+                      ),
+                      Image(
+                        image: const AssetImage("icons/send.png",
+                            package: "bitcoin_ui"),
+                        color: Bitcoin.white,
+                      ),
+                    ],
+                  ),
+                  cornerRadius: 6,
+                  onPressed: () {
+                    _onSendBitcoin(context, contact);
+                  },
                 ),
-                cornerRadius: 6,
-                onPressed: () {
-                  _onSendBitcoin(context, contact);
-                },
               ),
-            ),
             const SizedBox(height: 30),
             // List of items
             Expanded(
@@ -590,17 +595,18 @@ class ContactDetailsScreen extends StatelessWidget {
                     ...customFields
                         .map((field) => _buildCustomFieldItem(context, field)),
                   ],
-                  ListTile(
-                    leading: Icon(Icons.add, color: Bitcoin.blue),
-                    title: Text(
-                      'Add Field',
-                      style: BitcoinTextStyle.body3(Bitcoin.blue)
-                          .apply(fontWeightDelta: 1),
+                  if (!isYouContact)
+                    ListTile(
+                      leading: Icon(Icons.add, color: Bitcoin.blue),
+                      title: Text(
+                        'Add Field',
+                        style: BitcoinTextStyle.body3(Bitcoin.blue)
+                            .apply(fontWeightDelta: 1),
+                      ),
+                      onTap: () {
+                        _showAddFieldSheet(context, contactId);
+                      },
                     ),
-                    onTap: () {
-                      _showAddFieldSheet(context, contactId);
-                    },
-                  ),
                 ],
               ),
             ),
