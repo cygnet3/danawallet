@@ -3,6 +3,8 @@ import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/data/models/contact_field.dart';
+import 'package:danawallet/exceptions.dart';
+import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/contacts_repository.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
@@ -45,33 +47,37 @@ class ContactsState extends ChangeNotifier {
   /// Throws [ArgumentError] if dana address format is invalid
   /// Throws [Exception] if dana address cannot be resolved or contact already exists
   Future<void> addContact({
-    required String spAddress,
+    required String paymentCode,
     required Network network,
     Bip353Address? danaAddress,
     String? name,
   }) async {
-    if (spAddress == _youContact!.paymentCode) {
+    if (paymentCode == _youContact!.paymentCode) {
       throw Exception("Adding yourself is not allowed");
     }
     // First check for duplicates
-    final existing = await _repository.getContactBySpAddress(spAddress);
+    final existing = await _repository.getContactBySpAddress(paymentCode);
     if (existing != null) {
-      throw Exception('Contact with sp address $spAddress already exists');
+      throw Exception('Contact with sp address $paymentCode already exists');
     }
 
     // Resolve the SP address via DNS
     // Verify that the address is correct
     if (danaAddress != null) {
       if (!await Bip353Resolver.verifyAddress(
-          danaAddress, spAddress, network)) {
+          danaAddress, paymentCode, network)) {
         throw Exception("Dana address does not point to expected sp address");
       }
     }
 
+    // verify that the payment code is valid
+    validateAddressWithNetwork(
+        address: paymentCode, network: network.toCoreArg);
+
     // Store and update cached contact list
     final contact = Contact(
       bip353Address: danaAddress,
-      paymentCode: spAddress,
+      paymentCode: paymentCode,
       name: name,
     );
 
@@ -80,7 +86,7 @@ class ContactsState extends ChangeNotifier {
 
     _contacts.add(contact);
 
-    Logger().i('Contact added successfully: $danaAddress -> $spAddress');
+    Logger().i('Contact added successfully: $danaAddress -> $paymentCode');
 
     await refreshContacts();
   }

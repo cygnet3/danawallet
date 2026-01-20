@@ -176,7 +176,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
       final network = walletState.network;
 
       await contactsState.addContact(
-        spAddress: spAddress,
+        paymentCode: spAddress,
         danaAddress: danaAddress,
         network: network,
         name: name.isNotEmpty ? name : null,
