@@ -65,4 +65,19 @@ class Contact {
     ];
     return colors[hash.abs() % colors.length];
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    // check equivalency based on ID only
+    return other is Contact && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }
