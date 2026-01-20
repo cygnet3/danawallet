@@ -12,9 +12,9 @@ class Bip353Resolver {
   static Future<bool> isBip353AddressPresent(
       Bip353Address address, Network network) async {
     try {
-      final spAddress = await resolve(address, network);
+      final paymentCode = await resolve(address, network);
       // If null or no silent payment, address is available
-      return spAddress == null;
+      return paymentCode == null;
     } catch (e) {
       // If we can't resolve due to network error, assume it's taken to be safe
       Logger().e('Error checking address availability: $e');
@@ -99,13 +99,13 @@ class Bip353Resolver {
     }
   }
 
-  static Future<bool> verifyAddress(
-      Bip353Address danaAddress, String spAddress, Network network) async {
+  static Future<bool> verifyPaymentCode(
+      Bip353Address danaAddress, String paymentCode, Network network) async {
     Logger().i("dana address to verify: $danaAddress");
 
     final resolved = await resolve(danaAddress, network);
     Logger().i("resolved address from dana address: $resolved");
 
-    return resolved == spAddress;
+    return resolved == paymentCode;
   }
 }

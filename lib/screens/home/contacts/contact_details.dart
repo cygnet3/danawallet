@@ -191,12 +191,12 @@ class ContactDetailsScreen extends StatelessWidget {
   Future<void> _onSendBitcoin(BuildContext context, Contact contact) async {
     // If a dana address is present, we must verify it
     Bip353Address? bip353 = contact.bip353Address;
-    String spAddress = contact.paymentCode;
+    String paymentCode = contact.paymentCode;
     final network = Provider.of<ChainState>(context, listen: false).network;
 
     try {
       validateAddressWithNetwork(
-          address: spAddress, network: network.toCoreArg);
+          address: paymentCode, network: network.toCoreArg);
     } catch (e) {
       displayError("Network validation error:", e);
       return;
@@ -205,8 +205,8 @@ class ContactDetailsScreen extends StatelessWidget {
     if (bip353 != null) {
       // Resolve dana address to SP address
       try {
-        final verified =
-            await Bip353Resolver.verifyAddress(bip353, spAddress, network);
+        final verified = await Bip353Resolver.verifyPaymentCode(
+            bip353, paymentCode, network);
         if (!verified) {
           displayWarning(
               "Man-in-the-middle attack might be occurring! Sending not possible");
@@ -233,15 +233,15 @@ class ContactDetailsScreen extends StatelessWidget {
   }
 
   Future<void> _copyStaticAddress(
-      BuildContext context, String spAddress) async {
+      BuildContext context, String paymentCode) async {
     // first pop to show notification
     Navigator.of(context).pop();
-    await Clipboard.setData(ClipboardData(text: spAddress));
+    await Clipboard.setData(ClipboardData(text: paymentCode));
     HapticFeedback.lightImpact();
     displayNotification("Copied static address to clipboard");
   }
 
-  void _showStaticAddressSheet(BuildContext context, String spAddress) {
+  void _showStaticAddressSheet(BuildContext context, String paymentCode) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -275,7 +275,7 @@ class ContactDetailsScreen extends StatelessWidget {
             const SizedBox(height: 20),
             // QR Code
             GestureDetector(
-              onTap: () => _copyStaticAddress(context, spAddress),
+              onTap: () => _copyStaticAddress(context, paymentCode),
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -283,7 +283,7 @@ class ContactDetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: BarcodeWidget(
-                  data: spAddress,
+                  data: paymentCode,
                   barcode: Barcode.qrCode(),
                 ),
               ),
@@ -291,7 +291,7 @@ class ContactDetailsScreen extends StatelessWidget {
             const SizedBox(height: 20),
             // Address text
             GestureDetector(
-              onTap: () => _copyStaticAddress(context, spAddress),
+              onTap: () => _copyStaticAddress(context, paymentCode),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -305,7 +305,7 @@ class ContactDetailsScreen extends StatelessWidget {
                       style: BitcoinTextStyle.body5(Bitcoin.neutral5),
                     ),
                     const SizedBox(height: 8),
-                    addressAsRichText(spAddress, 14.0),
+                    addressAsRichText(paymentCode, 14.0),
                   ],
                 ),
               ),
@@ -321,14 +321,14 @@ class ContactDetailsScreen extends StatelessWidget {
       BuildContext context, Contact contact) {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final allTransactions = walletState.txHistory.toApiTransactions();
-    final contactSpAddress = contact.paymentCode;
+    final contactPaymentCode = contact.paymentCode;
 
     // Filter to only outgoing transactions where recipient matches this contact's SP address
     return allTransactions.where((tx) {
       if (tx is ApiRecordedTransaction_Outgoing) {
         // Check if any recipient matches the contact's SP address
         return tx.field0.recipients
-            .any((recipient) => recipient.address == contactSpAddress);
+            .any((recipient) => recipient.address == contactPaymentCode);
       }
       return false;
     }).toList();

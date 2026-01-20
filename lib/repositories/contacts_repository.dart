@@ -82,13 +82,13 @@ class ContactsRepository {
     return contact;
   }
 
-  Future<Contact?> getContactBySpAddress(String spAddress,
+  Future<Contact?> getContactByPaymentCode(String paymentCode,
       {bool loadCustomFields = false}) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'contacts',
-      where: 'spAddress = ?',
-      whereArgs: [spAddress],
+      where: 'paymentCode = ?',
+      whereArgs: [paymentCode],
     );
 
     if (maps.isEmpty) return null;

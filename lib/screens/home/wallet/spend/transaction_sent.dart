@@ -8,7 +8,6 @@ import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -43,7 +42,7 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
     final recipient = form.recipient!;
 
     // only reusable payment codes (sp-addresses) are eligible
-    final isReusable = isSpAddress(address: recipient.paymentCode);
+    final isReusable = isReusablePaymentCode(address: recipient.paymentCode);
     if (isReusable) {
       // We check by (reusable) payment codes instead of dana address.
       // This is important in the following case:
@@ -77,7 +76,7 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => AddContactSheet(
         initialDanaAddress: form.recipient!.bip353Address,
-        initialSpAddress: form.recipient!.paymentCode,
+        initialPaymentCode: form.recipient!.paymentCode,
       ),
     );
     if (result == true) {

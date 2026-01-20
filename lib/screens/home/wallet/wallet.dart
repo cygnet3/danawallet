@@ -280,9 +280,9 @@ class WalletScreenState extends State<WalletScreen> {
             image: const AssetImage("icons/receive.png", package: "bitcoin_ui"),
             color: Bitcoin.neutral3Dark);
       case ApiRecordedTransaction_Outgoing(:final field0):
-        final spAddress = field0.recipients[0].address;
+        final paymentCode = field0.recipients[0].address;
         recipientWidget =
-            contactsState.getDisplayNameWidget(context, spAddress);
+            contactsState.getDisplayNameWidget(context, paymentCode);
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         if (field0.confirmedAt == null) {
           color = Bitcoin.neutral4;
@@ -588,7 +588,7 @@ class WalletScreenState extends State<WalletScreen> {
         appBar: buildAppBar(scanProgress.scanning, walletState.network.toColor),
         body: showFundingScreen
             ? buildFundingScreen(
-                walletState.receiveAddress,
+                walletState.receivePaymentCode,
                 danaAddress?.toString(),
                 scanProgress,
                 chainState,
@@ -629,7 +629,7 @@ class WalletScreenState extends State<WalletScreen> {
                             walletState.txHistory.toApiTransactions(),
                             exchangeRate,
                           ),
-                          buildBottomButtons(walletState.receiveAddress),
+                          buildBottomButtons(walletState.receivePaymentCode),
                           const SizedBox(
                             height: 20.0,
                           ),

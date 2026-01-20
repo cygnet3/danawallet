@@ -22,8 +22,8 @@ class WalletState extends ChangeNotifier {
 
   // variables that never change (unless wallet is reset)
   late Network network;
-  late String receiveAddress;
-  late String changeAddress;
+  late String receivePaymentCode;
+  late String changePaymentCode;
   late int birthday;
 
   // variables that change
@@ -84,8 +84,8 @@ class WalletState extends ChangeNotifier {
     // If we continue, we risk the user accidentally
     // deleting their seed phrase.
     try {
-      receiveAddress = wallet.getReceivingAddress();
-      changeAddress = wallet.getChangeAddress();
+      receivePaymentCode = wallet.getReceivingAddress();
+      changePaymentCode = wallet.getChangeAddress();
       birthday = wallet.getBirthday();
 
       await _updateWalletState();
@@ -119,8 +119,8 @@ class WalletState extends ChangeNotifier {
         await walletRepository.setupWallet(setupResult, network, birthday);
 
     // fill current state variables
-    receiveAddress = wallet.getReceivingAddress();
-    changeAddress = wallet.getChangeAddress();
+    receivePaymentCode = wallet.getReceivingAddress();
+    changePaymentCode = wallet.getChangeAddress();
     this.birthday = wallet.getBirthday();
     this.network = network;
     await _updateWalletState();
@@ -137,8 +137,8 @@ class WalletState extends ChangeNotifier {
         await walletRepository.setupWallet(setupResult, network, birthday);
 
     // fill current state variables
-    receiveAddress = wallet.getReceivingAddress();
-    changeAddress = wallet.getChangeAddress();
+    receivePaymentCode = wallet.getReceivingAddress();
+    changePaymentCode = wallet.getChangeAddress();
     this.birthday = wallet.getBirthday();
     this.network = network;
     await _updateWalletState();
@@ -231,11 +231,11 @@ class WalletState extends ChangeNotifier {
         selectedOutputs.map((tuple) => tuple.$1).toList();
 
     final changeValue =
-        unsignedTx.getChangeAmount(changeAddress: changeAddress);
+        unsignedTx.getChangeAmount(changeAddress: changePaymentCode);
 
     final feeAmount = unsignedTx.getFeeAmount();
 
-    final recipients = unsignedTx.getRecipients(changeAddress: changeAddress);
+    final recipients = unsignedTx.getRecipients(changeAddress: changePaymentCode);
 
     final finalizedTx =
         SpWallet.finalizeTransaction(unsignedTransaction: unsignedTx);
@@ -297,7 +297,7 @@ class WalletState extends ChangeNotifier {
     // Generate an available dana address (without registering yet)
     return await DanaAddressService(network: network)
         .generateAvailableDanaAddress(
-      spAddress: receiveAddress,
+      paymentCode: receivePaymentCode,
       maxRetries: 5,
     );
   }
@@ -309,7 +309,7 @@ class WalletState extends ChangeNotifier {
 
     Logger().i('Registering dana address with username: $username');
     final registeredAddress = await DanaAddressService(network: network)
-        .registerUser(username: username, spAddress: receiveAddress);
+        .registerUser(username: username, paymentCode: receivePaymentCode);
 
     // Registration successful
     Logger().i('Registration successful: $registeredAddress');
@@ -335,8 +335,8 @@ class WalletState extends ChangeNotifier {
     // if a stored dana address was present, verify if it's still valid
     if (danaAddress != null) {
       try {
-        final verified = await Bip353Resolver.verifyAddress(
-            danaAddress!, receiveAddress, network);
+        final verified = await Bip353Resolver.verifyPaymentCode(
+            danaAddress!, receivePaymentCode, network);
 
         if (verified) {
           // we have a stored address and it's valid, no need to register
@@ -362,7 +362,7 @@ class WalletState extends ChangeNotifier {
     Logger().i("Attempting to look up dana address");
     try {
       final lookupResult = await DanaAddressService(network: network)
-          .lookupDanaAddress(receiveAddress);
+          .lookupDanaAddress(receivePaymentCode);
       if (lookupResult != null) {
         Logger().i("Found dana address: $lookupResult");
         danaAddress = lookupResult;

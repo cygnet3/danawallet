@@ -165,9 +165,9 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  void onShowSpAddress(BuildContext context) {
+  void onShowPaymentCode(BuildContext context) {
     final wallet = Provider.of<WalletState>(context, listen: false);
-    final address = wallet.receiveAddress;
+    final address = wallet.receivePaymentCode;
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -207,7 +207,7 @@ class SettingsScreen extends StatelessWidget {
               onPressed: () => onShowMnemonic(context)),
           BitcoinButtonOutlined(
               title: 'Show silent payment address',
-              onPressed: () => onShowSpAddress(context)),
+              onPressed: () => onShowPaymentCode(context)),
           BitcoinButtonOutlined(
               title: "Change fiat currency",
               onPressed: () => onChangeFiat(context)),

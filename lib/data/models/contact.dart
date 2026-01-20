@@ -23,7 +23,7 @@ class Contact {
       'id': id,
       'name': name,
       'bip353Address': bip353Address?.toString(),
-      'spAddress': paymentCode,
+      'paymentCode': paymentCode,
     };
   }
 
@@ -35,7 +35,7 @@ class Contact {
       bip353Address: bip353Address != null
           ? Bip353Address.fromString(bip353Address)
           : null,
-      paymentCode: map['spAddress'],
+      paymentCode: map['paymentCode'],
       customFields: null, // Custom fields loaded separately
     );
   }

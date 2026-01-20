@@ -320,7 +320,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
         await WalletRepository.instance.saveDanaAddress(registeredAddress);
 
         // Create a contact for the 'you' user
-        contactsState.initialize(walletState.receiveAddress, registeredAddress);
+        contactsState.initialize(walletState.receivePaymentCode, registeredAddress);
 
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(

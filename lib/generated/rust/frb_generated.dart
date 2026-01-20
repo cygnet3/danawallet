@@ -82,7 +82,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 604699654;
+  int get rustContentHash => 153260833;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -394,7 +394,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiSimpleInitApp();
 
-  bool crateApiValidateIsSpAddress({required String address});
+  bool crateApiValidateIsReusablePaymentCode({required String address});
 
   SettingsBackup crateApiBackupSettingsBackupNew(
       {String? blindbitUrl, int? dustLimit});
@@ -3246,7 +3246,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  bool crateApiValidateIsSpAddress({required String address}) {
+  bool crateApiValidateIsReusablePaymentCode({required String address}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
@@ -3257,15 +3257,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeSuccessData: sse_decode_bool,
         decodeErrorData: null,
       ),
-      constMeta: kCrateApiValidateIsSpAddressConstMeta,
+      constMeta: kCrateApiValidateIsReusablePaymentCodeConstMeta,
       argValues: [address],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiValidateIsSpAddressConstMeta =>
+  TaskConstMeta get kCrateApiValidateIsReusablePaymentCodeConstMeta =>
       const TaskConstMeta(
-        debugName: "is_sp_address",
+        debugName: "is_reusable_payment_code",
         argNames: ["address"],
       );
 

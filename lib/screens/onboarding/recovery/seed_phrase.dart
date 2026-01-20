@@ -63,7 +63,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
 
       // initialize contacts state using restored wallet state
       contactsState.initialize(
-          walletState.receiveAddress, walletState.danaAddress);
+          walletState.receivePaymentCode, walletState.danaAddress);
 
       if (context.mounted) {
         Widget nextScreen = goToDanaAddressSetup

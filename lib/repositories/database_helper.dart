@@ -38,7 +38,7 @@ class DatabaseHelper {
       id $idType,
       name $textTypeNullable,
       bip353Address $textTypeNullable UNIQUE,
-      spAddress $textType UNIQUE
+      paymentCode $textType UNIQUE
     )
     ''');
 
@@ -48,7 +48,7 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-    CREATE INDEX idx_contacts_sp_address ON contacts(spAddress)
+    CREATE INDEX idx_contacts_payment_code ON contacts(paymentCode)
     ''');
 
     await db.execute('''

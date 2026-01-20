@@ -103,9 +103,8 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
         }
       }
 
-      // note: in this case, we set the spAddress as a on-chain address.
-      // this means we have to be careful at the end of the send-flow, to not allow users
-      // to add this contact to their contact list, as regular on-chain addresses are not allowed.
+      // note: from the send screen, the payment code is not guaranteed to be reusable;
+      // a user might use a regular on-chain address.
       form.recipient =
           Contact(bip353Address: bip353Address, paymentCode: onchainAddress);
 

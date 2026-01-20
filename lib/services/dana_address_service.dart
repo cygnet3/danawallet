@@ -39,8 +39,8 @@ class DanaAddressService {
   /// [entropy] - The entropy bytes (typically from a SHA-256 hash)
   /// [offset] - Byte offset into the entropy (0, 6, 12, 18, etc.) to use different parts
   String _generateRandomDanaAddress(
-      {required String spAddress, required int offset}) {
-    final entropy = _generateEntropyFromAddress(spAddress);
+      {required String paymentCode, required int offset}) {
+    final entropy = _generateEntropyFromPaymentCode(paymentCode);
 
     final wordlist = getEnglishWordlist();
     final wordlistSize = wordlist.length;
@@ -64,8 +64,8 @@ class DanaAddressService {
   }
 
   /// Generates entropy (SHA-256 hash) from an address
-  List<int> _generateEntropyFromAddress(String spAddress) {
-    final bytes = utf8.encode(spAddress);
+  List<int> _generateEntropyFromPaymentCode(String paymentCode) {
+    final bytes = utf8.encode(paymentCode);
     final hash = sha256.convert(bytes);
     return hash.bytes;
   }
@@ -73,12 +73,12 @@ class DanaAddressService {
   /// Generate an available dana address by trying different username candidates
   /// Returns the first available username found within maxRetries attempts, or null if all are taken
   Future<String?> generateAvailableDanaAddress({
-    required String spAddress,
+    required String paymentCode,
     required int maxRetries,
   }) async {
     for (int attempt = 0; attempt < maxRetries; attempt++) {
       final username = _generateRandomDanaAddress(
-        spAddress: spAddress,
+        paymentCode: paymentCode,
         offset:
             attempt * 6, // Each attempt uses 6 bytes (2 bytes per word/number)
       );
@@ -98,7 +98,7 @@ class DanaAddressService {
   /// Returns [DanaAddressCreationResponse] with the created address or error details
   Future<Bip353Address> registerUser({
     required String username,
-    required String spAddress,
+    required String paymentCode,
   }) async {
     final requestId = _generateUniqueId();
     final domain = await danaAddressDomain;
@@ -107,16 +107,16 @@ class DanaAddressService {
     // We try to resolve the address first to see if it already exists
     try {
       danaAddress = Bip353Address(username: username, domain: domain);
-      final resolvedSpAddress =
+      final resolvedPaymentCode =
           await Bip353Resolver.resolve(danaAddress, network);
-      if (resolvedSpAddress == null) {
+      if (resolvedPaymentCode == null) {
         // Address not registered yet, proceed with registration
         Logger().i(
             'Address $username@$domain not found, proceeding with registration');
-      } else if (resolvedSpAddress == spAddress) {
+      } else if (resolvedPaymentCode == paymentCode) {
         // If we find our address, return success there's nothing more to do
         return danaAddress;
-      } else if (resolvedSpAddress != spAddress) {
+      } else if (resolvedPaymentCode != paymentCode) {
         // If we find another address, return error, user must try with a different username
         throw Exception("Dana address already in use");
       }
@@ -127,31 +127,33 @@ class DanaAddressService {
     }
 
     return await nameServerRepository.registerDanaAddress(
-        danaAddress: danaAddress, spAddress: spAddress, requestId: requestId);
+        danaAddress: danaAddress,
+        paymentCode: paymentCode,
+        requestId: requestId);
   }
 
   /// Looks up dana addresses associated with a silent payment address.
   /// Also verifies if the returned Dana address by doing a DNS query
   ///
-  /// [spAddress] - The Silent Payment address to lookup
+  /// [paymentCode] - The Silent Payment address to lookup
   ///
   /// Returns the first valid dana address that is found.
   /// Returns a list of dana addresses in the format `user_name@danawallet.app`
   /// Returns an empty list if no addresses are found
   /// Throws an exception for network errors, invalid responses, or malformed data
-  Future<Bip353Address?> lookupDanaAddress(String spAddress) async {
-    if (spAddress.isEmpty) {
+  Future<Bip353Address?> lookupDanaAddress(String paymentCode) async {
+    if (paymentCode.isEmpty) {
       throw ArgumentError("Silent payment address cannot be empty");
     }
 
     final requestId = _generateUniqueId();
     final addresses =
-        await nameServerRepository.lookupDanaAddresses(spAddress, requestId);
+        await nameServerRepository.lookupDanaAddresses(paymentCode, requestId);
 
     Logger().i('Found ${addresses.length} dana address(es) for SP address');
 
     for (var candidate in addresses) {
-      if (await Bip353Resolver.verifyAddress(candidate, spAddress, network)) {
+      if (await Bip353Resolver.verifyPaymentCode(candidate, paymentCode, network)) {
         // we just return the first valid candidate
         return candidate;
       } else {
