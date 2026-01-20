@@ -75,14 +75,13 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     final availableBalance = walletState.amount;
     final blocksToScan = chainState.tip - walletState.lastScan;
 
-    String recipientName;
+    String recipientName = form.recipient!.displayName;
     TextStyle recipientTextStyle = BitcoinTextStyle.body4(Bitcoin.neutral7);
 
-    if (form.recipientBip353 != null) {
-      recipientName = form.recipientBip353!.toString();
-    } else {
-      recipientName = displayAddress(
-          context, form.recipientAddress!, recipientTextStyle, 0.86);
+    if (recipientName == form.recipient!.paymentCode) {
+      // format static address nicely
+      recipientName =
+          displayAddress(context, recipientName, recipientTextStyle, 0.86);
     }
 
     return SpendSkeleton(

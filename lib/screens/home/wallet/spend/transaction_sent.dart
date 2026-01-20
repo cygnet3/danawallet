@@ -27,7 +27,7 @@ class TransactionSentScreen extends StatefulWidget {
 }
 
 class _TransactionSentScreenState extends State<TransactionSentScreen> {
-  bool? _isEligible;
+  bool _isEligible = false;
   bool _isCheckingEligible = true;
 
   @override
@@ -40,29 +40,33 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
     final form = RecipientForm();
     final contacts = Provider.of<ContactsState>(context, listen: false);
 
-    final address = form.recipientAddress!;
+    final recipient = form.recipient!;
 
-    // only sp-addresses are eligible to be added as a contact
-    final isSp = isSpAddress(address: address);
+    // only reusable payment codes (sp-addresses) are eligible
+    final isReusable = isSpAddress(address: recipient.paymentCode);
+    if (isReusable) {
+      // We check by (reusable) payment codes instead of dana address.
+      // This is important in the following case:
+      // A user has 2 domains pointing to the same underlying payment code
+      // aaa@domain and bbb@domain
+      // If we already have aaa@domain in our contact list,
+      // and we send to bbb@domain, we should still recognize that
+      // we already have this recipient in our contact list.
+      final knownPaymentCodes = contacts.getKnownPaymentCodes();
 
-    // We check by SP-address, which is always set.
-    // By checking the SP-address, we avoid conflicts; e.g.:
-    // A user has 2 domains pointing to the same underlying sp-address
-    // aaa@domain and bbb@domain
-    // If we already have aaa@domain in our contact list,
-    // and we send to bbb@domain, we should still recognize that
-    // we already have this recipient in our contact list.
-    final knownSpAddresses = contacts.getKnownSpAddresses();
-
-    final isInContacts = knownSpAddresses.contains(address);
-    Logger().i("is in contacts: $isInContacts");
-
-    if (mounted) {
-      setState(() {
-        _isEligible = isSp && !isInContacts;
-        _isCheckingEligible = false;
-      });
+      final isInContacts = knownPaymentCodes.contains(recipient.paymentCode);
+      if (!isInContacts) {
+        setState(() {
+          _isEligible = true;
+          _isCheckingEligible = false;
+        });
+        return;
+      }
     }
+    setState(() {
+      _isEligible = false;
+      _isCheckingEligible = false;
+    });
   }
 
   Future<void> _openAddContactSheet() async {
@@ -72,8 +76,8 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AddContactSheet(
-        initialDanaAddress: form.recipientBip353,
-        initialSpAddress: form.recipientAddress,
+        initialDanaAddress: form.recipient!.bip353Address,
+        initialSpAddress: form.recipient!.paymentCode,
       ),
     );
     if (result == true) {

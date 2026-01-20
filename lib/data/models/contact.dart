@@ -7,14 +7,14 @@ class Contact {
   final String? name; // user defined user name
   final Bip353Address?
       bip353Address; // Eventually register more than one, for now keep it simple
-  final String spAddress; // silent payment address of the contact
+  final String paymentCode; // silent payment address of the contact
   final List<ContactField>? customFields; // Optional custom fields
 
   Contact({
     this.id,
     this.name,
     this.bip353Address,
-    required this.spAddress,
+    required this.paymentCode,
     this.customFields,
   });
 
@@ -23,7 +23,7 @@ class Contact {
       'id': id,
       'name': name,
       'bip353Address': bip353Address?.toString(),
-      'spAddress': spAddress,
+      'spAddress': paymentCode,
     };
   }
 
@@ -35,13 +35,13 @@ class Contact {
       bip353Address: bip353Address != null
           ? Bip353Address.fromString(bip353Address)
           : null,
-      spAddress: map['spAddress'],
+      paymentCode: map['spAddress'],
       customFields: null, // Custom fields loaded separately
     );
   }
 
   String get displayName {
-    return name ?? bip353Address?.toString() ?? spAddress;
+    return name ?? bip353Address?.toString() ?? paymentCode;
   }
 
   String get displayNameInitial {
@@ -50,7 +50,7 @@ class Contact {
 
   Color get avatarColor {
     // Generate a consistent color based on the static payment code
-    final hash = spAddress.hashCode;
+    final hash = paymentCode.hashCode;
     final colors = [
       Colors.blue,
       Colors.green,

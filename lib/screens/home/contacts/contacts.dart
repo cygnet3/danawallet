@@ -113,7 +113,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
     return otherContacts.where((contact) {
       final displayName =
-          (contact.name ?? contact.bip353Address?.toString() ?? contact.spAddress)
+          (contact.name ?? contact.bip353Address?.toString() ?? contact.paymentCode)
               .toLowerCase();
       return displayName.contains(query) ||
           contact.bip353Address != null &&
