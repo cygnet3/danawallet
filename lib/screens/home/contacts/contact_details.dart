@@ -190,7 +190,7 @@ class ContactDetailsScreen extends StatelessWidget {
 
   Future<void> _onSendBitcoin(BuildContext context, Contact contact) async {
     // Use dana address if available, otherwise use SP address
-    Bip353Address? bip353 = contact.danaAddress;
+    Bip353Address? bip353 = contact.bip353Address;
     String spAddress = contact.spAddress;
     final network = Provider.of<ChainState>(context, listen: false).network;
 
@@ -493,23 +493,24 @@ class ContactDetailsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            // Nym in bold
+            // Name in bold
             Text(
-              contact.nym!,
+              contact.name!,
               style: BitcoinTextStyle.body2(Bitcoin.black)
                   .apply(fontWeightDelta: 2),
             ),
             const SizedBox(height: 8),
             // Dana address slightly smaller - tappable to copy
-            if (contact.danaAddress != null)
+            if (contact.bip353Address != null)
               GestureDetector(
-                onTap: () => _copyDanaAddress(contact.danaAddress!.toString()),
+                onTap: () =>
+                    _copyDanaAddress(contact.bip353Address!.toString()),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      contact.danaAddress!.toString(),
+                      contact.bip353Address!.toString(),
                       style: BitcoinTextStyle.body4(Bitcoin.neutral7),
                     ),
                     const SizedBox(width: 8),

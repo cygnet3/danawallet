@@ -24,8 +24,9 @@ class AddContactSheet extends StatefulWidget {
 }
 
 class _AddContactSheetState extends State<AddContactSheet> {
-  final TextEditingController _nymController = TextEditingController();
-  final TextEditingController _danaAddressController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _bip353AddressController =
+      TextEditingController();
   final TextEditingController _spAddressController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isSaving = false;
@@ -37,15 +38,15 @@ class _AddContactSheetState extends State<AddContactSheet> {
   void initState() {
     super.initState();
     if (widget.initialDanaAddress != null) {
-      _danaAddressController.text = widget.initialDanaAddress!.toString();
-      _nymController.text = widget.initialDanaAddress!.username;
+      _bip353AddressController.text = widget.initialDanaAddress!.toString();
+      _nameController.text = widget.initialDanaAddress!.username;
       _hasDanaAddress = true;
     }
     if (widget.initialSpAddress != null) {
       _spAddressController.text = widget.initialSpAddress!;
     }
-    _danaAddressController.addListener(() {
-      final hasDanaAddress = _danaAddressController.text.trim().isNotEmpty;
+    _bip353AddressController.addListener(() {
+      final hasDanaAddress = _bip353AddressController.text.trim().isNotEmpty;
       setState(() {
         _hasDanaAddress = hasDanaAddress;
       });
@@ -67,14 +68,14 @@ class _AddContactSheetState extends State<AddContactSheet> {
 
   @override
   void dispose() {
-    _nymController.dispose();
-    _danaAddressController.dispose();
+    _nameController.dispose();
+    _bip353AddressController.dispose();
     _spAddressController.dispose();
     super.dispose();
   }
 
   Future<String?> _resolveDanaAddress() async {
-    final danaAddressString = _danaAddressController.text.trim();
+    final danaAddressString = _bip353AddressController.text.trim();
     if (danaAddressString.isEmpty) return null;
 
     setState(() {
@@ -124,14 +125,14 @@ class _AddContactSheetState extends State<AddContactSheet> {
       _errorMessage = null;
     });
 
-    final nym = _nymController.text.trim();
-    final danaAddressString = _danaAddressController.text.trim();
+    final name = _nameController.text.trim();
+    final danaAddressString = _bip353AddressController.text.trim();
     String spAddress = _spAddressController.text.trim();
 
-    // Validation: at least dana address OR static address must be filled, and nym must be filled
-    if (nym.isEmpty) {
+    // Validation: at least dana address OR static address must be filled, and name must be filled
+    if (name.isEmpty) {
       setState(() {
-        _errorMessage = 'Nym is required';
+        _errorMessage = 'Name is required';
         _isSaving = false;
       });
       return;
@@ -178,7 +179,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
         spAddress: spAddress,
         danaAddress: danaAddress,
         network: network,
-        nym: nym.isNotEmpty ? nym : null,
+        name: name.isNotEmpty ? name : null,
       );
 
       if (mounted) {
@@ -227,20 +228,20 @@ class _AddContactSheetState extends State<AddContactSheet> {
               style: BitcoinTextStyle.title4(Bitcoin.black),
             ),
             const SizedBox(height: 20),
-            // Nym field
+            // Name field
             TextField(
-              controller: _nymController,
+              controller: _nameController,
               style: BitcoinTextStyle.body4(Bitcoin.black),
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Nym',
+                labelText: 'Name',
                 hintText: 'Contact name',
               ),
             ),
             const SizedBox(height: 16),
             // Dana address field
             TextField(
-              controller: _danaAddressController,
+              controller: _bip353AddressController,
               style: BitcoinTextStyle.body4(Bitcoin.black),
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),

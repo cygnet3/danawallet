@@ -23,9 +23,9 @@ class EditContactSheet extends StatefulWidget {
 }
 
 class _EditContactSheetState extends State<EditContactSheet> {
-  final TextEditingController _nymController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _bip353Controller = TextEditingController();
-  final _nymFocusNode = FocusNode();
+  final _nameFocusNode = FocusNode();
   final _bip353FocusNode = FocusNode();
   final _formKey = GlobalKey<FormState>();
   bool _isUpdating = false;
@@ -34,19 +34,19 @@ class _EditContactSheetState extends State<EditContactSheet> {
   @override
   void initState() {
     super.initState();
-    // nym must be present for existing contacts
-    _nymController.text = widget.contact.nym!;
-    _bip353Controller.text = widget.contact.danaAddress?.toString() ?? '';
-    _nymFocusNode.addListener(_clearError);
+    // name must be present for existing contacts
+    _nameController.text = widget.contact.name!;
+    _bip353Controller.text = widget.contact.bip353Address?.toString() ?? '';
+    _nameFocusNode.addListener(_clearError);
     _bip353FocusNode.addListener(_clearError);
   }
 
   @override
   void dispose() {
     _bip353FocusNode.dispose();
-    _nymFocusNode.dispose();
+    _nameFocusNode.dispose();
     _bip353Controller.dispose();
-    _nymController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -66,17 +66,16 @@ class _EditContactSheetState extends State<EditContactSheet> {
     final contacts = Provider.of<ContactsState>(context, listen: false);
     final network = Provider.of<ChainState>(context, listen: false).network;
 
-    final newNym = _nymController.text.trim();
+    final newName = _nameController.text.trim();
     final newBip353 = _bip353Controller.text.trim();
 
     setState(() {
       _isUpdating = true;
     });
 
-    // Validation: at least dana address OR static address must be filled, and nym must be filled
-    if (newNym.isEmpty) {
+    if (newName.isEmpty) {
       setState(() {
-        _errorMessage = 'Nym is required';
+        _errorMessage = 'Name is required';
         _isUpdating = false;
       });
       return;
@@ -131,8 +130,8 @@ class _EditContactSheetState extends State<EditContactSheet> {
       // Update the contact
       final updatedContact = Contact(
         id: widget.contact.id,
-        nym: newNym,
-        danaAddress: newBip353Parsed,
+        name: newName,
+        bip353Address: newBip353Parsed,
         // these entries don't change
         spAddress: widget.contact.spAddress,
         customFields: widget.contact.customFields,
@@ -224,14 +223,14 @@ class _EditContactSheetState extends State<EditContactSheet> {
               style: BitcoinTextStyle.title4(Bitcoin.black),
             ),
             const SizedBox(height: 20),
-            // Nym field
+            // Name field
             TextField(
-              controller: _nymController,
-              focusNode: _nymFocusNode,
+              controller: _nameController,
+              focusNode: _nameFocusNode,
               style: BitcoinTextStyle.body4(Bitcoin.black),
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Nym',
+                labelText: 'Name',
                 hintText: 'Contact name',
               ),
             ),

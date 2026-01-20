@@ -19,8 +19,8 @@ class ContactsRepository {
     final customFields = await getContactFields(contact.id!);
     return Contact(
       id: contact.id,
-      nym: contact.nym,
-      danaAddress: contact.danaAddress,
+      name: contact.name,
+      bip353Address: contact.bip353Address,
       spAddress: contact.spAddress,
       customFields: customFields,
     );
@@ -62,13 +62,13 @@ class ContactsRepository {
     return contact;
   }
 
-  Future<Contact?> getContactByDanaAddress(String danaAddress,
+  Future<Contact?> getContactByBip353Address(String bip353Address,
       {bool loadCustomFields = false}) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'contacts',
-      where: 'danaAddress = ?',
-      whereArgs: [danaAddress],
+      where: 'bip353Address = ?',
+      whereArgs: [bip353Address],
     );
 
     if (maps.isEmpty) return null;

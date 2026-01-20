@@ -21,9 +21,9 @@ class ContactsState extends ChangeNotifier {
     // Initialize the 'you' contact
     _youContact = Contact(
       id: -1,
-      nym: 'you',
+      name: 'you',
       spAddress: spAddress,
-      danaAddress: danaAddress,
+      bip353Address: danaAddress,
     );
 
     await refreshContacts();
@@ -48,7 +48,7 @@ class ContactsState extends ChangeNotifier {
     required String spAddress,
     required Network network,
     Bip353Address? danaAddress,
-    String? nym,
+    String? name,
   }) async {
     if (spAddress == _youContact!.spAddress) {
       throw Exception("Adding yourself is not allowed");
@@ -70,9 +70,9 @@ class ContactsState extends ChangeNotifier {
 
     // Store and update cached contact list
     final contact = Contact(
-      danaAddress: danaAddress,
+      bip353Address: danaAddress,
       spAddress: spAddress,
-      nym: nym,
+      name: name,
     );
 
     final id = await _repository.insertContact(contact);
@@ -88,14 +88,14 @@ class ContactsState extends ChangeNotifier {
   Set<Bip353Address> getKnownBip353Addresses() {
     Set<Bip353Address> result = {};
     // add your own dana address
-    if (_youContact?.danaAddress != null) {
-      result.add(_youContact!.danaAddress!);
+    if (_youContact?.bip353Address != null) {
+      result.add(_youContact!.bip353Address!);
     }
 
     // add contacts dana address
     for (var contact in _contacts) {
-      if (contact.danaAddress != null) {
-        result.add(contact.danaAddress!);
+      if (contact.bip353Address != null) {
+        result.add(contact.bip353Address!);
       }
     }
     return result;
@@ -122,20 +122,20 @@ class ContactsState extends ChangeNotifier {
   }
 
   /// Creates the appropriate display widget for a given silent payment address, using data from the contact list
-  /// Priority: contact name (nym) > contact dana address > SP address
+  /// Priority: contact name > contact dana address > SP address
   /// note: this may not be the best place to put this function, may be refactored out later
   Widget getDisplayNameWidget(BuildContext context, String spAddress) {
     final Contact? contact =
         _contacts.firstWhereOrNull((contact) => contact.spAddress == spAddress);
 
     if (contact != null) {
-      if (contact.nym != null) {
+      if (contact.name != null) {
         return Text(
-          contact.nym!,
+          contact.name!,
           style: BitcoinTextStyle.body4(Bitcoin.black),
         );
-      } else if (contact.danaAddress != null) {
-        return danaAddressAsRichText(contact.danaAddress!.toString(), 15.0);
+      } else if (contact.bip353Address != null) {
+        return danaAddressAsRichText(contact.bip353Address!.toString(), 15.0);
       } else {
         return Text(
             displayAddress(context, spAddress,
@@ -171,7 +171,7 @@ class ContactsState extends ChangeNotifier {
       throw Exception('Failed to update contact');
     }
 
-    Logger().i('Contact updated successfully: ${contact.danaAddress}');
+    Logger().i('Contact updated successfully: ${contact.bip353Address}');
 
     await refreshContacts();
   }
