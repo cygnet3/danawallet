@@ -21,7 +21,7 @@ class ContactsRepository {
       id: contact.id,
       name: contact.name,
       bip353Address: contact.bip353Address,
-      spAddress: contact.spAddress,
+      paymentCode: contact.paymentCode,
       customFields: customFields,
     );
   }

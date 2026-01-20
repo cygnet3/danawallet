@@ -189,9 +189,9 @@ class ContactDetailsScreen extends StatelessWidget {
   }
 
   Future<void> _onSendBitcoin(BuildContext context, Contact contact) async {
-    // Use dana address if available, otherwise use SP address
+    // If a dana address is present, we must verify it
     Bip353Address? bip353 = contact.bip353Address;
-    String spAddress = contact.spAddress;
+    String spAddress = contact.paymentCode;
     final network = Provider.of<ChainState>(context, listen: false).network;
 
     try {
@@ -219,8 +219,7 @@ class ContactDetailsScreen extends StatelessWidget {
 
       final form = RecipientForm();
       form.reset();
-      form.recipientAddress = spAddress;
-      form.recipientBip353 = bip353;
+      form.recipient = contact;
 
       if (context.mounted) {
         Navigator.push(
@@ -322,7 +321,7 @@ class ContactDetailsScreen extends StatelessWidget {
       BuildContext context, Contact contact) {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final allTransactions = walletState.txHistory.toApiTransactions();
-    final contactSpAddress = contact.spAddress;
+    final contactSpAddress = contact.paymentCode;
 
     // Filter to only outgoing transactions where recipient matches this contact's SP address
     return allTransactions.where((tx) {
@@ -566,13 +565,13 @@ class ContactDetailsScreen extends StatelessWidget {
                           .apply(fontWeightDelta: 1),
                     ),
                     subtitle: Text(
-                      _formatAddress(contact.spAddress),
+                      _formatAddress(contact.paymentCode),
                       style: BitcoinTextStyle.body5(Bitcoin.neutral7),
                     ),
                     trailing:
                         Icon(Icons.chevron_right, color: Bitcoin.neutral7),
                     onTap: () {
-                      _showStaticAddressSheet(context, contact.spAddress);
+                      _showStaticAddressSheet(context, contact.paymentCode);
                     },
                   ),
                   const Divider(),

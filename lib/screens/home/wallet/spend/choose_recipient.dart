@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/bip353_address.dart';
+import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
@@ -26,20 +27,20 @@ class ChooseRecipientScreen extends StatefulWidget {
 }
 
 class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
-  late final TextEditingController addressController;
+  late final TextEditingController textFieldController;
   String? _addressErrorText;
 
   @override
   void initState() {
     super.initState();
-    addressController = TextEditingController(
+    textFieldController = TextEditingController(
       text: widget.initialAddress ?? '',
     );
   }
 
   @override
   void dispose() {
-    addressController.dispose();
+    textFieldController.dispose();
     super.dispose();
   }
 
@@ -54,38 +55,45 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
 
     final network = Provider.of<ChainState>(context, listen: false).network;
     try {
-      String address = addressController.text.trim();
+      Bip353Address? bip353Address;
+      String onchainAddress;
 
-      if (address.contains('@')) {
-        // we interpret the address as a bip353 address
+      String textField = textFieldController.text.trim();
+
+      if (textField.contains('@')) {
+        // we interpret the input as a bip353 address
         try {
-          Logger().d('Resolving dana address: "$address"');
+          Logger().d('Resolving dana address: "$textField"');
 
-          final parsed = Bip353Address.fromString(address);
+          bip353Address = Bip353Address.fromString(textField);
 
-          final resolvedAddress = await Bip353Resolver.resolve(parsed, network);
+          final resolvedAddress =
+              await Bip353Resolver.resolve(bip353Address, network);
 
           if (resolvedAddress == null) {
             // DNS resolution returned null - address not registered
-            Logger().w('Dana address "$address" not found in DNS');
+            Logger().w('Dana address "$textField" not found in DNS');
             throw Exception('Dana address not found or not registered');
           }
 
           // Store the original dana address for the form
-          form.recipientBip353 = parsed;
-          address = resolvedAddress;
+          onchainAddress = resolvedAddress;
 
           Logger().d(
-              'Successfully resolved dana address to SP address: ${address.substring(0, 20)}...');
+              'Successfully resolved dana address to SP address: ${textField.substring(0, 20)}...');
         } catch (e) {
-          displayError('Failed to resolve dana address "$address"', e);
+          displayError('Failed to resolve dana address "$textField"', e);
+          return;
         }
+      } else {
+        // we interpret the input field as an on-chain address
+        onchainAddress = textField;
       }
 
       try {
         if (context.mounted) {
           validateAddressWithNetwork(
-              address: address, network: network.toCoreArg);
+              address: onchainAddress, network: network.toCoreArg);
         }
       } catch (e) {
         if (e.toString().contains('network')) {
@@ -95,7 +103,11 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
         }
       }
 
-      form.recipientAddress = address;
+      // note: in this case, we set the spAddress as a on-chain address.
+      // this means we have to be careful at the end of the send-flow, to not allow users
+      // to add this contact to their contact list, as regular on-chain addresses are not allowed.
+      form.recipient =
+          Contact(bip353Address: bip353Address, paymentCode: onchainAddress);
 
       if (mounted) {
         Navigator.push(
@@ -113,7 +125,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
   Future<void> onPasteFromClipboard() async {
     ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
     if (data != null) {
-      addressController.text = data.text ?? '';
+      textFieldController.text = data.text ?? '';
       await onContinue();
     }
   }
@@ -126,7 +138,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
       ),
     );
     if (result is String && result != "") {
-      addressController.text = result;
+      textFieldController.text = result;
       await onContinue();
     }
   }
@@ -151,7 +163,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   TextField(
                     onTap: () => setState(() => _addressErrorText = null),
                     style: BitcoinTextStyle.body4(Bitcoin.black),
-                    controller: addressController,
+                    controller: textFieldController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),

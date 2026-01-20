@@ -52,23 +52,23 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
 
   @override
   Widget build(BuildContext context) {
-    RecipientForm recipient = RecipientForm();
+    RecipientForm form = RecipientForm();
 
-    String displayRecipient;
     TextStyle displayRecipientStyle = BitcoinTextStyle.title5(Bitcoin.neutral8);
-    if (recipient.recipientBip353 != null) {
-      displayRecipient = recipient.recipientBip353!.toString();
-    } else {
+
+    String displayRecipient = form.recipient!.displayName;
+
+    // format on-chain addresses nicely
+    if (displayRecipient == form.recipient!.paymentCode) {
       displayRecipient = displayAddress(
-          context, recipient.recipientAddress!, displayRecipientStyle, 0.85);
+          context, displayRecipient, displayRecipientStyle, 0.85);
     }
 
-    String displayAmount = recipient.amount!.displayBtc();
+    String displayAmount = form.amount!.displayBtc();
 
-    String displayArrivalTime = recipient.selectedFee!.toEstimatedTime;
+    String displayArrivalTime = form.selectedFee!.toEstimatedTime;
 
-    String displayEstimatedFee =
-        recipient.unsignedTx!.getFeeAmount().displayBtc();
+    String displayEstimatedFee = form.unsignedTx!.getFeeAmount().displayBtc();
 
     return SpendSkeleton(
         showBackButton: true,

@@ -22,7 +22,7 @@ class ContactsState extends ChangeNotifier {
     _youContact = Contact(
       id: -1,
       name: 'you',
-      spAddress: spAddress,
+      paymentCode: spAddress,
       bip353Address: danaAddress,
     );
 
@@ -50,7 +50,7 @@ class ContactsState extends ChangeNotifier {
     Bip353Address? danaAddress,
     String? name,
   }) async {
-    if (spAddress == _youContact!.spAddress) {
+    if (spAddress == _youContact!.paymentCode) {
       throw Exception("Adding yourself is not allowed");
     }
     // First check for duplicates
@@ -71,7 +71,7 @@ class ContactsState extends ChangeNotifier {
     // Store and update cached contact list
     final contact = Contact(
       bip353Address: danaAddress,
-      spAddress: spAddress,
+      paymentCode: spAddress,
       name: name,
     );
 
@@ -101,14 +101,14 @@ class ContactsState extends ChangeNotifier {
     return result;
   }
 
-  Set<String> getKnownSpAddresses() {
+  Set<String> getKnownPaymentCodes() {
     Set<String> result = {};
-    // add your own address
-    result.add(_youContact!.spAddress);
+    // add your own payment code
+    result.add(_youContact!.paymentCode);
 
-    // add contacts sp-addresses
+    // add contacts payment codes
     for (var contact in _contacts) {
-      result.add(contact.spAddress);
+      result.add(contact.paymentCode);
     }
     return result;
   }
@@ -125,8 +125,8 @@ class ContactsState extends ChangeNotifier {
   /// Priority: contact name > contact dana address > SP address
   /// note: this may not be the best place to put this function, may be refactored out later
   Widget getDisplayNameWidget(BuildContext context, String spAddress) {
-    final Contact? contact =
-        _contacts.firstWhereOrNull((contact) => contact.spAddress == spAddress);
+    final Contact? contact = _contacts
+        .firstWhereOrNull((contact) => contact.paymentCode == spAddress);
 
     if (contact != null) {
       if (contact.name != null) {
@@ -290,11 +290,11 @@ class ContactsState extends ChangeNotifier {
   }
 
   Contact? getContactBySpAddress(String spAddress) {
-    if (spAddress == _youContact!.spAddress) {
+    if (spAddress == _youContact!.paymentCode) {
       return _youContact;
     } else {
       return _contacts
-          .firstWhereOrNull((contact) => contact.spAddress == spAddress);
+          .firstWhereOrNull((contact) => contact.paymentCode == spAddress);
     }
   }
 

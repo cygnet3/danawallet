@@ -199,26 +199,26 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<ApiSilentPaymentUnsignedTransaction> createUnsignedTxToThisRecipient(
-      RecipientFormFilled recipient) async {
+      RecipientFormFilled form) async {
     final wallet = await getWalletFromSecureStorage();
 
     final unspentOutputs = ownedOutputs.getUnspentOutputs();
     final bitcoinNetwork = network.toCoreArg;
 
-    if (recipient.amount.field0 < amount.field0 - BigInt.from(546)) {
+    if (form.amount.field0 < amount.field0 - BigInt.from(546)) {
       return wallet.createNewTransaction(
           apiOutputs: unspentOutputs,
           apiRecipients: [
             ApiRecipient(
-                address: recipient.recipientAddress, amount: recipient.amount)
+                address: form.recipient.paymentCode, amount: form.amount)
           ],
-          feerate: recipient.feerate.toDouble(),
+          feerate: form.feerate.toDouble(),
           network: bitcoinNetwork);
     } else {
       return wallet.createDrainTransaction(
           apiOutputs: unspentOutputs,
-          wipeAddress: recipient.recipientAddress,
-          feerate: recipient.feerate.toDouble(),
+          wipeAddress: form.recipient.paymentCode,
+          feerate: form.feerate.toDouble(),
           network: bitcoinNetwork);
     }
   }
