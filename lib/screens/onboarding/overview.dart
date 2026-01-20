@@ -11,6 +11,7 @@ import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -33,6 +34,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     try {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final chainState = Provider.of<ChainState>(context, listen: false);
+      final contactsState = Provider.of<ContactsState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
       final encryptedBackup = await BackupService.getEncryptedBackupFromFile();
@@ -65,6 +67,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
           final goToDanaAddressSetup =
               await walletState.checkDanaAddressRegistrationNeeded();
+
+          // initialize contacts state using restored wallet state
+          contactsState.initialize(
+              walletState.receivePaymentCode, walletState.danaAddress);
+
           if (context.mounted) {
             Widget nextScreen = goToDanaAddressSetup
                 ? const DanaAddressSetupScreen()
