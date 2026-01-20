@@ -109,7 +109,7 @@ class _EditContactSheetState extends State<EditContactSheet> {
             });
             return;
           }
-          // updated bip353 address *must* point to same underlying spAddress
+          // updated bip353 address *must* point to same underlying payment code
           else if (resolved != widget.contact.paymentCode) {
             setState(() {
               _isUpdating = false;

@@ -83,7 +83,7 @@ void main() async {
     } else {
       // initialize contacts state with our receive & dana address, so that we can create the self contact
       contactsState.initialize(
-          walletState.receiveAddress, walletState.danaAddress);
+          walletState.receivePaymentCode, walletState.danaAddress);
       landingPage = const PinGuard();
     }
   } else {

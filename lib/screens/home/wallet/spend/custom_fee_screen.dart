@@ -87,7 +87,7 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
     RecipientForm().selectedFee = SelectedFee.custom;
 
     final walletState = Provider.of<WalletState>(context, listen: false);
-    final changeAddress = walletState.changeAddress;
+    final changeAddress = walletState.changePaymentCode;
     RecipientForm form = RecipientForm();
 
     RecipientFormFilled filled = form.toFilled();

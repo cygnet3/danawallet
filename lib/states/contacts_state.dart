@@ -3,7 +3,6 @@ import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/data/models/contact_field.dart';
-import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/contacts_repository.dart';
@@ -19,12 +18,13 @@ class ContactsState extends ChangeNotifier {
 
   ContactsState();
 
-  Future<void> initialize(String spAddress, Bip353Address? danaAddress) async {
+  Future<void> initialize(
+      String paymentCode, Bip353Address? danaAddress) async {
     // Initialize the 'you' contact
     _youContact = Contact(
       id: -1,
       name: 'you',
-      paymentCode: spAddress,
+      paymentCode: paymentCode,
       bip353Address: danaAddress,
     );
 
@@ -56,7 +56,7 @@ class ContactsState extends ChangeNotifier {
       throw Exception("Adding yourself is not allowed");
     }
     // First check for duplicates
-    final existing = await _repository.getContactBySpAddress(paymentCode);
+    final existing = await _repository.getContactByPaymentCode(paymentCode);
     if (existing != null) {
       throw Exception('Contact with sp address $paymentCode already exists');
     }
@@ -64,7 +64,7 @@ class ContactsState extends ChangeNotifier {
     // Resolve the SP address via DNS
     // Verify that the address is correct
     if (danaAddress != null) {
-      if (!await Bip353Resolver.verifyAddress(
+      if (!await Bip353Resolver.verifyPaymentCode(
           danaAddress, paymentCode, network)) {
         throw Exception("Dana address does not point to expected sp address");
       }
@@ -73,6 +73,10 @@ class ContactsState extends ChangeNotifier {
     // verify that the payment code is valid
     validateAddressWithNetwork(
         address: paymentCode, network: network.toCoreArg);
+
+    if (!isReusablePaymentCode(address: paymentCode)) {
+      throw Exception("Non-reusable payment info not allowed");
+    }
 
     // Store and update cached contact list
     final contact = Contact(
@@ -130,9 +134,9 @@ class ContactsState extends ChangeNotifier {
   /// Creates the appropriate display widget for a given silent payment address, using data from the contact list
   /// Priority: contact name > contact dana address > SP address
   /// note: this may not be the best place to put this function, may be refactored out later
-  Widget getDisplayNameWidget(BuildContext context, String spAddress) {
+  Widget getDisplayNameWidget(BuildContext context, String paymentCode) {
     final Contact? contact = _contacts
-        .firstWhereOrNull((contact) => contact.paymentCode == spAddress);
+        .firstWhereOrNull((contact) => contact.paymentCode == paymentCode);
 
     if (contact != null) {
       if (contact.name != null) {
@@ -144,14 +148,14 @@ class ContactsState extends ChangeNotifier {
         return danaAddressAsRichText(contact.bip353Address!.toString(), 15.0);
       } else {
         return Text(
-            displayAddress(context, spAddress,
+            displayAddress(context, paymentCode,
                 BitcoinTextStyle.body4(Bitcoin.black), 0.53),
             style: BitcoinTextStyle.body4(Bitcoin.black));
       }
     } else {
       return Text(
         displayAddress(
-            context, spAddress, BitcoinTextStyle.body4(Bitcoin.black), 0.53),
+            context, paymentCode, BitcoinTextStyle.body4(Bitcoin.black), 0.53),
         style: BitcoinTextStyle.body4(Bitcoin.black),
       );
     }
@@ -295,12 +299,12 @@ class ContactsState extends ChangeNotifier {
     }
   }
 
-  Contact? getContactBySpAddress(String spAddress) {
-    if (spAddress == _youContact!.paymentCode) {
+  Contact? getContactByPaymentCode(String paymentCode) {
+    if (paymentCode == _youContact!.paymentCode) {
       return _youContact;
     } else {
       return _contacts
-          .firstWhereOrNull((contact) => contact.paymentCode == spAddress);
+          .firstWhereOrNull((contact) => contact.paymentCode == paymentCode);
     }
   }
 

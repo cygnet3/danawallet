@@ -54,14 +54,14 @@ class NameServerRepository {
   /// Returns [NameServerRegisterResponse] with the created address or error details
   Future<Bip353Address> registerDanaAddress({
     required Bip353Address danaAddress,
-    required String spAddress,
+    required String paymentCode,
     required String requestId,
   }) async {
     final request = NameServerRegisterRequest(
       id: requestId,
       userName: danaAddress.username,
       domain: danaAddress.domain,
-      spAddress: spAddress,
+      spAddress: paymentCode,
     );
 
     Logger().d(

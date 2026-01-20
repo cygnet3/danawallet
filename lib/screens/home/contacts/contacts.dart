@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
-import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
 import 'package:danawallet/screens/home/contacts/contact_details.dart';
@@ -112,9 +111,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
     }
 
     return otherContacts.where((contact) {
-      final displayName =
-          (contact.name ?? contact.bip353Address?.toString() ?? contact.paymentCode)
-              .toLowerCase();
+      final displayName = (contact.name ??
+              contact.bip353Address?.toString() ??
+              contact.paymentCode)
+          .toLowerCase();
       return displayName.contains(query) ||
           contact.bip353Address != null &&
               contact.bip353Address!.toString().toLowerCase().contains(query);
@@ -177,13 +177,13 @@ class _ContactsScreenState extends State<ContactsScreen> {
       ),
       onTap: () async {
         // Resolve SP address and open add contact sheet
-        String? spAddress;
+        String? paymentCode;
         try {
           final network =
               Provider.of<ChainState>(context, listen: false).network;
           final resolved = await Bip353Resolver.resolve(danaAddress, network);
           if (resolved != null) {
-            spAddress = resolved;
+            paymentCode = resolved;
           }
         } catch (e) {
           Logger().w('Failed to resolve SP address for $danaAddress: $e');
@@ -196,7 +196,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             backgroundColor: Colors.transparent,
             builder: (context) => AddContactSheet(
               initialDanaAddress: danaAddress,
-              initialSpAddress: spAddress,
+              initialPaymentCode: paymentCode,
             ),
           );
 

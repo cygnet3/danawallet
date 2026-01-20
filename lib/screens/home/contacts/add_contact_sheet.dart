@@ -11,12 +11,12 @@ import 'package:provider/provider.dart';
 
 class AddContactSheet extends StatefulWidget {
   final Bip353Address? initialDanaAddress;
-  final String? initialSpAddress;
+  final String? initialPaymentCode;
 
   const AddContactSheet({
     super.key,
     this.initialDanaAddress,
-    this.initialSpAddress,
+    this.initialPaymentCode,
   });
 
   @override
@@ -27,7 +27,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _bip353AddressController =
       TextEditingController();
-  final TextEditingController _spAddressController = TextEditingController();
+  final TextEditingController _paymentCodeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isSaving = false;
   bool _isResolving = false;
@@ -42,8 +42,8 @@ class _AddContactSheetState extends State<AddContactSheet> {
       _nameController.text = widget.initialDanaAddress!.username;
       _hasDanaAddress = true;
     }
-    if (widget.initialSpAddress != null) {
-      _spAddressController.text = widget.initialSpAddress!;
+    if (widget.initialPaymentCode != null) {
+      _paymentCodeController.text = widget.initialPaymentCode!;
     }
     _bip353AddressController.addListener(() {
       final hasDanaAddress = _bip353AddressController.text.trim().isNotEmpty;
@@ -53,13 +53,14 @@ class _AddContactSheetState extends State<AddContactSheet> {
 
       // If dana address is filled, clear SP address field
       if (hasDanaAddress) {
-        _spAddressController.clear();
+        _paymentCodeController.clear();
       }
     });
 
     // Automatically resolve SP address if dana address is provided but SP address is not
     if (widget.initialDanaAddress != null &&
-        (widget.initialSpAddress == null || widget.initialSpAddress!.isEmpty)) {
+        (widget.initialPaymentCode == null ||
+            widget.initialPaymentCode!.isEmpty)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _resolveDanaAddress();
       });
@@ -70,7 +71,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
   void dispose() {
     _nameController.dispose();
     _bip353AddressController.dispose();
-    _spAddressController.dispose();
+    _paymentCodeController.dispose();
     super.dispose();
   }
 
@@ -90,7 +91,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
 
       if (mounted && resolved != null) {
         setState(() {
-          _spAddressController.text = resolved;
+          _paymentCodeController.text = resolved;
           _isResolving = false;
         });
         return resolved;
@@ -127,7 +128,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
 
     final name = _nameController.text.trim();
     final danaAddressString = _bip353AddressController.text.trim();
-    String spAddress = _spAddressController.text.trim();
+    String paymentCode = _paymentCodeController.text.trim();
 
     // Validation: at least dana address OR static address must be filled, and name must be filled
     if (name.isEmpty) {
@@ -150,7 +151,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
       }
     }
 
-    if (danaAddress == null && spAddress.isEmpty) {
+    if (danaAddress == null && paymentCode.isEmpty) {
       setState(() {
         _errorMessage =
             'Either dana address or static address must be provided';
@@ -159,7 +160,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
     }
 
     // user filled in a dana address, but did not press search
-    if (danaAddress != null && spAddress.isEmpty) {
+    if (danaAddress != null && paymentCode.isEmpty) {
       final resolved = await _resolveDanaAddress();
       if (resolved == null) {
         setState(() {
@@ -167,7 +168,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
         });
         return;
       }
-      spAddress = resolved;
+      paymentCode = resolved;
       // show the user that we've resolved the sp-address
       await Future.delayed(const Duration(milliseconds: 200));
     }
@@ -176,7 +177,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
       final network = walletState.network;
 
       await contactsState.addContact(
-        paymentCode: spAddress,
+        paymentCode: paymentCode,
         danaAddress: danaAddress,
         network: network,
         name: name.isNotEmpty ? name : null,
@@ -259,7 +260,7 @@ class _AddContactSheetState extends State<AddContactSheet> {
             const SizedBox(height: 16),
             // Static address field
             TextField(
-              controller: _spAddressController,
+              controller: _paymentCodeController,
               style: BitcoinTextStyle.body4(
                 (_hasDanaAddress || _isResolving)
                     ? Bitcoin.neutral6

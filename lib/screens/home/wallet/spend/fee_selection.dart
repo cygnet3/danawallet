@@ -82,7 +82,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     RecipientForm().selectedFee = _selected;
 
     final walletState = Provider.of<WalletState>(context, listen: false);
-    final changeAddress = walletState.changeAddress;
+    final changeAddress = walletState.changePaymentCode;
     RecipientForm form = RecipientForm();
 
     RecipientFormFilled filled = form.toFilled();

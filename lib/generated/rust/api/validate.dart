@@ -11,5 +11,5 @@ void validateAddressWithNetwork(
     RustLib.instance.api.crateApiValidateValidateAddressWithNetwork(
         address: address, network: network);
 
-bool isSpAddress({required String address}) =>
-    RustLib.instance.api.crateApiValidateIsSpAddress(address: address);
+bool isReusablePaymentCode({required String address}) => RustLib.instance.api
+    .crateApiValidateIsReusablePaymentCode(address: address);
