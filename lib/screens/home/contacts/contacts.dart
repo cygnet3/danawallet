@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
 import 'package:danawallet/screens/home/contacts/contact_details.dart';
@@ -120,66 +121,41 @@ class _ContactsScreenState extends State<ContactsScreen> {
     }).toList();
   }
 
-  String _getDisplayName(Contact contact) {
-    return contact.nym ?? contact.danaAddress?.toString() ?? contact.spAddress;
-  }
-
-  String _getInitial(String name) {
-    if (name.isEmpty) return '?';
-    return name[0].toUpperCase();
-  }
-
-  Color _getAvatarColor(String name) {
-    // Generate a consistent color based on the name
-    final hash = name.hashCode;
-    final colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.red,
-      Colors.teal,
-      Colors.pink,
-      Colors.indigo,
-      Colors.cyan,
-      Colors.amber,
-    ];
-    return colors[hash.abs() % colors.length];
-  }
-
-  Widget _buildContactItem(Contact contact) {
-    final displayName = _getDisplayName(contact);
-    final initial = _getInitial(displayName);
-    final avatarColor = _getAvatarColor(displayName);
-
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 24,
-        backgroundColor: avatarColor,
-        child: Text(
-          initial,
-          style:
-              BitcoinTextStyle.body3(Bitcoin.white).apply(fontWeightDelta: 2),
-        ),
+  void _onTapContact(BuildContext context, Contact contact) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ContactDetailsScreen(contactId: contact.id!),
       ),
-      title: Text(
-        displayName,
-        style: BitcoinTextStyle.body3(Bitcoin.black).apply(fontWeightDelta: 2),
-      ),
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ContactDetailsScreen(contact: contact),
-          ),
-        );
-      },
     );
   }
 
+  Widget _buildContactItem(Contact contact) {
+    final displayName = contact.displayName;
+    final initial = contact.displayNameInitial;
+    final avatarColor = contact.avatarColor;
+
+    return ListTile(
+        leading: CircleAvatar(
+          radius: 24,
+          backgroundColor: avatarColor,
+          child: Text(
+            initial,
+            style:
+                BitcoinTextStyle.body3(Bitcoin.white).apply(fontWeightDelta: 2),
+          ),
+        ),
+        title: Text(
+          displayName,
+          style:
+              BitcoinTextStyle.body3(Bitcoin.black).apply(fontWeightDelta: 2),
+        ),
+        onTap: () => _onTapContact(context, contact));
+  }
+
   Widget _buildRemoteAddressItem(Bip353Address danaAddress) {
-    final initial = _getInitial(danaAddress.toString());
-    final avatarColor = _getAvatarColor(danaAddress.toString());
+    final initial = danaAddress.toString()[0].toUpperCase();
+    const avatarColor = Colors.grey;
 
     return ListTile(
       leading: CircleAvatar(

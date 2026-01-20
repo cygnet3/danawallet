@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/contact.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/contacts_state.dart';
@@ -11,12 +12,10 @@ import 'package:provider/provider.dart';
 
 class EditContactSheet extends StatefulWidget {
   final Contact contact;
-  final VoidCallback onContactUpdated;
 
   const EditContactSheet({
     super.key,
     required this.contact,
-    required this.onContactUpdated,
   });
 
   @override
@@ -158,15 +157,13 @@ class _EditContactSheetState extends State<EditContactSheet> {
   Future<void> _deleteContact() async {
     if (widget.contact.id == null) return;
 
-    final contacts = Provider.of<ContactsState>(context, listen: false);
-
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Contact'),
         content: Text(
-            'Are you sure you want to delete "${widget.contact.nym ?? widget.contact.danaAddress}"? This action cannot be undone.'),
+            'Are you sure you want to delete "${widget.contact.displayName}"? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -180,24 +177,17 @@ class _EditContactSheetState extends State<EditContactSheet> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       try {
+        final contacts = Provider.of<ContactsState>(context, listen: false);
         await contacts.deleteContact(widget.contact.id!);
-        if (mounted) {
-          // pop twice to get out of the contact details screen
-          Navigator.pop(context);
-          Navigator.pop(context);
-        }
       } catch (e) {
-        Logger().e('Failed to delete contact: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to delete contact: $e'),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
+        displayError("Failed to delete contact", e);
+      }
+
+      if (mounted) {
+        // contact deleted, go to home screen
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     }
   }

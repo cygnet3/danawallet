@@ -102,7 +102,7 @@ class ContactsRepository {
     return contact;
   }
 
-  Future<List<Contact>> getAllContacts({bool loadCustomFields = false}) async {
+  Future<List<Contact>> getAllContacts({required bool loadCustomFields}) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
       'contacts',
