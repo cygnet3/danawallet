@@ -176,12 +176,12 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
             const SizedBox(
               height: 10.0,
             ),
-          if (!_isCheckingEligible && _isEligible!)
+          if (!_isCheckingEligible && _isEligible)
             FooterButtonOutlined(
               title: 'Add to contact',
               onPressed: _openAddContactSheet,
             ),
-          if (!_isCheckingEligible && _isEligible!)
+          if (!_isCheckingEligible && _isEligible)
             const SizedBox(
               height: 10.0,
             ),
