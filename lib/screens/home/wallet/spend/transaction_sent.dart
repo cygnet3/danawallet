@@ -1,17 +1,94 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
-import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/generated/rust/api/validate.dart';
+import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class TransactionSentScreen extends StatelessWidget {
-  const TransactionSentScreen({super.key});
+class TransactionSentScreen extends StatefulWidget {
+  final String txid;
+  final Network network;
+
+  const TransactionSentScreen({
+    super.key,
+    required this.txid,
+    required this.network,
+  });
+
+  @override
+  State<TransactionSentScreen> createState() => _TransactionSentScreenState();
+}
+
+class _TransactionSentScreenState extends State<TransactionSentScreen> {
+  bool _isEligible = false;
+  bool _isCheckingEligible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkEligibleToSaveContact();
+  }
+
+  Future<void> _checkEligibleToSaveContact() async {
+    final form = RecipientForm();
+    final contacts = Provider.of<ContactsState>(context, listen: false);
+
+    final recipient = form.recipient!;
+
+    // only reusable payment codes (sp-addresses) are eligible
+    final isReusable = isReusablePaymentCode(address: recipient.paymentCode);
+    if (isReusable) {
+      // We check by (reusable) payment codes instead of dana address.
+      // This is important in the following case:
+      // A user has 2 domains pointing to the same underlying payment code
+      // aaa@domain and bbb@domain
+      // If we already have aaa@domain in our contact list,
+      // and we send to bbb@domain, we should still recognize that
+      // we already have this recipient in our contact list.
+      final knownPaymentCodes = contacts.getKnownPaymentCodes();
+
+      final isInContacts = knownPaymentCodes.contains(recipient.paymentCode);
+      if (!isInContacts) {
+        setState(() {
+          _isEligible = true;
+          _isCheckingEligible = false;
+        });
+        return;
+      }
+    }
+    setState(() {
+      _isEligible = false;
+      _isCheckingEligible = false;
+    });
+  }
+
+  Future<void> _openAddContactSheet() async {
+    final form = RecipientForm();
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddContactSheet(
+        initialDanaAddress: form.recipient!.bip353Address,
+        initialPaymentCode: form.recipient!.paymentCode,
+      ),
+    );
+    if (result == true) {
+      setState(() {
+        _isEligible = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    String estimatedTime = RecipientForm().fee!.toEstimatedTime;
+    String estimatedTime = RecipientForm().selectedFee!.toEstimatedTime;
 
     return SpendSkeleton(
       showBackButton: false,
@@ -52,6 +129,61 @@ class TransactionSentScreen extends StatelessWidget {
           ]),
       footer: Column(
         children: [
+          if (widget.network != Network.regtest)
+            FooterButtonOutlined(
+              title: 'View in block explorer',
+              onPressed: () async {
+                try {
+                  String baseUrl;
+                  switch (widget.network) {
+                    case Network.mainnet:
+                      baseUrl = 'https://mempool.space';
+                      break;
+                    case Network.testnet:
+                      baseUrl = 'https://mempool.space/testnet';
+                      break;
+                    case Network.signet:
+                      baseUrl = 'https://mempool.space/signet';
+                      break;
+                    case Network.regtest:
+                      return; // Should not reach here due to if condition
+                  }
+                  final url = Uri.parse('$baseUrl/tx/${widget.txid}');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  } else {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Unable to open block explorer'),
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to open block explorer: $e'),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          if (widget.network != Network.regtest)
+            const SizedBox(
+              height: 10.0,
+            ),
+          if (!_isCheckingEligible && _isEligible)
+            FooterButtonOutlined(
+              title: 'Add to contact',
+              onPressed: _openAddContactSheet,
+            ),
+          if (!_isCheckingEligible && _isEligible)
+            const SizedBox(
+              height: 10.0,
+            ),
           FooterButton(
               title: 'Done',
               onPressed: () {

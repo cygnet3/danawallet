@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
@@ -11,6 +12,8 @@ import 'package:danawallet/generated/rust/api/wallet/setup.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/repositories/wallet_repository.dart';
+import 'package:danawallet/services/bip353_resolver.dart';
+import 'package:danawallet/services/dana_address_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -19,8 +22,8 @@ class WalletState extends ChangeNotifier {
 
   // variables that never change (unless wallet is reset)
   late Network network;
-  late String address;
-  late String changeAddress;
+  late String receivePaymentCode;
+  late String changePaymentCode;
   late int birthday;
 
   // variables that change
@@ -29,6 +32,9 @@ class WalletState extends ChangeNotifier {
   late int lastScan;
   late TxHistory txHistory;
   late OwnedOutputs ownedOutputs;
+
+  // this variable may change in some exceptional cases
+  Bip353Address? danaAddress;
 
   // stream to receive updates while scanning
   late StreamSubscription scanResultSubscription;
@@ -46,7 +52,7 @@ class WalletState extends ChangeNotifier {
     scanResultSubscription = createScanResultStream().listen(((event) async {
       // process update
       lastScan = event.getHeight();
-      txHistory.processStateUpdate(update: event);
+      txHistory.processStateUpdate(update: event, ownedOutputs: ownedOutputs);
       ownedOutputs.processStateUpdate(update: event);
 
       // save updates to storage
@@ -70,6 +76,7 @@ class WalletState extends ChangeNotifier {
     }
 
     network = await walletRepository.readNetwork();
+    danaAddress = await walletRepository.readDanaAddress();
 
     // We try to load the wallet data blob.
     // This may fail if we make a change to the wallet data struct.
@@ -77,8 +84,8 @@ class WalletState extends ChangeNotifier {
     // If we continue, we risk the user accidentally
     // deleting their seed phrase.
     try {
-      address = wallet.getReceivingAddress();
-      changeAddress = wallet.getChangeAddress();
+      receivePaymentCode = wallet.getReceivingAddress();
+      changePaymentCode = wallet.getChangeAddress();
       birthday = wallet.getBirthday();
 
       await _updateWalletState();
@@ -96,6 +103,7 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> reset() async {
+    danaAddress = null;
     await walletRepository.reset();
   }
 
@@ -105,14 +113,14 @@ class WalletState extends ChangeNotifier {
 
     final args = WalletSetupArgs(
         setupType: WalletSetupType.mnemonic(mnemonic),
-        network: network.toBitcoinNetwork);
+        network: network.toCoreArg);
     final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
         await walletRepository.setupWallet(setupResult, network, birthday);
 
     // fill current state variables
-    address = wallet.getReceivingAddress();
-    changeAddress = wallet.getChangeAddress();
+    receivePaymentCode = wallet.getReceivingAddress();
+    changePaymentCode = wallet.getChangeAddress();
     this.birthday = wallet.getBirthday();
     this.network = network;
     await _updateWalletState();
@@ -123,14 +131,14 @@ class WalletState extends ChangeNotifier {
 
     final args = WalletSetupArgs(
         setupType: const WalletSetupType.newWallet(),
-        network: network.toBitcoinNetwork);
+        network: network.toCoreArg);
     final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
         await walletRepository.setupWallet(setupResult, network, birthday);
 
     // fill current state variables
-    address = wallet.getReceivingAddress();
-    changeAddress = wallet.getChangeAddress();
+    receivePaymentCode = wallet.getReceivingAddress();
+    changePaymentCode = wallet.getChangeAddress();
     this.birthday = wallet.getBirthday();
     this.network = network;
     await _updateWalletState();
@@ -191,31 +199,31 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<ApiSilentPaymentUnsignedTransaction> createUnsignedTxToThisRecipient(
-      RecipientFormFilled recipient) async {
+      RecipientFormFilled form) async {
     final wallet = await getWalletFromSecureStorage();
 
     final unspentOutputs = ownedOutputs.getUnspentOutputs();
-    final bitcoinNetwork = network.toBitcoinNetwork;
+    final bitcoinNetwork = network.toCoreArg;
 
-    if (recipient.amount.field0 < amount.field0 - BigInt.from(546)) {
+    if (form.amount.field0 < amount.field0 - BigInt.from(546)) {
       return wallet.createNewTransaction(
           apiOutputs: unspentOutputs,
           apiRecipients: [
             ApiRecipient(
-                address: recipient.recipientAddress, amount: recipient.amount)
+                address: form.recipient.paymentCode, amount: form.amount)
           ],
-          feerate: recipient.feerate.toDouble(),
+          feerate: form.feerate.toDouble(),
           network: bitcoinNetwork);
     } else {
       return wallet.createDrainTransaction(
           apiOutputs: unspentOutputs,
-          wipeAddress: recipient.recipientAddress,
-          feerate: recipient.feerate.toDouble(),
+          wipeAddress: form.recipient.paymentCode,
+          feerate: form.feerate.toDouble(),
           network: bitcoinNetwork);
     }
   }
 
-  Future<void> signAndBroadcastUnsignedTx(
+  Future<String> signAndBroadcastUnsignedTx(
       ApiSilentPaymentUnsignedTransaction unsignedTx) async {
     final selectedOutputs = unsignedTx.selectedUtxos;
 
@@ -223,11 +231,11 @@ class WalletState extends ChangeNotifier {
         selectedOutputs.map((tuple) => tuple.$1).toList();
 
     final changeValue =
-        unsignedTx.getChangeAmount(changeAddress: changeAddress);
+        unsignedTx.getChangeAmount(changeAddress: changePaymentCode);
 
     final feeAmount = unsignedTx.getFeeAmount();
 
-    final recipients = unsignedTx.getRecipients(changeAddress: changeAddress);
+    final recipients = unsignedTx.getRecipients(changeAddress: changePaymentCode);
 
     final finalizedTx =
         SpWallet.finalizeTransaction(unsignedTransaction: unsignedTx);
@@ -236,17 +244,28 @@ class WalletState extends ChangeNotifier {
 
     final signedTx = wallet.signTransaction(unsignedTransaction: finalizedTx);
 
+    Logger().d("signed tx: $signedTx");
+
     String txid;
     try {
-      if (unsignedTx.network == Network.regtest.toBitcoinNetwork) {
-        // if we are currently on regtest, it's not possible to use our normal broadcasting flow
-        // instead, we will forward the transaction to blindbit
-        final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
-        txid = await SpWallet.broadcastUsingBlindbit(
-            blindbitUrl: blindbitUrl!, tx: signedTx);
-      } else {
-        txid = await SpWallet.broadcastTx(
-            tx: signedTx, network: network.toBitcoinNetwork);
+      switch (network) {
+        case Network.mainnet:
+          txid = await SpWallet.broadcastTx(
+              tx: signedTx, network: network.toCoreArg);
+          break;
+        case Network.signet:
+          txid = await MempoolApiRepository(network: network)
+              .postTransaction(signedTx);
+          break;
+        case Network.regtest:
+          final blindbitUrl =
+              await SettingsRepository.instance.getBlindbitUrl() ??
+                  Network.regtest.defaultBlindbitUrl;
+          txid = await SpWallet.broadcastUsingBlindbit(
+              blindbitUrl: blindbitUrl, tx: signedTx);
+          break;
+        default:
+          throw Exception("Unsupported network");
       }
     } catch (e) {
       Logger().e('Failed to broadcast transaction: $e');
@@ -271,6 +290,95 @@ class WalletState extends ChangeNotifier {
     await _updateWalletState();
     notifyListeners();
 
-    return;
+    return txid;
+  }
+
+  Future<String?> createSuggestedUsername() async {
+    // Generate an available dana address (without registering yet)
+    return await DanaAddressService(network: network)
+        .generateAvailableDanaAddress(
+      paymentCode: receivePaymentCode,
+      maxRetries: 5,
+    );
+  }
+
+  Future<void> registerDanaAddress(String username) async {
+    if (danaAddress != null) {
+      throw Exception("Dana address already known");
+    }
+
+    Logger().i('Registering dana address with username: $username');
+    final registeredAddress = await DanaAddressService(network: network)
+        .registerUser(username: username, paymentCode: receivePaymentCode);
+
+    // Registration successful
+    Logger().i('Registration successful: $registeredAddress');
+
+    // store registed address
+    danaAddress = registeredAddress;
+
+    // Persist the dana address to storage
+    await walletRepository.saveDanaAddress(registeredAddress);
+  }
+
+  // Return value indicates whether the caller should be directed to the dana registration screen
+  Future<bool> checkDanaAddressRegistrationNeeded() async {
+    // regtest networks have no dana address support
+    if (network == Network.regtest) {
+      danaAddress = null;
+      return false;
+    }
+
+    // load dana address from storage
+    danaAddress = await walletRepository.readDanaAddress();
+
+    // if a stored dana address was present, verify if it's still valid
+    if (danaAddress != null) {
+      try {
+        final verified = await Bip353Resolver.verifyPaymentCode(
+            danaAddress!, receivePaymentCode, network);
+
+        if (verified) {
+          // we have a stored address and it's valid, no need to register
+          Logger().i("Stored dana address is valid");
+          return false;
+        } else {
+          Logger()
+              .w("Dana address is not pointing to out sp address, removing");
+          danaAddress = null;
+          // note: because we haven't found a valid address in memory, we don't return here
+        }
+      } catch (e) {
+        // If we encounter an error while verifying the address,
+        // we probably don't have a working internet connection.
+        // We just assume the stored address is valid for now.
+        Logger().w("Received an error while verifying dana address: $e");
+        return false;
+      }
+    }
+
+    // no address present in storage, this may indicate we need to register a new address
+    // but first, we check if the name server already has an address for us
+    Logger().i("Attempting to look up dana address");
+    try {
+      final lookupResult = await DanaAddressService(network: network)
+          .lookupDanaAddress(receivePaymentCode);
+      if (lookupResult != null) {
+        Logger().i("Found dana address: $lookupResult");
+        danaAddress = lookupResult;
+        await walletRepository.saveDanaAddress(lookupResult);
+        return false;
+      } else {
+        Logger().i("Did not find dana address");
+        return true;
+      }
+    } catch (e) {
+      // If we encounter an error while looking up the dana address,
+      // either we don't have a working internet connection,
+      // or the DNS record changed and the name server is unaware.
+      // For now, we assume that the stored address is valid.
+      Logger().w("Received error while looking up dana address: $e");
+      return false;
+    }
   }
 }

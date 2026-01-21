@@ -5,9 +5,9 @@ import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/screens/home/wallet/spend/transaction_sent.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
-import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:text_scroll/text_scroll.dart';
 
 class ReadyToSendScreen extends StatefulWidget {
   const ReadyToSendScreen({super.key});
@@ -30,13 +30,16 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final unsignedTx = RecipientForm().unsignedTx!;
 
-      await walletState.signAndBroadcastUnsignedTx(unsignedTx);
+      final txid = await walletState.signAndBroadcastUnsignedTx(unsignedTx);
 
       if (mounted) {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-                builder: (context) => const TransactionSentScreen()),
+                builder: (context) => TransactionSentScreen(
+                      txid: txid,
+                      network: walletState.network,
+                    )),
             (Route<dynamic> route) => route.isFirst);
       }
     } catch (e) {
@@ -49,23 +52,23 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
 
   @override
   Widget build(BuildContext context) {
-    RecipientForm recipient = RecipientForm();
+    RecipientForm form = RecipientForm();
 
-    String displayRecipient;
     TextStyle displayRecipientStyle = BitcoinTextStyle.title5(Bitcoin.neutral8);
-    if (recipient.recipientBip353 != null) {
-      displayRecipient = recipient.recipientBip353!;
-    } else {
+
+    String displayRecipient = form.recipient!.displayName;
+
+    // format on-chain addresses nicely
+    if (displayRecipient == form.recipient!.paymentCode) {
       displayRecipient = displayAddress(
-          context, recipient.recipientAddress!, displayRecipientStyle, 0.85);
+          context, displayRecipient, displayRecipientStyle, 0.85);
     }
 
-    String displayAmount = recipient.amount!.displayBtc();
+    String displayAmount = form.amount!.displayBtc();
 
-    String displayArrivalTime = recipient.fee!.toEstimatedTime;
+    String displayArrivalTime = form.selectedFee!.toEstimatedTime;
 
-    String displayEstimatedFee =
-        recipient.unsignedTx!.getFeeAmount().displayBtc();
+    String displayEstimatedFee = form.unsignedTx!.getFeeAmount().displayBtc();
 
     return SpendSkeleton(
         showBackButton: true,
@@ -76,61 +79,13 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
             const SizedBox(
               height: 50.0,
             ),
-            Row(
-              children: [
-                Text(
-                  'To',
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral7),
-                ),
-                const Spacer(),
-                Text(
-                  displayRecipient,
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral8),
-                )
-              ],
-            ),
+            entryRow('To', displayRecipient, true),
             const Divider(),
-            Row(
-              children: [
-                Text(
-                  'Amount',
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral7),
-                ),
-                const Spacer(),
-                Text(
-                  displayAmount,
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral8),
-                )
-              ],
-            ),
+            entryRow('Amount', displayAmount, false),
             const Divider(),
-            Row(
-              children: [
-                Text(
-                  'Arrival time',
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral7),
-                ),
-                const Spacer(),
-                Text(
-                  displayArrivalTime,
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral8),
-                )
-              ],
-            ),
+            entryRow('Arrival time', displayArrivalTime, false),
             const Divider(),
-            Row(
-              children: [
-                Text(
-                  'Fee',
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral7),
-                ),
-                const Spacer(),
-                Text(
-                  displayEstimatedFee,
-                  style: BitcoinTextStyle.title5(Bitcoin.neutral8),
-                )
-              ],
-            ),
+            entryRow('Fee', displayEstimatedFee, false),
           ],
         ),
         footer: Column(
@@ -147,4 +102,30 @@ class ReadyToSendScreenState extends State<ReadyToSendScreen> {
           ],
         ));
   }
+}
+
+Widget entryRow(String left, String right, bool scrolling) {
+  return Row(
+    children: [
+      Text(
+        left,
+        style: BitcoinTextStyle.title5(Bitcoin.neutral7),
+      ),
+      const SizedBox(width: 30),
+      if (scrolling)
+        Expanded(
+            child: TextScroll(right,
+                mode: TextScrollMode.bouncing,
+                delayBefore: const Duration(milliseconds: 1500),
+                pauseOnBounce: const Duration(milliseconds: 1000),
+                pauseBetween: const Duration(milliseconds: 1000),
+                textAlign: TextAlign.end,
+                style: BitcoinTextStyle.title5(Bitcoin.neutral8))),
+      if (!scrolling)
+        Expanded(
+            child: Text(right,
+                textAlign: TextAlign.end,
+                style: BitcoinTextStyle.title5(Bitcoin.neutral8))),
+    ],
+  );
 }

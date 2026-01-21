@@ -2,16 +2,19 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/screens/home/wallet/receive/show_address.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
 import 'package:danawallet/screens/settings/change_fiat.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -22,6 +25,7 @@ class SettingsScreen extends StatelessWidget {
     ChainState chainState,
     ScanProgressNotifier scanProgress,
     HomeState homeState,
+    ContactsState contacts,
   ) async {
     try {
       await scanProgress.interruptScan();
@@ -30,6 +34,8 @@ class SettingsScreen extends StatelessWidget {
       await walletState.reset();
 
       await SettingsRepository.instance.resetAll();
+      // Clear all contacts
+      contacts.reset();
       homeState.reset();
     } catch (e) {
       rethrow;
@@ -58,7 +64,6 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _setBlindbitUrl(BuildContext context) async {
-    final wallet = Provider.of<WalletState>(context, listen: false);
     SettingsRepository settings = SettingsRepository.instance;
     final chainState = Provider.of<ChainState>(context, listen: false);
     final controller = TextEditingController();
@@ -67,26 +72,19 @@ class SettingsScreen extends StatelessWidget {
     final value = await showInputAlertDialog(controller, TextInputType.url,
         'Set blindbit url', 'Only blindbit is currently supported');
 
-    final network = wallet.network;
-
-    String? url;
-    if (value is bool && value) {
-      url = network.getDefaultBlindbitUrl();
-    } else if (value is String) {
-      url = value;
-    }
-
-    if (url != null) {
-      try {
-        final success = await chainState.updateBlindbitUrl(url);
-        if (success) {
-          await settings.setBlindbitUrl(url);
-        } else {
-          displayNotification("Wrong network for blindbit server");
-        }
-      } catch (e) {
-        displayNotification(exceptionToString(e));
+    if (value is String) {
+      final success = await chainState.updateBlindbitUrl(value);
+      if (success) {
+        displayNotification("Setting blindbit url to $value");
+        await settings.setBlindbitUrl(value);
+      } else {
+        displayWarning("Failed to update blindbit url");
       }
+    } else if (value is bool && value) {
+      Logger().i("resetting blindbit url to default");
+      await settings.setBlindbitUrl(null);
+      // we don't await the result here, since it's the default
+      await chainState.resetBlindbitUrl();
     }
   }
 
@@ -104,9 +102,11 @@ class SettingsScreen extends StatelessWidget {
         'Set dust limit', 'Payments below this value are ignored');
 
     if (value is int) {
+      Logger().i("setting dust limit to $value");
       await settings.setDustLimit(value);
     } else if (value is bool && value) {
-      await settings.setDustLimit(defaultDustLimit);
+      Logger().i("resetting dust limit to default");
+      await settings.setDustLimit(null);
     }
   }
 
@@ -138,8 +138,10 @@ class SettingsScreen extends StatelessWidget {
       final chainState = Provider.of<ChainState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
+      final contacts = Provider.of<ContactsState>(context, listen: false);
 
-      await _removeWallet(walletState, chainState, scanProgress, homeState);
+      await _removeWallet(
+          walletState, chainState, scanProgress, homeState, contacts);
       if (context.mounted) {
         Navigator.pushReplacement(
             context,
@@ -167,7 +169,9 @@ class SettingsScreen extends StatelessWidget {
     final homeState = Provider.of<HomeState>(context, listen: false);
     final fiatExchangeRate =
         Provider.of<FiatExchangeRateState>(context, listen: false);
-    final currentCurrency = await SettingsRepository.instance.getFiatCurrency();
+    final currentCurrency =
+        (await SettingsRepository.instance.getFiatCurrency()) ??
+            defaultCurrency;
     if (context.mounted) {
       goToScreen(
           context,

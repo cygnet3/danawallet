@@ -1,7 +1,7 @@
 name: danawallet
 description: A silent payments wallet built in flutter.
 publish_to: 'none'
-version: 0.6.3+17
+version: 0.7.0+19
 
 environment:
   sdk: ^3.5.2
@@ -23,6 +23,7 @@ dependencies:
       ref: widget-body
   logger: ^2.4.0
   shared_preferences: ^2.3.2
+  crypto: ^3.0.5
   freezed_annotation: ^2.4.1
   ffi: ^2.1.0
   permission_handler: ^11.3.1
@@ -40,6 +41,11 @@ dependencies:
   url_launcher: ^6.3.1
   share_plus: ^11.0.0
   auto_size_text: ^3.0.0
+  text_scroll: ^0.2.1
+  sqflite: ^2.4.1
+  sqflite_common_ffi: any
+  path: ^1.9.1
+  collection: ^1.19.1
 
 # temporary fix, see: https://github.com/juliansteenbakker/flutter_secure_storage/issues/920
 dependency_overrides:
@@ -49,6 +55,8 @@ dependency_overrides:
       ref: patch-2
       path: flutter_secure_storage_linux
   flutter_secure_storage_platform_interface: 2.0.0
+  # Pin url_launcher_android to avoid AGP 8.9.1 requirement (androidx.browser:1.9.0, androidx.core:1.17.0)
+  url_launcher_android: 6.3.20
 
 dev_dependencies:
   flutter_test:
@@ -65,7 +73,6 @@ flutter:
 
   assets:
     - assets/icons/
-    - assets/mnemonic/english.txt
 
   fonts:
     - family: Space grotesk

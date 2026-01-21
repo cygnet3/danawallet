@@ -1,27 +1,48 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
+import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/services/bip353_resolver.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/qr_code_scanner_widget.dart';
-import 'package:dart_bip353/dart_bip353.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class ChooseRecipientScreen extends StatefulWidget {
-  const ChooseRecipientScreen({super.key});
+  final String? initialAddress;
+
+  const ChooseRecipientScreen({super.key, this.initialAddress});
 
   @override
   ChooseRecipientScreenState createState() => ChooseRecipientScreenState();
 }
 
 class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
-  final TextEditingController addressController = TextEditingController();
+  late final TextEditingController textFieldController;
   String? _addressErrorText;
+
+  @override
+  void initState() {
+    super.initState();
+    textFieldController = TextEditingController(
+      text: widget.initialAddress ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    textFieldController.dispose();
+    super.dispose();
+  }
 
   Future<void> onContinue() async {
     RecipientForm form = RecipientForm();
@@ -32,27 +53,60 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
       _addressErrorText = null;
     });
 
+    final network = Provider.of<ChainState>(context, listen: false).network;
     try {
-      String address = addressController.text.trim();
-      if (address.contains('@')) {
-        // we interpret the address as a bip353 address
+      Bip353Address? bip353Address;
+      String onchainAddress;
+
+      String textField = textFieldController.text.trim();
+
+      if (textField.contains('@')) {
+        // we interpret the input as a bip353 address
         try {
-          final data = await Bip353.getAdressResolve(address);
-          if (data.silentpayment != null) {
-            form.recipientBip353 = address;
-            address = data.silentpayment!;
+          Logger().d('Resolving dana address: "$textField"');
+
+          bip353Address = Bip353Address.fromString(textField);
+
+          final resolvedAddress =
+              await Bip353Resolver.resolve(bip353Address, network);
+
+          if (resolvedAddress == null) {
+            // DNS resolution returned null - address not registered
+            Logger().w('Dana address "$textField" not found in DNS');
+            throw Exception('Dana address not found or not registered');
           }
+
+          // Store the original dana address for the form
+          onchainAddress = resolvedAddress;
+
+          Logger().d(
+              'Successfully resolved dana address to SP address: ${textField.substring(0, 20)}...');
         } catch (e) {
-          // todo wrap bip353 logic in a separate class that throws custom errors
-          throw Exception('Failed to look up address');
+          displayError('Failed to resolve dana address "$textField"', e);
+          return;
+        }
+      } else {
+        // we interpret the input field as an on-chain address
+        onchainAddress = textField;
+      }
+
+      try {
+        if (context.mounted) {
+          validateAddressWithNetwork(
+              address: onchainAddress, network: network.toCoreArg);
+        }
+      } catch (e) {
+        if (e.toString().contains('network')) {
+          throw InvalidNetworkException();
+        } else {
+          throw InvalidAddressException();
         }
       }
 
-      if (!validateAddress(address: address)) {
-        throw InvalidAddressException();
-      }
-
-      form.recipientAddress = address;
+      // note: from the send screen, the payment code is not guaranteed to be reusable;
+      // a user might use a regular on-chain address.
+      form.recipient =
+          Contact(bip353Address: bip353Address, paymentCode: onchainAddress);
 
       if (mounted) {
         Navigator.push(
@@ -70,7 +124,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
   Future<void> onPasteFromClipboard() async {
     ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
     if (data != null) {
-      addressController.text = data.text ?? '';
+      textFieldController.text = data.text ?? '';
       await onContinue();
     }
   }
@@ -83,7 +137,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
       ),
     );
     if (result is String && result != "") {
-      addressController.text = result;
+      textFieldController.text = result;
       await onContinue();
     }
   }
@@ -108,7 +162,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
                   TextField(
                     onTap: () => setState(() => _addressErrorText = null),
                     style: BitcoinTextStyle.body4(Bitcoin.black),
-                    controller: addressController,
+                    controller: textFieldController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),

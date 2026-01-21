@@ -1,3 +1,4 @@
+import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
@@ -7,10 +8,10 @@ import 'package:danawallet/generated/rust/api/structs.dart';
 // to save data in a global state, we use a singleton class.
 // this is very similar to using Provider, but without NotifyListeners
 class RecipientForm {
-  String? recipientAddress;
-  String? recipientBip353;
+  Contact? recipient;
   ApiAmount? amount;
-  SelectedFee? fee;
+  SelectedFee? selectedFee;
+  int? customFeeRate;
   RecommendedFeeResponse? currentFeeRates;
   ApiSilentPaymentUnsignedTransaction? unsignedTx;
 
@@ -23,25 +24,31 @@ class RecipientForm {
   RecipientForm._internal();
 
   void reset() {
-    _instance.recipientAddress = null;
-    _instance.recipientBip353 = null;
+    _instance.recipient = null;
     _instance.amount = null;
-    _instance.fee = null;
+    _instance.selectedFee = null;
+    _instance.customFeeRate = null;
     _instance.unsignedTx = null;
     _instance.currentFeeRates = null;
   }
 
   RecipientFormFilled toFilled() {
-    if (recipientAddress == null ||
+    if (recipient == null ||
         amount == null ||
-        fee == null ||
+        selectedFee == null ||
         currentFeeRates == null) {
       throw Exception('Not all required parameters filled');
     }
 
-    final feerate = fee!.getFeeRate(currentFeeRates!);
+    if (selectedFee == SelectedFee.custom && customFeeRate == null) {
+      throw Exception('Custom fee rate should be set');
+    }
+
+    final feerate = selectedFee == SelectedFee.custom
+        ? customFeeRate!
+        : selectedFee!.getFeeRate(currentFeeRates!);
 
     return RecipientFormFilled(
-        recipientAddress: recipientAddress!, amount: amount!, feerate: feerate);
+        recipient: recipient!, amount: amount!, feerate: feerate);
   }
 }

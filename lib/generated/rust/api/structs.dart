@@ -9,7 +9,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'structs.freezed.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
 
 class ApiAmount {
   final BigInt field0;
@@ -129,6 +129,9 @@ sealed class ApiRecordedTransaction with _$ApiRecordedTransaction {
   const factory ApiRecordedTransaction.outgoing(
     ApiRecordedTransactionOutgoing field0,
   ) = ApiRecordedTransaction_Outgoing;
+  const factory ApiRecordedTransaction.unknownOutgoing(
+    ApiRecordedTransactionUnknownOutgoing field0,
+  ) = ApiRecordedTransaction_UnknownOutgoing;
 }
 
 class ApiRecordedTransactionIncoming {
@@ -207,6 +210,36 @@ class ApiRecordedTransactionOutgoing {
           confirmedAt == other.confirmedAt &&
           change == other.change &&
           fee == other.fee;
+}
+
+class ApiRecordedTransactionUnknownOutgoing {
+  final ApiAmount amount;
+  final int confirmedAt;
+  final List<String> spentOutpoints;
+
+  const ApiRecordedTransactionUnknownOutgoing({
+    required this.amount,
+    required this.confirmedAt,
+    required this.spentOutpoints,
+  });
+
+  String toString() => RustLib.instance.api
+          .crateApiStructsApiRecordedTransactionUnknownOutgoingToString(
+        that: this,
+      );
+
+  @override
+  int get hashCode =>
+      amount.hashCode ^ confirmedAt.hashCode ^ spentOutpoints.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiRecordedTransactionUnknownOutgoing &&
+          runtimeType == other.runtimeType &&
+          amount == other.amount &&
+          confirmedAt == other.confirmedAt &&
+          spentOutpoints == other.spentOutpoints;
 }
 
 class ApiSilentPaymentUnsignedTransaction {

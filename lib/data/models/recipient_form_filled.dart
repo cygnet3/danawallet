@@ -1,12 +1,11 @@
+import 'package:danawallet/data/models/contact.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 
 class RecipientFormFilled {
-  String recipientAddress;
+  Contact recipient;
   ApiAmount amount;
   int feerate;
 
   RecipientFormFilled(
-      {required this.recipientAddress,
-      required this.amount,
-      required this.feerate});
+      {required this.recipient, required this.amount, required this.feerate});
 }

@@ -2,9 +2,11 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
+import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/screens/home/wallet/spend/custom_fee_screen.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -20,13 +22,67 @@ class FeeSelectionScreen extends StatefulWidget {
 }
 
 class FeeSelectionScreenState extends State<FeeSelectionScreen> {
-  SelectedFee? _selected = SelectedFee.normal;
+  SelectedFee _selected = SelectedFee.normal;
+  final Map<SelectedFee, ApiAmount> _feeAmounts = {};
+  bool _isLoadingFees = true;
 
-  Future<void> onContinue() async {
-    RecipientForm().fee = _selected!;
+  @override
+  void initState() {
+    super.initState();
+    _computeFeeAmounts();
+  }
+
+  void _computeFeeAmounts() async {
+    RecipientForm form = RecipientForm();
 
     final walletState = Provider.of<WalletState>(context, listen: false);
-    final changeAddress = walletState.changeAddress;
+
+    // fetch fee rates from mempool
+    final currentFeeRates = await walletState.getCurrentFeeRates();
+    form.currentFeeRates = currentFeeRates;
+
+    for (SelectedFee fee in [
+      SelectedFee.fast,
+      SelectedFee.normal,
+      SelectedFee.slow
+    ]) {
+      form.selectedFee = fee;
+      final filled = form.toFilled();
+      final feeEstimationTx =
+          await walletState.createUnsignedTxToThisRecipient(filled);
+      BigInt inputSum = BigInt.from(0);
+      for (var (_, utxo) in feeEstimationTx.selectedUtxos) {
+        inputSum += utxo.amount.field0;
+      }
+      BigInt outputSum = BigInt.from(0);
+      for (var recipient in feeEstimationTx.recipients) {
+        outputSum += recipient.amount.field0;
+      }
+      _feeAmounts[fee] = ApiAmount(field0: inputSum - outputSum);
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoadingFees = false;
+      });
+    }
+  }
+
+  // Get the fee amount for a specific fee type
+  ApiAmount? getFeeAmount(SelectedFee fee) {
+    return _feeAmounts[fee];
+  }
+
+  // Get the fee amount for the currently selected fee
+  ApiAmount? getCurrentSelectedFeeAmount() {
+    return _feeAmounts[_selected];
+  }
+
+  Future<void> onContinue() async {
+    RecipientForm().selectedFee = _selected;
+
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final changeAddress = walletState.changePaymentCode;
     RecipientForm form = RecipientForm();
 
     RecipientFormFilled filled = form.toFilled();
@@ -46,12 +102,24 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
   }
 
   ListTile toListTile(SelectedFee fee, FiatExchangeRateState exchangeRate) {
-    final currentFeeRates = RecipientForm().currentFeeRates!;
-    final estimatedFee = fee.getEstimatedFee(currentFeeRates);
     switch (fee) {
       case SelectedFee.fast:
       case SelectedFee.normal:
       case SelectedFee.slow:
+        String subtitleBtc;
+        String subtitleFiat;
+        if (_isLoadingFees) {
+          subtitleBtc = 'Loading...';
+          subtitleFiat = 'Loading...';
+        } else {
+          final estimatedFee = _feeAmounts[fee];
+          if (estimatedFee == null) {
+            throw Exception('Fee amount not computed for $fee');
+          }
+          subtitleBtc = estimatedFee.displaySats();
+          subtitleFiat = exchangeRate.displayFiat(estimatedFee);
+        }
+
         return ListTile(
           title: Row(
             children: [
@@ -66,10 +134,10 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
           ),
           subtitle: Row(
             children: [
-              Text(estimatedFee.displaySats(),
+              Text(subtitleBtc,
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
               const Spacer(),
-              Text(exchangeRate.displayFiat(estimatedFee),
+              Text(subtitleFiat,
                   style: BitcoinTextStyle.body5(Bitcoin.neutral7)),
             ],
           ),
@@ -77,9 +145,11 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
             groupValue: _selected,
             value: fee,
             onChanged: (SelectedFee? value) {
-              setState(() {
-                _selected = value;
-              });
+              if (value != null) {
+                setState(() {
+                  _selected = value;
+                });
+              }
             },
           ),
         );
@@ -89,18 +159,15 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
             SelectedFee.custom.toName,
             style: BitcoinTextStyle.body3(Bitcoin.black),
           ),
-          leading: Radio<SelectedFee>(
-            groupValue: _selected,
-            value: SelectedFee.custom,
-            onChanged: (SelectedFee? value) {
-              setState(() {
-                _selected = value;
-              });
-            },
-          ),
           trailing: const Image(
             image: AssetImage("icons/caret_right.png", package: "bitcoin_ui"),
           ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CustomFeeScreen()),
+            );
+          },
         );
     }
   }
@@ -121,6 +188,8 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
         const Divider(),
         toListTile(SelectedFee.slow, exchangeRate),
         const Divider(),
+        if (isDevEnv) toListTile(SelectedFee.custom, exchangeRate),
+        if (isDevEnv) const Divider(),
       ]),
       footer: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -128,7 +197,11 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
           const SizedBox(
             height: 10.0,
           ),
-          FooterButton(title: 'Continue', onPressed: onContinue)
+          FooterButton(
+            title: 'Continue',
+            onPressed: onContinue,
+            enabled: !_isLoadingFees,
+          )
         ],
       ),
     );

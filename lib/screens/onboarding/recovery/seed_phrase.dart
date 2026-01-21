@@ -3,10 +3,9 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/home/home.dart';
-import 'package:danawallet/screens/pin/pin_setup_screen.dart';
+import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/back_button.dart';
@@ -45,11 +44,11 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       final mnemonic = pills.mnemonic;
       final walletState = Provider.of<WalletState>(context, listen: false);
       final chainState = Provider.of<ChainState>(context, listen: false);
+      final contactsState = Provider.of<ContactsState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
-      await SettingsRepository.instance.defaultSettings(widget.network);
-      final blindbitUrl = widget.network.getDefaultBlindbitUrl();
+      final blindbitUrl = widget.network.defaultBlindbitUrl;
 
       await walletState.restoreWallet(widget.network, mnemonic);
 
@@ -59,22 +58,25 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
 
       chainState.startSyncService(walletState, scanProgress, true);
 
+      final goToDanaAddressSetup =
+          await walletState.checkDanaAddressRegistrationNeeded();
+
+      // initialize contacts state using restored wallet state
+      contactsState.initialize(
+          walletState.receivePaymentCode, walletState.danaAddress);
+
       if (context.mounted) {
+        Widget nextScreen = goToDanaAddressSetup
+            ? const DanaAddressSetupScreen()
+            : const PinGuard();
         Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const PinGuard()),
+            MaterialPageRoute(builder: (context) => nextScreen),
             (Route<dynamic> route) => false);
       }
     } catch (e) {
       if (context.mounted) {
-        final userFriendlyMessage = exceptionToString(e);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(userFriendlyMessage),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        displayError("Restore failed", e);
       }
     }
   }

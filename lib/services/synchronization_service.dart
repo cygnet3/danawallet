@@ -64,8 +64,7 @@ class SynchronizationService {
     } on Exception catch (e) {
       // todo: we should have a connection status with the server
       // e.g. a green or red circle based on whether we have connection issues
-      Logger().e("Error performing sync task: $e");
-      displayNotification(exceptionToString(e));
+      displayError("Sync failed", e);
     }
   }
 

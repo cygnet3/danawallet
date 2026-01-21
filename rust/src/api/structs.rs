@@ -16,6 +16,7 @@ use spdk::{
 
 use crate::state::constants::{
     RecordedTransaction, RecordedTransactionIncoming, RecordedTransactionOutgoing,
+    RecordedTransactionUnknownOutgoing,
 };
 
 type SpendingTxId = String;
@@ -164,6 +165,7 @@ impl TryFrom<ApiRecipient> for Recipient {
 pub enum ApiRecordedTransaction {
     Incoming(ApiRecordedTransactionIncoming),
     Outgoing(ApiRecordedTransactionOutgoing),
+    UnknownOutgoing(ApiRecordedTransactionUnknownOutgoing),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -196,6 +198,13 @@ impl ApiRecordedTransactionOutgoing {
     }
 }
 
+impl ApiRecordedTransactionUnknownOutgoing {
+    #[frb(sync)]
+    pub fn to_string(&self) -> String {
+        serde_json::to_string_pretty(&self).unwrap()
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ApiRecordedTransactionOutgoing {
     pub txid: String,
@@ -206,12 +215,19 @@ pub struct ApiRecordedTransactionOutgoing {
     pub fee: ApiAmount,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct ApiRecordedTransactionUnknownOutgoing {
+    pub amount: ApiAmount,
+    pub confirmed_at: u32,
+    pub spent_outpoints: Vec<String>,
+}
+
 impl From<RecordedTransaction> for ApiRecordedTransaction {
     fn from(value: RecordedTransaction) -> Self {
         match value {
             RecordedTransaction::Incoming(incoming) => Self::Incoming(incoming.into()),
-
             RecordedTransaction::Outgoing(outgoing) => Self::Outgoing(outgoing.into()),
+            RecordedTransaction::UnknownOutgoing(unknown) => Self::UnknownOutgoing(unknown.into()),
         }
     }
 }
@@ -221,6 +237,37 @@ impl From<ApiRecordedTransaction> for RecordedTransaction {
         match value {
             ApiRecordedTransaction::Incoming(incoming) => Self::Incoming(incoming.into()),
             ApiRecordedTransaction::Outgoing(outgoing) => Self::Outgoing(outgoing.into()),
+            ApiRecordedTransaction::UnknownOutgoing(unknown) => {
+                Self::UnknownOutgoing(unknown.into())
+            }
+        }
+    }
+}
+
+impl From<RecordedTransactionUnknownOutgoing> for ApiRecordedTransactionUnknownOutgoing {
+    fn from(value: RecordedTransactionUnknownOutgoing) -> Self {
+        Self {
+            confirmed_at: value.confirmed_at.to_consensus_u32(),
+            amount: value.amount.into(),
+            spent_outpoints: value
+                .spent_outpoints
+                .into_iter()
+                .map(|x| x.to_string())
+                .collect(),
+        }
+    }
+}
+
+impl From<ApiRecordedTransactionUnknownOutgoing> for RecordedTransactionUnknownOutgoing {
+    fn from(value: ApiRecordedTransactionUnknownOutgoing) -> Self {
+        Self {
+            amount: value.amount.into(),
+            confirmed_at: Height::from_consensus(value.confirmed_at).unwrap(),
+            spent_outpoints: value
+                .spent_outpoints
+                .into_iter()
+                .map(|x| OutPoint::from_str(&x).unwrap())
+                .collect(),
         }
     }
 }

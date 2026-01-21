@@ -17,7 +17,7 @@ const int defaultRegtestBirthday = 80000;
 // default dust limit. this is used in syncing, as well as sending
 // for syncing, amounts < dust limit will be ignored
 // for sending, the user needs to send a minimum of >= dust
-const int defaultDustLimit = 1000;
+const int defaultDustLimit = 600;
 
 // default fiat currency
 const FiatCurrency defaultCurrency = FiatCurrency.usd;
@@ -37,3 +37,12 @@ const String exampleMnemonic =
 const int bitcoinUnits = 100000000;
 // String that displays when amount is hidden
 const String hideAmountFormat = "*****";
+
+// the in-production name server, only used on live flavors with mainnet
+const String nameServerLive = "https://nameserver.danawallet.app/v1";
+// name server for other flavors that use mainnet
+const String nameServerDevMainnet =
+    "https://main.dev.nameserver.danawallet.app/v1";
+// name server for other flavors that user testnet/signet
+const String nameServerDevTestnet =
+    "https://test.dev.nameserver.danawallet.app/v1";

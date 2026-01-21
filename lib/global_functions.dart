@@ -10,14 +10,42 @@ import 'package:danawallet/widgets/input_alert_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:logger/logger.dart';
 
 final globalNavigatorKey = GlobalKey<NavigatorState>();
 
 void displayNotification(String text) {
-  // ignore: avoid_print
-  print(text);
+  Logger().i(text);
   if (globalNavigatorKey.currentContext != null) {
     final snackBar = SnackBar(
+      duration: const Duration(seconds: 1),
+      content: Text(text),
+    );
+    ScaffoldMessenger.of(globalNavigatorKey.currentContext!)
+        .showSnackBar(snackBar);
+  }
+}
+
+void displayWarning(String text) {
+  Logger().w(text);
+  if (globalNavigatorKey.currentContext != null) {
+    final snackBar = SnackBar(
+      backgroundColor: Colors.deepOrangeAccent,
+      duration: const Duration(seconds: 5),
+      content: Text(text),
+    );
+    ScaffoldMessenger.of(globalNavigatorKey.currentContext!)
+        .showSnackBar(snackBar);
+  }
+}
+
+void displayError(String message, Object error) {
+  final text = "$message: ${exceptionToString(error)}";
+  Logger().e(text);
+  if (globalNavigatorKey.currentContext != null) {
+    final snackBar = SnackBar(
+      backgroundColor: Colors.red,
+      duration: const Duration(seconds: 5),
       content: Text(text),
     );
     ScaffoldMessenger.of(globalNavigatorKey.currentContext!)
@@ -92,11 +120,15 @@ Future<bool> showConfirmationAlertDialog(
 
 String exceptionToString(Object e) {
   String message;
-  if (e is AnyhowException) {
+  if (e is String) {
+    message = e;
+  } else if (e is AnyhowException) {
     // remove stack trace from anyhow exception
     message = e.message.split('\n').first;
   } else if (e is InvalidAddressException) {
     message = "Invalid address";
+  } else if (e is InvalidNetworkException) {
+    message = "Invalid network";
   } else {
     message = e.toString();
   }
@@ -141,7 +173,202 @@ AutoSizeText addressAsRichText(String address, double? fontSize) {
             height: 2),
         children: spans),
     textAlign: TextAlign.justify,
-    maxLines: 5,
+    minFontSize: 12,
+  );
+}
+
+Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
+  // Parse the Dana address format: <name><number>@<domainname>.<extension>
+  final atIndex = danaAddress.indexOf('@');
+  if (atIndex == -1) {
+    // If no @ found, treat as plain text
+    return SizedBox(
+      width: double.infinity,
+      child: AutoSizeText(
+        danaAddress,
+        style: BitcoinTextStyle.body5(Bitcoin.neutral8).copyWith(
+          fontSize: fontSize,
+          fontFamily: 'Inter',
+          letterSpacing: 1,
+          height: 1.5,
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 2,
+      ),
+    );
+  }
+
+  final localPart = danaAddress.substring(0, atIndex);
+  final domainPart = danaAddress.substring(atIndex + 1);
+
+  List<TextSpan> spans = [];
+
+  // Add ₿ symbol at the beginning
+  spans.add(TextSpan(
+    text: '₿',
+    style: BitcoinTextStyle.body5(Bitcoin.neutral6).copyWith(
+      fontSize: fontSize,
+      fontFamily: 'Inter',
+      letterSpacing: 1,
+      height: 1.5,
+      fontWeight: FontWeight.w700,
+    ),
+  ));
+
+  // Parse local part character by character to handle special characters
+  String currentWord = '';
+  bool inNumber = false;
+
+  for (int i = 0; i < localPart.length; i++) {
+    final char = localPart[i];
+
+    // Check if character is a special separator (., -, _)
+    if (char == '.' || char == '-' || char == '_') {
+      // Add accumulated word first
+      if (currentWord.isNotEmpty) {
+        spans.add(TextSpan(
+          text: currentWord,
+          style: BitcoinTextStyle.body5(inNumber ? Bitcoin.green : Bitcoin.blue)
+              .copyWith(
+            fontSize: fontSize,
+            fontFamily: 'Inter',
+            letterSpacing: 1,
+            height: 1.5,
+            fontWeight: inNumber ? FontWeight.w500 : FontWeight.w600,
+          ),
+        ));
+        currentWord = '';
+      }
+
+      // Add special character in distinct grey color
+      spans.add(TextSpan(
+        text: char,
+        style: BitcoinTextStyle.body5(Bitcoin.neutral6).copyWith(
+          fontSize: fontSize,
+          fontFamily: 'Inter',
+          letterSpacing: 1,
+          height: 1.5,
+          fontWeight: FontWeight.w400,
+        ),
+      ));
+
+      // Reset number flag after special character (next part could be text again)
+      inNumber = false;
+    } else {
+      // Check if we're transitioning to numbers
+      final isDigit = char.contains(RegExp(r'[0-9]'));
+      if (isDigit && !inNumber) {
+        // Add accumulated text part if any
+        if (currentWord.isNotEmpty) {
+          spans.add(TextSpan(
+            text: currentWord,
+            style: BitcoinTextStyle.body5(Bitcoin.blue).copyWith(
+              fontSize: fontSize,
+              fontFamily: 'Inter',
+              letterSpacing: 1,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ));
+          currentWord = '';
+        }
+        inNumber = true;
+      }
+      currentWord += char;
+    }
+  }
+
+  // Add remaining local part
+  if (currentWord.isNotEmpty) {
+    spans.add(TextSpan(
+      text: currentWord,
+      style: BitcoinTextStyle.body5(inNumber ? Bitcoin.green : Bitcoin.blue)
+          .copyWith(
+        fontSize: fontSize,
+        fontFamily: 'Inter',
+        letterSpacing: 1,
+        height: 1.5,
+        fontWeight: inNumber ? FontWeight.w500 : FontWeight.w600,
+      ),
+    ));
+  }
+
+  // Add @ symbol - Grey
+  spans.add(TextSpan(
+    text: '@',
+    style: BitcoinTextStyle.body5(Bitcoin.neutral6).copyWith(
+      fontSize: fontSize,
+      fontFamily: 'Inter',
+      letterSpacing: 1,
+      height: 1.5,
+      fontWeight: FontWeight.w400,
+    ),
+  ));
+
+  // Parse domain part character by character to handle special characters
+  currentWord = '';
+  for (int i = 0; i < domainPart.length; i++) {
+    final char = domainPart[i];
+
+    // Check if character is a special separator (., -, _)
+    if (char == '.' || char == '-' || char == '_') {
+      // Add accumulated word first
+      if (currentWord.isNotEmpty) {
+        spans.add(TextSpan(
+          text: currentWord,
+          style: BitcoinTextStyle.body5(Bitcoin.purple).copyWith(
+            fontSize: fontSize,
+            fontFamily: 'Inter',
+            letterSpacing: 1,
+            height: 1.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ));
+        currentWord = '';
+      }
+
+      // Add special character in distinct grey color
+      spans.add(TextSpan(
+        text: char,
+        style: BitcoinTextStyle.body5(Bitcoin.neutral6).copyWith(
+          fontSize: fontSize,
+          fontFamily: 'Inter',
+          letterSpacing: 1,
+          height: 1.5,
+          fontWeight: FontWeight.w400,
+        ),
+      ));
+    } else {
+      currentWord += char;
+    }
+  }
+
+  // Add remaining domain part
+  if (currentWord.isNotEmpty) {
+    spans.add(TextSpan(
+      text: currentWord,
+      style: BitcoinTextStyle.body5(Bitcoin.purple).copyWith(
+        fontSize: fontSize,
+        fontFamily: 'Inter',
+        letterSpacing: 1,
+        height: 1.5,
+        fontWeight: FontWeight.w500,
+      ),
+    ));
+  }
+
+  return SizedBox(
+    child: AutoSizeText.rich(
+      TextSpan(children: spans),
+      textAlign: TextAlign.center,
+      minFontSize: 10,
+      maxLines: 1,
+      // if we overflow, allow 2 lines
+      overflowReplacement: AutoSizeText.rich(
+        TextSpan(children: spans),
+        textAlign: TextAlign.center,
+      ),
+    ),
   );
 }
 

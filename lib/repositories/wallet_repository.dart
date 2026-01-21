@@ -1,4 +1,5 @@
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/generated/rust/api/backup.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
@@ -19,6 +20,7 @@ const String _keyNetwork = "network";
 const String _keyTxHistory = "txhistory";
 const String _keyOwnedOutputs = "ownedoutputs";
 const String _keyLastScan = "lastscan";
+const String _keyDanaAddress = "danaaddress";
 
 class WalletRepository {
   final secureStorage = const FlutterSecureStorage();
@@ -40,7 +42,8 @@ class WalletRepository {
       _keyTxHistory,
       _keyLastScan,
       _keyOwnedOutputs,
-      _keyBirthday
+      _keyBirthday,
+      _keyDanaAddress,
     });
   }
 
@@ -89,7 +92,7 @@ class WalletRepository {
           scanKey: scanKey,
           spendKey: spendKey,
           birthday: birthday!,
-          network: network.toBitcoinNetwork);
+          network: network.toCoreArg);
     } else {
       return null;
     }
@@ -150,6 +153,24 @@ class WalletRepository {
   Future<OwnedOutputs> readOwnedOutputs() async {
     final encodedOutputs = await nonSecureStorage.getString(_keyOwnedOutputs);
     return OwnedOutputs.decode(encodedOutputs: encodedOutputs!);
+  }
+
+  Future<void> saveDanaAddress(Bip353Address? danaAddress) async {
+    if (danaAddress != null) {
+      return await nonSecureStorage.setString(
+          _keyDanaAddress, danaAddress.toString());
+    } else {
+      return await nonSecureStorage.remove(_keyDanaAddress);
+    }
+  }
+
+  Future<Bip353Address?> readDanaAddress() async {
+    final retrieved = await nonSecureStorage.getString(_keyDanaAddress);
+    if (retrieved != null) {
+      return Bip353Address.fromString(retrieved);
+    } else {
+      return null;
+    }
   }
 
   Future<WalletBackup> createWalletBackup() async {

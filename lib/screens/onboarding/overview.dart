@@ -2,15 +2,16 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/exceptions.dart';
+import 'package:danawallet/generated/rust/api/bip39.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/home/home.dart';
 import 'package:danawallet/screens/onboarding/choose_network.dart';
+import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
-import 'package:danawallet/screens/pin/pin_setup_screen.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -18,7 +19,6 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/info_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -34,6 +34,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     try {
       final walletState = Provider.of<WalletState>(context, listen: false);
       final chainState = Provider.of<ChainState>(context, listen: false);
+      final contactsState = Provider.of<ContactsState>(context, listen: false);
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
       final encryptedBackup = await BackupService.getEncryptedBackupFromFile();
@@ -55,26 +56,38 @@ class _OverviewScreenState extends State<OverviewScreen> {
           await walletState.initialize();
           final network = walletState.network;
           final blindbitUrl =
-              await SettingsRepository.instance.getBlindbitUrl();
+              await SettingsRepository.instance.getBlindbitUrl() ??
+                  network.defaultBlindbitUrl;
           chainState.initialize(network);
 
           // we can safely ignore the result of connecting, since we get the birthday from the backup
-          await chainState.connect(blindbitUrl!);
+          await chainState.connect(blindbitUrl);
 
           chainState.startSyncService(walletState, scanProgress, true);
+
+          final goToDanaAddressSetup =
+              await walletState.checkDanaAddressRegistrationNeeded();
+
+          // initialize contacts state using restored wallet state
+          contactsState.initialize(
+              walletState.receivePaymentCode, walletState.danaAddress);
+
           if (context.mounted) {
+            Widget nextScreen = goToDanaAddressSetup
+                ? const DanaAddressSetupScreen()
+                : const PinGuard();
             Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const PinGuard()),
+                MaterialPageRoute(builder: (context) => nextScreen),
                 (Route<dynamic> route) => false);
           }
         }
       }
     } catch (e) {
       if (e is InvalidNetworkException) {
-        displayNotification("Backup file is for a different network");
+        displayWarning("Backup file is for a different network");
       } else {
-        displayNotification("restore failed, wrong password?");
+        displayWarning("restore failed, wrong password?");
       }
     }
   }
@@ -99,8 +112,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
 
-    await SettingsRepository.instance.defaultSettings(network);
-    final blindbitUrl = network.getDefaultBlindbitUrl();
+    final blindbitUrl = network.defaultBlindbitUrl;
 
     chainState.initialize(network);
     final connected = await chainState.connect(blindbitUrl);
@@ -110,15 +122,25 @@ class _OverviewScreenState extends State<OverviewScreen> {
       chainState.startSyncService(walletState, scanProgress, false);
       final chainTip = chainState.tip;
       await walletState.createNewWallet(network, chainTip);
-      if (context.mounted) {
+
+      if (network == Network.regtest && context.mounted) {
+        // for regtest we bypass the dana address setup screen
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const PinGuard()),
             (Route<dynamic> route) => false);
+      } else {
+        // Generate an available dana address (without registering yet)
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const DanaAddressSetupScreen()),
+              (Route<dynamic> route) => false);
+        }
       }
     } else {
-      displayNotification(
-          "Unable to create a new wallet; internet access required");
+      displayWarning("Unable to create a new wallet; internet access required");
     }
   }
 
@@ -137,14 +159,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
       return;
     }
 
-    // load bip39 words from asset file
-    final String wordsText =
-        await rootBundle.loadString('assets/mnemonic/english.txt');
-    final bip39Words = wordsText
-        .split('\n')
-        .map((word) => word.trim())
-        .where((word) => word.isNotEmpty)
-        .toList();
+    // load bip39 words
+    final bip39Words = getEnglishWordlist();
 
     // go to input seed phrase screen
     if (context.mounted) {

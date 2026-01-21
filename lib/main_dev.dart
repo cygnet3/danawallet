@@ -1,24 +1,41 @@
+import 'dart:io';
+
 import 'package:danawallet/generated/rust/frb_generated.dart';
 
 import 'package:danawallet/main.dart';
+import 'package:danawallet/repositories/database_helper.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
+import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
+import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
   await LoggingService.create();
+
+  if (Platform.isLinux) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
+  // Initialize contacts database
+  await DatabaseHelper.instance.database;
   final walletState = await WalletState.create();
   final scanNotifier = await ScanProgressNotifier.create();
   final chainState = ChainState();
+  final contactsState = ContactsState();
   final fiatExchangeRate = await FiatExchangeRateState.create();
 
   // Try to update exchange rate, but don't crash if it fails
@@ -45,19 +62,33 @@ void main() async {
     await SettingsRepository.instance.setBlindbitUrl(blindbitUrl);
   }
 
+  Widget landingPage;
   if (walletLoaded) {
     final network = walletState.network;
-    final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl();
+    final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl() ??
+        network.defaultBlindbitUrl;
 
     chainState.initialize(network);
 
     // Continue without chain sync - wallet still usable for local operations
-    final connected = await chainState.connect(blindbitUrl!);
+    final connected = await chainState.connect(blindbitUrl);
     if (!connected) {
       Logger().w("Failed to connect");
     }
 
     chainState.startSyncService(walletState, scanNotifier, true);
+
+    if (await walletState.checkDanaAddressRegistrationNeeded()) {
+      landingPage = const DanaAddressSetupScreen();
+    } else {
+      // initialize contacts state with our receive & dana address, so that we can create the self contact
+      contactsState.initialize(
+          walletState.receivePaymentCode, walletState.danaAddress);
+      landingPage = const PinGuard();
+    }
+  } else {
+    // no wallet is loaded, so we go to the introduction screen
+    landingPage = const IntroductionScreen();
   }
 
   runApp(
@@ -68,8 +99,9 @@ void main() async {
         ChangeNotifierProvider.value(value: chainState),
         ChangeNotifierProvider.value(value: HomeState()),
         ChangeNotifierProvider.value(value: fiatExchangeRate),
+        ChangeNotifierProvider.value(value: contactsState),
       ],
-      child: SilentPaymentApp(walletLoaded: walletLoaded),
+      child: SilentPaymentApp(landingPage: landingPage),
     ),
   );
 }

@@ -22,7 +22,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
   final TextEditingController amountController = TextEditingController();
   String? _amountErrorText;
 
-  Future<void> onContinue(ApiAmount availableBalance) async {
+  void onContinue(ApiAmount availableBalance) {
     setState(() {
       _amountErrorText = null;
     });
@@ -30,9 +30,17 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     final BigInt amount;
     try {
       amount = BigInt.from(int.parse(amountController.text));
-    } on FormatException {
+      if (amount <= BigInt.from(0)) {
+        throw const FormatException('Amount must be positive');
+      }
+    } on FormatException catch (e) {
       setState(() {
-        _amountErrorText = 'Invalid amount';
+        _amountErrorText = 'Invalid amount: $e';
+      });
+      return;
+    } catch (e) {
+      setState(() {
+        _amountErrorText = 'Unknown error: $e';
       });
       return;
     }
@@ -53,24 +61,8 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
 
     RecipientForm().amount = ApiAmount(field0: amount);
 
-    // get fee rates, these are needed for the next screen
-    // todo: make a chainstate, get the fee rates from the chainstate instead
-    final walletState = Provider.of<WalletState>(context, listen: false);
-    final currentFeeRates = await walletState.getCurrentFeeRates();
-    
-    if (currentFeeRates == null) {
-      setState(() {
-        _amountErrorText = 'Unable to get current fee rates. Please check your connection and try again.';
-      });
-      return;
-    }
-    
-    RecipientForm().currentFeeRates = currentFeeRates;
-
-    if (mounted) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const FeeSelectionScreen()));
-    }
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const FeeSelectionScreen()));
   }
 
   @override
@@ -83,14 +75,13 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
     final availableBalance = walletState.amount;
     final blocksToScan = chainState.tip - walletState.lastScan;
 
-    String recipientName;
+    String recipientName = form.recipient!.displayName;
     TextStyle recipientTextStyle = BitcoinTextStyle.body4(Bitcoin.neutral7);
 
-    if (form.recipientBip353 != null) {
-      recipientName = form.recipientBip353!;
-    } else {
-      recipientName = displayAddress(
-          context, form.recipientAddress!, recipientTextStyle, 0.86);
+    if (recipientName == form.recipient!.paymentCode) {
+      // format static address nicely
+      recipientName =
+          displayAddress(context, recipientName, recipientTextStyle, 0.86);
     }
 
     return SpendSkeleton(
