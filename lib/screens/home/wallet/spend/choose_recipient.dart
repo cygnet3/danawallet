@@ -56,7 +56,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
     final network = Provider.of<ChainState>(context, listen: false).network;
     try {
       Bip353Address? bip353Address;
-      String onchainAddress;
+      String paymentCode;
 
       String textField = textFieldController.text.trim();
 
@@ -67,33 +67,33 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
 
           bip353Address = Bip353Address.fromString(textField);
 
-          final resolvedAddress =
+          final resolvedPaymentCode =
               await Bip353Resolver.resolve(bip353Address, network);
 
-          if (resolvedAddress == null) {
+          if (resolvedPaymentCode == null) {
             // DNS resolution returned null - address not registered
             Logger().w('Dana address "$textField" not found in DNS');
             throw Exception('Dana address not found or not registered');
           }
 
-          // Store the original dana address for the form
-          onchainAddress = resolvedAddress;
+          // set payment code to resolved code
+          paymentCode = resolvedPaymentCode;
 
           Logger().d(
-              'Successfully resolved dana address to SP address: ${textField.substring(0, 20)}...');
+              'Successfully resolved dana address to SP address: ${resolvedPaymentCode.substring(0, 20)}...');
         } catch (e) {
           displayError('Failed to resolve dana address "$textField"', e);
           return;
         }
       } else {
         // we interpret the input field as an on-chain address
-        onchainAddress = textField;
+        paymentCode = textField;
       }
 
       try {
         if (context.mounted) {
           validateAddressWithNetwork(
-              address: onchainAddress, network: network.toCoreArg);
+              address: paymentCode, network: network.toCoreArg);
         }
       } catch (e) {
         if (e.toString().contains('network')) {
@@ -106,7 +106,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
       // note: from the send screen, the payment code is not guaranteed to be reusable;
       // a user might use a regular on-chain address.
       form.recipient =
-          Contact(bip353Address: bip353Address, paymentCode: onchainAddress);
+          Contact(bip353Address: bip353Address, paymentCode: paymentCode);
 
       if (mounted) {
         Navigator.push(
