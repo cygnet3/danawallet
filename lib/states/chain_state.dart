@@ -136,21 +136,15 @@ class ChainState extends ChangeNotifier {
     return await connect(newUrl);
   }
 
-  Future<RecommendedFeeResponse?> getCurrentFeeRates() async {
+  Future<RecommendedFeeResponse> getCurrentFeeRates() async {
     if (network == Network.regtest) {
       // for regtest, we always return 1 sat/vb
       return RecommendedFeeResponse(
           nextBlockFee: 1, halfHourFee: 1, hourFee: 1, dayFee: 1);
     } else {
-      try {
-        final mempoolApiRepository = MempoolApiRepository(network: network);
-        final response = await mempoolApiRepository.getCurrentFeeRate();
-        return response;
-      } catch (e) {
-        Logger().w('Failed to fetch fee rates from mempool.space: $e');
-        // Don't use dangerous fallback rates - return null to block transactions
-        return null;
-      }
+      final mempoolApiRepository = MempoolApiRepository(network: network);
+      final response = await mempoolApiRepository.getCurrentFeeRate();
+      return response;
     }
   }
 }
