@@ -5,7 +5,6 @@
 
 import '../frb_generated.dart';
 import '../lib.dart';
-import 'history.dart';
 import 'outputs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
@@ -75,15 +74,6 @@ abstract class SpWallet implements RustOpaqueInterface {
   ApiScanKey getScanKey();
 
   ApiSpendKey getSpendKey();
-
-  /// Only call this when we expect this value to be present
-  int? getWalletLastScan();
-
-  /// Only call this when we expect this value to be present
-  OwnedOutputs? getWalletOwnedOutputs();
-
-  /// Only call this when we expect this value to be present
-  TxHistory? getWalletTxHistory();
 
   static void interruptScanning() =>
       RustLib.instance.api.crateApiWalletSpWalletInterruptScanning();
