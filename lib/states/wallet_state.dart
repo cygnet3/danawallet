@@ -235,7 +235,8 @@ class WalletState extends ChangeNotifier {
 
     final feeAmount = unsignedTx.getFeeAmount();
 
-    final recipients = unsignedTx.getRecipients(changeAddress: changePaymentCode);
+    final recipients =
+        unsignedTx.getRecipients(changeAddress: changePaymentCode);
 
     final finalizedTx =
         SpWallet.finalizeTransaction(unsignedTransaction: unsignedTx);
@@ -344,7 +345,7 @@ class WalletState extends ChangeNotifier {
           return false;
         } else {
           Logger()
-              .w("Dana address is not pointing to out sp address, removing");
+              .w("Dana address is not pointing to our sp address, removing");
           danaAddress = null;
           // note: because we haven't found a valid address in memory, we don't return here
         }

@@ -109,6 +109,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
+    final contactsState = Provider.of<ContactsState>(context, listen: false);
     final scanProgress =
         Provider.of<ScanProgressNotifier>(context, listen: false);
 
@@ -123,6 +124,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
       final chainTip = chainState.tip;
       await walletState.createNewWallet(network, chainTip);
 
+      // initialize contacts state with the user's payment code
+      contactsState.initialize(walletState.receivePaymentCode, null);
       if (network == Network.regtest && context.mounted) {
         // for regtest we bypass the dana address setup screen
         Navigator.pushAndRemoveUntil(
@@ -130,7 +133,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
             MaterialPageRoute(builder: (context) => const PinGuard()),
             (Route<dynamic> route) => false);
       } else {
-        // Generate an available dana address (without registering yet)
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(
               context,
