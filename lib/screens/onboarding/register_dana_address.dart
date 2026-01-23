@@ -17,16 +17,17 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DanaAddressSetupScreen extends StatefulWidget {
-  const DanaAddressSetupScreen({
+class RegisterDanaAddressScreen extends StatefulWidget {
+  const RegisterDanaAddressScreen({
     super.key,
   });
 
   @override
-  State<DanaAddressSetupScreen> createState() => _DanaAddressSetupScreenState();
+  State<RegisterDanaAddressScreen> createState() =>
+      _RegisterDanaAddressScreenState();
 }
 
-class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
+class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
   static const int _minUsernameLength = 3;
   static const int _maxUsernameLength = 30;
   static const Duration _debounceDuration = Duration(milliseconds: 500);

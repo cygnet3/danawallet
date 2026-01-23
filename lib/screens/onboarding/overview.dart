@@ -6,7 +6,7 @@ import 'package:danawallet/generated/rust/api/bip39.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/choose_network.dart';
-import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
+import 'package:danawallet/screens/onboarding/register_dana_address.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/screens/onboarding/recovery/seed_phrase.dart';
 import 'package:danawallet/services/backup_service.dart';
@@ -74,7 +74,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
           if (context.mounted) {
             Widget nextScreen = goToDanaAddressSetup
-                ? const DanaAddressSetupScreen()
+                ? const RegisterDanaAddressScreen()
                 : const PinGuard();
             Navigator.pushAndRemoveUntil(
                 context,
@@ -137,7 +137,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                  builder: (context) => const DanaAddressSetupScreen()),
+                  builder: (context) => const RegisterDanaAddressScreen()),
               (Route<dynamic> route) => false);
         }
       }

@@ -5,7 +5,7 @@ import 'package:danawallet/generated/rust/frb_generated.dart';
 import 'package:danawallet/main.dart';
 import 'package:danawallet/repositories/database_helper.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
+import 'package:danawallet/screens/onboarding/register_dana_address.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
@@ -86,7 +86,7 @@ void main() async {
         walletState.receivePaymentCode, walletState.danaAddress);
 
     if (addressRegistrationNeeded) {
-      landingPage = const DanaAddressSetupScreen();
+      landingPage = const RegisterDanaAddressScreen();
     } else {
       landingPage = const PinGuard();
     }
