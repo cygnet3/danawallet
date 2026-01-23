@@ -3,7 +3,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
+import 'package:danawallet/screens/onboarding/register_dana_address.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -67,7 +67,7 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
 
       if (context.mounted) {
         Widget nextScreen = goToDanaAddressSetup
-            ? const DanaAddressSetupScreen()
+            ? const RegisterDanaAddressScreen()
             : const PinGuard();
         Navigator.pushAndRemoveUntil(
             context,
