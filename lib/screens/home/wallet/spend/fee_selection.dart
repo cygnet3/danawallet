@@ -7,6 +7,7 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/screens/home/wallet/spend/custom_fee_screen.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -36,9 +37,10 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     RecipientForm form = RecipientForm();
 
     final walletState = Provider.of<WalletState>(context, listen: false);
+    final chainState = Provider.of<ChainState>(context, listen: false);
 
     // fetch fee rates from mempool
-    final currentFeeRates = await walletState.getCurrentFeeRates();
+    final currentFeeRates = await chainState.getCurrentFeeRates();
     form.currentFeeRates = currentFeeRates;
 
     for (SelectedFee fee in [

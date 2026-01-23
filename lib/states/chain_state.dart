@@ -1,5 +1,7 @@
 import 'package:danawallet/data/enums/network.dart';
+import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/generated/rust/api/chain.dart';
+import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/services/synchronization_service.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
 import 'package:danawallet/states/wallet_state.dart';
@@ -132,5 +134,23 @@ class ChainState extends ChangeNotifier {
     Logger().i('Old blindbit url: $_blindbitUrl');
     Logger().i('New blindbit url: $newUrl');
     return await connect(newUrl);
+  }
+
+  Future<RecommendedFeeResponse?> getCurrentFeeRates() async {
+    if (network == Network.regtest) {
+      // for regtest, we always return 1 sat/vb
+      return RecommendedFeeResponse(
+          nextBlockFee: 1, halfHourFee: 1, hourFee: 1, dayFee: 1);
+    } else {
+      try {
+        final mempoolApiRepository = MempoolApiRepository(network: network);
+        final response = await mempoolApiRepository.getCurrentFeeRate();
+        return response;
+      } catch (e) {
+        Logger().w('Failed to fetch fee rates from mempool.space: $e');
+        // Don't use dangerous fallback rates - return null to block transactions
+        return null;
+      }
+    }
   }
 }
