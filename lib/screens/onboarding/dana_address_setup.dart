@@ -319,8 +319,8 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
         // Persist the dana address to storage (already done by registerDanaAddress, but ensure consistency)
         await WalletRepository.instance.saveDanaAddress(registeredAddress);
 
-        // Create a contact for the 'you' user
-        contactsState.initialize(walletState.receivePaymentCode, registeredAddress);
+        // Set the dana address for the 'you' user
+        contactsState.setYouContactDanaAddress(registeredAddress);
 
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(

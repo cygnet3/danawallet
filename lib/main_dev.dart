@@ -78,12 +78,16 @@ void main() async {
 
     chainState.startSyncService(walletState, scanNotifier, true);
 
-    if (await walletState.checkDanaAddressRegistrationNeeded()) {
+    final addressRegistrationNeeded =
+        await walletState.checkDanaAddressRegistrationNeeded();
+
+    // initialize contacts with the 'you' contact
+    contactsState.initialize(
+        walletState.receivePaymentCode, walletState.danaAddress);
+
+    if (addressRegistrationNeeded) {
       landingPage = const DanaAddressSetupScreen();
     } else {
-      // initialize contacts state with our receive & dana address, so that we can create the self contact
-      contactsState.initialize(
-          walletState.receivePaymentCode, walletState.danaAddress);
       landingPage = const PinGuard();
     }
   } else {

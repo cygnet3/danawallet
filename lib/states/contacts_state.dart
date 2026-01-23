@@ -41,6 +41,22 @@ class ContactsState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setYouContactDanaAddress(Bip353Address? danaAddress) async {
+    if (_youContact!.bip353Address != null) {
+      throw Exception("you-contact bip353Address already set");
+    }
+
+    // overwrite the you-contact
+    _youContact = Contact(
+      id: _youContact!.id,
+      name: _youContact!.name,
+      paymentCode: _youContact!.paymentCode,
+      bip353Address: danaAddress,
+    );
+
+    notifyListeners();
+  }
+
   /// Adds a new contact by dana address
   /// Resolves the dana address to SP address via DNS before saving
   ///
