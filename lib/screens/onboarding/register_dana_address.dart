@@ -9,6 +9,7 @@ import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
+import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/loading_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
@@ -276,7 +277,7 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
     }
   }
 
-  Future<void> _registerUsername(BuildContext context) async {
+  Future<void> _onRegister() async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final contactsState = Provider.of<ContactsState>(context, listen: false);
     // Determine which username to use (from the text field)
@@ -339,6 +340,14 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
         _isRegistering = false;
       });
     }
+  }
+
+  void _onSkip() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const PinGuard()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
@@ -583,12 +592,25 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
         _domain != null &&
         (isUsingSuggested || _isCustomUsernameAvailable == true);
 
-    final footer = FooterButton(
+    final skipButton = FooterButtonOutlined(title: 'Skip', onPressed: _onSkip);
+
+    final registerButton = FooterButton(
       title: 'Register',
-      onPressed: () => _registerUsername(context),
+      onPressed: _onRegister,
       isLoading: _isRegistering,
       enabled: isButtonEnabled && !_isRegistering,
     );
+
+    final Widget footer;
+    if (isDevEnv) {
+      footer = Column(children: [
+        skipButton,
+        SizedBox(height: Adaptive.h(2)),
+        registerButton,
+      ]);
+    } else {
+      footer = registerButton;
+    }
 
     return PopScope(
       canPop: false,
