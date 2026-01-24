@@ -1,6 +1,9 @@
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:flutter/services.dart';
 
+// App version
+const String appVersion = "0.7.0";
+
 // The default blindbit backend used
 const String defaultMainnet = "https://silentpayments.dev/blindbit/mainnet";
 const String defaultTestnet = "https://silentpayments.dev/blindbit/testnet";
