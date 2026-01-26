@@ -8,19 +8,6 @@ run:
 run-release:
     {{flutter}} run --release --flavor local --target lib/main_local.dart
 
-build-apk-dev:
-    just clean-bin
-    just build-android
-    {{flutter}} build apk --flavor dev --target-platform android-arm,android-arm64
-build-apk-live:
-    just clean-bin
-    just build-android
-    {{flutter}} build apk --flavor live --target-platform android-arm,android-arm64
-build-apk-signet:
-    just clean-bin
-    just build-android
-    {{flutter}} build apk --flavor signet --target-platform android-arm,android-arm64
-
 clean-bin:
     cd rust && just clean-bin
 gen:
