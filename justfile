@@ -1,12 +1,12 @@
-default: run-dev
+default: run
 
 # use fvm if available, else use flutter directly
 flutter := if `which fvm 2> /dev/null || true` != "" { "fvm flutter" }  else { "flutter" }
 
-run-dev:
-    {{flutter}} run --flavor dev --target lib/main_dev.dart
-run-dev-release:
-    {{flutter}} run --release --flavor dev --target lib/main_dev.dart
+run:
+    {{flutter}} run --flavor local --target lib/main_dev.dart
+run-release:
+    {{flutter}} run --release --flavor local --target lib/main_dev.dart
 
 build-apk-dev:
     just clean-bin

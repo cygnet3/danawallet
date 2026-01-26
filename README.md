@@ -105,7 +105,7 @@ fvm flutter devices
 Finally, to build and install the app for your android device:
 
 ```
-just run-dev
+just run
 ```
 
 ## Donate to Dana
