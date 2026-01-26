@@ -113,8 +113,9 @@ enum Network {
         return Network.mainnet;
       case 'signet':
         return Network.signet;
-      // dev flavor defaults to regtest
+      // dev and local flavors default to regtest
       case 'dev':
+      case 'local':
         return Network.regtest;
       default:
         throw UnknownFlavorException();
