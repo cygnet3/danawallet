@@ -4,6 +4,8 @@ import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/onboarding/register_dana_address.dart';
+import 'package:danawallet/repositories/mempool_api_repository.dart';
+import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/scan_progress_notifier.dart';
@@ -39,6 +41,71 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
   late List<FocusNode> focusNodes;
   late MnemonicInputPillBox pills;
 
+  Future<int?> _askForBirthday(BuildContext context) async {
+    // Ask user if they want to provide the birthday
+    final shouldProvide = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Wallet Birthday'),
+          content: const Text(
+            'Do you know your wallet birthday? Providing it will make restoration much faster. You can skip this if you don\'t have it.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Skip'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Provide'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldProvide != true) {
+      return null;
+    }
+
+    // Show date picker
+    if (!context.mounted) {
+      return null;
+    }
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2009, 1, 3), // Bitcoin genesis
+      lastDate: DateTime.now(),
+      helpText: 'Select wallet birthday',
+    );
+
+    if (pickedDate == null || !context.mounted) {
+      return null;
+    }
+
+    // Convert date to timestamp (seconds since epoch) and then to block height
+    try {
+      // Set time to start of day (00:00:00) for consistency
+      final dateAtMidnight = DateTime(pickedDate.year, pickedDate.month, pickedDate.day);
+      final timestamp = dateAtMidnight.millisecondsSinceEpoch ~/ 1000;
+      final mempoolApi = MempoolApiRepository(network: widget.network);
+      final blockHeight = await mempoolApi.getBlockHeightFromTimestamp(timestamp);
+      return blockHeight;
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to get block height: ${exceptionToString(e)}. Using default birthday.'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
   Future<void> onRestore(BuildContext context) async {
     try {
       final mnemonic = pills.mnemonic;
@@ -48,9 +115,12 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
-      final blindbitUrl = widget.network.defaultBlindbitUrl;
+      // Ask for birthday
+      final birthday = await _askForBirthday(context);
 
-      await walletState.restoreWallet(widget.network, mnemonic);
+      final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl() ?? widget.network.defaultBlindbitUrl;
+
+      await walletState.restoreWallet(widget.network, mnemonic, birthday: birthday);
 
       chainState.initialize(widget.network);
       // we can safely ignore the result of connecting, since we use the default birthday
