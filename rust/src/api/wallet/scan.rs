@@ -1,6 +1,8 @@
-use crate::{api::outputs::OwnedOutPoints, state::StateUpdater, wallet::KEEP_SCANNING};
+use std::{collections::HashSet, str::FromStr};
+
+use crate::{state::StateUpdater, wallet::KEEP_SCANNING};
 use anyhow::Result;
-use spdk::{bitcoin::absolute::Height, BlindbitBackend, ChainBackend, SpScanner};
+use spdk::{BlindbitBackend, ChainBackend, SpScanner, bitcoin::{OutPoint, absolute::Height}};
 
 use super::SpWallet;
 
@@ -18,9 +20,14 @@ impl SpWallet {
         blindbit_url: String,
         last_scan: u32,
         dust_limit: u64,
-        owned_outpoints: OwnedOutPoints,
+        owned_outpoints: Vec<String>,
     ) -> Result<()> {
         let backend = BlindbitBackend::new(blindbit_url)?;
+
+        let owned_outpoints: HashSet<OutPoint> = owned_outpoints
+            .into_iter()
+            .map(|s| OutPoint::from_str(&s))
+            .collect::<Result<_, _>>()?;
 
         let dust_limit = spdk::bitcoin::Amount::from_sat(dust_limit);
 
@@ -36,7 +43,7 @@ impl SpWallet {
             sp_client,
             Box::new(updater),
             Box::new(backend),
-            owned_outpoints.to_inner(),
+            owned_outpoints,
             &KEEP_SCANNING,
         );
 
