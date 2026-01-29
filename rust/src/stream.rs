@@ -3,7 +3,8 @@ use std::{
     sync::Mutex,
 };
 
-use crate::frb_generated::StreamSink;
+use crate::{frb_generated::StreamSink, api::structs::ApiOwnedOutput};
+use flutter_rust_bridge::frb;
 use lazy_static::lazy_static;
 use spdk_core::{
     bitcoin::{absolute::Height, BlockHash, OutPoint},
@@ -16,19 +17,61 @@ lazy_static! {
     static ref STATE_UPDATE_STREAM_SINK: Mutex<Option<StreamSink<StateUpdate>>> = Mutex::new(None);
 }
 
-#[derive(Debug)]
+// StateUpdate - FFI-compatible, exposed to Dart
+#[derive(Debug, Clone)]
+#[frb]
 pub enum StateUpdate {
     NoUpdate {
-        blkheight: Height,
-    },
+        blkheight: u32    },
     Update {
-        blkheight: Height,
-        blkhash: BlockHash,
-        found_outputs: HashMap<OutPoint, OwnedOutput>,
-        found_inputs: HashSet<OutPoint>,
+        blkheight: u32,
+        blkhash: String,
+        found_outputs: Vec<FoundOutput>,
+        found_inputs: Vec<String>, // outpoint strings "txid:vout"
     },
 }
 
+#[derive(Debug, Clone)]
+#[frb]
+pub struct FoundOutput {
+    pub outpoint: String, // "txid:vout"
+    pub output: ApiOwnedOutput,
+}
+
+// Internal conversion from spdk types
+impl StateUpdate {
+    pub(crate) fn from_internal(
+        blkheight: Height,
+        blkhash: Option<BlockHash>,
+        found_outputs: HashMap<OutPoint, OwnedOutput>,
+        found_inputs: HashSet<OutPoint>,
+    ) -> Self {
+        if blkhash.is_none() {
+            return StateUpdate::NoUpdate {
+                blkheight: blkheight.to_consensus_u32(),
+            };
+        }
+
+        StateUpdate::Update {
+            blkheight: blkheight.to_consensus_u32(),
+            blkhash: blkhash.unwrap().to_string(),
+            found_outputs: found_outputs
+                .into_iter()
+                .map(|(outpoint, output)| FoundOutput {
+                    outpoint: outpoint.to_string(),
+                    output: output.into(),
+                })
+                .collect(),
+            found_inputs: found_inputs
+                .into_iter()
+                .map(|outpoint| outpoint.to_string())
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+#[frb]
 pub struct ScanProgress {
     pub start: u32,
     pub current: u32,

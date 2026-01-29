@@ -7,11 +7,11 @@ use spdk_core::{
         self,
         absolute::Height,
         consensus::{deserialize, serialize},
-        hex::{self, DisplayHex, FromHex},
+        hex::{DisplayHex, FromHex},
         secp256k1::SecretKey,
-        Network, OutPoint, ScriptBuf, Txid,
+        BlockHash, Network, OutPoint, ScriptBuf, Txid,
     },
-    OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
+    OwnedOutput, Recipient, SilentPaymentUnsignedTransaction, SpendInfo,
 };
 
 use crate::state::constants::{
@@ -19,40 +19,28 @@ use crate::state::constants::{
     RecordedTransactionUnknownOutgoing,
 };
 
-type SpendingTxId = String;
-type MinedInBlock = String;
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum ApiOutputSpendStatus {
-    Unspent,
-    Spent(SpendingTxId),
-    Mined(MinedInBlock),
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+pub struct ApiSpendInfo {
+    pub spending_txid: Option<String>,
+    pub mined_in_block: Option<String>,
 }
 
-impl From<OutputSpendStatus> for ApiOutputSpendStatus {
-    fn from(value: OutputSpendStatus) -> Self {
-        match value {
-            OutputSpendStatus::Unspent => ApiOutputSpendStatus::Unspent,
-            OutputSpendStatus::Spent(txid) => {
-                ApiOutputSpendStatus::Spent(txid.to_lower_hex_string())
-            }
-            OutputSpendStatus::Mined(block) => {
-                ApiOutputSpendStatus::Mined(block.to_lower_hex_string())
-            }
+impl From<SpendInfo> for ApiSpendInfo {
+    fn from(value: SpendInfo) -> Self {
+        ApiSpendInfo {
+            spending_txid: value.spending_txid.map(|txid| txid.to_string()),
+            mined_in_block: value.mined_in_block.map(|block| block.to_string()),
         }
     }
 }
 
-impl From<ApiOutputSpendStatus> for OutputSpendStatus {
-    fn from(value: ApiOutputSpendStatus) -> Self {
-        match value {
-            ApiOutputSpendStatus::Unspent => OutputSpendStatus::Unspent,
-            ApiOutputSpendStatus::Spent(txid) => {
-                OutputSpendStatus::Spent(hex::FromHex::from_hex(&txid).unwrap())
-            }
-            ApiOutputSpendStatus::Mined(block) => {
-                OutputSpendStatus::Mined(hex::FromHex::from_hex(&block).unwrap())
-            }
+impl From<ApiSpendInfo> for SpendInfo {
+    fn from(value: ApiSpendInfo) -> Self {
+        SpendInfo {
+            spending_txid: value.spending_txid.and_then(|s| Txid::from_str(&s).ok()),
+            mined_in_block: value
+                .mined_in_block
+                .and_then(|s| BlockHash::from_str(&s).ok()),
         }
     }
 }
@@ -104,7 +92,7 @@ pub struct ApiOwnedOutput {
     pub amount: ApiAmount,
     pub script: String,
     pub label: Option<String>,
-    pub spend_status: ApiOutputSpendStatus,
+    pub spend_info: ApiSpendInfo,
 }
 
 impl From<OwnedOutput> for ApiOwnedOutput {
@@ -115,7 +103,7 @@ impl From<OwnedOutput> for ApiOwnedOutput {
             amount: value.amount.into(),
             script: value.script.to_hex_string(),
             label: value.label.map(|l| l.as_string()),
-            spend_status: value.spend_status.into(),
+            spend_info: value.spend_info.into(),
         }
     }
 }
@@ -128,7 +116,7 @@ impl From<ApiOwnedOutput> for OwnedOutput {
             amount: value.amount.into(),
             script: ScriptBuf::from_hex(&value.script).unwrap(),
             label: value.label.map(|l| l.try_into().unwrap()),
-            spend_status: value.spend_status.into(),
+            spend_info: value.spend_info.into(),
         }
     }
 }
@@ -162,6 +150,7 @@ impl TryFrom<ApiRecipient> for Recipient {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[frb(unignore)]
 pub enum ApiRecordedTransaction {
     Incoming(ApiRecordedTransactionIncoming),
     Outgoing(ApiRecordedTransactionOutgoing),
@@ -172,7 +161,8 @@ pub enum ApiRecordedTransaction {
 pub struct ApiRecordedTransactionIncoming {
     pub txid: String,
     pub amount: ApiAmount,
-    pub confirmed_at: Option<u32>,
+    pub confirmation_height: Option<u32>,
+    pub confirmation_blockhash: Option<String>,
 }
 
 impl ApiRecordedTransactionIncoming {
@@ -210,7 +200,8 @@ pub struct ApiRecordedTransactionOutgoing {
     pub txid: String,
     pub spent_outpoints: Vec<String>,
     pub recipients: Vec<ApiRecipient>,
-    pub confirmed_at: Option<u32>,
+    pub confirmation_height: Option<u32>,
+    pub confirmation_blockhash: Option<String>,
     pub change: ApiAmount,
     pub fee: ApiAmount,
 }
@@ -218,7 +209,8 @@ pub struct ApiRecordedTransactionOutgoing {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ApiRecordedTransactionUnknownOutgoing {
     pub amount: ApiAmount,
-    pub confirmed_at: u32,
+    pub confirmation_height: u32,
+    pub confirmation_blockhash: String,
     pub spent_outpoints: Vec<String>,
 }
 
@@ -247,7 +239,8 @@ impl From<ApiRecordedTransaction> for RecordedTransaction {
 impl From<RecordedTransactionUnknownOutgoing> for ApiRecordedTransactionUnknownOutgoing {
     fn from(value: RecordedTransactionUnknownOutgoing) -> Self {
         Self {
-            confirmed_at: value.confirmed_at.to_consensus_u32(),
+            confirmation_height: value.confirmation_height.to_consensus_u32(),
+            confirmation_blockhash: value.confirmation_blockhash.to_string(),
             amount: value.amount.into(),
             spent_outpoints: value
                 .spent_outpoints
@@ -262,7 +255,8 @@ impl From<ApiRecordedTransactionUnknownOutgoing> for RecordedTransactionUnknownO
     fn from(value: ApiRecordedTransactionUnknownOutgoing) -> Self {
         Self {
             amount: value.amount.into(),
-            confirmed_at: Height::from_consensus(value.confirmed_at).unwrap(),
+            confirmation_height: Height::from_consensus(value.confirmation_height).unwrap(),
+            confirmation_blockhash: BlockHash::from_str(&value.confirmation_blockhash).unwrap(),
             spent_outpoints: value
                 .spent_outpoints
                 .into_iter()
@@ -274,33 +268,44 @@ impl From<ApiRecordedTransactionUnknownOutgoing> for RecordedTransactionUnknownO
 
 impl From<RecordedTransactionIncoming> for ApiRecordedTransactionIncoming {
     fn from(value: RecordedTransactionIncoming) -> Self {
-        let confirmed_at = value.confirmed_at.map(|height| height.to_consensus_u32());
+        let confirmation_height = value.confirmation_height.map(|height| height.to_consensus_u32());
+        let confirmation_blockhash = value
+            .confirmation_blockhash
+            .map(|blockhash| blockhash.to_string());
 
         Self {
             txid: value.txid.to_string(),
             amount: value.amount.into(),
-            confirmed_at,
+            confirmation_height,
+            confirmation_blockhash,
         }
     }
 }
 
 impl From<ApiRecordedTransactionIncoming> for RecordedTransactionIncoming {
     fn from(value: ApiRecordedTransactionIncoming) -> Self {
-        let confirmed_at = value
-            .confirmed_at
+        let confirmation_height = value
+            .confirmation_height
             .map(|height| Height::from_consensus(height).unwrap());
+        let confirmation_blockhash = value
+            .confirmation_blockhash
+            .map(|blockhash| BlockHash::from_str(&blockhash).unwrap());
 
         Self {
             txid: Txid::from_str(&value.txid).unwrap(),
             amount: value.amount.into(),
-            confirmed_at,
+            confirmation_height,
+            confirmation_blockhash,
         }
     }
 }
 
 impl From<RecordedTransactionOutgoing> for ApiRecordedTransactionOutgoing {
     fn from(value: RecordedTransactionOutgoing) -> Self {
-        let confirmed_at = value.confirmed_at.map(|height| height.to_consensus_u32());
+        let confirmation_height = value.confirmation_height.map(|height| height.to_consensus_u32());
+        let confirmation_blockhash = value
+            .confirmation_blockhash
+            .map(|blockhash| blockhash.to_string());
 
         Self {
             txid: value.txid.to_string(),
@@ -310,7 +315,8 @@ impl From<RecordedTransactionOutgoing> for ApiRecordedTransactionOutgoing {
                 .map(|x| x.to_string())
                 .collect(),
             recipients: value.recipients.into_iter().map(Into::into).collect(),
-            confirmed_at,
+            confirmation_height,
+            confirmation_blockhash,
             change: value.change.into(),
             fee: value.fee.into(),
         }
@@ -319,9 +325,12 @@ impl From<RecordedTransactionOutgoing> for ApiRecordedTransactionOutgoing {
 
 impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
     fn from(value: ApiRecordedTransactionOutgoing) -> Self {
-        let confirmed_at = value
-            .confirmed_at
+        let confirmation_height = value
+            .confirmation_height
             .map(|height| Height::from_consensus(height).unwrap());
+        let confirmation_blockhash = value
+            .confirmation_blockhash
+            .map(|blockhash| BlockHash::from_str(&blockhash).unwrap());
 
         Self {
             txid: Txid::from_str(&value.txid).unwrap(),
@@ -335,7 +344,8 @@ impl From<ApiRecordedTransactionOutgoing> for RecordedTransactionOutgoing {
                 .into_iter()
                 .map(|r| r.try_into().unwrap())
                 .collect(),
-            confirmed_at,
+            confirmation_height,
+            confirmation_blockhash,
             change: value.change.into(),
             fee: value.fee.into(),
         }
