@@ -3,12 +3,32 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import 'api/structs.dart';
 import 'frb_generated.dart';
+import 'lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+part 'stream.freezed.dart';
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<StateUpdate>>
-abstract class StateUpdate implements RustOpaqueInterface {
-  int getHeight();
+class FoundOutput {
+  final String outpoint;
+  final ApiOwnedOutput output;
+
+  const FoundOutput({
+    required this.outpoint,
+    required this.output,
+  });
+
+  @override
+  int get hashCode => outpoint.hashCode ^ output.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FoundOutput &&
+          runtimeType == other.runtimeType &&
+          outpoint == other.outpoint &&
+          output == other.output;
 }
 
 class ScanProgress {
@@ -33,4 +53,19 @@ class ScanProgress {
           start == other.start &&
           current == other.current &&
           end == other.end;
+}
+
+@freezed
+sealed class StateUpdate with _$StateUpdate {
+  const StateUpdate._();
+
+  const factory StateUpdate.noUpdate({
+    required int blkheight,
+  }) = StateUpdate_NoUpdate;
+  const factory StateUpdate.update({
+    required int blkheight,
+    required String blkhash,
+    required List<FoundOutput> foundOutputs,
+    required List<String> foundInputs,
+  }) = StateUpdate_Update;
 }
