@@ -220,7 +220,7 @@ checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
 [[package]]
 name = "blindbit-backend"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/spdk?branch=master#2f233da2b1922e35236b8f2c702611fc98efde8a"
+source = "git+https://github.com/cygnet3/spdk?branch=replace_spend_status_info#6aaa5125f35a0f945d28a6ac95ad99bbe60cb8fa"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1924,7 +1924,7 @@ dependencies = [
 [[package]]
 name = "spdk-core"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/spdk?branch=master#2f233da2b1922e35236b8f2c702611fc98efde8a"
+source = "git+https://github.com/cygnet3/spdk?branch=replace_spend_status_info#6aaa5125f35a0f945d28a6ac95ad99bbe60cb8fa"
 dependencies = [
  "anyhow",
  "async-trait",
