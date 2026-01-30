@@ -4,38 +4,25 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import '../stream.dart';
-import 'outputs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 
-// These functions are ignored because they are not marked as `pub`: `check_is_self_send`, `confirm_recorded_outgoing_transaction`, `record_incoming_transaction`, `record_outgoing_transaction`, `record_unknown_outgoing_transaction`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TxHistory>>
 abstract class TxHistory implements RustOpaqueInterface {
-  void addOutgoingTxToHistory(
-      {required String txid,
-      required List<String> spentOutpoints,
-      required List<ApiRecipient> recipients,
-      required ApiAmount change,
-      required ApiAmount fee});
-
+  /// Decode transaction history from JSON string.
+  /// Only used during migration from SharedPreferences to SQLite.
   static TxHistory decode({required String encodedHistory}) =>
       RustLib.instance.api
           .crateApiHistoryTxHistoryDecode(encodedHistory: encodedHistory);
 
+  /// Create an empty transaction history.
+  /// Only used for migration/backup compatibility.
   static TxHistory empty() =>
       RustLib.instance.api.crateApiHistoryTxHistoryEmpty();
 
-  String encode();
-
-  ApiAmount getUnconfirmedChange();
-
-  void processStateUpdate(
-      {required StateUpdate update, required OwnedOutputs ownedOutputs});
-
-  void resetToHeight({required int height});
-
+  /// Convert to API transaction list for migration.
+  /// Only used during migration from SharedPreferences to SQLite.
   List<ApiRecordedTransaction> toApiTransactions();
 }
