@@ -8,4 +8,7 @@ class AppInfoService {
   String get appVersion => packageInfo.version;
 
   String get buildNumber => packageInfo.buildNumber;
+
+  String get gitHash =>
+      const String.fromEnvironment('GIT_HASH', defaultValue: '');
 }

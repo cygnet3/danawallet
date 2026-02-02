@@ -4,9 +4,9 @@ default: run
 flutter := if `which fvm 2> /dev/null || true` != "" { "fvm flutter" }  else { "flutter" }
 
 run:
-    {{flutter}} run --flavor local --target lib/main_local.dart
+    {{flutter}} run --flavor local --target lib/main_local.dart --dart-define="GIT_HASH=$(git rev-parse HEAD)"
 run-release:
-    {{flutter}} run --release --flavor local --target lib/main_local.dart
+    {{flutter}} run --release --flavor local --target lib/main_local.dart --dart-define="GIT_HASH=$(git rev-parse HEAD)"
 
 clean-bin:
     cd rust && just clean-bin
