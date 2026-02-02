@@ -1,6 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
-import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/screens/settings/about/about_screen.dart';
 import 'package:danawallet/screens/settings/network/network_settings_screen.dart';
 import 'package:danawallet/screens/settings/personalization/personalisation_settings_screen.dart';
 import 'package:danawallet/screens/settings/widgets/settings_list_tile.dart';
@@ -16,45 +16,22 @@ const String walletSettingsSubtitle = "Backup, restore or wipe wallet";
 const String personalizationSettingsTitle = "Personalization settings";
 const String personalizationSettingsSubtitle =
     "Set language, bitcoin unit, fiat currency & theme";
+const String aboutSettingsTitle = "About";
+const String aboutSettingsSubtitle = "About Dana";
 
 const IconData networkSettingsIcon = Icons.dns_outlined;
 const IconData walletSettingsIcon = Icons.account_balance_wallet_outlined;
 const IconData personalizationSettingsIcon = Icons.tune;
+const IconData aboutSettingsIcon = Icons.info_outlined;
 
 const Widget networkSettingScreen = NetworkSettingsScreen();
 const Widget walletSettingsScreen = WalletSettingsScreen();
 const Widget personalizationSettingsScreen = PersonalisationSettingsScreen();
+const Widget aboutSettingsScreen = AboutSettingsScreen();
 
 /// Main settings screen showing all setting categories
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
-  Widget _onBuildFooter() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: Column(
-          children: [
-            Text(
-              'Dana wallet v$appVersion beta',
-              style: TextStyle(
-                fontSize: 14,
-                color: Bitcoin.neutral5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Copyright (c) 2023 cygnet',
-              style: TextStyle(
-                fontSize: 14,
-                color: Bitcoin.neutral5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +53,12 @@ class SettingsScreen extends StatelessWidget {
         title: personalizationSettingsTitle,
         subtitle: personalizationSettingsSubtitle,
         onTap: () => goToScreen(context, personalizationSettingsScreen),
+      ),
+      SettingsListTile(
+        icon: aboutSettingsIcon,
+        title: aboutSettingsTitle,
+        subtitle: aboutSettingsSubtitle,
+        onTap: () => goToScreen(context, aboutSettingsScreen),
       )
     ];
 
@@ -92,7 +75,6 @@ class SettingsScreen extends StatelessWidget {
         ),
         itemBuilder: (context, index) => settingsTiles[index],
       ),
-      footer: _onBuildFooter(),
     );
   }
 }
