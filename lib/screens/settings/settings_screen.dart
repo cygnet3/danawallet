@@ -67,47 +67,41 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settingsTiles = [
+      SettingsListTile(
+        icon: Icons.dns_outlined,
+        title: 'Network settings',
+        subtitle: 'Scanning, data usage, chain selection',
+        onTap: () => _onNavigateToNetworkSettings(context),
+      ),
+      SettingsListTile(
+        icon: Icons.account_balance_wallet_outlined,
+        title: 'Wallet settings',
+        subtitle: 'Backup, restore or wipe wallet',
+        onTap: () => _onNavigateToWalletSettings(context),
+      ),
+      SettingsListTile(
+        icon: Icons.tune,
+        title: 'Personalisation settings',
+        subtitle: 'Set language, bitcoin unit, fiat currency & theme',
+        onTap: () => _onNavigateToPersonalisationSettings(context),
+      )
+    ];
+
     return SettingsSkeleton(
       showBackButton: false,
       title: 'Settings',
       body: ListView.separated(
-        itemCount: 3,
+        itemCount: settingsTiles.length,
         separatorBuilder: (context, index) => Divider(
           height: 1,
           thickness: 1,
           color: Bitcoin.neutral3,
           indent: 56,
         ),
-        itemBuilder: (context, index) {
-          switch (index) {
-            case 0:
-              return SettingsListTile(
-                icon: Icons.dns_outlined,
-                title: 'Network settings',
-                subtitle: 'Scanning, data usage, chain selection',
-                onTap: () => _onNavigateToNetworkSettings(context),
-              );
-            case 1:
-              return SettingsListTile(
-                icon: Icons.account_balance_wallet_outlined,
-                title: 'Wallet settings',
-                subtitle: 'Backup, restore or wipe wallet',
-                onTap: () => _onNavigateToWalletSettings(context),
-              );
-            case 2:
-              return SettingsListTile(
-                icon: Icons.tune,
-                title: 'Personalisation settings',
-                subtitle: 'Set language, bitcoin unit, fiat currency & theme',
-                onTap: () => _onNavigateToPersonalisationSettings(context),
-              );
-            default:
-              return const SizedBox.shrink();
-          }
-        },
+        itemBuilder: (context, index) => settingsTiles[index],
       ),
       footer: _onBuildFooter(),
     );
   }
 }
-
