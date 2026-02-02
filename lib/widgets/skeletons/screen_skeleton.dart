@@ -34,7 +34,7 @@ class ScreenSkeleton extends StatelessWidget {
                     child: Text(title!,
                         style: BitcoinTextStyle.title4(Bitcoin.black)),
                   ),
-                Expanded(child: body),
+                Flexible(child: body),
                 if (footer != null) footer!,
               ],
             )));
