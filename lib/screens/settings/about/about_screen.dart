@@ -32,8 +32,9 @@ class AboutSettingsScreen extends StatelessWidget {
             const InfoTextContainer(infoText: licenceInfo),
             InfoTextContainer(
                 infoText: "$versionInfoPrefix ${appInfo.appVersion}"),
-            InfoTextContainer(
-                infoText: "$buildNumberPrefix ${appInfo.buildNumber}"),
+            if (isDevEnv)
+              InfoTextContainer(
+                  infoText: "$buildNumberPrefix ${appInfo.buildNumber}"),
             if (isDevEnv)
               InfoTextContainer(
                   infoText: "$commitInfoPrefix ${appInfo.gitHash}"),
