@@ -4,7 +4,7 @@ import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/fee_selection.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -84,7 +84,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
           displayAddress(context, recipientName, recipientTextStyle, 0.86);
     }
 
-    return SpendSkeleton(
+    return ScreenSkeleton(
       showBackButton: true,
       title: 'Enter amount',
       body: Column(

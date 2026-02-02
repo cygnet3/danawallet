@@ -1,6 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
 
@@ -52,7 +52,7 @@ class ChooseNetworkScreenState extends State<ChooseNetworkScreen> {
         title: "Confirm",
         onPressed: () => Navigator.of(context).pop(_selected));
 
-    return SpendSkeleton(
+    return ScreenSkeleton(
         title: "Choose network",
         body: body,
         showBackButton: true,

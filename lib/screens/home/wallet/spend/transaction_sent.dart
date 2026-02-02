@@ -3,7 +3,7 @@ import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
@@ -90,7 +90,7 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
   Widget build(BuildContext context) {
     String estimatedTime = RecipientForm().selectedFee!.toEstimatedTime;
 
-    return SpendSkeleton(
+    return ScreenSkeleton(
       showBackButton: false,
       body: Column(
           mainAxisAlignment: MainAxisAlignment.start,
