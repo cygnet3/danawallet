@@ -1,5 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
+import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/settings/network_settings_screen.dart';
 import 'package:danawallet/screens/settings/personalisation_settings_screen.dart';
 import 'package:danawallet/screens/settings/settings_list_tile.dart';
@@ -27,33 +28,6 @@ const Widget personalizationSettingsScreen = PersonalisationSettingsScreen();
 /// Main settings screen showing all setting categories
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
-  void _onNavigateToNetworkSettings(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => networkSettingScreen,
-      ),
-    );
-  }
-
-  void _onNavigateToWalletSettings(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => walletSettingsScreen,
-      ),
-    );
-  }
-
-  void _onNavigateToPersonalisationSettings(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => personalizationSettingsScreen,
-      ),
-    );
-  }
 
   Widget _onBuildFooter() {
     return Padding(
@@ -89,19 +63,19 @@ class SettingsScreen extends StatelessWidget {
         icon: networkSettingsIcon,
         title: networkSettingsTitle,
         subtitle: networkSettingsSubtitle,
-        onTap: () => _onNavigateToNetworkSettings(context),
+        onTap: () => goToScreen(context, networkSettingScreen),
       ),
       SettingsListTile(
         icon: walletSettingsIcon,
         title: walletSettingsTitle,
         subtitle: walletSettingsSubtitle,
-        onTap: () => _onNavigateToWalletSettings(context),
+        onTap: () => goToScreen(context, walletSettingsScreen),
       ),
       SettingsListTile(
         icon: personalizationSettingsIcon,
         title: personalizationSettingsTitle,
         subtitle: personalizationSettingsSubtitle,
-        onTap: () => _onNavigateToPersonalisationSettings(context),
+        onTap: () => goToScreen(context, personalizationSettingsScreen),
       )
     ];
 
