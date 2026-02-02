@@ -7,6 +7,23 @@ import 'package:danawallet/screens/settings/settings_skeleton.dart';
 import 'package:danawallet/screens/settings/wallet_settings_screen.dart';
 import 'package:flutter/material.dart';
 
+const String pageTitle = "Settings";
+const String networkSettingsTitle = "Network settings";
+const String networkSettingsSubtitle = "Scanning, data usage, chain selection";
+const String walletSettingsTitle = "Wallet settings";
+const String walletSettingsSubtitle = "Backup, restore or wipe wallet";
+const String personalizationSettingsTitle = "Personalization settings";
+const String personalizationSettingsSubtitle =
+    "Set language, bitcoin unit, fiat currency & theme";
+
+const IconData networkSettingsIcon = Icons.dns_outlined;
+const IconData walletSettingsIcon = Icons.account_balance_wallet_outlined;
+const IconData personalizationSettingsIcon = Icons.tune;
+
+const Widget networkSettingScreen = NetworkSettingsScreen();
+const Widget walletSettingsScreen = WalletSettingsScreen();
+const Widget personalizationSettingsScreen = PersonalisationSettingsScreen();
+
 /// Main settings screen showing all setting categories
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -15,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const NetworkSettingsScreen(),
+        builder: (context) => networkSettingScreen,
       ),
     );
   }
@@ -24,7 +41,7 @@ class SettingsScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const WalletSettingsScreen(),
+        builder: (context) => walletSettingsScreen,
       ),
     );
   }
@@ -33,7 +50,7 @@ class SettingsScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const PersonalisationSettingsScreen(),
+        builder: (context) => personalizationSettingsScreen,
       ),
     );
   }
@@ -69,28 +86,28 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settingsTiles = [
       SettingsListTile(
-        icon: Icons.dns_outlined,
-        title: 'Network settings',
-        subtitle: 'Scanning, data usage, chain selection',
+        icon: networkSettingsIcon,
+        title: networkSettingsTitle,
+        subtitle: networkSettingsSubtitle,
         onTap: () => _onNavigateToNetworkSettings(context),
       ),
       SettingsListTile(
-        icon: Icons.account_balance_wallet_outlined,
-        title: 'Wallet settings',
-        subtitle: 'Backup, restore or wipe wallet',
+        icon: walletSettingsIcon,
+        title: walletSettingsTitle,
+        subtitle: walletSettingsSubtitle,
         onTap: () => _onNavigateToWalletSettings(context),
       ),
       SettingsListTile(
-        icon: Icons.tune,
-        title: 'Personalisation settings',
-        subtitle: 'Set language, bitcoin unit, fiat currency & theme',
+        icon: personalizationSettingsIcon,
+        title: personalizationSettingsTitle,
+        subtitle: personalizationSettingsSubtitle,
         onTap: () => _onNavigateToPersonalisationSettings(context),
       )
     ];
 
     return SettingsSkeleton(
       showBackButton: false,
-      title: 'Settings',
+      title: pageTitle,
       body: ListView.separated(
         itemCount: settingsTiles.length,
         separatorBuilder: (context, index) => Divider(
