@@ -1,11 +1,11 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/settings/network_settings_screen.dart';
-import 'package:danawallet/screens/settings/personalisation_settings_screen.dart';
+import 'package:danawallet/screens/settings/network/network_settings_screen.dart';
+import 'package:danawallet/screens/settings/personalization/personalisation_settings_screen.dart';
 import 'package:danawallet/screens/settings/widgets/settings_list_tile.dart';
 import 'package:danawallet/screens/settings/widgets/skeleton.dart';
-import 'package:danawallet/screens/settings/wallet_settings_screen.dart';
+import 'package:danawallet/screens/settings/wallet/wallet_settings_screen.dart';
 import 'package:flutter/material.dart';
 
 const String pageTitle = "Settings";

@@ -2,7 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/settings/change_fiat.dart';
+import 'package:danawallet/screens/settings/personalization/change_fiat_screen.dart';
 import 'package:danawallet/screens/settings/widgets/settings_list_tile.dart';
 import 'package:danawallet/screens/settings/widgets/skeleton.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -76,7 +76,6 @@ class PersonalisationSettingsScreen extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _PersonalisationSettingsItem {
@@ -92,4 +91,3 @@ class _PersonalisationSettingsItem {
     required this.onTap,
   });
 }
-
