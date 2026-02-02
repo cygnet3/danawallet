@@ -6,7 +6,7 @@ import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -144,7 +144,7 @@ class ChooseRecipientScreenState extends State<ChooseRecipientScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SpendSkeleton(
+    return ScreenSkeleton(
         showBackButton: true,
         title: 'Choose recipient(s)',
         body: Column(

@@ -4,7 +4,7 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/settings/personalization/change_fiat_screen.dart';
 import 'package:danawallet/screens/settings/widgets/settings_list_tile.dart';
-import 'package:danawallet/screens/settings/widgets/skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/home_state.dart';
 import 'package:flutter/material.dart';
@@ -51,28 +51,26 @@ class PersonalisationSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = _buildItems(context);
 
-    return Scaffold(
-      body: SettingsSkeleton(
-        showBackButton: true,
-        title: 'Personalisation settings',
-        body: ListView.separated(
-          itemCount: items.length,
-          separatorBuilder: (context, index) => Divider(
-            height: 1,
-            thickness: 1,
-            color: Bitcoin.neutral3,
-            indent: 56,
-          ),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return SettingsListTile(
-              icon: item.icon,
-              title: item.title,
-              subtitle: item.subtitle,
-              onTap: item.onTap,
-            );
-          },
+    return ScreenSkeleton(
+      showBackButton: true,
+      title: 'Personalisation settings',
+      body: ListView.separated(
+        itemCount: items.length,
+        separatorBuilder: (context, index) => Divider(
+          height: 1,
+          thickness: 1,
+          color: Bitcoin.neutral3,
+          indent: 56,
         ),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return SettingsListTile(
+            icon: item.icon,
+            title: item.title,
+            subtitle: item.subtitle,
+            onTap: item.onTap,
+          );
+        },
       ),
     );
   }

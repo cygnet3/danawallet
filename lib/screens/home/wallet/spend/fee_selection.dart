@@ -5,7 +5,7 @@ import 'package:danawallet/data/enums/selected_fee.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/screens/home/wallet/spend/custom_fee_screen.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -179,7 +179,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     final exchangeRate =
         Provider.of<FiatExchangeRateState>(context, listen: false);
 
-    return SpendSkeleton(
+    return ScreenSkeleton(
       showBackButton: true,
       title: 'Confirmation time',
       body: Column(children: [

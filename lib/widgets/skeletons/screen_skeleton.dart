@@ -2,12 +2,15 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/widgets/back_button.dart';
 import 'package:flutter/material.dart';
 
-class SpendSkeleton extends StatelessWidget {
+// This is the main screen template widget.
+// Generally, this template should be used across all full-sized screens,
+// in order to make things like padding and button placement consistent.
+class ScreenSkeleton extends StatelessWidget {
   final bool showBackButton;
   final String? title;
   final Widget body;
   final Widget? footer;
-  const SpendSkeleton(
+  const ScreenSkeleton(
       {super.key,
       this.title,
       required this.body,

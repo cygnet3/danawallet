@@ -4,7 +4,7 @@ import 'package:danawallet/repositories/settings_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
 import 'package:danawallet/screens/settings/widgets/settings_list_tile.dart';
-import 'package:danawallet/screens/settings/widgets/skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/services/backup_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/contacts_state.dart';
@@ -119,29 +119,27 @@ class WalletSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = _buildItems(context);
 
-    return Scaffold(
-      body: SettingsSkeleton(
-        showBackButton: true,
-        title: 'Wallet settings',
-        body: ListView.separated(
-          itemCount: items.length,
-          separatorBuilder: (context, index) => Divider(
-            height: 1,
-            thickness: 1,
-            color: Bitcoin.neutral3,
-            indent: 56,
-          ),
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return SettingsListTile(
-              icon: item.icon,
-              title: item.title,
-              subtitle: item.subtitle,
-              onTap: item.onTap,
-              isDestructive: item.isDestructive,
-            );
-          },
+    return ScreenSkeleton(
+      showBackButton: true,
+      title: 'Wallet settings',
+      body: ListView.separated(
+        itemCount: items.length,
+        separatorBuilder: (context, index) => Divider(
+          height: 1,
+          thickness: 1,
+          color: Bitcoin.neutral3,
+          indent: 56,
         ),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return SettingsListTile(
+            icon: item.icon,
+            title: item.title,
+            subtitle: item.subtitle,
+            onTap: item.onTap,
+            isDestructive: item.isDestructive,
+          );
+        },
       ),
     );
   }
