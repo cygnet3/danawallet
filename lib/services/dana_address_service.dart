@@ -153,7 +153,8 @@ class DanaAddressService {
     Logger().i('Found ${addresses.length} dana address(es) for SP address');
 
     for (var candidate in addresses) {
-      if (await Bip353Resolver.verifyPaymentCode(candidate, paymentCode, network)) {
+      if (await Bip353Resolver.verifyPaymentCode(
+          candidate, paymentCode, network)) {
         // we just return the first valid candidate
         return candidate;
       } else {
