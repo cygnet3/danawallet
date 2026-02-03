@@ -1,6 +1,5 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
-import 'package:danawallet/exceptions.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
