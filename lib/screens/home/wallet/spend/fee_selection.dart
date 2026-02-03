@@ -144,15 +144,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
             ],
           ),
           leading: Radio<SelectedFee>(
-            groupValue: _selected,
             value: fee,
-            onChanged: (SelectedFee? value) {
-              if (value != null) {
-                setState(() {
-                  _selected = value;
-                });
-              }
-            },
           ),
         );
       case SelectedFee.custom:
@@ -182,17 +174,26 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     return ScreenSkeleton(
       showBackButton: true,
       title: 'Confirmation time',
-      body: Column(children: [
-        const Divider(),
-        toListTile(SelectedFee.fast, exchangeRate),
-        const Divider(),
-        toListTile(SelectedFee.normal, exchangeRate),
-        const Divider(),
-        toListTile(SelectedFee.slow, exchangeRate),
-        const Divider(),
-        if (isDevEnv) toListTile(SelectedFee.custom, exchangeRate),
-        if (isDevEnv) const Divider(),
-      ]),
+      body: RadioGroup(
+          groupValue: _selected,
+          onChanged: (SelectedFee? value) {
+            if (value != null) {
+              setState(() {
+                _selected = value;
+              });
+            }
+          },
+          child: Column(children: [
+            const Divider(),
+            toListTile(SelectedFee.fast, exchangeRate),
+            const Divider(),
+            toListTile(SelectedFee.normal, exchangeRate),
+            const Divider(),
+            toListTile(SelectedFee.slow, exchangeRate),
+            const Divider(),
+            if (isDevEnv) toListTile(SelectedFee.custom, exchangeRate),
+            if (isDevEnv) const Divider(),
+          ])),
       footer: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
