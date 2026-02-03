@@ -146,6 +146,11 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
           leading: Radio<SelectedFee>(
             value: fee,
           ),
+          onTap: () {
+            setState(() {
+              _selected = fee;
+            });
+          },
         );
       case SelectedFee.custom:
         return ListTile(
