@@ -324,7 +324,7 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
         // Set the dana address for the 'you' user
         contactsState.setYouContactDanaAddress(registeredAddress);
 
-        if (context.mounted) {
+        if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const PinGuard()),

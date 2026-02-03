@@ -197,7 +197,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: danaBlue, width: 2),
+                        borderSide: const BorderSide(color: danaBlue, width: 2),
                       ),
                     ),
                   ),
@@ -210,7 +210,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 Container(
                   padding: EdgeInsets.all(2.w),
                   decoration: BoxDecoration(
-                    color: Bitcoin.red.withOpacity(0.1),
+                    color: Bitcoin.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
