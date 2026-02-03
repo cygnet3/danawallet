@@ -27,7 +27,6 @@ class TransactionSentScreen extends StatefulWidget {
 
 class _TransactionSentScreenState extends State<TransactionSentScreen> {
   bool _isEligible = false;
-  bool _isCheckingEligible = true;
 
   @override
   void initState() {
@@ -35,7 +34,7 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
     _checkEligibleToSaveContact();
   }
 
-  Future<void> _checkEligibleToSaveContact() async {
+  void _checkEligibleToSaveContact() {
     final form = RecipientForm();
     final contacts = Provider.of<ContactsState>(context, listen: false);
 
@@ -57,14 +56,12 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
       if (!isInContacts) {
         setState(() {
           _isEligible = true;
-          _isCheckingEligible = false;
         });
         return;
       }
     }
     setState(() {
       _isEligible = false;
-      _isCheckingEligible = false;
     });
   }
 
@@ -175,12 +172,12 @@ class _TransactionSentScreenState extends State<TransactionSentScreen> {
             const SizedBox(
               height: 10.0,
             ),
-          if (!_isCheckingEligible && _isEligible)
+          if (_isEligible)
             FooterButtonOutlined(
               title: 'Add to contact',
               onPressed: _openAddContactSheet,
             ),
-          if (!_isCheckingEligible && _isEligible)
+          if (_isEligible)
             const SizedBox(
               height: 10.0,
             ),
