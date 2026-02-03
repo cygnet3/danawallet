@@ -11,7 +11,7 @@ import 'package:danawallet/data/models/contact_field.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
 import 'package:danawallet/screens/contacts/add_edit_field_sheet.dart';
 import 'package:danawallet/screens/contacts/edit_contact_sheet.dart';
-import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
+import 'package:danawallet/screens/spend/amount_selection.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
