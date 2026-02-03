@@ -126,7 +126,7 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
             child: Column(
               children: [
                 Text(
-                  '${_selectedFeeRate} sat/vB',
+                  '$_selectedFeeRate sat/vB',
                   style: BitcoinTextStyle.title3(Bitcoin.black),
                 ),
               ],
@@ -155,7 +155,7 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
                   activeTrackColor: Bitcoin.orange,
                   inactiveTrackColor: Bitcoin.neutral3,
                   thumbColor: Bitcoin.orange,
-                  overlayColor: Bitcoin.orange.withOpacity(0.1),
+                  overlayColor: Bitcoin.orange.withValues(alpha: 0.1),
                   trackHeight: 4.0,
                 ),
                 child: Slider(
@@ -188,11 +188,11 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _errorMessage != null
-                  ? Bitcoin.red.withOpacity(0.1)
+                  ? Bitcoin.red.withValues(alpha: 0.1)
                   : Bitcoin.neutral1,
               borderRadius: BorderRadius.circular(8),
               border: _errorMessage != null
-                  ? Border.all(color: Bitcoin.red.withOpacity(0.3))
+                  ? Border.all(color: Bitcoin.red.withValues(alpha: 0.3))
                   : null,
             ),
             child: _errorMessage != null
