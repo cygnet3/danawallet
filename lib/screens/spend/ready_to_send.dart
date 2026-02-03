@@ -2,7 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
-import 'package:danawallet/screens/home/wallet/spend/transaction_sent.dart';
+import 'package:danawallet/screens/spend/transaction_sent.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
