@@ -203,7 +203,8 @@ class ContactDetailsScreen extends StatelessWidget {
     }
 
     if (bip353 != null) {
-      // Resolve dana address to SP address
+      // If contact has a bip353-address, the contact was probably added using bip353.
+      // We have to verify if the underlying payment code is the same.
       try {
         final verified = await Bip353Resolver.verifyPaymentCode(
             bip353, paymentCode, network);
@@ -216,19 +217,14 @@ class ContactDetailsScreen extends StatelessWidget {
         displayError("Sending failed", e);
         return;
       }
+    }
 
-      final form = RecipientForm();
-      form.reset();
-      form.recipient = contact;
+    final form = RecipientForm();
+    form.reset();
+    form.recipient = contact;
 
-      if (context.mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AmountSelectionScreen(),
-          ),
-        );
-      }
+    if (context.mounted) {
+      goToScreen(context, const AmountSelectionScreen());
     }
   }
 
