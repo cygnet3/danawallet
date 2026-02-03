@@ -2,7 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/generated/rust/api/validate.dart';
-import 'package:danawallet/screens/home/contacts/add_contact_sheet.dart';
+import 'package:danawallet/screens/contacts/add_contact_sheet.dart';
 import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
