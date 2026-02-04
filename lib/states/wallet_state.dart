@@ -122,15 +122,17 @@ class WalletState extends ChangeNotifier {
     await _updateWalletState();
   }
 
-  Future<void> createNewWallet(Network network, int currentTip) async {
-    final birthday = currentTip;
+  Future<void> createNewWallet(Network network, int? currentTip) async {
+    final birthday = currentTip ?? 0;
+
+    int timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
     final args = WalletSetupArgs(
         setupType: const WalletSetupType.newWallet(),
         network: network.toCoreArg);
     final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
-        await walletRepository.setupWallet(setupResult, network, birthday);
+        await walletRepository.setupWallet(setupResult, network, birthday, timestamp);
 
     // fill current state variables
     receivePaymentCode = wallet.getReceivingAddress();
