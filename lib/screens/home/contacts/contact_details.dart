@@ -198,7 +198,7 @@ class ContactDetailsScreen extends StatelessWidget {
       validateAddressWithNetwork(
           address: paymentCode, network: network.toCoreArg);
     } catch (e) {
-      displayError("Network validation error:", e);
+      displayError("Network validation error", e);
       return;
     }
 
