@@ -145,6 +145,16 @@ class WalletRepository {
     return TxHistory.decode(encodedHistory: encodedHistory!);
   }
 
+  Future<void> saveTimestamp(int timestamp) async {
+    // Prevent updating of a non 0 timestamp. If we want to update it, we need to reset the wallet first.
+    final currentTimestamp = await nonSecureStorage.getInt(_keyTimestamp);
+    if (currentTimestamp != null && currentTimestamp != 0) {
+      throw Exception("Timestamp can't be updated once set");
+    }
+
+    await nonSecureStorage.setInt(_keyTimestamp, timestamp);
+  }
+
   Future<int> readTimestamp() async {
     final timestamp = await nonSecureStorage.getInt(_keyTimestamp);
     return timestamp ?? 0;
