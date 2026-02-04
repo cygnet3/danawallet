@@ -570,27 +570,27 @@ class ContactDetailsScreen extends StatelessWidget {
                       _showStaticAddressSheet(context, contact.paymentCode);
                     },
                   ),
-                  const Divider(),
-                  // Sent item
-                  ListTile(
-                    title: Text(
-                      'Sent',
-                      style: BitcoinTextStyle.body3(Bitcoin.black)
-                          .apply(fontWeightDelta: 1),
+                  if (!isYouContact) ...[
+                    const Divider(),
+                    // Sent item
+                    ListTile(
+                      title: Text(
+                        'Sent',
+                        style: BitcoinTextStyle.body3(Bitcoin.black)
+                            .apply(fontWeightDelta: 1),
+                      ),
+                      trailing:
+                          Icon(Icons.chevron_right, color: Bitcoin.neutral7),
+                      onTap: () {
+                        _showSentTransactionsSheet(context, contact);
+                      },
                     ),
-                    trailing:
-                        Icon(Icons.chevron_right, color: Bitcoin.neutral7),
-                    onTap: () {
-                      _showSentTransactionsSheet(context, contact);
-                    },
-                  ),
-                  const Divider(),
-                  // Custom Fields Section
-                  if (customFields != null && customFields.isNotEmpty) ...[
-                    ...customFields
-                        .map((field) => _buildCustomFieldItem(context, field)),
-                  ],
-                  if (!isYouContact)
+                    const Divider(),
+                    // Custom Fields Section
+                    if (customFields != null && customFields.isNotEmpty) ...[
+                      ...customFields
+                          .map((field) => _buildCustomFieldItem(context, field)),
+                    ],
                     ListTile(
                       leading: Icon(Icons.add, color: Bitcoin.blue),
                       title: Text(
@@ -602,6 +602,7 @@ class ContactDetailsScreen extends StatelessWidget {
                         _showAddFieldSheet(context, contactId);
                       },
                     ),
+                  ],
                 ],
               ),
             ),
