@@ -106,19 +106,11 @@ class WalletSettingsScreen extends StatelessWidget {
     final wallet = Provider.of<WalletState>(context, listen: false);
     final mnemonic = await wallet.getSeedPhraseFromSecureStorage();
 
-    final mempoolApi = MempoolApiRepository(network: wallet.network);
-    int birthdayTimestamp = 0;
-    try {
-      final birthdayBlockHash = await mempoolApi.getBlockHashForHeight(wallet.birthday);
-      final birthdayBlock = await mempoolApi.getBlockForHash(birthdayBlockHash);
-      birthdayTimestamp = birthdayBlock.timestamp;
-    } catch (e) {
-      rethrow;
-    }
+    int? timestamp = wallet.timestamp == 0 ? null : wallet.timestamp;
 
     if (context.mounted) {
       if (mnemonic != null) {
-        goToScreen(context, ViewMnemonicScreen(mnemonic: mnemonic, birthdayTimestamp: birthdayTimestamp));
+        goToScreen(context, ViewMnemonicScreen(mnemonic: mnemonic, birthdayTimestamp: timestamp));
       } else {
         showAlertDialog("Seed phrase unknown",
             "Seed phrase unknown! Did you import from keys?");
