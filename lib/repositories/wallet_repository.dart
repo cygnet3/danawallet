@@ -22,6 +22,9 @@ const String _keyOwnedOutputs = "ownedoutputs";
 const String _keyLastScan = "lastscan";
 const String _keyDanaAddress = "danaaddress";
 
+// timestamp is stored as milliseconds since epoch, it should only be used after a restore if we couldn't make a network call to replace it with the birthday in block height
+const String _keyTimestamp = "timestamp";
+
 class WalletRepository {
   final secureStorage = const FlutterSecureStorage();
   final nonSecureStorage = SharedPreferencesAsync();
@@ -44,11 +47,12 @@ class WalletRepository {
       _keyOwnedOutputs,
       _keyBirthday,
       _keyDanaAddress,
+      _keyTimestamp,
     });
   }
 
   Future<SpWallet> setupWallet(
-      WalletSetupResult walletSetup, Network network, int birthday) async {
+      WalletSetupResult walletSetup, Network network, int birthday, int timestamp) async {
     if ((await secureStorage.readAll()).isNotEmpty) {
       throw Exception('Previous wallet not properly deleted');
     }
@@ -61,12 +65,16 @@ class WalletRepository {
     // insert new values
     await secureStorage.write(key: _keyScanSk, value: scanKey.encode());
     await secureStorage.write(key: _keySpendKey, value: spendKey.encode());
-    await nonSecureStorage.setInt(_keyBirthday, birthday);
     await nonSecureStorage.setString(_keyNetwork, network.name);
 
     if (seedPhrase != null) {
       await secureStorage.write(key: _keySeedPhrase, value: seedPhrase);
     }
+
+    await nonSecureStorage.setInt(_keyTimestamp, timestamp);
+
+    // We save birthday even if it's 0
+    await nonSecureStorage.setInt(_keyBirthday, birthday);
 
     // set default values for new wallet
     await saveLastScan(birthday);
@@ -135,6 +143,21 @@ class WalletRepository {
   Future<TxHistory> readHistory() async {
     final encodedHistory = await nonSecureStorage.getString(_keyTxHistory);
     return TxHistory.decode(encodedHistory: encodedHistory!);
+  }
+
+  Future<int> readTimestamp() async {
+    final timestamp = await nonSecureStorage.getInt(_keyTimestamp);
+    return timestamp!;
+  }
+
+  Future<void> saveBirthday(int birthday) async {
+    // Prevent updating of a non 0 birthday. If we want to update it, we need to reset the wallet first.
+    final currentBirthday = await nonSecureStorage.getInt(_keyBirthday);
+    if (currentBirthday != null && currentBirthday != 0) {
+      throw Exception("Birthday can't be updated once set");
+    }
+
+    await nonSecureStorage.setInt(_keyBirthday, birthday);
   }
 
   Future<void> saveLastScan(int lastScan) async {
