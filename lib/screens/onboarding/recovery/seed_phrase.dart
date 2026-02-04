@@ -3,6 +3,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/enums/warning_type.dart';
 import 'package:danawallet/global_functions.dart';
+import 'package:danawallet/screens/onboarding/recovery/birthday_picker_screen.dart';
 import 'package:danawallet/screens/onboarding/register_dana_address.dart';
 import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
@@ -15,6 +16,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:danawallet/widgets/pills/mnemonic_input_pill_box.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -40,69 +42,15 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
   late List<TextEditingController> controllers;
   late List<FocusNode> focusNodes;
   late MnemonicInputPillBox pills;
+  bool _knowsBirthday = false;
 
-  Future<int?> _askForBirthday(BuildContext context) async {
-    // Ask user if they want to provide the birthday
-    final shouldProvide = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Wallet Birthday'),
-          content: const Text(
-            'Do you know your wallet birthday? Providing it will make restoration much faster. You can skip this if you don\'t have it.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Skip'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Provide'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldProvide != true) {
-      return null;
-    }
-
-    // Show date picker
-    if (!context.mounted) {
-      return null;
-    }
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2009, 1, 3), // Bitcoin genesis
-      lastDate: DateTime.now(),
-      helpText: 'Select wallet birthday',
-    );
-
-    if (pickedDate == null || !context.mounted) {
-      return null;
-    }
-
-    // Convert date to timestamp (seconds since epoch) and then to block height
+  Future<int> _dateToBlockHeight(int timestamp) async {
     try {
-      // Set time to start of day (00:00:00) for consistency
-      final dateAtMidnight = DateTime(pickedDate.year, pickedDate.month, pickedDate.day);
-      final timestamp = dateAtMidnight.millisecondsSinceEpoch ~/ 1000;
       final mempoolApi = MempoolApiRepository(network: widget.network);
       final block = await mempoolApi.getBlockFromTimestamp(timestamp);
       return block.height;
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to get block height: ${exceptionToString(e)}. Using default birthday.'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-      return null;
+      rethrow;
     }
   }
 
@@ -115,16 +63,64 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
       final scanProgress =
           Provider.of<ScanProgressNotifier>(context, listen: false);
 
-      // Ask for birthday
-      final birthday = await _askForBirthday(context);
+      // Get birthday: navigate to picker if user knows it, else use default
+      int birthday = 0;
+      int timestamp = 0;
+      if (_knowsBirthday) {
+        final pickedDate = await Navigator.push<DateTime>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const BirthdayPickerScreen(),
+          ),
+        );
+        if (!context.mounted) {
+          return; // Context lost, abort restore
+        }
+        if (pickedDate != null) {
+          // pickedDate is already in UTC from BirthdayPickerScreen
+          // Use 1am UTC to get start of the day for the timestamp lookup
+          final dateAt1am = DateTime.utc(pickedDate.year, pickedDate.month, pickedDate.day, 1);
+          timestamp = dateAt1am.millisecondsSinceEpoch ~/ 1000;
+          // Try to get the block height from the timestamp
+          // This could fail if we don't have network or if service is down
+          try {
+            final blockHeight = await _dateToBlockHeight(timestamp);
+            birthday = blockHeight;
+          } catch (e) {
+            // Keep the timestamp and set birthday to 0 to be handled later
+            Logger().w('Setting birthday to 0');
+            birthday = 0;
+          }
+        }
+      } 
+      
+      // If user didn't pick a date, we fallback to default birthday and timestamp
+      if (birthday == 0 && timestamp == 0) {
+        // we just take default birthday for recovery
+        birthday = widget.network.defaultBirthday;
+        // We also have the timestamp for this default birthday
+        timestamp = widget.network.defaultTimestamp;
+      }
 
       final blindbitUrl = await SettingsRepository.instance.getBlindbitUrl() ?? widget.network.defaultBlindbitUrl;
 
-      await walletState.restoreWallet(widget.network, mnemonic, birthday: birthday);
+      await walletState.restoreWallet(widget.network, mnemonic, birthday, timestamp);
 
       chainState.initialize(widget.network);
-      // we can safely ignore the result of connecting, since we use the default birthday
-      await chainState.connect(blindbitUrl);
+      
+      // Try to connect, but continue even if it fails (offline mode)
+      final connected = await chainState.connect(blindbitUrl);
+      if (!connected) {
+        // Connection failed, but continue anyway - sync will happen when network is available
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to connect to network. Wallet will sync when connection is restored.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
 
       chainState.startSyncService(walletState, scanProgress, true);
 
@@ -231,6 +227,25 @@ class SeedPhraseScreenState extends State<SeedPhraseScreen> {
                     ],
                   ),
                   Expanded(child: pills),
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: Adaptive.h(1.5)),
+                    child: CheckboxListTile(
+                      value: _knowsBirthday,
+                      onChanged: (value) {
+                        setState(() {
+                          _knowsBirthday = value ?? false;
+                        });
+                      },
+                      title: Text(
+                        "I know when my wallet was created (birthday)",
+                        style: BitcoinTextStyle.body3(Bitcoin.neutral7).copyWith(
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                   footer,
                 ],
               )),
