@@ -147,7 +147,7 @@ class WalletRepository {
 
   Future<int> readTimestamp() async {
     final timestamp = await nonSecureStorage.getInt(_keyTimestamp);
-    return timestamp!;
+    return timestamp ?? 0;
   }
 
   Future<void> saveBirthday(int birthday) async {
