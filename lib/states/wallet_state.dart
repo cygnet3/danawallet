@@ -24,6 +24,7 @@ class WalletState extends ChangeNotifier {
   late String receivePaymentCode;
   late String changePaymentCode;
   late int birthday;
+  late int timestamp;
 
   // variables that change
   late ApiAmount amount;
@@ -86,6 +87,18 @@ class WalletState extends ChangeNotifier {
       receivePaymentCode = wallet.getReceivingAddress();
       changePaymentCode = wallet.getChangeAddress();
       birthday = wallet.getBirthday();
+      final int timestamp = await walletRepository.readTimestamp();
+
+      // Older wallets may not have a timestamp, if WalletRepository.readTimestamp() returns 0, we try to resolve birthday to a timestamp
+      if (timestamp == 0) {
+        final mempoolApi = MempoolApiRepository(network: network);
+        final block = await mempoolApi.getBlockForHash(await mempoolApi.getBlockHashForHeight(birthday));
+        Logger().i("Resolved block height $birthday to timestamp ${block.timestamp}");
+        await walletRepository.saveTimestamp(block.timestamp);
+        this.timestamp = await walletRepository.readTimestamp();
+      } else {
+        this.timestamp = timestamp;
+      }
 
       await _updateWalletState();
 
@@ -117,7 +130,8 @@ class WalletState extends ChangeNotifier {
     // fill current state variables
     receivePaymentCode = wallet.getReceivingAddress();
     changePaymentCode = wallet.getChangeAddress();
-    this.birthday = wallet.getBirthday();
+    this.birthday = birthday;
+    this.timestamp = timestamp;
     this.network = network;
     await _updateWalletState();
   }
@@ -137,7 +151,8 @@ class WalletState extends ChangeNotifier {
     // fill current state variables
     receivePaymentCode = wallet.getReceivingAddress();
     changePaymentCode = wallet.getChangeAddress();
-    this.birthday = wallet.getBirthday();
+    this.birthday = birthday;
+    this.timestamp = timestamp;
     this.network = network;
     await _updateWalletState();
   }
@@ -170,7 +185,6 @@ class WalletState extends ChangeNotifier {
   }
 
   Future<void> setBirthdayFromTimestamp() async {
-    final timestamp = await walletRepository.readTimestamp();
     final mempoolApi = MempoolApiRepository(network: network);
     final block = await mempoolApi.getBlockFromTimestamp(timestamp);
     final birthday = block.height;
