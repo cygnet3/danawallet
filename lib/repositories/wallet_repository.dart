@@ -160,6 +160,10 @@ class WalletRepository {
     return timestamp ?? 0;
   }
 
+  Future<void> saveBirthday(int birthday) async {
+    await nonSecureStorage.setInt(_keyBirthday, birthday);
+  }
+
   Future<void> saveLastScan(int lastScan) async {
     await nonSecureStorage.setInt(_keyLastScan, lastScan);
   }
