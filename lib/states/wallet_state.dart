@@ -136,8 +136,8 @@ class WalletState extends ChangeNotifier {
     await _updateWalletState();
   }
 
-  Future<void> createNewWallet(Network network, int currentTip) async {
-    int birthday = currentTip;
+  Future<void> createNewWallet(Network network, int? currentTip) async {
+    int birthday = currentTip ?? 0;
 
     int timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
@@ -182,6 +182,35 @@ class WalletState extends ChangeNotifier {
 
     await _updateWalletState();
     notifyListeners();
+  }
+
+  Future<void> setBirthdayFromTimestamp() async {
+    final timestamp = await walletRepository.readTimestamp();
+    final mempoolApi = MempoolApiRepository(network: network);
+    final block = await mempoolApi.getBlockFromTimestamp(timestamp);
+    final birthday = block.height;
+    await setBirthday(birthday);
+    await resetToScanHeight(birthday);
+  }
+
+  /// This is only used in case we create a wallet without network and update birthday later
+  Future<void> setBirthday(int birthday) async {
+    // Birthday can't be less than the default for current network
+    if (birthday < network.defaultBirthday) {
+      throw Exception("Birthday can't be less than the default for current network");
+    }
+
+    if (this.birthday != 0) {
+      throw Exception("Birthday already set");
+    }
+
+    try {
+      await walletRepository.saveBirthday(birthday);
+      this.birthday = birthday;
+      notifyListeners();
+    } catch (e) {
+      throw Exception("Failed to set birthday: $e");
+    }
   }
 
   Future<void> _updateWalletState() async {
