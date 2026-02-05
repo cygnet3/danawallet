@@ -401,9 +401,11 @@ class WalletState extends ChangeNotifier {
       // If we encounter an error while looking up the dana address,
       // either we don't have a working internet connection,
       // or the DNS record changed and the name server is unaware.
-      // For now, we assume that the stored address is valid.
+      // If we have no stored address, we should go to registration screen (offline mode)
+      // If we had a stored address that we removed, also go to registration
       Logger().w("Received error while looking up dana address: $e");
-      return false;
+      // Return true (need registration) since we have no valid address
+      return true;
     }
   }
 }
