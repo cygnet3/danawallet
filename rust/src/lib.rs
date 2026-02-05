@@ -4,3 +4,4 @@ mod logger;
 mod state;
 mod stream;
 mod wallet;
+pub(crate) mod http_client;
