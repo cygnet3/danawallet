@@ -448,3 +448,22 @@ void goToScreen(BuildContext context, Widget screen) {
 void goBack(BuildContext context) {
   Navigator.of(context).pop();
 }
+
+DateTime timestampToDate(int timestamp) {
+  // Enforce 32-bit unsigned int range (0 to 2^32 - 1)
+  const max32BitUnsigned = 4294967295; // 2^32 - 1
+  
+  if (timestamp < 0) {
+    throw ArgumentError(
+      'Timestamp cannot be negative: $timestamp',
+    );
+  }
+  
+  if (timestamp > max32BitUnsigned) {
+    throw ArgumentError(
+      'Timestamp exceeds 32-bit unsigned int range: $timestamp. Maximum value is $max32BitUnsigned',
+    );
+  }
+  
+  return DateTime.fromMillisecondsSinceEpoch(timestamp * 1000, isUtc: true);
+}
