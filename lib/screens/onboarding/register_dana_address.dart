@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:barcode_widget/barcode_widget.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
@@ -13,6 +14,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/loading_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
@@ -32,6 +34,7 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
   static const int _minUsernameLength = 3;
   static const int _maxUsernameLength = 30;
   static const Duration _debounceDuration = Duration(milliseconds: 500);
+  static const Duration _offlineTimeout = Duration(seconds: 10);
 
   // Reserved usernames that cannot be registered
   static const List<String> _reservedNames = [
@@ -60,10 +63,13 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
     'donate',
   ];
 
+  static const Duration _retryInterval = Duration(seconds: 30);
+
   final TextEditingController _customUsernameController =
       TextEditingController();
   final FocusNode _focusNode = FocusNode();
   Timer? _debounceTimer;
+  Timer? _retryTimer;
   bool _isCheckingAvailability = false;
   bool? _isCustomUsernameAvailable;
   bool _isRegistering = false;
@@ -73,6 +79,8 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
   String? _suggestedUsername;
   String? _domain;
   DanaAddressService? _danaAddressService;
+  bool _isOffline = false;
+  bool _isInitialLoading = true;
 
   @override
   void initState() {
@@ -89,22 +97,50 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final addressService = DanaAddressService(network: walletState.network);
 
-    while (true) {
-      try {
-        final suggestedUsername = await walletState.createSuggestedUsername();
-        final domain = await addressService.danaAddressDomain;
+    String? suggestedUsername;
 
-        setState(() {
-          _danaAddressService = addressService;
-          _suggestedUsername = suggestedUsername;
-          _domain = domain;
-        });
-        return;
-      } catch (e) {
-        displayError("Failed to read domain", e);
-      }
-      // keep trying if we have no internet connection
-      await Future.delayed(const Duration(seconds: 5));
+    try {
+      // First we generate the default, deterministic address
+      // It can fail if we don't have any network
+      suggestedUsername = await walletState
+          .createSuggestedUsername()
+          .timeout(_offlineTimeout);
+    } catch (e) {
+      Logger().e("Failed to generate suggested username: $e");
+
+      setState(() {
+        _isInitialLoading = false;
+        _danaAddressService = addressService;
+      });
+      _enterOfflineMode();
+      return;
+    }
+
+    try {
+      // Then we check the name server is available and get the domain
+      final domain =
+          await addressService.danaAddressDomain.timeout(_offlineTimeout);
+
+      if (!mounted) return;
+
+      // Success - stop any retry timer and update state
+      _stopPeriodicRetry();
+      setState(() {
+        _danaAddressService = addressService;
+        _suggestedUsername = suggestedUsername;
+        _domain = domain;
+        _isInitialLoading = false;
+        _isOffline = false;
+      });
+    } catch (e) {
+      Logger().e("Failed to reach the name server: $e");
+      if (!mounted) return;
+
+      setState(() {
+        _danaAddressService = addressService;
+        _isInitialLoading = false;
+      });
+      _enterOfflineMode();
     }
   }
 
@@ -134,9 +170,33 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
   @override
   void dispose() {
     _debounceTimer?.cancel();
+    _retryTimer?.cancel();
     _focusNode.dispose();
     _customUsernameController.dispose();
     super.dispose();
+  }
+
+  void _startPeriodicRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer.periodic(_retryInterval, (_) {
+      if (_isOffline && mounted) {
+        Logger().i('Periodic retry: attempting to reconnect...');
+        _onRetryConnection();
+      }
+    });
+  }
+
+  void _stopPeriodicRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+  }
+
+  void _enterOfflineMode() {
+    setState(() {
+      _isOffline = true;
+      _isRegistering = false;
+    });
+    _startPeriodicRetry();
   }
 
   /// Validates username format and returns error message if invalid
@@ -350,11 +410,167 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
     );
   }
 
+  Future<void> _onRetryConnection() async {
+    _stopPeriodicRetry();
+    setState(() {
+      _isInitialLoading = true;
+      _isOffline = false;
+    });
+    await loadUsernameAndDomain();
+  }
+
+  Future<void> _copyPaymentCode(String paymentCode) async {
+    await Clipboard.setData(ClipboardData(text: paymentCode));
+    HapticFeedback.lightImpact();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Bitcoin.white, size: 16),
+              const SizedBox(width: 8),
+              const Text('Payment code copied to clipboard'),
+            ],
+          ),
+          backgroundColor: Bitcoin.green.withValues(alpha: 0.8),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Widget _buildOfflineScreen() {
+    final walletState = Provider.of<WalletState>(context, listen: false);
+    final paymentCode = walletState.receivePaymentCode;
+
+    final body = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Spacer(),
+
+        // Offline icon
+        Container(
+          width: Adaptive.h(12),
+          height: Adaptive.h(12),
+          decoration: BoxDecoration(
+            color: Bitcoin.orange.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.cloud_off,
+            size: Adaptive.h(6),
+            color: Bitcoin.orange,
+          ),
+        ),
+
+        SizedBox(height: Adaptive.h(3)),
+
+        // Title
+        AutoSizeText(
+          "You're offline",
+          style: BitcoinTextStyle.title3(Bitcoin.black).copyWith(
+              fontFamily: 'Inter', fontWeight: FontWeight.w700, fontSize: 26),
+          maxLines: 1,
+          textAlign: TextAlign.center,
+        ),
+
+        SizedBox(height: Adaptive.h(2)),
+
+        // Explanation text
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            "Share your payment code to receive Bitcoin while you wait for connection.",
+            style: BitcoinTextStyle.body3(Bitcoin.neutral7)
+                .copyWith(fontFamily: 'Inter'),
+            textAlign: TextAlign.center,
+          ),
+        ),
+
+        SizedBox(height: Adaptive.h(4)),
+
+        // QR Code
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 60),
+          child: GestureDetector(
+            onTap: () => _copyPaymentCode(paymentCode),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Bitcoin.neutral2,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: BarcodeWidget(
+                    data: paymentCode,
+                    barcode: Barcode.qrCode(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  displayAddress(context, paymentCode, BitcoinTextStyle.body5(Bitcoin.neutral7), 0.86),
+                  style: BitcoinTextStyle.body5(Bitcoin.neutral7)
+                      .copyWith(fontFamily: 'Inter'),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.copy, size: 16, color: Bitcoin.neutral6),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Tap to copy',
+                      style: BitcoinTextStyle.body5(Bitcoin.neutral6)
+                          .copyWith(fontFamily: 'Inter'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const Spacer(),
+      ],
+    );
+
+    final footer = Column(
+      children: [
+        FooterButtonOutlined(
+          title: 'Retry Connection',
+          onPressed: _onRetryConnection,
+        ),
+        SizedBox(height: Adaptive.h(2)),
+      ],
+    );
+
+    return PopScope(
+      canPop: false,
+      child: OnboardingSkeleton(
+        body: body,
+        footer: footer,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // if we're still loading, show an indicator
-    if (_domain == null) {
+    if (_isInitialLoading) {
       return const LoadingWidget();
+    }
+
+    // If we're offline, show the offline screen with skip option
+    if (_isOffline) {
+      return _buildOfflineScreen();
+    }
+
+    // If domain is null but we're not in initial loading and not offline,
+    // something went wrong - show offline screen as fallback
+    if (_domain == null) {
+      return _buildOfflineScreen();
     }
 
     // Determine which username will be registered
