@@ -218,6 +218,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
 
 [[package]]
+name = "blindbit-backend"
+version = "0.1.0"
+source = "git+https://github.com/cygnet3/spdk?branch=master#2f233da2b1922e35236b8f2c702611fc98efde8a"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bitcoin",
+ "futures",
+ "hex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "spdk-core",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1636,6 +1652,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bip39",
+ "blindbit-backend",
  "flutter_rust_bridge",
  "futures",
  "lazy_static",
@@ -1648,7 +1665,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "simplelog",
- "spdk",
+ "spdk-core",
  "tokio",
 ]
 
@@ -1905,19 +1922,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "spdk"
+name = "spdk-core"
 version = "0.1.0"
-source = "git+https://github.com/cygnet3/spdk?branch=master#bc98465d41dced396ed64ade108480b42b77d26e"
+source = "git+https://github.com/cygnet3/spdk?branch=master#2f233da2b1922e35236b8f2c702611fc98efde8a"
 dependencies = [
  "anyhow",
  "async-trait",
  "bdk_coin_select",
  "bitcoin",
  "futures",
- "hex",
  "log",
  "rayon",
- "reqwest",
  "serde",
  "serde_json",
  "silentpayments",

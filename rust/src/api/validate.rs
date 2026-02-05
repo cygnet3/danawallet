@@ -1,7 +1,7 @@
 use anyhow::Result;
 use flutter_rust_bridge::frb;
-use spdk::silentpayments::Network as SpNetwork;
-use spdk::{bitcoin::Network, RecipientAddress};
+use spdk_core::silentpayments::Network as SpNetwork;
+use spdk_core::{bitcoin::Network, RecipientAddress};
 
 #[frb(sync)]
 pub fn validate_address_with_network(address: String, network: String) -> Result<()> {
