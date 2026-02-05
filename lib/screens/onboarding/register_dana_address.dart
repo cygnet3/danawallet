@@ -327,12 +327,13 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
         });
       }
     } catch (e) {
-      Logger().e('Error checking availability: $e');
+      Logger().e('Error checking availability, transitioning to offline mode: $e');
       if (mounted && _customUsername == username) {
         setState(() {
-          _isCustomUsernameAvailable = null;
           _isCheckingAvailability = false;
         });
+        // Network error - transition to offline mode
+        _enterOfflineMode();
       }
     }
   }
@@ -395,10 +396,33 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
         throw Exception('Registration succeeded but dana address is null');
       }
     } catch (e) {
-      displayError('Failed to register username', e);
-      setState(() {
-        _isRegistering = false;
-      });
+      if (!mounted) return;
+
+      final errorMessage = e.toString().toLowerCase();
+
+      // Check if this is a user error (address already taken) vs network/server error
+      final isUserError = errorMessage.contains('already in use') ||
+          errorMessage.contains('already taken') ||
+          errorMessage.contains('already registered');
+
+      if (isUserError) {
+        // User error - show message and let them try a different username
+        displayError('This Dana address is already taken', e);
+        setState(() {
+          _isRegistering = false;
+        });
+      } else {
+        // Network/server error - transition to offline mode
+        Logger().w('Registration failed due to network/server issue: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Unable to register. Connection lost - will retry automatically.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        _enterOfflineMode();
+      }
     }
   }
 
@@ -684,8 +708,8 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
                               : _isCustomUsernameAvailable == false
                                   ? Icon(Icons.cancel,
                                       color: Bitcoin.red, size: 24)
-                                  : Icon(Icons.help_outline,
-                                      color: Bitcoin.neutral6, size: 24),
+                                  : Icon(Icons.warning_amber_rounded,
+                                      color: Bitcoin.orange, size: 24),
                     ),
                     const SizedBox(width: 8),
                     AutoSizeText(
@@ -694,15 +718,15 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
                           : _isCustomUsernameAvailable == true
                               ? 'This address is available'
                               : _isCustomUsernameAvailable == false
-                                  ? 'This address is already taken'
-                                  : 'Checking...',
+                                  ? 'This address is already registered'
+                                  : 'Unable to verify availability',
                       style: BitcoinTextStyle.body2(_isCheckingAvailability
                               ? Bitcoin.neutral6
                               : _isCustomUsernameAvailable == true
                                   ? Bitcoin.green
                                   : _isCustomUsernameAvailable == false
                                       ? Bitcoin.red
-                                      : Bitcoin.neutral6)
+                                      : Bitcoin.orange)
                           .copyWith(fontSize: 12),
                       maxLines: 1,
                     ),
