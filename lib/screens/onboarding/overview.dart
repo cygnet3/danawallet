@@ -19,6 +19,7 @@ import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/info_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -120,29 +121,31 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     // we *must* be connected to get the wallet birthday
     if (connected) {
-      chainState.startSyncService(walletState, scanProgress, false);
       final chainTip = chainState.tip;
       await walletState.createNewWallet(network, chainTip);
-
-      // initialize contacts state with the user's payment code
-      contactsState.initialize(walletState.receivePaymentCode, null);
-      if (network == Network.regtest && context.mounted) {
-        // for regtest we bypass the dana address setup screen
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const PinGuard()),
-            (Route<dynamic> route) => false);
-      } else {
-        if (context.mounted) {
-          Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const RegisterDanaAddressScreen()),
-              (Route<dynamic> route) => false);
-        }
-      }
     } else {
-      displayWarning("Unable to create a new wallet; internet access required");
+      // We can proceed with wallet creation but birthday will be set later from current time
+      Logger().w("No network, setting a new wallet without proper birthday");
+      await walletState.createNewWallet(network, null);
+    }
+    
+    chainState.startSyncService(walletState, scanProgress, false);
+
+    // initialize contacts state with the user's payment code
+    contactsState.initialize(walletState.receivePaymentCode, null);
+    if (network == Network.regtest && context.mounted) {
+      // for regtest we bypass the dana address setup screen
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const PinGuard()),
+          (Route<dynamic> route) => false);
+    } else if (context.mounted) {
+      // Go to RegisterDanaAddressScreen - it handles offline mode gracefully
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const RegisterDanaAddressScreen()),
+          (Route<dynamic> route) => false);
     }
   }
 

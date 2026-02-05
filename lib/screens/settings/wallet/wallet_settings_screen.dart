@@ -1,6 +1,7 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/repositories/mempool_api_repository.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
 import 'package:danawallet/screens/recovery/view_mnemonic_screen.dart';
 import 'package:danawallet/screens/settings/widgets/settings_list_tile.dart';
@@ -105,9 +106,11 @@ class WalletSettingsScreen extends StatelessWidget {
     final wallet = Provider.of<WalletState>(context, listen: false);
     final mnemonic = await wallet.getSeedPhraseFromSecureStorage();
 
+    int? timestamp = wallet.timestamp == 0 ? null : wallet.timestamp;
+
     if (context.mounted) {
       if (mnemonic != null) {
-        goToScreen(context, ViewMnemonicScreen(mnemonic: mnemonic));
+        goToScreen(context, ViewMnemonicScreen(mnemonic: mnemonic, birthdayTimestamp: timestamp));
       } else {
         showAlertDialog("Seed phrase unknown",
             "Seed phrase unknown! Did you import from keys?");
