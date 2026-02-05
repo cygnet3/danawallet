@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use spdk::{
+use spdk_core::{
     bitcoin::{absolute::Height, Amount, OutPoint, Txid},
     Recipient,
 };
