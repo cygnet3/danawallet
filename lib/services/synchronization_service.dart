@@ -82,14 +82,24 @@ class SynchronizationService {
   }
 
   Future<void> _performSynchronizationTask() async {
+    if (walletState.birthday == 0) {
+      // We are in the case of a wallet created offline, so let's get the correct block height first
+      Logger().i("Setting birthday from timestamp");
+      try {
+        await walletState.setBirthdayFromTimestamp();
+      } catch (e) {
+        throw Exception("Failed to set birthday, an external service might be down");
+      }
+    } 
+    
     if (walletState.lastScan < chainState.tip) {
       if (!scanProgress.scanning) {
-        Logger().i("Starting sync");
+        Logger().d("Starting sync");
         await scanProgress.scan(walletState);
       }
-    }
-
-    if (chainState.tip < walletState.lastScan) {
+    } else if (walletState.lastScan == chainState.tip) {
+      Logger().d("Wallet is up to date");
+    } else {
       // not sure what we should do here, that's really bad
       Logger().e('Current height is less than wallet last scan');
     }
