@@ -10,9 +10,15 @@ const String defaultRegtest = "https://silentpayments.dev/blindbit/regtest";
 // Default birthdays used in case we can't get the block height from blindbit
 // These values are pretty arbitrary, they can be updated for newer heights later
 const int defaultMainnetBirthday = 900000;
-const int defaultTestnetBirthday = 2900000;
+const int defaultTestnetBirthday = 2900000; // testnet3
 const int defaultSignetBirthday = 200000;
-const int defaultRegtestBirthday = 80000;
+const int defaultRegtestBirthday = 0;
+
+// UNIX Timestamps in seconds, be careful when milliseconds are expected 
+const int defaultMainnetTimestamp = 1749188499;
+const int defaultTestnetTimestamp = 1724812923; // testnet3
+const int defaultSignetTimestamp = 1718390329;
+const int defaultRegtestTimestamp = 0;
 
 // default dust limit. this is used in syncing, as well as sending
 // for syncing, amounts < dust limit will be ignored
