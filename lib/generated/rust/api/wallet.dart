@@ -5,7 +5,6 @@
 
 import '../frb_generated.dart';
 import '../lib.dart';
-import 'outputs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'structs.dart';
 import 'wallet/setup.dart';
@@ -93,7 +92,7 @@ abstract class SpWallet implements RustOpaqueInterface {
       {required String blindbitUrl,
       required int lastScan,
       required BigInt dustLimit,
-      required OwnedOutPoints ownedOutpoints});
+      required List<String> ownedOutpoints});
 
   static WalletSetupResult setupWallet({required WalletSetupArgs setupArgs}) =>
       RustLib.instance.api

@@ -4,9 +4,11 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../lib.dart';
 import '../logger.dart';
 import '../stream.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'structs.dart';
 
 Stream<LogEntry> createLogStream(
         {required LogLevel level, required bool logDependencies}) =>
