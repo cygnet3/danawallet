@@ -24,6 +24,7 @@ class WalletState extends ChangeNotifier {
   late String receivePaymentCode;
   late String changePaymentCode;
   late int birthday;
+  late int timestamp;
 
   // variables that change
   late ApiAmount amount;
@@ -86,6 +87,18 @@ class WalletState extends ChangeNotifier {
       receivePaymentCode = wallet.getReceivingAddress();
       changePaymentCode = wallet.getChangeAddress();
       birthday = wallet.getBirthday();
+      final int timestamp = await walletRepository.readTimestamp();
+
+      // Older wallets may not have a timestamp, if WalletRepository.readTimestamp() returns 0, we try to resolve birthday to a timestamp
+      if (timestamp == 0) {
+        final mempoolApi = MempoolApiRepository(network: network);
+        final block = await mempoolApi.getBlockForHash(await mempoolApi.getBlockHashForHeight(birthday));
+        Logger().i("Resolved block height $birthday to timestamp ${block.timestamp}");
+        await walletRepository.saveTimestamp(block.timestamp);
+        this.timestamp = await walletRepository.readTimestamp();
+      } else {
+        this.timestamp = timestamp;
+      }
 
       await _updateWalletState();
 
@@ -106,39 +119,40 @@ class WalletState extends ChangeNotifier {
     await walletRepository.reset();
   }
 
-  Future<void> restoreWallet(Network network, String mnemonic) async {
-    // set birthday to default wallet
-    final birthday = network.defaultBirthday;
-
+  Future<void> restoreWallet(Network network, String mnemonic, int birthday, int timestamp) async {
     final args = WalletSetupArgs(
         setupType: WalletSetupType.mnemonic(mnemonic),
         network: network.toCoreArg);
     final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
-        await walletRepository.setupWallet(setupResult, network, birthday);
+        await walletRepository.setupWallet(setupResult, network, birthday, timestamp);
 
     // fill current state variables
     receivePaymentCode = wallet.getReceivingAddress();
     changePaymentCode = wallet.getChangeAddress();
-    this.birthday = wallet.getBirthday();
+    this.birthday = birthday;
+    this.timestamp = timestamp;
     this.network = network;
     await _updateWalletState();
   }
 
-  Future<void> createNewWallet(Network network, int currentTip) async {
-    final birthday = currentTip;
+  Future<void> createNewWallet(Network network, int? currentTip) async {
+    int birthday = currentTip ?? 0;
+
+    int timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
     final args = WalletSetupArgs(
         setupType: const WalletSetupType.newWallet(),
         network: network.toCoreArg);
     final setupResult = SpWallet.setupWallet(setupArgs: args);
     final wallet =
-        await walletRepository.setupWallet(setupResult, network, birthday);
+        await walletRepository.setupWallet(setupResult, network, birthday, timestamp);
 
     // fill current state variables
     receivePaymentCode = wallet.getReceivingAddress();
     changePaymentCode = wallet.getChangeAddress();
-    this.birthday = wallet.getBirthday();
+    this.birthday = birthday;
+    this.timestamp = timestamp;
     this.network = network;
     await _updateWalletState();
   }
@@ -168,6 +182,35 @@ class WalletState extends ChangeNotifier {
 
     await _updateWalletState();
     notifyListeners();
+  }
+
+  Future<void> setBirthdayFromTimestamp() async {
+    final timestamp = await walletRepository.readTimestamp();
+    final mempoolApi = MempoolApiRepository(network: network);
+    final block = await mempoolApi.getBlockFromTimestamp(timestamp);
+    final birthday = block.height;
+    await setBirthday(birthday);
+    await resetToScanHeight(birthday);
+  }
+
+  /// This is only used in case we create a wallet without network and update birthday later
+  Future<void> setBirthday(int birthday) async {
+    // Birthday can't be less than the default for current network
+    if (birthday < network.defaultBirthday) {
+      throw Exception("Birthday can't be less than the default for current network");
+    }
+
+    if (this.birthday != 0) {
+      throw Exception("Birthday already set");
+    }
+
+    try {
+      await walletRepository.saveBirthday(birthday);
+      this.birthday = birthday;
+      notifyListeners();
+    } catch (e) {
+      throw Exception("Failed to set birthday: $e");
+    }
   }
 
   Future<void> _updateWalletState() async {
@@ -358,9 +401,11 @@ class WalletState extends ChangeNotifier {
       // If we encounter an error while looking up the dana address,
       // either we don't have a working internet connection,
       // or the DNS record changed and the name server is unaware.
-      // For now, we assume that the stored address is valid.
+      // If we have no stored address, we should go to registration screen (offline mode)
+      // If we had a stored address that we removed, also go to registration
       Logger().w("Received error while looking up dana address: $e");
-      return false;
+      // Return true (need registration) since we have no valid address
+      return true;
     }
   }
 }
