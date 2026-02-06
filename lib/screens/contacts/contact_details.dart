@@ -508,9 +508,9 @@ class ContactDetailsScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      contact.bip353Address!.toString(),
-                      style: BitcoinTextStyle.body4(Bitcoin.neutral7),
+                    Flexible(
+                      child: danaAddressAsSubtitle(
+                          contact.bip353Address!.toString()),
                     ),
                     const SizedBox(width: 8),
                     Icon(
