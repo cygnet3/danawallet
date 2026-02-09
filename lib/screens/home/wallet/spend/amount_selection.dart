@@ -13,6 +13,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+class _DecimalLimitFormatter extends TextInputFormatter {
+  final int decimalPlaces;
+
+  _DecimalLimitFormatter({required this.decimalPlaces});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Allow empty input
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // If no decimal point, allow (integers always valid)
+    if (!newValue.text.contains('.')) {
+      return newValue;
+    }
+
+    final parts = newValue.text.split('.');
+
+    // Multiple decimal points - reject and keep old value
+    if (parts.length > 2) {
+      return oldValue;
+    }
+
+    // If decimal part exceeds limit, truncate it
+    if (parts[1].length > decimalPlaces) {
+      final truncated = '${parts[0]}.${parts[1].substring(0, decimalPlaces)}';
+      return TextEditingValue(
+        text: truncated,
+        selection: TextSelection.collapsed(offset: truncated.length),
+      );
+    }
+
+    // Valid input - accept as-is
+    return newValue;
+  }
+}
+
 class AmountSelectionScreen extends StatefulWidget {
   const AmountSelectionScreen({super.key});
 
@@ -179,9 +220,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
                       : TextInputType.number,
                   inputFormatters: exchangeRate.bitcoinUnit == BitcoinUnit.btc
                       ? [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d{0,8}$'),
-                          ),
+                          _DecimalLimitFormatter(decimalPlaces: 8),
                         ]
                       : null,
                 ),
