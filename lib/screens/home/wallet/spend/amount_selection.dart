@@ -10,6 +10,7 @@ import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class AmountSelectionScreen extends StatefulWidget {
@@ -176,6 +177,13 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
                   keyboardType: exchangeRate.bitcoinUnit == BitcoinUnit.btc
                       ? const TextInputType.numberWithOptions(decimal: true)
                       : TextInputType.number,
+                  inputFormatters: exchangeRate.bitcoinUnit == BitcoinUnit.btc
+                      ? [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d{0,8}$'),
+                          ),
+                        ]
+                      : null,
                 ),
                 const SizedBox(
                   height: 10.0,
