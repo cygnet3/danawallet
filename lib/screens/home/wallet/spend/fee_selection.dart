@@ -118,7 +118,7 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
           if (estimatedFee == null) {
             throw Exception('Fee amount not computed for $fee');
           }
-          subtitleBtc = estimatedFee.displaySats();
+          subtitleBtc = exchangeRate.displayBitcoin(estimatedFee);
           subtitleFiat = exchangeRate.displayFiat(estimatedFee);
         }
 

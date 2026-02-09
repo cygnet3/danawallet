@@ -25,6 +25,9 @@ const int defaultDustLimit = 600;
 // default fiat currency
 const FiatCurrency defaultCurrency = FiatCurrency.usd;
 
+// default bitcoin unit
+const BitcoinUnit defaultBitcoinUnit = BitcoinUnit.btc;
+
 // colors
 const Color danaBlue = Color.fromARGB(255, 10, 109, 214);
 

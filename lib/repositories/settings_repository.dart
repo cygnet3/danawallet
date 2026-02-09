@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const String _keyBlindbitUrl = "blindbiturl";
 const String _keyDustLimit = "dustlimit";
 const String _keyFiatCurrency = "fiatcurrency";
+const String _keyBitcoinUnit = "bitcoinunit";
 
 class SettingsRepository {
   final SharedPreferencesAsync prefs = SharedPreferencesAsync();
@@ -16,8 +17,12 @@ class SettingsRepository {
   static final instance = SettingsRepository._();
 
   Future<void> resetAll() async {
-    await prefs
-        .clear(allowList: {_keyBlindbitUrl, _keyDustLimit, _keyFiatCurrency});
+    await prefs.clear(allowList: {
+      _keyBlindbitUrl,
+      _keyDustLimit,
+      _keyFiatCurrency,
+      _keyBitcoinUnit
+    });
   }
 
   Future<void> setBlindbitUrl(String? url) async {
@@ -56,6 +61,20 @@ class SettingsRepository {
     final currency = await prefs.getString(_keyFiatCurrency);
 
     return currency != null ? FiatCurrency.values.byName(currency) : null;
+  }
+
+  Future<void> setBitcoinUnit(BitcoinUnit? unit) async {
+    if (unit != null) {
+      return await prefs.setString(_keyBitcoinUnit, unit.name);
+    } else {
+      return await prefs.remove(_keyBitcoinUnit);
+    }
+  }
+
+  Future<BitcoinUnit?> getBitcoinUnit() async {
+    final unit = await prefs.getString(_keyBitcoinUnit);
+
+    return unit != null ? BitcoinUnit.values.byName(unit) : null;
   }
 
   Future<SettingsBackup> createSettingsBackup() async {

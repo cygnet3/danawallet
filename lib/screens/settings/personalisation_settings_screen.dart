@@ -2,6 +2,7 @@ import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
+import 'package:danawallet/screens/settings/change_bitcoin_unit_screen.dart';
 import 'package:danawallet/screens/settings/change_fiat.dart';
 import 'package:danawallet/screens/settings/settings_list_tile.dart';
 import 'package:danawallet/screens/settings/settings_skeleton.dart';
@@ -16,6 +17,12 @@ class PersonalisationSettingsScreen extends StatelessWidget {
   List<_PersonalisationSettingsItem> _buildItems(BuildContext context) {
     return [
       _PersonalisationSettingsItem(
+        icon: Icons.currency_bitcoin,
+        title: 'Bitcoin unit',
+        subtitle: 'Set your preferred Bitcoin unit',
+        onTap: () => _onChangeBitcoinUnit(context),
+      ),
+      _PersonalisationSettingsItem(
         icon: Icons.currency_exchange,
         title: 'Change fiat currency',
         subtitle: 'Set your preferred fiat currency',
@@ -25,6 +32,27 @@ class PersonalisationSettingsScreen extends StatelessWidget {
   }
 
   // Business logic methods
+  void _onChangeBitcoinUnit(BuildContext context) async {
+    final homeState = Provider.of<HomeState>(context, listen: false);
+    final fiatExchangeRate =
+        Provider.of<FiatExchangeRateState>(context, listen: false);
+    final currentUnit = (await SettingsRepository.instance.getBitcoinUnit()) ??
+        defaultBitcoinUnit;
+    if (context.mounted) {
+      goToScreen(
+          context,
+          ChangeBitcoinUnitScreen(
+              currentUnit: currentUnit,
+              onConfirm: (chosen) async {
+                await fiatExchangeRate.updateBitcoinUnit(chosen);
+                homeState.showMainScreen();
+                if (context.mounted) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                }
+              }));
+    }
+  }
+
   void _onChangeFiat(BuildContext context) async {
     final homeState = Provider.of<HomeState>(context, listen: false);
     final fiatExchangeRate =
@@ -76,7 +104,6 @@ class PersonalisationSettingsScreen extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _PersonalisationSettingsItem {
@@ -92,4 +119,3 @@ class _PersonalisationSettingsItem {
     required this.onTap,
   });
 }
-

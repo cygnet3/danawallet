@@ -290,6 +290,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dco_decode_api_silent_payment_unsigned_transaction(dynamic raw);
 
   @protected
+  BitcoinUnit dco_decode_bitcoin_unit(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
 
   @protected
@@ -630,6 +633,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ApiSilentPaymentUnsignedTransaction
       sse_decode_api_silent_payment_unsigned_transaction(
           SseDeserializer deserializer);
+
+  @protected
+  BitcoinUnit sse_decode_bitcoin_unit(SseDeserializer deserializer);
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
@@ -979,6 +985,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_api_silent_payment_unsigned_transaction(
       ApiSilentPaymentUnsignedTransaction self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bitcoin_unit(BitcoinUnit self, SseSerializer serializer);
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);

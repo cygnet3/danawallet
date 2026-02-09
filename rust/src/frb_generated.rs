@@ -43,7 +43,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1402310927;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1310421863;
 
 // Section: executor
 
@@ -3469,6 +3469,39 @@ fn wire__crate__api__structs__api_amount_display_sats_impl(
         },
     )
 }
+fn wire__crate__api__structs__api_amount_format_with_unit_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "api_amount_format_with_unit",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::structs::ApiAmount>::sse_decode(&mut deserializer);
+            let api_unit = <crate::api::structs::BitcoinUnit>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::structs::ApiAmount::format_with_unit(&api_that, api_unit),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__structs__api_amount_to_int_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -3782,6 +3815,70 @@ fn wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_send_a
                         &api_that,
                         api_change_address,
                     ),
+                )?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__structs__bitcoin_unit_display_name_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "bitcoin_unit_display_name",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::structs::BitcoinUnit>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok =
+                    Result::<_, ()>::Ok(crate::api::structs::BitcoinUnit::display_name(&api_that))?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__structs__bitcoin_unit_format_amount_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "bitcoin_unit_format_amount",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::structs::BitcoinUnit>::sse_decode(&mut deserializer);
+            let api_sats = <u64>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok(
+                    crate::api::structs::BitcoinUnit::format_amount(&api_that, api_sats),
                 )?;
                 Ok(output_ok)
             })())
@@ -4810,6 +4907,19 @@ impl SseDecode for crate::api::structs::ApiSilentPaymentUnsignedTransaction {
     }
 }
 
+impl SseDecode for crate::api::structs::BitcoinUnit {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::structs::BitcoinUnit::Btc,
+            1 => crate::api::structs::BitcoinUnit::Sats,
+            2 => crate::api::structs::BitcoinUnit::BitcoinSymbol,
+            _ => unreachable!("Invalid variant for BitcoinUnit: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5128,9 +5238,9 @@ fn pde_ffi_dispatcher_primary_impl(
             wire__crate__api__wallet__SpWallet_scan_to_tip_impl(port, ptr, rust_vec_len, data_len)
         }
         72 => wire__crate__api__structs__api_amount_default_impl(port, ptr, rust_vec_len, data_len),
-        84 => wire__crate__api__chain__check_network_impl(port, ptr, rust_vec_len, data_len),
-        95 => wire__crate__api__chain__get_chain_height_impl(port, ptr, rust_vec_len, data_len),
-        97 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        87 => wire__crate__api__chain__check_network_impl(port, ptr, rust_vec_len, data_len),
+        98 => wire__crate__api__chain__get_chain_height_impl(port, ptr, rust_vec_len, data_len),
+        100 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -5213,29 +5323,32 @@ fn pde_ffi_dispatcher_sync_impl(
 71 => wire__crate__api__wallet__setup__WalletSetupResult_auto_accessor_set_spend_key_impl(ptr, rust_vec_len, data_len),
 73 => wire__crate__api__structs__api_amount_display_btc_impl(ptr, rust_vec_len, data_len),
 74 => wire__crate__api__structs__api_amount_display_sats_impl(ptr, rust_vec_len, data_len),
-75 => wire__crate__api__structs__api_amount_to_int_impl(ptr, rust_vec_len, data_len),
-76 => wire__crate__api__structs__api_recorded_transaction_incoming_to_string_impl(ptr, rust_vec_len, data_len),
-77 => wire__crate__api__structs__api_recorded_transaction_outgoing_to_string_impl(ptr, rust_vec_len, data_len),
-78 => wire__crate__api__structs__api_recorded_transaction_outgoing_total_outgoing_impl(ptr, rust_vec_len, data_len),
-79 => wire__crate__api__structs__api_recorded_transaction_unknown_outgoing_to_string_impl(ptr, rust_vec_len, data_len),
-80 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_change_amount_impl(ptr, rust_vec_len, data_len),
-81 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_fee_amount_impl(ptr, rust_vec_len, data_len),
-82 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_recipients_impl(ptr, rust_vec_len, data_len),
-83 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_send_amount_impl(ptr, rust_vec_len, data_len),
-85 => wire__crate__api__stream__create_log_stream_impl(ptr, rust_vec_len, data_len),
-86 => wire__crate__api__stream__create_scan_progress_stream_impl(ptr, rust_vec_len, data_len),
-87 => wire__crate__api__stream__create_scan_result_stream_impl(ptr, rust_vec_len, data_len),
-88 => wire__crate__api__backup__encrypted_dana_backup_decode_impl(ptr, rust_vec_len, data_len),
-89 => wire__crate__api__backup__encrypted_dana_backup_decrypt_impl(ptr, rust_vec_len, data_len),
-90 => wire__crate__api__backup__encrypted_dana_backup_encode_impl(ptr, rust_vec_len, data_len),
-91 => wire__crate__api__backup__encrypted_dana_backup_new_impl(ptr, rust_vec_len, data_len),
-92 => wire__crate__api__structs__fiat_currency_display_name_impl(ptr, rust_vec_len, data_len),
-93 => wire__crate__api__structs__fiat_currency_minor_units_impl(ptr, rust_vec_len, data_len),
-94 => wire__crate__api__structs__fiat_currency_symbol_impl(ptr, rust_vec_len, data_len),
-96 => wire__crate__api__bip39__get_english_wordlist_impl(ptr, rust_vec_len, data_len),
-98 => wire__crate__api__validate__is_reusable_payment_code_impl(ptr, rust_vec_len, data_len),
-99 => wire__crate__api__backup__settings_backup_new_impl(ptr, rust_vec_len, data_len),
-100 => wire__crate__api__validate__validate_address_with_network_impl(ptr, rust_vec_len, data_len),
+75 => wire__crate__api__structs__api_amount_format_with_unit_impl(ptr, rust_vec_len, data_len),
+76 => wire__crate__api__structs__api_amount_to_int_impl(ptr, rust_vec_len, data_len),
+77 => wire__crate__api__structs__api_recorded_transaction_incoming_to_string_impl(ptr, rust_vec_len, data_len),
+78 => wire__crate__api__structs__api_recorded_transaction_outgoing_to_string_impl(ptr, rust_vec_len, data_len),
+79 => wire__crate__api__structs__api_recorded_transaction_outgoing_total_outgoing_impl(ptr, rust_vec_len, data_len),
+80 => wire__crate__api__structs__api_recorded_transaction_unknown_outgoing_to_string_impl(ptr, rust_vec_len, data_len),
+81 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_change_amount_impl(ptr, rust_vec_len, data_len),
+82 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_fee_amount_impl(ptr, rust_vec_len, data_len),
+83 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_recipients_impl(ptr, rust_vec_len, data_len),
+84 => wire__crate__api__structs__api_silent_payment_unsigned_transaction_get_send_amount_impl(ptr, rust_vec_len, data_len),
+85 => wire__crate__api__structs__bitcoin_unit_display_name_impl(ptr, rust_vec_len, data_len),
+86 => wire__crate__api__structs__bitcoin_unit_format_amount_impl(ptr, rust_vec_len, data_len),
+88 => wire__crate__api__stream__create_log_stream_impl(ptr, rust_vec_len, data_len),
+89 => wire__crate__api__stream__create_scan_progress_stream_impl(ptr, rust_vec_len, data_len),
+90 => wire__crate__api__stream__create_scan_result_stream_impl(ptr, rust_vec_len, data_len),
+91 => wire__crate__api__backup__encrypted_dana_backup_decode_impl(ptr, rust_vec_len, data_len),
+92 => wire__crate__api__backup__encrypted_dana_backup_decrypt_impl(ptr, rust_vec_len, data_len),
+93 => wire__crate__api__backup__encrypted_dana_backup_encode_impl(ptr, rust_vec_len, data_len),
+94 => wire__crate__api__backup__encrypted_dana_backup_new_impl(ptr, rust_vec_len, data_len),
+95 => wire__crate__api__structs__fiat_currency_display_name_impl(ptr, rust_vec_len, data_len),
+96 => wire__crate__api__structs__fiat_currency_minor_units_impl(ptr, rust_vec_len, data_len),
+97 => wire__crate__api__structs__fiat_currency_symbol_impl(ptr, rust_vec_len, data_len),
+99 => wire__crate__api__bip39__get_english_wordlist_impl(ptr, rust_vec_len, data_len),
+101 => wire__crate__api__validate__is_reusable_payment_code_impl(ptr, rust_vec_len, data_len),
+102 => wire__crate__api__backup__settings_backup_new_impl(ptr, rust_vec_len, data_len),
+103 => wire__crate__api__validate__validate_address_with_network_impl(ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
 }
@@ -5603,6 +5716,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::structs::ApiSilentPaymentUnsi
     for crate::api::structs::ApiSilentPaymentUnsignedTransaction
 {
     fn into_into_dart(self) -> crate::api::structs::ApiSilentPaymentUnsignedTransaction {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::structs::BitcoinUnit {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Btc => 0.into_dart(),
+            Self::Sats => 1.into_dart(),
+            Self::BitcoinSymbol => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::structs::BitcoinUnit
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::structs::BitcoinUnit>
+    for crate::api::structs::BitcoinUnit
+{
+    fn into_into_dart(self) -> crate::api::structs::BitcoinUnit {
         self
     }
 }
@@ -6137,6 +6272,23 @@ impl SseEncode for crate::api::structs::ApiSilentPaymentUnsignedTransaction {
         <[u8; 32]>::sse_encode(self.partial_secret, serializer);
         <Option<String>>::sse_encode(self.unsigned_tx, serializer);
         <String>::sse_encode(self.network, serializer);
+    }
+}
+
+impl SseEncode for crate::api::structs::BitcoinUnit {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::structs::BitcoinUnit::Btc => 0,
+                crate::api::structs::BitcoinUnit::Sats => 1,
+                crate::api::structs::BitcoinUnit::BitcoinSymbol => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 

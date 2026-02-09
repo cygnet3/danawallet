@@ -220,7 +220,8 @@ class WalletScreenState extends State<WalletScreen> {
 
   Widget buildAmountDisplay(
       ApiAmount amount, FiatExchangeRateState exchangeRate) {
-    String btcAmount = hideAmount ? hideAmountFormat : amount.displayBtc();
+    String btcAmount =
+        hideAmount ? hideAmountFormat : exchangeRate.displayBitcoin(amount);
 
     String fiatAmount =
         hideAmount ? hideAmountFormat : exchangeRate.displayFiat(amount);
@@ -269,7 +270,9 @@ class WalletScreenState extends State<WalletScreen> {
         );
         date = field0.confirmedAt?.toString() ?? 'Unconfirmed';
         color = Bitcoin.green;
-        amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
+        amount = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayBitcoin(field0.amount);
         amountprefix = '+';
         amountFiat = hideAmount
             ? hideAmountFormat
@@ -289,8 +292,9 @@ class WalletScreenState extends State<WalletScreen> {
         } else {
           color = Bitcoin.red;
         }
-        amount =
-            hideAmount ? hideAmountFormat : field0.totalOutgoing().displayBtc();
+        amount = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayBitcoin(field0.totalOutgoing());
         amountprefix = '-';
         amountFiat = hideAmount
             ? hideAmountFormat
@@ -308,7 +312,9 @@ class WalletScreenState extends State<WalletScreen> {
         );
         date = field0.confirmedAt.toString();
         color = Bitcoin.red;
-        amount = hideAmount ? hideAmountFormat : field0.amount.displayBtc();
+        amount = hideAmount
+            ? hideAmountFormat
+            : exchangeRate.displayBitcoin(field0.amount);
         amountprefix = '-';
         amountFiat = hideAmount
             ? hideAmountFormat

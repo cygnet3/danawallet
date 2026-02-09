@@ -95,6 +95,11 @@ impl ApiAmount {
     pub fn display_sats(&self) -> String {
         format!("{} sats", self.0)
     }
+
+    #[frb(sync)]
+    pub fn format_with_unit(&self, unit: BitcoinUnit) -> String {
+        unit.format_amount(self.0)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -497,4 +502,65 @@ impl FiatCurrency {
             Self::Jpy => 0,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+pub enum BitcoinUnit {
+    Btc,
+    Sats,
+    BitcoinSymbol,
+}
+
+impl BitcoinUnit {
+    #[frb(sync)]
+    pub fn display_name(&self) -> String {
+        match self {
+            Self::Btc => "BTC",
+            Self::Sats => "Satoshis",
+            Self::BitcoinSymbol => "Bitcoin Symbol",
+        }
+        .to_string()
+    }
+
+    #[frb(sync)]
+    pub fn format_amount(&self, sats: u64) -> String {
+        match self {
+            Self::Btc => {
+                let btc = sats as f64 / 100_000_000.0;
+                let decimals = format!("{:.8}", btc);
+                let len = decimals.len();
+                format!(
+                    "{} {} {} BTC",
+                    &decimals[..len - 6],
+                    &decimals[len - 6..len - 3],
+                    &decimals[len - 3..]
+                )
+            }
+            Self::Sats => {
+                let formatted = format_with_thousand_separators(sats);
+                format!("{} sats", formatted)
+            }
+            Self::BitcoinSymbol => {
+                let formatted = format_with_thousand_separators(sats);
+                format!("₿ {}", formatted)
+            }
+        }
+    }
+}
+
+fn format_with_thousand_separators(n: u64) -> String {
+    let s = n.to_string();
+    let mut result = String::new();
+    let mut count = 0;
+
+    for c in s.chars().rev() {
+        if count == 3 {
+            result.push(' ');
+            count = 0;
+        }
+        result.push(c);
+        count += 1;
+    }
+
+    result.chars().rev().collect()
 }

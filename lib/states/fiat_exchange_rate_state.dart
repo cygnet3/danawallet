@@ -9,6 +9,7 @@ class FiatExchangeRateState extends ChangeNotifier {
   MempoolApiRepository repository = MempoolApiRepository();
 
   late FiatCurrency currency;
+  late BitcoinUnit bitcoinUnit;
   double? _cachedRate; // Make nullable to represent "no data available"
 
   // private constructor, create class using static async 'create' instead
@@ -18,7 +19,10 @@ class FiatExchangeRateState extends ChangeNotifier {
     final instance = FiatExchangeRateState._();
     final currency =
         await SettingsRepository.instance.getFiatCurrency() ?? defaultCurrency;
+    final bitcoinUnit = await SettingsRepository.instance.getBitcoinUnit() ??
+        defaultBitcoinUnit;
     instance.currency = currency;
+    instance.bitcoinUnit = bitcoinUnit;
 
     try {
       final rate = await instance._fetchExchangeRate(currency);
@@ -91,5 +95,15 @@ class FiatExchangeRateState extends ChangeNotifier {
     } else {
       return "$symbol ---";
     }
+  }
+
+  Future<void> updateBitcoinUnit(BitcoinUnit unit) async {
+    await SettingsRepository.instance.setBitcoinUnit(unit);
+    bitcoinUnit = unit;
+    notifyListeners();
+  }
+
+  String displayBitcoin(ApiAmount amount) {
+    return amount.formatWithUnit(unit: bitcoinUnit);
   }
 }

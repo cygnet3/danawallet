@@ -237,9 +237,10 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
                           Text(
                             _isLoadingFees
                                 ? 'Loading...'
-                                : _feeAmounts[_selectedFeeRate]
-                                        ?.displaySats() ??
-                                    'N/A',
+                                : _feeAmounts[_selectedFeeRate] != null
+                                    ? exchangeRate.displayBitcoin(
+                                        _feeAmounts[_selectedFeeRate]!)
+                                    : 'N/A',
                             style: BitcoinTextStyle.body4(Bitcoin.black),
                           ),
                         ],

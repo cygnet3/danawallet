@@ -6,6 +6,7 @@ import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/screens/home/wallet/spend/fee_selection.dart';
 import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
 import 'package:danawallet/states/chain_state.dart';
+import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +72,8 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
 
     final walletState = Provider.of<WalletState>(context, listen: false);
     final chainState = Provider.of<ChainState>(context, listen: false);
+    final exchangeRate =
+        Provider.of<FiatExchangeRateState>(context, listen: false);
 
     final availableBalance = walletState.amount;
     final blocksToScan = chainState.tip - walletState.lastScan;
@@ -134,7 +137,8 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
                 const SizedBox(
                   height: 10.0,
                 ),
-                Text('Available Balance: ${availableBalance.displaySats()}',
+                Text(
+                    'Available Balance: ${exchangeRate.displayBitcoin(availableBalance)}',
                     style: BitcoinTextStyle.body3(Bitcoin.black)
                         .apply(fontWeightDelta: 1)),
                 if (blocksToScan != 0)

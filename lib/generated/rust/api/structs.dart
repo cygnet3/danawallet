@@ -9,7 +9,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'structs.freezed.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
+// These functions are ignored because they are not marked as `pub`: `format_with_thousand_separators`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `try_from`
 
 class ApiAmount {
   final BigInt field0;
@@ -30,6 +31,9 @@ class ApiAmount {
       RustLib.instance.api.crateApiStructsApiAmountDisplaySats(
         that: this,
       );
+
+  String formatWithUnit({required BitcoinUnit unit}) => RustLib.instance.api
+      .crateApiStructsApiAmountFormatWithUnit(that: this, unit: unit);
 
   BigInt toInt() => RustLib.instance.api.crateApiStructsApiAmountToInt(
         that: this,
@@ -295,6 +299,21 @@ class ApiSilentPaymentUnsignedTransaction {
           partialSecret == other.partialSecret &&
           unsignedTx == other.unsignedTx &&
           network == other.network;
+}
+
+enum BitcoinUnit {
+  btc,
+  sats,
+  bitcoinSymbol,
+  ;
+
+  String displayName() =>
+      RustLib.instance.api.crateApiStructsBitcoinUnitDisplayName(
+        that: this,
+      );
+
+  String formatAmount({required BigInt sats}) => RustLib.instance.api
+      .crateApiStructsBitcoinUnitFormatAmount(that: this, sats: sats);
 }
 
 enum FiatCurrency {
