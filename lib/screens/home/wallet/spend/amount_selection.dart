@@ -188,14 +188,6 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
                 const SizedBox(
                   height: 10.0,
                 ),
-                if (exchangeRate.bitcoinUnit == BitcoinUnit.btc)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10.0),
-                    child: Text(
-                      'Extra decimals removed - satoshis are the smallest unit',
-                      style: BitcoinTextStyle.body5(Bitcoin.neutral6),
-                    ),
-                  ),
                 Text(
                     'Available Balance: ${exchangeRate.displayBitcoin(availableBalance)}',
                     style: BitcoinTextStyle.body3(Bitcoin.black)
