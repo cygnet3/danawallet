@@ -23,17 +23,16 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
   final TextEditingController amountController = TextEditingController();
   String? _amountErrorText;
 
-  void onContinue(ApiAmount availableBalance) {
+  void onContinue(
+      ApiAmount availableBalance, FiatExchangeRateState exchangeRate) {
     setState(() {
       _amountErrorText = null;
     });
 
     final BigInt amount;
     try {
-      amount = BigInt.from(int.parse(amountController.text));
-      if (amount <= BigInt.from(0)) {
-        throw const FormatException('Amount must be positive');
-      }
+      amount =
+          _parseAmountToSats(amountController.text, exchangeRate.bitcoinUnit);
     } on FormatException catch (e) {
       setState(() {
         _amountErrorText = 'Invalid amount: $e';
@@ -55,7 +54,8 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
 
     if (amount < BigInt.from(defaultDustLimit)) {
       setState(() {
-        _amountErrorText = 'Please send at least $defaultDustLimit sats';
+        _amountErrorText =
+            'Please send at least ${_formatDustLimit(exchangeRate.bitcoinUnit)}';
       });
       return;
     }
@@ -64,6 +64,47 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
 
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => const FeeSelectionScreen()));
+  }
+
+  BigInt _parseAmountToSats(String input, BitcoinUnit unit) {
+    try {
+      switch (unit) {
+        case BitcoinUnit.btc:
+          final double btcAmount = double.parse(input);
+          if (btcAmount <= 0) {
+            throw const FormatException('Amount must be positive');
+          }
+          // Truncate to whole satoshis using floor()
+          final int sats = (btcAmount * bitcoinUnits).floor();
+          return BigInt.from(sats);
+
+        case BitcoinUnit.sats:
+        case BitcoinUnit.bitcoinSymbol:
+          final int satsAmount = int.parse(input);
+          if (satsAmount <= 0) {
+            throw const FormatException('Amount must be positive');
+          }
+          return BigInt.from(satsAmount);
+      }
+    } on FormatException {
+      rethrow;
+    }
+  }
+
+  String _formatDustLimit(BitcoinUnit unit) {
+    final dustAmount = ApiAmount(field0: BigInt.from(defaultDustLimit));
+    return dustAmount.formatWithUnit(unit: unit);
+  }
+
+  String _getSuffixText(BitcoinUnit unit) {
+    switch (unit) {
+      case BitcoinUnit.btc:
+        return 'BTC';
+      case BitcoinUnit.sats:
+        return 'sats';
+      case BitcoinUnit.bitcoinSymbol:
+        return '₿';
+    }
   }
 
   @override
@@ -130,13 +171,23 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
                     border: const OutlineInputBorder(),
                     labelText: 'Enter an amount',
                     errorText: _amountErrorText,
-                    suffixText: 'sats',
+                    suffixText: _getSuffixText(exchangeRate.bitcoinUnit),
                   ),
-                  keyboardType: TextInputType.number,
+                  keyboardType: exchangeRate.bitcoinUnit == BitcoinUnit.btc
+                      ? const TextInputType.numberWithOptions(decimal: true)
+                      : TextInputType.number,
                 ),
                 const SizedBox(
                   height: 10.0,
                 ),
+                if (exchangeRate.bitcoinUnit == BitcoinUnit.btc)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: Text(
+                      'Extra decimals removed - satoshis are the smallest unit',
+                      style: BitcoinTextStyle.body5(Bitcoin.neutral6),
+                    ),
+                  ),
                 Text(
                     'Available Balance: ${exchangeRate.displayBitcoin(availableBalance)}',
                     style: BitcoinTextStyle.body3(Bitcoin.black)
@@ -162,7 +213,7 @@ class AmountSelectionScreenState extends State<AmountSelectionScreen> {
         children: [
           FooterButton(
             title: 'Proceed to fee selection',
-            onPressed: () => onContinue(availableBalance),
+            onPressed: () => onContinue(availableBalance, exchangeRate),
           ),
         ],
       ),
