@@ -3,7 +3,7 @@ use std::{
     mem,
 };
 
-use spdk::{
+use spdk_core::{
     bitcoin::{absolute::Height, BlockHash, OutPoint},
     OwnedOutput, Updater,
 };

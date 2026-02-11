@@ -61,7 +61,13 @@ android {
             dimension 'default'
             applicationIdSuffix '.dev'
             versionNameSuffix '.dev'
-            resValue "string", "app_name", "Dana Development"
+            resValue "string", "app_name", "Dana Experimental"
+        }
+        local {
+            dimension 'default'
+            applicationIdSuffix '.local'
+            versionNameSuffix '.local'
+            resValue "string", "app_name", "Dana Local"
         }
         signet {
             dimension 'default'

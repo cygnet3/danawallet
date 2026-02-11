@@ -1,6 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
 
@@ -26,35 +26,36 @@ class ChangeFiatScreenState extends State<ChangeFiatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final body = ListView.separated(
-      separatorBuilder: (context, index) => const Divider(),
-      itemCount: FiatCurrency.values.length,
-      itemBuilder: (context, index) => ListTile(
-        title: Text(
-          FiatCurrency.values[index].displayName(),
-          style: BitcoinTextStyle.body3(Bitcoin.black),
-        ),
-        leading: Radio<FiatCurrency>(
-          groupValue: _selected,
-          value: FiatCurrency.values[index],
-          onChanged: (FiatCurrency? value) {
-            setState(() {
-              _selected = value;
-            });
-          },
-        ),
-        onTap: () {
+    final body = RadioGroup<FiatCurrency>(
+        groupValue: _selected,
+        onChanged: (FiatCurrency? value) {
           setState(() {
-            _selected = FiatCurrency.values[index];
+            _selected = value;
           });
         },
-      ),
-    );
+        child: ListView.separated(
+          separatorBuilder: (context, index) => const Divider(),
+          itemCount: FiatCurrency.values.length,
+          itemBuilder: (context, index) => ListTile(
+            title: Text(
+              FiatCurrency.values[index].displayName(),
+              style: BitcoinTextStyle.body3(Bitcoin.black),
+            ),
+            leading: Radio<FiatCurrency>(
+              value: FiatCurrency.values[index],
+            ),
+            onTap: () {
+              setState(() {
+                _selected = FiatCurrency.values[index];
+              });
+            },
+          ),
+        ));
 
     final footer = FooterButton(
         title: "Confirm", onPressed: () => widget.onConfirm(_selected!));
 
-    return SpendSkeleton(
+    return ScreenSkeleton(
         title: "Choose fiat currency",
         body: body,
         showBackButton: true,

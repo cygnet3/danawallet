@@ -438,7 +438,7 @@ int _getChunkFittingWidth(List<String> chunks, TextStyle style, double width) {
 }
 
 bool get isDevEnv {
-  return appFlavor == 'dev';
+  return appFlavor == 'dev' || appFlavor == 'local';
 }
 
 void goToScreen(BuildContext context, Widget screen) {

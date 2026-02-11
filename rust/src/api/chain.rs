@@ -1,7 +1,8 @@
 use std::time::Duration;
 
+use backend_blindbit_v1::{BlindbitBackend, BlindbitClient};
 use log::warn;
-use spdk::{bitcoin::Network, BlindbitBackend, BlindbitClient, ChainBackend};
+use spdk_core::{bitcoin::Network, ChainBackend};
 use tokio::time::sleep;
 
 pub async fn get_chain_height(blindbit_url: String) -> anyhow::Result<u32> {

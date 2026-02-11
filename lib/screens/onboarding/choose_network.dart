@@ -1,6 +1,6 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/data/enums/network.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
 import 'package:flutter/material.dart';
 
@@ -23,36 +23,37 @@ class ChooseNetworkScreenState extends State<ChooseNetworkScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final body = ListView.separated(
-      separatorBuilder: (context, index) => const Divider(),
-      itemCount: choices.length,
-      itemBuilder: (context, index) => ListTile(
-        title: Text(
-          choices[index].toString(),
-          style: BitcoinTextStyle.body3(Bitcoin.black),
-        ),
-        leading: Radio<Network>(
-          groupValue: _selected,
-          value: choices[index],
-          onChanged: (Network? value) {
-            setState(() {
-              _selected = value;
-            });
-          },
-        ),
-        onTap: () {
+    final body = RadioGroup(
+        groupValue: _selected,
+        onChanged: (Network? value) {
           setState(() {
-            _selected = choices[index];
+            _selected = value;
           });
         },
-      ),
-    );
+        child: ListView.separated(
+          separatorBuilder: (context, index) => const Divider(),
+          itemCount: choices.length,
+          itemBuilder: (context, index) => ListTile(
+            title: Text(
+              choices[index].toString(),
+              style: BitcoinTextStyle.body3(Bitcoin.black),
+            ),
+            leading: Radio<Network>(
+              value: choices[index],
+            ),
+            onTap: () {
+              setState(() {
+                _selected = choices[index];
+              });
+            },
+          ),
+        ));
 
     final footer = FooterButton(
         title: "Confirm",
         onPressed: () => Navigator.of(context).pop(_selected));
 
-    return SpendSkeleton(
+    return ScreenSkeleton(
         title: "Choose network",
         body: body,
         showBackButton: true,

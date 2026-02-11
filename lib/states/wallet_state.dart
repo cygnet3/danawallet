@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:danawallet/data/enums/network.dart';
 import 'package:danawallet/data/models/bip353_address.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
-import 'package:danawallet/data/models/recommended_fee_model.dart';
 import 'package:danawallet/generated/rust/api/history.dart';
 import 'package:danawallet/generated/rust/api/outputs.dart';
 import 'package:danawallet/generated/rust/api/stream.dart';
@@ -180,24 +179,6 @@ class WalletState extends ChangeNotifier {
     unconfirmedChange = txHistory.getUnconfirmedChange();
   }
 
-  Future<RecommendedFeeResponse?> getCurrentFeeRates() async {
-    if (network == Network.regtest) {
-      // for regtest, we always return 1 sat/vb
-      return RecommendedFeeResponse(
-          nextBlockFee: 1, halfHourFee: 1, hourFee: 1, dayFee: 1);
-    } else {
-      try {
-        final mempoolApiRepository = MempoolApiRepository(network: network);
-        final response = await mempoolApiRepository.getCurrentFeeRate();
-        return response;
-      } catch (e) {
-        Logger().w('Failed to fetch fee rates from mempool.space: $e');
-        // Don't use dangerous fallback rates - return null to block transactions
-        return null;
-      }
-    }
-  }
-
   Future<ApiSilentPaymentUnsignedTransaction> createUnsignedTxToThisRecipient(
       RecipientFormFilled form) async {
     final wallet = await getWalletFromSecureStorage();
@@ -235,7 +216,8 @@ class WalletState extends ChangeNotifier {
 
     final feeAmount = unsignedTx.getFeeAmount();
 
-    final recipients = unsignedTx.getRecipients(changeAddress: changePaymentCode);
+    final recipients =
+        unsignedTx.getRecipients(changeAddress: changePaymentCode);
 
     final finalizedTx =
         SpWallet.finalizeTransaction(unsignedTransaction: unsignedTx);
@@ -344,7 +326,7 @@ class WalletState extends ChangeNotifier {
           return false;
         } else {
           Logger()
-              .w("Dana address is not pointing to out sp address, removing");
+              .w("Dana address is not pointing to our sp address, removing");
           danaAddress = null;
           // note: because we haven't found a valid address in memory, we don't return here
         }

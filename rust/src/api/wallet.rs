@@ -7,12 +7,10 @@ use crate::wallet::WalletFingerprint;
 use anyhow::Result;
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
-use spdk::{
+use spdk_core::{
     bitcoin::{absolute::Height, secp256k1::SecretKey, Network},
     SpClient, SpendKey,
 };
-
-use super::{history::TxHistory, outputs::OwnedOutputs};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
@@ -20,15 +18,6 @@ pub struct SpWallet {
     client: SpClient,
     wallet_fingerprint: WalletFingerprint,
     birthday: Height,
-    /// old variable, to be removed
-    #[serde(skip_serializing)]
-    tx_history: Option<TxHistory>,
-    /// old variable, to be removed
-    #[serde(skip_serializing)]
-    last_scan: Option<Height>,
-    /// old variable, to be removed
-    #[serde(skip_serializing)]
-    outputs: Option<OwnedOutputs>,
 }
 
 impl SpWallet {
@@ -50,9 +39,6 @@ impl SpWallet {
             client,
             birthday,
             wallet_fingerprint,
-            tx_history: None,
-            last_scan: None,
-            outputs: None,
         })
     }
 

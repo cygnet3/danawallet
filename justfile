@@ -1,25 +1,12 @@
-default: run-dev
+default: run
 
 # use fvm if available, else use flutter directly
 flutter := if `which fvm 2> /dev/null || true` != "" { "fvm flutter" }  else { "flutter" }
 
-run-dev:
-    {{flutter}} run --flavor dev --target lib/main_dev.dart
-run-dev-release:
-    {{flutter}} run --release --flavor dev --target lib/main_dev.dart
-
-build-apk-dev:
-    just clean-bin
-    just build-android
-    {{flutter}} build apk --flavor dev --target-platform android-arm,android-arm64
-build-apk-live:
-    just clean-bin
-    just build-android
-    {{flutter}} build apk --flavor live --target-platform android-arm,android-arm64
-build-apk-signet:
-    just clean-bin
-    just build-android
-    {{flutter}} build apk --flavor signet --target-platform android-arm,android-arm64
+run:
+    {{flutter}} run --flavor local --target lib/main_local.dart --dart-define="GIT_HASH=$(git rev-parse HEAD)"
+run-release:
+    {{flutter}} run --release --flavor local --target lib/main_local.dart --dart-define="GIT_HASH=$(git rev-parse HEAD)"
 
 clean-bin:
     cd rust && just clean-bin

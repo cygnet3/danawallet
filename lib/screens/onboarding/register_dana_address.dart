@@ -9,6 +9,7 @@ import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
+import 'package:danawallet/widgets/buttons/footer/footer_button_outlined.dart';
 import 'package:danawallet/widgets/loading_widget.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
@@ -17,16 +18,17 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DanaAddressSetupScreen extends StatefulWidget {
-  const DanaAddressSetupScreen({
+class RegisterDanaAddressScreen extends StatefulWidget {
+  const RegisterDanaAddressScreen({
     super.key,
   });
 
   @override
-  State<DanaAddressSetupScreen> createState() => _DanaAddressSetupScreenState();
+  State<RegisterDanaAddressScreen> createState() =>
+      _RegisterDanaAddressScreenState();
 }
 
-class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
+class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
   static const int _minUsernameLength = 3;
   static const int _maxUsernameLength = 30;
   static const Duration _debounceDuration = Duration(milliseconds: 500);
@@ -275,7 +277,7 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
     }
   }
 
-  Future<void> _registerUsername(BuildContext context) async {
+  Future<void> _onRegister() async {
     final walletState = Provider.of<WalletState>(context, listen: false);
     final contactsState = Provider.of<ContactsState>(context, listen: false);
     // Determine which username to use (from the text field)
@@ -319,10 +321,10 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
         // Persist the dana address to storage (already done by registerDanaAddress, but ensure consistency)
         await WalletRepository.instance.saveDanaAddress(registeredAddress);
 
-        // Create a contact for the 'you' user
-        contactsState.initialize(walletState.receivePaymentCode, registeredAddress);
+        // Set the dana address for the 'you' user
+        contactsState.setYouContactDanaAddress(registeredAddress);
 
-        if (context.mounted) {
+        if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const PinGuard()),
@@ -338,6 +340,14 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
         _isRegistering = false;
       });
     }
+  }
+
+  void _onSkip() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const PinGuard()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
@@ -582,12 +592,25 @@ class _DanaAddressSetupScreenState extends State<DanaAddressSetupScreen> {
         _domain != null &&
         (isUsingSuggested || _isCustomUsernameAvailable == true);
 
-    final footer = FooterButton(
+    final skipButton = FooterButtonOutlined(title: 'Skip', onPressed: _onSkip);
+
+    final registerButton = FooterButton(
       title: 'Register',
-      onPressed: () => _registerUsername(context),
+      onPressed: _onRegister,
       isLoading: _isRegistering,
       enabled: isButtonEnabled && !_isRegistering,
     );
+
+    final Widget footer;
+    if (isDevEnv) {
+      footer = Column(children: [
+        skipButton,
+        SizedBox(height: Adaptive.h(2)),
+        registerButton,
+      ]);
+    } else {
+      footer = registerButton;
+    }
 
     return PopScope(
       canPop: false,

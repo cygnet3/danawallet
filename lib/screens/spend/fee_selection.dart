@@ -4,9 +4,10 @@ import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
-import 'package:danawallet/screens/home/wallet/spend/custom_fee_screen.dart';
+import 'package:danawallet/screens/spend/ready_to_send.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
+import 'package:danawallet/screens/spend/custom_fee_screen.dart';
+import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -36,9 +37,10 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     RecipientForm form = RecipientForm();
 
     final walletState = Provider.of<WalletState>(context, listen: false);
+    final chainState = Provider.of<ChainState>(context, listen: false);
 
     // fetch fee rates from mempool
-    final currentFeeRates = await walletState.getCurrentFeeRates();
+    final currentFeeRates = await chainState.getCurrentFeeRates();
     form.currentFeeRates = currentFeeRates;
 
     for (SelectedFee fee in [
@@ -142,16 +144,13 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
             ],
           ),
           leading: Radio<SelectedFee>(
-            groupValue: _selected,
             value: fee,
-            onChanged: (SelectedFee? value) {
-              if (value != null) {
-                setState(() {
-                  _selected = value;
-                });
-              }
-            },
           ),
+          onTap: () {
+            setState(() {
+              _selected = fee;
+            });
+          },
         );
       case SelectedFee.custom:
         return ListTile(
@@ -177,20 +176,29 @@ class FeeSelectionScreenState extends State<FeeSelectionScreen> {
     final exchangeRate =
         Provider.of<FiatExchangeRateState>(context, listen: false);
 
-    return SpendSkeleton(
+    return ScreenSkeleton(
       showBackButton: true,
       title: 'Confirmation time',
-      body: Column(children: [
-        const Divider(),
-        toListTile(SelectedFee.fast, exchangeRate),
-        const Divider(),
-        toListTile(SelectedFee.normal, exchangeRate),
-        const Divider(),
-        toListTile(SelectedFee.slow, exchangeRate),
-        const Divider(),
-        if (isDevEnv) toListTile(SelectedFee.custom, exchangeRate),
-        if (isDevEnv) const Divider(),
-      ]),
+      body: RadioGroup(
+          groupValue: _selected,
+          onChanged: (SelectedFee? value) {
+            if (value != null) {
+              setState(() {
+                _selected = value;
+              });
+            }
+          },
+          child: Column(children: [
+            const Divider(),
+            toListTile(SelectedFee.fast, exchangeRate),
+            const Divider(),
+            toListTile(SelectedFee.normal, exchangeRate),
+            const Divider(),
+            toListTile(SelectedFee.slow, exchangeRate),
+            const Divider(),
+            if (isDevEnv) toListTile(SelectedFee.custom, exchangeRate),
+            if (isDevEnv) const Divider(),
+          ])),
       footer: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [

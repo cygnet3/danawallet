@@ -3,8 +3,8 @@ import 'package:danawallet/data/models/recipient_form.dart';
 import 'package:danawallet/data/models/recipient_form_filled.dart';
 import 'package:danawallet/data/enums/selected_fee.dart';
 import 'package:danawallet/generated/rust/api/structs.dart';
-import 'package:danawallet/screens/home/wallet/spend/ready_to_send.dart';
-import 'package:danawallet/screens/home/wallet/spend/spend_skeleton.dart';
+import 'package:danawallet/screens/spend/ready_to_send.dart';
+import 'package:danawallet/widgets/skeletons/screen_skeleton.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
 import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/buttons/footer/footer_button.dart';
@@ -110,7 +110,7 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
     final exchangeRate =
         Provider.of<FiatExchangeRateState>(context, listen: false);
 
-    return SpendSkeleton(
+    return ScreenSkeleton(
       showBackButton: true,
       title: 'Custom Fee',
       body: Column(
@@ -126,7 +126,7 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
             child: Column(
               children: [
                 Text(
-                  '${_selectedFeeRate} sat/vB',
+                  '$_selectedFeeRate sat/vB',
                   style: BitcoinTextStyle.title3(Bitcoin.black),
                 ),
               ],
@@ -155,7 +155,7 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
                   activeTrackColor: Bitcoin.orange,
                   inactiveTrackColor: Bitcoin.neutral3,
                   thumbColor: Bitcoin.orange,
-                  overlayColor: Bitcoin.orange.withOpacity(0.1),
+                  overlayColor: Bitcoin.orange.withValues(alpha: 0.1),
                   trackHeight: 4.0,
                 ),
                 child: Slider(
@@ -188,11 +188,11 @@ class _CustomFeeScreenState extends State<CustomFeeScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _errorMessage != null
-                  ? Bitcoin.red.withOpacity(0.1)
+                  ? Bitcoin.red.withValues(alpha: 0.1)
                   : Bitcoin.neutral1,
               borderRadius: BorderRadius.circular(8),
               border: _errorMessage != null
-                  ? Border.all(color: Bitcoin.red.withOpacity(0.3))
+                  ? Border.all(color: Bitcoin.red.withValues(alpha: 0.3))
                   : null,
             ),
             child: _errorMessage != null

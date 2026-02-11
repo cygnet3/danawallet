@@ -1,8 +1,8 @@
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/states/home_state.dart';
-import 'package:danawallet/screens/home/contacts/contacts.dart';
-import 'package:danawallet/screens/home/wallet/wallet.dart';
-import 'package:danawallet/screens/settings/settings.dart';
+import 'package:danawallet/screens/contacts/contacts.dart';
+import 'package:danawallet/screens/wallet/wallet.dart';
+import 'package:danawallet/screens/settings/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

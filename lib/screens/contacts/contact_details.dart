@@ -9,9 +9,9 @@ import 'package:danawallet/generated/rust/api/validate.dart';
 import 'package:danawallet/global_functions.dart';
 import 'package:danawallet/data/models/contact_field.dart';
 import 'package:danawallet/services/bip353_resolver.dart';
-import 'package:danawallet/screens/home/contacts/add_edit_field_sheet.dart';
-import 'package:danawallet/screens/home/contacts/edit_contact_sheet.dart';
-import 'package:danawallet/screens/home/wallet/spend/amount_selection.dart';
+import 'package:danawallet/screens/contacts/add_edit_field_sheet.dart';
+import 'package:danawallet/screens/contacts/edit_contact_sheet.dart';
+import 'package:danawallet/screens/spend/amount_selection.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/contacts_state.dart';
 import 'package:danawallet/states/fiat_exchange_rate_state.dart';
@@ -198,12 +198,13 @@ class ContactDetailsScreen extends StatelessWidget {
       validateAddressWithNetwork(
           address: paymentCode, network: network.toCoreArg);
     } catch (e) {
-      displayError("Network validation error:", e);
+      displayError("Network validation error", e);
       return;
     }
 
     if (bip353 != null) {
-      // Resolve dana address to SP address
+      // If contact has a bip353-address, the contact was probably added using bip353.
+      // We have to verify if the underlying payment code is the same.
       try {
         final verified = await Bip353Resolver.verifyPaymentCode(
             bip353, paymentCode, network);
@@ -216,19 +217,14 @@ class ContactDetailsScreen extends StatelessWidget {
         displayError("Sending failed", e);
         return;
       }
+    }
 
-      final form = RecipientForm();
-      form.reset();
-      form.recipient = contact;
+    final form = RecipientForm();
+    form.reset();
+    form.recipient = contact;
 
-      if (context.mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AmountSelectionScreen(),
-          ),
-        );
-      }
+    if (context.mounted) {
+      goToScreen(context, const AmountSelectionScreen());
     }
   }
 
@@ -574,27 +570,27 @@ class ContactDetailsScreen extends StatelessWidget {
                       _showStaticAddressSheet(context, contact.paymentCode);
                     },
                   ),
-                  const Divider(),
-                  // Sent item
-                  ListTile(
-                    title: Text(
-                      'Sent',
-                      style: BitcoinTextStyle.body3(Bitcoin.black)
-                          .apply(fontWeightDelta: 1),
+                  if (!isYouContact) ...[
+                    const Divider(),
+                    // Sent item
+                    ListTile(
+                      title: Text(
+                        'Sent',
+                        style: BitcoinTextStyle.body3(Bitcoin.black)
+                            .apply(fontWeightDelta: 1),
+                      ),
+                      trailing:
+                          Icon(Icons.chevron_right, color: Bitcoin.neutral7),
+                      onTap: () {
+                        _showSentTransactionsSheet(context, contact);
+                      },
                     ),
-                    trailing:
-                        Icon(Icons.chevron_right, color: Bitcoin.neutral7),
-                    onTap: () {
-                      _showSentTransactionsSheet(context, contact);
-                    },
-                  ),
-                  const Divider(),
-                  // Custom Fields Section
-                  if (customFields != null && customFields.isNotEmpty) ...[
-                    ...customFields
-                        .map((field) => _buildCustomFieldItem(context, field)),
-                  ],
-                  if (!isYouContact)
+                    const Divider(),
+                    // Custom Fields Section
+                    if (customFields != null && customFields.isNotEmpty) ...[
+                      ...customFields
+                          .map((field) => _buildCustomFieldItem(context, field)),
+                    ],
                     ListTile(
                       leading: Icon(Icons.add, color: Bitcoin.blue),
                       title: Text(
@@ -606,6 +602,7 @@ class ContactDetailsScreen extends StatelessWidget {
                         _showAddFieldSheet(context, contactId);
                       },
                     ),
+                  ],
                 ],
               ),
             ),

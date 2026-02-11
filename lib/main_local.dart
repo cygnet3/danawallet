@@ -5,8 +5,9 @@ import 'package:danawallet/generated/rust/frb_generated.dart';
 import 'package:danawallet/main.dart';
 import 'package:danawallet/repositories/database_helper.dart';
 import 'package:danawallet/repositories/settings_repository.dart';
-import 'package:danawallet/screens/onboarding/dana_address_setup.dart';
+import 'package:danawallet/screens/onboarding/register_dana_address.dart';
 import 'package:danawallet/screens/onboarding/introduction.dart';
+import 'package:danawallet/services/app_info_service.dart';
 import 'package:danawallet/services/logging_service.dart';
 import 'package:danawallet/states/chain_state.dart';
 import 'package:danawallet/states/contacts_state.dart';
@@ -17,6 +18,7 @@ import 'package:danawallet/states/wallet_state.dart';
 import 'package:danawallet/widgets/pin_guard.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -29,6 +31,8 @@ void main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+
+  final appInfo = AppInfoService(packageInfo: await PackageInfo.fromPlatform());
 
   // Initialize contacts database
   await DatabaseHelper.instance.database;
@@ -78,12 +82,16 @@ void main() async {
 
     chainState.startSyncService(walletState, scanNotifier, true);
 
-    if (await walletState.checkDanaAddressRegistrationNeeded()) {
-      landingPage = const DanaAddressSetupScreen();
+    final addressRegistrationNeeded =
+        await walletState.checkDanaAddressRegistrationNeeded();
+
+    // initialize contacts with the 'you' contact
+    contactsState.initialize(
+        walletState.receivePaymentCode, walletState.danaAddress);
+
+    if (addressRegistrationNeeded) {
+      landingPage = const RegisterDanaAddressScreen();
     } else {
-      // initialize contacts state with our receive & dana address, so that we can create the self contact
-      contactsState.initialize(
-          walletState.receivePaymentCode, walletState.danaAddress);
       landingPage = const PinGuard();
     }
   } else {
@@ -94,6 +102,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        // simple providers for static/immutable data
+        Provider.value(value: appInfo),
+        // providers for mutable data
         ChangeNotifierProvider.value(value: walletState),
         ChangeNotifierProvider.value(value: scanNotifier),
         ChangeNotifierProvider.value(value: chainState),

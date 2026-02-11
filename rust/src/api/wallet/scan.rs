@@ -1,6 +1,7 @@
 use crate::{api::outputs::OwnedOutPoints, state::StateUpdater, wallet::KEEP_SCANNING};
 use anyhow::Result;
-use spdk::{bitcoin::absolute::Height, BlindbitBackend, ChainBackend, SpScanner};
+use backend_blindbit_v1::BlindbitBackend;
+use spdk_core::{bitcoin::absolute::Height, ChainBackend, SpScanner};
 
 use super::SpWallet;
 
@@ -22,7 +23,7 @@ impl SpWallet {
     ) -> Result<()> {
         let backend = BlindbitBackend::new(blindbit_url)?;
 
-        let dust_limit = spdk::bitcoin::Amount::from_sat(dust_limit);
+        let dust_limit = spdk_core::bitcoin::Amount::from_sat(dust_limit);
 
         let start = Height::from_consensus(last_scan + 1)?;
         let end = backend.block_height().await?;

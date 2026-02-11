@@ -179,9 +179,9 @@ class _AddEditFieldSheetState extends State<AddEditFieldSheet> {
             // Field Type dropdown or text field
             if (!_isCustomType)
               DropdownButtonFormField<String>(
-                value: _selectedFieldType,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
+                initialValue: _selectedFieldType,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
                   labelText: 'Field Type',
                 ),
                 items: commonFieldTypes.map((type) {
@@ -202,8 +202,8 @@ class _AddEditFieldSheetState extends State<AddEditFieldSheet> {
               TextField(
                 controller: _fieldTypeController,
                 style: BitcoinTextStyle.body4(Bitcoin.black),
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
                   labelText: 'Field Type',
                   hintText: 'e.g., LinkedIn, Discord, etc.',
                 ),
@@ -214,8 +214,8 @@ class _AddEditFieldSheetState extends State<AddEditFieldSheet> {
             TextField(
               controller: _fieldValueController,
               style: BitcoinTextStyle.body4(Bitcoin.black),
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Value',
                 hintText: 'Enter the field value',
               ),
