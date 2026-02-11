@@ -1,6 +1,6 @@
 use crate::{api::outputs::OwnedOutPoints, state::StateUpdater, wallet::KEEP_SCANNING};
 use anyhow::Result;
-use blindbit_backend::BlindbitBackend;
+use backend_blindbit_v1::BlindbitBackend;
 use spdk_core::{bitcoin::absolute::Height, ChainBackend, SpScanner};
 
 use super::SpWallet;
