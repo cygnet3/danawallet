@@ -372,6 +372,20 @@ Widget danaAddressAsRichText(String danaAddress, double? fontSize) {
   );
 }
 
+Text danaAddressAsSubtitle(String danaAddress,
+    {int maxChars = 32, double? fontSize}) {
+  final truncated = danaAddress.length <= maxChars
+      ? danaAddress
+      : '${danaAddress.substring(0, maxChars)}...';
+  return Text(
+    truncated,
+    style:
+        BitcoinTextStyle.body4(Bitcoin.neutral7).copyWith(fontSize: fontSize),
+    overflow: TextOverflow.ellipsis,
+    maxLines: 1,
+  );
+}
+
 String displayAddress(BuildContext context, String address, TextStyle style,
     double widthFraction) {
   // split the address into chunks of size 4
