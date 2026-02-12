@@ -7,11 +7,11 @@ use spdk_core::{
         self,
         absolute::Height,
         consensus::{deserialize, serialize},
-        hex::{self, DisplayHex, FromHex},
+        hex::{DisplayHex, FromHex},
         secp256k1::SecretKey,
-        Network, OutPoint, ScriptBuf, Txid,
+        BlockHash, Network, OutPoint, ScriptBuf, Txid,
     },
-    OutputSpendStatus, OwnedOutput, Recipient, SilentPaymentUnsignedTransaction,
+    OwnedOutput, Recipient, SilentPaymentUnsignedTransaction, SpendInfo,
 };
 
 use crate::state::constants::{
@@ -29,30 +29,28 @@ pub enum ApiOutputSpendStatus {
     Mined(MinedInBlock),
 }
 
-impl From<OutputSpendStatus> for ApiOutputSpendStatus {
-    fn from(value: OutputSpendStatus) -> Self {
-        match value {
-            OutputSpendStatus::Unspent => ApiOutputSpendStatus::Unspent,
-            OutputSpendStatus::Spent(txid) => {
-                ApiOutputSpendStatus::Spent(txid.to_lower_hex_string())
-            }
-            OutputSpendStatus::Mined(block) => {
-                ApiOutputSpendStatus::Mined(block.to_lower_hex_string())
-            }
+impl From<SpendInfo> for ApiOutputSpendStatus {
+    fn from(value: SpendInfo) -> Self {
+        match (value.spending_txid, value.mined_in_block) {
+            (None, None) => ApiOutputSpendStatus::Unspent,
+            (Some(txid), None) => ApiOutputSpendStatus::Spent(txid.to_string()),
+            (_, Some(block)) => ApiOutputSpendStatus::Mined(block.to_string()),
         }
     }
 }
 
-impl From<ApiOutputSpendStatus> for OutputSpendStatus {
+impl From<ApiOutputSpendStatus> for SpendInfo {
     fn from(value: ApiOutputSpendStatus) -> Self {
         match value {
-            ApiOutputSpendStatus::Unspent => OutputSpendStatus::Unspent,
-            ApiOutputSpendStatus::Spent(txid) => {
-                OutputSpendStatus::Spent(hex::FromHex::from_hex(&txid).unwrap())
-            }
-            ApiOutputSpendStatus::Mined(block) => {
-                OutputSpendStatus::Mined(hex::FromHex::from_hex(&block).unwrap())
-            }
+            ApiOutputSpendStatus::Unspent => SpendInfo::new_empty(),
+            ApiOutputSpendStatus::Spent(txid) => SpendInfo {
+                spending_txid: Some(Txid::from_str(&txid).unwrap()),
+                mined_in_block: None,
+            },
+            ApiOutputSpendStatus::Mined(block) => SpendInfo {
+                spending_txid: None,
+                mined_in_block: Some(BlockHash::from_str(&block).unwrap()),
+            },
         }
     }
 }
@@ -115,7 +113,7 @@ impl From<OwnedOutput> for ApiOwnedOutput {
             amount: value.amount.into(),
             script: value.script.to_hex_string(),
             label: value.label.map(|l| l.as_string()),
-            spend_status: value.spend_status.into(),
+            spend_status: value.spend_info.into(),
         }
     }
 }
@@ -128,7 +126,7 @@ impl From<ApiOwnedOutput> for OwnedOutput {
             amount: value.amount.into(),
             script: ScriptBuf::from_hex(&value.script).unwrap(),
             label: value.label.map(|l| l.try_into().unwrap()),
-            spend_status: value.spend_status.into(),
+            spend_info: value.spend_status.into(),
         }
     }
 }
