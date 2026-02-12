@@ -6,8 +6,8 @@ use std::{
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use spdk_core::{
-    bitcoin::{absolute::Height, hashes::Hash, hex::DisplayHex, Amount, BlockHash, OutPoint, Txid},
-    OutputSpendStatus, OwnedOutput,
+    bitcoin::{absolute::Height, Amount, BlockHash, OutPoint, Txid},
+    OwnedOutput, SpendInfo,
 };
 
 use anyhow::{Error, Result};
@@ -109,7 +109,7 @@ impl OwnedOutputs {
     pub fn get_unspent_amount(&self) -> ApiAmount {
         self.0
             .values()
-            .filter(|x| x.spend_status == OutputSpendStatus::Unspent)
+            .filter(|x| x.is_unspent())
             .fold(Amount::ZERO, |acc, x| acc + x.amount)
             .into()
     }
@@ -118,7 +118,7 @@ impl OwnedOutputs {
     pub fn get_unspent_outputs(&self) -> HashMap<String, ApiOwnedOutput> {
         let mut res = HashMap::new();
         for (outpoint, output) in self.0.iter() {
-            if output.spend_status == OutputSpendStatus::Unspent {
+            if output.is_unspent() {
                 res.insert(outpoint.to_string(), output.clone().into());
             }
         }
@@ -130,10 +130,7 @@ impl OwnedOutputs {
     pub fn get_unconfirmed_spent_outpoints(&self) -> OwnedOutPoints {
         let mut res = HashSet::new();
         for (outpoint, output) in self.0.iter() {
-            if matches!(
-                output.spend_status,
-                OutputSpendStatus::Spent(_) | OutputSpendStatus::Unspent
-            ) {
+            if output.is_unspent() || output.is_spent_unconfirmed() {
                 res.insert(*outpoint);
             }
         }
@@ -149,8 +146,7 @@ impl OwnedOutputs {
             .get_mut(&outpoint)
             .ok_or(Error::msg("Outpoint not in list"))?;
 
-        output.spend_status =
-            OutputSpendStatus::Mined(mined_in_block.as_raw_hash().to_byte_array());
+        output.spend_info.mined_in_block = Some(mined_in_block);
         Ok(())
     }
 
@@ -164,7 +160,7 @@ impl OwnedOutputs {
             .get_mut(&outpoint)
             .ok_or(Error::msg("Outpoint not in list"))?;
 
-        output.spend_status = OutputSpendStatus::Unspent;
+        output.spend_info = SpendInfo::new_empty();
         Ok(())
     }
 
@@ -179,30 +175,17 @@ impl OwnedOutputs {
             .get_mut(&outpoint)
             .ok_or(Error::msg("Outpoint not in list"))?;
 
-        match &output.spend_status {
-            OutputSpendStatus::Unspent => {
-                output.spend_status =
-                    OutputSpendStatus::Spent(spending_tx.as_raw_hash().to_byte_array());
-                //self.outputs.insert(outpoint, output);
-                Ok(())
-            }
-            OutputSpendStatus::Spent(spending_tx) => {
-                // We may want to fail if that's the case, or force update if we know what we're doing
-                if force_update {
-                    output.spend_status = OutputSpendStatus::Spent(*spending_tx);
-                    //self.outputs.insert(outpoint, output);
-                    Ok(())
-                } else {
-                    Err(Error::msg(format!(
-                        "Output already spent by transaction {}",
-                        spending_tx.to_lower_hex_string()
-                    )))
-                }
-            }
-            OutputSpendStatus::Mined(block) => Err(Error::msg(format!(
-                "Output already mined in block {}",
-                block.to_lower_hex_string()
-            ))),
+        if output.is_unspent() || output.is_spent_unconfirmed() && force_update {
+            output.spend_info = SpendInfo {
+                spending_txid: Some(spending_tx),
+                mined_in_block: None,
+            };
+            Ok(())
+        } else {
+            Err(Error::msg(format!(
+                "Unexpected spend status: {:?}",
+                output.spend_info
+            )))
         }
     }
 
