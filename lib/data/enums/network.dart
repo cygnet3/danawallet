@@ -92,6 +92,19 @@ enum Network {
     }
   }
 
+  int get defaultTimestamp {
+    switch (this) {
+      case Network.mainnet:
+        return defaultMainnetTimestamp;
+      case Network.testnet:
+        return defaultTestnetTimestamp;
+      case Network.signet:
+        return defaultSignetTimestamp;
+      case Network.regtest:
+        return defaultRegtestTimestamp;
+    }
+  }
+
   static Network fromCoreArg(String network) {
     switch (network) {
       case 'main':

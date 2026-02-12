@@ -70,14 +70,11 @@ class ScanProgressNotifier extends ChangeNotifier {
 
       final lastScan = walletState.lastScan;
 
-      final ownedOutPoints =
-          walletState.ownedOutputs.getUnconfirmedSpentOutpoints();
-
       activate(walletState.lastScan);
       await wallet.scanToTip(
           blindbitUrl: blindbitUrl,
           dustLimit: BigInt.from(dustLimit),
-          ownedOutpoints: ownedOutPoints,
+          ownedOutpoints: walletState.outpointsToScan,
           lastScan: lastScan);
     } catch (e) {
       deactivate();
