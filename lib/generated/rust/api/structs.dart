@@ -46,26 +46,13 @@ class ApiAmount {
           field0 == other.field0;
 }
 
-@freezed
-sealed class ApiOutputSpendStatus with _$ApiOutputSpendStatus {
-  const ApiOutputSpendStatus._();
-
-  const factory ApiOutputSpendStatus.unspent() = ApiOutputSpendStatus_Unspent;
-  const factory ApiOutputSpendStatus.spent(
-    String field0,
-  ) = ApiOutputSpendStatus_Spent;
-  const factory ApiOutputSpendStatus.mined(
-    String field0,
-  ) = ApiOutputSpendStatus_Mined;
-}
-
 class ApiOwnedOutput {
   final int blockheight;
   final U8Array32 tweak;
   final ApiAmount amount;
   final String script;
   final String? label;
-  final ApiOutputSpendStatus spendStatus;
+  final ApiSpendInfo spendInfo;
 
   const ApiOwnedOutput({
     required this.blockheight,
@@ -73,7 +60,7 @@ class ApiOwnedOutput {
     required this.amount,
     required this.script,
     this.label,
-    required this.spendStatus,
+    required this.spendInfo,
   });
 
   @override
@@ -83,7 +70,7 @@ class ApiOwnedOutput {
       amount.hashCode ^
       script.hashCode ^
       label.hashCode ^
-      spendStatus.hashCode;
+      spendInfo.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -95,7 +82,7 @@ class ApiOwnedOutput {
           amount == other.amount &&
           script == other.script &&
           label == other.label &&
-          spendStatus == other.spendStatus;
+          spendInfo == other.spendInfo;
 }
 
 class ApiRecipient {
@@ -137,12 +124,14 @@ sealed class ApiRecordedTransaction with _$ApiRecordedTransaction {
 class ApiRecordedTransactionIncoming {
   final String txid;
   final ApiAmount amount;
-  final int? confirmedAt;
+  final int? confirmationHeight;
+  final String? confirmationBlockhash;
 
   const ApiRecordedTransactionIncoming({
     required this.txid,
     required this.amount,
-    this.confirmedAt,
+    this.confirmationHeight,
+    this.confirmationBlockhash,
   });
 
   String toString() => RustLib.instance.api
@@ -151,7 +140,11 @@ class ApiRecordedTransactionIncoming {
       );
 
   @override
-  int get hashCode => txid.hashCode ^ amount.hashCode ^ confirmedAt.hashCode;
+  int get hashCode =>
+      txid.hashCode ^
+      amount.hashCode ^
+      confirmationHeight.hashCode ^
+      confirmationBlockhash.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -160,14 +153,16 @@ class ApiRecordedTransactionIncoming {
           runtimeType == other.runtimeType &&
           txid == other.txid &&
           amount == other.amount &&
-          confirmedAt == other.confirmedAt;
+          confirmationHeight == other.confirmationHeight &&
+          confirmationBlockhash == other.confirmationBlockhash;
 }
 
 class ApiRecordedTransactionOutgoing {
   final String txid;
   final List<String> spentOutpoints;
   final List<ApiRecipient> recipients;
-  final int? confirmedAt;
+  final int? confirmationHeight;
+  final String? confirmationBlockhash;
   final ApiAmount change;
   final ApiAmount fee;
 
@@ -175,7 +170,8 @@ class ApiRecordedTransactionOutgoing {
     required this.txid,
     required this.spentOutpoints,
     required this.recipients,
-    this.confirmedAt,
+    this.confirmationHeight,
+    this.confirmationBlockhash,
     required this.change,
     required this.fee,
   });
@@ -195,7 +191,8 @@ class ApiRecordedTransactionOutgoing {
       txid.hashCode ^
       spentOutpoints.hashCode ^
       recipients.hashCode ^
-      confirmedAt.hashCode ^
+      confirmationHeight.hashCode ^
+      confirmationBlockhash.hashCode ^
       change.hashCode ^
       fee.hashCode;
 
@@ -207,19 +204,22 @@ class ApiRecordedTransactionOutgoing {
           txid == other.txid &&
           spentOutpoints == other.spentOutpoints &&
           recipients == other.recipients &&
-          confirmedAt == other.confirmedAt &&
+          confirmationHeight == other.confirmationHeight &&
+          confirmationBlockhash == other.confirmationBlockhash &&
           change == other.change &&
           fee == other.fee;
 }
 
 class ApiRecordedTransactionUnknownOutgoing {
   final ApiAmount amount;
-  final int confirmedAt;
+  final int confirmationHeight;
+  final String confirmationBlockhash;
   final List<String> spentOutpoints;
 
   const ApiRecordedTransactionUnknownOutgoing({
     required this.amount,
-    required this.confirmedAt,
+    required this.confirmationHeight,
+    required this.confirmationBlockhash,
     required this.spentOutpoints,
   });
 
@@ -230,7 +230,10 @@ class ApiRecordedTransactionUnknownOutgoing {
 
   @override
   int get hashCode =>
-      amount.hashCode ^ confirmedAt.hashCode ^ spentOutpoints.hashCode;
+      amount.hashCode ^
+      confirmationHeight.hashCode ^
+      confirmationBlockhash.hashCode ^
+      spentOutpoints.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -238,7 +241,8 @@ class ApiRecordedTransactionUnknownOutgoing {
       other is ApiRecordedTransactionUnknownOutgoing &&
           runtimeType == other.runtimeType &&
           amount == other.amount &&
-          confirmedAt == other.confirmedAt &&
+          confirmationHeight == other.confirmationHeight &&
+          confirmationBlockhash == other.confirmationBlockhash &&
           spentOutpoints == other.spentOutpoints;
 }
 
@@ -295,6 +299,30 @@ class ApiSilentPaymentUnsignedTransaction {
           partialSecret == other.partialSecret &&
           unsignedTx == other.unsignedTx &&
           network == other.network;
+}
+
+class ApiSpendInfo {
+  final String? spendingTxid;
+  final String? minedInBlock;
+
+  const ApiSpendInfo({
+    this.spendingTxid,
+    this.minedInBlock,
+  });
+
+  static Future<ApiSpendInfo> default_() =>
+      RustLib.instance.api.crateApiStructsApiSpendInfoDefault();
+
+  @override
+  int get hashCode => spendingTxid.hashCode ^ minedInBlock.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ApiSpendInfo &&
+          runtimeType == other.runtimeType &&
+          spendingTxid == other.spendingTxid &&
+          minedInBlock == other.minedInBlock;
 }
 
 enum FiatCurrency {

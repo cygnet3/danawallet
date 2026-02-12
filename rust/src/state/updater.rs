@@ -39,23 +39,27 @@ impl StateUpdater {
         if self.update {
             self.update = false;
 
-            let blkhash = self.blkhash.ok_or(anyhow::Error::msg("blkhash not set"))?;
+            let blkhash = self.blkhash.take();
 
             self.blkheight = None;
-            self.blkhash = None;
 
             // take results, and insert new empty values
             let found_inputs = mem::take(&mut self.found_inputs);
             let found_outputs = mem::take(&mut self.found_outputs);
 
-            Ok(StateUpdate::Update {
+            Ok(StateUpdate::from_internal(
                 blkheight,
                 blkhash,
                 found_outputs,
                 found_inputs,
-            })
+            ))
         } else {
-            Ok(StateUpdate::NoUpdate { blkheight })
+            Ok(StateUpdate::from_internal(
+                blkheight,
+                None,
+                HashMap::new(),
+                HashSet::new(),
+            ))
         }
     }
 }

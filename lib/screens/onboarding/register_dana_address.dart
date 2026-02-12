@@ -3,7 +3,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bitcoin_ui/bitcoin_ui.dart';
 import 'package:danawallet/constants.dart';
 import 'package:danawallet/global_functions.dart';
-import 'package:danawallet/repositories/wallet_repository.dart';
 import 'package:danawallet/screens/onboarding/onboarding_skeleton.dart';
 import 'package:danawallet/services/dana_address_service.dart';
 import 'package:danawallet/states/contacts_state.dart';
@@ -317,9 +316,6 @@ class _RegisterDanaAddressScreenState extends State<RegisterDanaAddressScreen> {
       final registeredAddress = walletState.danaAddress;
       if (registeredAddress != null) {
         Logger().i('Registration successful: $registeredAddress');
-
-        // Persist the dana address to storage (already done by registerDanaAddress, but ensure consistency)
-        await WalletRepository.instance.saveDanaAddress(registeredAddress);
 
         // Set the dana address for the 'you' user
         contactsState.setYouContactDanaAddress(registeredAddress);
